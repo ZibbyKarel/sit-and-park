@@ -229,9 +229,9 @@ test('a preferred parking spot persists across a reload, then clears back to no 
 
   await userTwoPage.reload();
   const settingsAfterReload = await openSettings(userTwoPage);
-  await expect(settingsAfterReload.getByLabel('Preferované parkovací místo')).toContainText(
-    PREFERRED_SPOT_OPTION
-  );
+  await expect(
+    settingsAfterReload.getByRole('button', { name: 'Preferované parkovací místo' })
+  ).toContainText(PREFERRED_SPOT_OPTION);
 
   await selectOption(userTwoPage, 'Preferované parkovací místo', 'Bez preference');
   await settingsAfterReload.getByRole('button', { name: 'Uložit' }).click();
@@ -239,9 +239,9 @@ test('a preferred parking spot persists across a reload, then clears back to no 
 
   await userTwoPage.reload();
   const settingsFinal = await openSettings(userTwoPage);
-  await expect(settingsFinal.getByLabel('Preferované parkovací místo')).toContainText(
-    'Bez preference'
-  );
+  await expect(
+    settingsFinal.getByRole('button', { name: 'Preferované parkovací místo' })
+  ).toContainText('Bez preference');
   await settingsFinal.getByRole('button', { name: 'Zrušit', exact: true }).click();
   await expect(settingsFinal).toBeHidden();
 });

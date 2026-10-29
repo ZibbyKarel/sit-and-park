@@ -129,10 +129,11 @@ test('the day-count stepper is pinned at its maximum and cannot be pushed higher
   adminPage,
 }) => {
   const panel = await goToAdminTab(adminPage, WINDOW_TAB);
-  // cs.json: admin.windowDaysLabel — the stepper's accessible name, a literal
-  // caption ("Otevřít X dní předem"), not an interpolated one.
-  const spinbutton = panel.getByRole('spinbutton', { name: 'Otevřít X dní předem' });
-  const increment = panel.getByRole('button', { name: 'O den více' });
+  // cs.json: admin.windowDaysLabel — the counter's accessible name, a literal
+  // caption ("Otevřít X dní předem"), not an interpolated one. `CounterInput`
+  // renders a textbox and names its buttons itself ("Zvýšit <label> na …").
+  const input = panel.getByRole('textbox', { name: 'Otevřít X dní předem' });
+  const increment = panel.getByRole('button', { name: /^Zvýšit Otevřít X dní předem/u });
 
   // `reset-e2e.ts` always seeds `openDaysBefore` at `MAX_OPEN_DAYS_BEFORE`
   // (31), and nothing in this file ever lowers it — asserting the guard at
@@ -141,10 +142,10 @@ test('the day-count stepper is pinned at its maximum and cannot be pushed higher
   // putting the target month's window at risk. `windowDaysValue`'s ICU plural
   // puts 31 in the `other` bucket in Czech (`Intl.PluralRules('cs')`: only 1
   // is "one", 2–4 is "few"), hence "31 dní" rather than "31 den"/"31 dny".
-  await expect(spinbutton).toHaveAttribute('aria-valuenow', '31');
-  await expect(spinbutton).toHaveText('31 dní');
-  // `Stepper` disables its `+` button once `current >= max` (`stepper.tsx`),
-  // so this can never fire a write — nothing here needs restoring.
+  await expect(input).toHaveValue('31');
+  await expect(panel.getByText('31 dní', { exact: true })).toBeVisible();
+  // `CounterInput` disables its `+` button at `max`, so this can never fire a
+  // write — nothing here needs restoring.
   await expect(increment).toBeDisabled();
 });
 
