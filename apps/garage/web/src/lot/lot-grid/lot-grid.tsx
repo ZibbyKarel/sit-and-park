@@ -37,13 +37,7 @@ export function LotGrid({ groups, onOpenSpot, onAdminOpenSpot }: LotGridProps) {
   const t = useTranslations('lot');
 
   return (
-    <Box
-      padding={4}
-      radius="lg"
-      shadow="lg"
-      // eslint-disable-next-line no-restricted-syntax -- `.lot-asphalt`: the map's painted surface (two offset dot-grid backgrounds, plus the dark `neutral-600` fill `Box`'s background prop cannot reach — its `background` only names design-system surface tokens, not an arbitrary neutral step).
-      className="lot-asphalt"
-    >
+    <Box padding={4} radius="lg" shadow="lg" className="lot-asphalt">
       {groups.map((group) => (
         // `Box` now takes `as="section"`, so the landmark region — named by
         // `aria-label`, which a plain `<div>` would drop from the
@@ -58,7 +52,6 @@ export function LotGrid({ groups, onOpenSpot, onAdminOpenSpot }: LotGridProps) {
           padding={[4, 3, 5, 3]}
           margin={[0, 0, 5, 0]}
           radius="md"
-          // eslint-disable-next-line no-restricted-syntax -- `.lot-group-panel`: a tinted border/background over the asphalt at an alpha step `Box`'s `border`/`background` props cannot reach (fixed tones, no alpha channel).
           className="lot-group-panel"
         >
           {/*
@@ -78,22 +71,13 @@ export function LotGrid({ groups, onOpenSpot, onAdminOpenSpot }: LotGridProps) {
               >
                 {group.group}
               </Text>
-              <span
-                aria-hidden="true"
-                // eslint-disable-next-line no-restricted-syntax -- `.lot-group-rule`: the hairline under the band's name, an unbordered filled rule at an alpha step `Divider`'s two fixed tones don't cover.
-                className="lot-group-rule"
-              />
+              <span aria-hidden="true" className="lot-group-rule" />
               <Text as="span" size="xs" tone="inverse-50">
                 {t('groupFree', { free: group.freeCount, total: group.totalCount })}
               </Text>
             </Stack>
 
-            <Stack
-              direction="row"
-              wrap
-              // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-row`: the painted line at the row's left edge (`--lot-line-w`), matching each bay's own right/top lines — domain geometry, no `Stack` prop for a border.
-              className="lot-bay-row"
-            >
+            <Stack direction="row" wrap className="lot-bay-row">
               {group.spots.map((spot) => (
                 <SpotTile
                   key={spot.spotId}
@@ -111,31 +95,19 @@ export function LotGrid({ groups, onOpenSpot, onAdminOpenSpot }: LotGridProps) {
       <Box padding={[0, 1]}>
         <List as="ul" direction="row" wrap spacing={5}>
           <ListItem direction="row" align="center" spacing={2}>
-            <span
-              aria-hidden="true"
-              // eslint-disable-next-line no-restricted-syntax -- `.lot-swatch`/`.lot-swatch--taken`: a paint sample of the map's own "taken" colour, below `IconCircle`'s smallest step.
-              className="lot-swatch lot-swatch--taken"
-            />
+            <span aria-hidden="true" className="lot-swatch lot-swatch--taken" />
             <Text as="span" size="xs" tone="inverse-70">
               {t('legendTaken')}
             </Text>
           </ListItem>
           <ListItem direction="row" align="center" spacing={2}>
-            <span
-              aria-hidden="true"
-              // eslint-disable-next-line no-restricted-syntax -- `.lot-swatch`/`.lot-swatch--free`: a paint sample of the map's own dashed "free" outline, below `IconCircle`'s smallest step and needing a dashed border no primitive exposes.
-              className="lot-swatch lot-swatch--free"
-            />
+            <span aria-hidden="true" className="lot-swatch lot-swatch--free" />
             <Text as="span" size="xs" tone="inverse-70">
               {t('legendFree')}
             </Text>
           </ListItem>
           <ListItem direction="row" align="center" spacing={2}>
-            <span
-              aria-hidden="true"
-              // eslint-disable-next-line no-restricted-syntax -- `.lot-swatch`/`.lot-swatch--waitlist`: a paint sample of the map's own "waitlist" colour, below `IconCircle`'s smallest step.
-              className="lot-swatch lot-swatch--waitlist"
-            />
+            <span aria-hidden="true" className="lot-swatch lot-swatch--waitlist" />
             <Text as="span" size="xs" tone="inverse-70">
               {t('legendWaitlist')}
             </Text>

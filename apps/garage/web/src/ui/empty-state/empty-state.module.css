@@ -1,0 +1,27 @@
+.root {
+  padding: var(--spacing-xl);
+  text-align: center;
+}
+.root[data-size='sm'] {
+  padding-block: 32px;
+}
+.root[data-size='md'] {
+  padding-block: 64px;
+}
+
+.icon {
+  display: inline-flex;
+  color: rgb(var(--foreground--neutral-high-default--light));
+}
+.icon > svg {
+  width: 32px;
+  height: 32px;
+}
+
+.description {
+  max-width: 46ch;
+}
+
+.action {
+  margin-top: var(--spacing-sm);
+}

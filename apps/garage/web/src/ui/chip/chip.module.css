@@ -1,0 +1,48 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+  color: rgb(var(--foreground--neutral-full-default--light));
+  border-radius: 9999px;
+}
+
+/* `md` is taller than `lg` yet uses the larger type size, as the design draws it. */
+.root[data-size='sm'] {
+  height: 32px;
+  padding: 0 var(--spacing-md);
+  font-size: 14px;
+}
+.root[data-size='md'] {
+  height: 36px;
+  padding: 0 var(--spacing-lg);
+  font-size: 16px;
+}
+.root[data-size='lg'] {
+  height: 40px;
+  padding: 0 var(--spacing-lg);
+  font-size: 14px;
+}
+
+.root[data-tone='outline'] {
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+}
+.root[data-tone='muted'] {
+  background-color: rgb(var(--background--neutral-low-default--light));
+}
+
+.root[data-weight='medium'] {
+  font-weight: 500;
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+}
+.dot[data-dot='green'] {
+  background-color: rgb(var(--background--success-high-default--light));
+}
+.dot[data-dot='blue'] {
+  background-color: rgb(var(--background--controls-medium-default--light));
+}

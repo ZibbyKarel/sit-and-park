@@ -56,6 +56,19 @@ const esmOnlyPackages = [
   'oauth4webapi',
   '@panva',
   'preact',
+  // `@shoptet/ui` and what it is built on. The package is `"type": "module"`
+  // and every React Aria / React Stately package it pulls in is ESM-first.
+  '@shoptet',
+  '@react-aria',
+  '@react-stately',
+  '@react-types',
+  '@internationalized',
+  'react-aria',
+  'react-aria-components',
+  'react-stately',
+  // Vendored inside `@shoptet/ui/dist/node_modules/.pnpm/`.
+  'culori',
+  '@github',
   // `@garage/design-system/compounds` — `DataTable`, reached through the
   // barrel by anything importing `EmptyState`. Only these four `@tanstack`
   // packages, never the whole scope: `@tanstack/react-query` ships a `require`

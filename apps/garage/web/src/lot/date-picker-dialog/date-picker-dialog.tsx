@@ -158,7 +158,6 @@ function DatePickerDialogContent({
         </Stack>
       </Box>
 
-      {/* eslint-disable-next-line no-restricted-syntax -- `.calendar-grid` is the one class the design system cannot express (border-spacing has no token utility); see global.css */}
       <table className="calendar-grid">
         <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
         <thead>

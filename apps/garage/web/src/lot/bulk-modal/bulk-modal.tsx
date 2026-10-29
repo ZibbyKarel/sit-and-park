@@ -609,7 +609,6 @@ function BulkReservationModalContent({
         `app/global.css` (owned by another agent in this rewrite) rather than
         as an inline utility string here.
       */}
-      {/* eslint-disable-next-line no-restricted-syntax -- `.calendar-grid` is the one class the design system cannot express (border-spacing has no token utility); see global.css */}
       <table className="calendar-grid">
         <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
         <thead>

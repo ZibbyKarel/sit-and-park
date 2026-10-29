@@ -6,6 +6,7 @@ import { loadMessages } from '../i18n/load-messages';
 import { resolveRequestLocale } from '../i18n/resolve-locale';
 import { Providers } from './providers';
 import type csMessages from '../../messages/cs.json';
+import '@shoptet/ui/index.css';
 import './global.css';
 
 /**

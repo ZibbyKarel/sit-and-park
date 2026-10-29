@@ -1,0 +1,26 @@
+.bolt,
+.eyeOff {
+  flex-shrink: 0;
+}
+
+.bolt[data-size='sm'],
+.eyeOff[data-size='sm'] {
+  width: 16px;
+  height: 16px;
+}
+.bolt[data-size='md'],
+.eyeOff[data-size='md'] {
+  width: 20px;
+  height: 20px;
+}
+
+/* The dark outline carries the green on a white table row, where green alone is 1.88:1. */
+.bolt {
+  fill: #00db33;
+  stroke: #0d0d0d;
+}
+
+.eyeOff {
+  fill: none;
+  stroke: #fff;
+}

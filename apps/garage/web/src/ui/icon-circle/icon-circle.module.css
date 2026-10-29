@@ -1,0 +1,79 @@
+.root {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+}
+
+.root[data-size='xs'] {
+  width: 20px;
+  height: 20px;
+}
+.root[data-size='sm'] {
+  width: 24px;
+  height: 24px;
+}
+.root[data-size='md'] {
+  width: 32px;
+  height: 32px;
+}
+.root[data-size='lg'] {
+  width: 48px;
+  height: 48px;
+}
+
+.root[data-shape='square'] {
+  border-radius: var(--border-radius-border-radius-4);
+}
+.root[data-shape='circle'] {
+  border-radius: 9999px;
+}
+
+.root[data-tone='yellow'] {
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: rgb(var(--background--warning-low-default--light));
+}
+.root[data-tone='green'] {
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: rgb(var(--background--success-high-default--light));
+}
+.root[data-tone='blue'] {
+  color: rgb(var(--background--neutral-base-default--light));
+  background-color: rgb(var(--background--controls-medium-default--light));
+}
+.root[data-tone='translucent'] {
+  background-color: rgb(255 255 255 / 15%);
+}
+.root[data-tone='translucent-light'] {
+  background-color: rgb(255 255 255 / 20%);
+}
+
+.root[data-font-size='xs'] {
+  font-size: 12px;
+}
+.root[data-font-size='sm'] {
+  font-size: 14px;
+}
+.root[data-font-size='base'] {
+  font-size: 16px;
+}
+.root[data-font-size='md'] {
+  font-size: 18px;
+}
+.root[data-font-size='xl'] {
+  font-size: 20px;
+}
+.root[data-font-size='2xl'] {
+  font-size: 24px;
+}
+
+.root[data-weight='normal'] {
+  font-weight: 400;
+}
+.root[data-weight='bold'] {
+  font-weight: 700;
+}
+
+.root[data-leading='none'] {
+  line-height: 1;
+}

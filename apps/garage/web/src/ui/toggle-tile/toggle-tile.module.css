@@ -1,0 +1,78 @@
+.root {
+  font: inherit;
+  cursor: pointer;
+  border: 1px solid transparent;
+}
+
+.root:focus-visible {
+  outline: 2px solid rgb(var(--border--controls-medium-selected--light));
+  outline-offset: -2px;
+}
+
+.root[data-transition='base'] {
+  transition: all 200ms ease-out;
+}
+.root[data-transition='fast'] {
+  transition: all 120ms ease-out;
+}
+
+.root[data-shape='cell'] {
+  width: 100%;
+  height: 44px;
+  font-size: 16px;
+  font-weight: 700;
+  border-radius: var(--border-radius-border-radius-8);
+}
+.root[data-shape='cell'][data-state='selected'] {
+  color: rgb(var(--background--neutral-base-default--light));
+  background-color: rgb(var(--background--controls-medium-default--light));
+  border-color: rgb(var(--background--controls-medium-default--light));
+}
+.root[data-shape='cell'][data-state='unselected'] {
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border-color: rgb(var(--border--neutral-low-default--light));
+}
+.root[data-shape='cell'][data-state='unselected']:hover {
+  background-color: rgb(var(--background--neutral-low-default--light));
+}
+.root[data-shape='cell'][data-state='inactive'] {
+  color: rgb(var(--foreground--neutral-high-default--light));
+  cursor: default;
+  background-color: rgb(var(--background--neutral-low-default--light));
+}
+/* Dark text clears 3:1 on every car colour; the muted foreground does not. */
+.root[data-shape='cell'][data-state='inactive'][data-accent] {
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: var(--tile-accent);
+}
+
+.root[data-shape='pill'] {
+  display: inline-flex;
+  align-items: center;
+  height: 44px;
+  padding: 0 var(--spacing-xl);
+  font-size: 14px;
+  border-radius: 9999px;
+}
+.root[data-shape='pill'][data-state='selected'] {
+  font-weight: 700;
+  color: rgb(var(--background--neutral-base-default--light));
+  background-color: rgb(var(--background--controls-medium-default--light));
+}
+.root[data-shape='pill'][data-state='unselected'] {
+  font-weight: 500;
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border-color: rgb(var(--border--neutral-low-default--light));
+}
+.root[data-shape='pill'][data-state='unselected']:hover {
+  border-color: rgb(var(--border--neutral-full-hovered--light));
+}
+.root[data-shape='pill'][data-state='inactive'] {
+  font-weight: 500;
+  color: rgb(var(--foreground--neutral-high-default--light));
+  cursor: not-allowed;
+  background-color: rgb(var(--background--neutral-low-default--light));
+  border-color: rgb(var(--border--neutral-low-default--light));
+}

@@ -105,7 +105,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
           .join(', ');
 
   return (
-    // eslint-disable-next-line no-restricted-syntax -- `.lot-bay`: the painted divider lines between bays and at the kerb (`--lot-line-w`/`--lot-kerb-w`), plus the bay's own stretch/max-width pair — domain geometry, no `Box` prop for either.
     <div className="lot-bay">
       <button
         type="button"
@@ -114,7 +113,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
           onOpen(spot.spotId);
         }}
         aria-label={accessibleName}
-        // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-button` is the bay's own native-button chrome (height, gap, hover/disabled paint); `INSET_FOCUS_RING` is the design system's exported focus-ring constant, not a hand-picked utility.
         className={cx('lot-bay-button', INSET_FOCUS_RING)}
       >
         <Text as="span" size="sm" weight="bold" tracking="wide" tone="inverse-80">
@@ -133,7 +131,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
             align="center"
             justify="center"
             spacing={3}
-            // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-free`: dashed outline, width/flex-sizing and inherited colour — see the comment above.
             className="lot-bay-free"
           >
             <IconCircle
@@ -162,7 +159,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
             align="center"
             justify="center"
             spacing={1}
-            // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-free`: reused as-is for this appearance too, see the comment above.
             className="lot-bay-free"
           >
             {spot.timedBlocks.slice(0, 2).map((block) => (
@@ -190,7 +186,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
             align="center"
             justify="start"
             spacing={2}
-            // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-taken`: the width/flex-sizing pair only — see the comment above.
             className="lot-bay-taken"
           >
             <CarGlyph colorVar={spot.carColorClass} />
@@ -222,7 +217,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
             align="center"
             justify="center"
             spacing={3}
-            // eslint-disable-next-line no-restricted-syntax -- `.lot-bay-locked`: solid tinted outline, width/flex-sizing and inherited colour — see the comment above.
             className="lot-bay-locked"
           >
             <IconCircle size="md" shape="circle" tone="translucent">
@@ -247,7 +241,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
             align="center"
             justify="center"
             spacing={3}
-            // eslint-disable-next-line no-restricted-syntax -- `.lot-hatch`/`.lot-bay-editing`: the hatched fill plus this state's own yellow outline and width/flex-sizing pair — see the comment above.
             className={cx('lot-hatch', 'lot-bay-editing')}
           >
             <IconCircle size="md" shape="circle" tone="yellow" fontSize="base" weight="bold">
@@ -291,7 +284,6 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
                   onAdminOpen(spot.spotId);
                 }}
                 aria-label={t('spotMenu', { label: spot.label })}
-                // eslint-disable-next-line no-restricted-syntax -- `.lot-spot-menu`: the admin `⋯` control's own chrome (size, translucent fill, hover inversion) — no icon-button primitive exists for it, see the report.
                 className="lot-spot-menu"
               >
                 ⋯

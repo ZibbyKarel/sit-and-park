@@ -31,7 +31,6 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
       viewBox="-4 0 66 104"
       width="62"
       height="98"
-      // eslint-disable-next-line no-restricted-syntax -- `.lot-car`: the glyph's own drop shadow, an illustration property no design-system prop expresses.
       className="lot-car"
     >
       {/* wing mirrors, behind the body */}
