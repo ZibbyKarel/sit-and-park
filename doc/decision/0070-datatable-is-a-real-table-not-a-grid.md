@@ -1,5 +1,7 @@
 # 0070 – `DataTable` renders a real `<table>`, not the design's CSS grid
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `DataTable` renders semantic `<table>` / `<thead>` / `<tr>` / `<th>` / `<td>`

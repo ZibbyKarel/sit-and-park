@@ -1,0 +1,61 @@
+.root {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-md);
+  width: 100%;
+  max-width: 360px;
+  padding: var(--spacing-lg);
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-8);
+  box-shadow: var(--shadow--medium-soft--light), var(--shadow--medium-sharp--light);
+}
+
+.root[data-tone='info'] {
+  background-color: rgb(var(--background--informative-low-default--light));
+  border-color: rgb(var(--border--informative-strong-default--light));
+}
+.root[data-tone='success'] {
+  background-color: rgb(var(--background--success-low-default--light));
+  border-color: rgb(var(--border--success-high-default--light));
+}
+.root[data-tone='warning'] {
+  background-color: rgb(var(--background--warning-low-default--light));
+  border-color: rgb(var(--border--warning-medium-default--light));
+}
+.root[data-tone='danger'] {
+  background-color: rgb(var(--background--critical-low-default--light));
+  border-color: rgb(var(--border--critical-high-default--light));
+}
+
+.icon {
+  display: inline-flex;
+  flex-shrink: 0;
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  min-width: 0;
+}
+
+/* Above the modal layer, so a notice raised from inside a dialog stays visible. */
+.region {
+  position: fixed;
+  top: var(--spacing-xl);
+  right: var(--spacing-xl);
+  z-index: calc(var(--elevation--modal) + 1);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  pointer-events: none;
+}
+
+/* The region itself passes clicks through; only the toasts catch them. */
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  pointer-events: auto;
+}

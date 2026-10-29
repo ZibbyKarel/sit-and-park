@@ -1,5 +1,7 @@
 # 0310 – The workspace is namespaced to host two applications
 
+> Partly superseded by (the design system parts) [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-09-11 · **Status:** accepted · **Task:** repository owner's request ·
 **Builds on:** `doc/decision/0308-tanstack-query-is-used-directly-no-wrapper-lib.md`
 

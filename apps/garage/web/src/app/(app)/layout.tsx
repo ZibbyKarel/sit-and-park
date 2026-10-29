@@ -1,7 +1,7 @@
 import type { ReactNode } from 'react';
-import { Container } from '@garage/design-system/primitives';
 import { AppTopBar } from '../../shell/app-top-bar';
 import { ToastProvider } from '../../shell/notifications/toast-provider';
+import styles from '../container.module.css';
 
 /**
  * Everything a signed-in visitor sees sits under the top bar; the login screen
@@ -26,7 +26,7 @@ export default function AppLayout({ children }: { readonly children: ReactNode }
     <ToastProvider>
       <AppTopBar />
       <main>
-        <Container>{children}</Container>
+        <div className={styles.container}>{children}</div>
       </main>
     </ToastProvider>
   );

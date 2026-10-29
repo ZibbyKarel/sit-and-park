@@ -52,9 +52,10 @@
  * for this file.
  */
 
-import type { Locator, Page } from '@playwright/test';
+import type { Page } from '@playwright/test';
 import { e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
 import { expect, test } from './support/fixtures';
+import { selectOption } from './support/select-option';
 import { LOT_PATH } from './support/oidc-login';
 import { USER_TWO, storageStatePath } from './support/personas';
 import {
@@ -71,12 +72,11 @@ const DATE = e2eDayForSlot(SPEC_DAY_SLOTS.settingsProfile);
 const SPOT = 'E2.66';
 /**
  * A different seeded, active bay — never `SPOT`. The exact rendered text of
- * a `<select>` option, checked directly in `settings-screen.tsx`:
- * `<option value={spot.id}>{spot.label} · {spot.group}</option>`, and
+ * a select option, checked directly in `settings-screen.tsx`:
+ * `{ value: spot.id, label: `${spot.label} · ${spot.group}` }`, and
  * `E2.61`'s seeded `group` is `'SHARED'` (`libs/garage/database/src/lib/
- * seed-data.ts`) — not assumed from either file alone. `selectByLabel` below
- * throws loudly if this ever stops matching, rather than silently picking
- * nothing.
+ * seed-data.ts`) — not assumed from either file alone. `selectOption` fails
+ * loudly if this ever stops matching, rather than silently picking nothing.
  *
  * `waitlist-queue.spec.ts` also works this bay, but only a *reservation*
  * competes for a bay — a preferred-spot *preference* books nothing, so there
@@ -88,19 +88,6 @@ const PREFERRED_SPOT_OPTION = 'E2.61 · SHARED';
  * server, which stores `licensePlate` verbatim (`me.service.ts`), needs no
  * normalization for the prefill assertion to compare literally. */
 const PLATE = '9XY 4321';
-
-/**
- * Reads back the `value` Playwright resolved `label` to, refusing to
- * continue on `undefined` — the option genuinely does not exist — rather than
- * handing a later assertion a value it can only fail on.
- */
-async function selectByLabel(select: Locator, label: string): Promise<string> {
-  const [value] = await select.selectOption({ label });
-  if (value === undefined) {
-    throw new Error(`"${label}" did not match any option.`);
-  }
-  return value;
-}
 
 /**
  * Cancels `label` only when the dialog just opened on it reads "Vaše
@@ -139,9 +126,7 @@ async function cancelIfOwnLeftover(page: Page, label: string) {
 async function clearSettings(page: Page) {
   const settings = await openSettings(page);
   await settings.getByLabel('SPZ auta').fill('');
-  await settings
-    .getByLabel('Preferované parkovací místo')
-    .selectOption({ label: 'Bez preference' });
+  await selectOption(page, 'Preferované parkovací místo', 'Bez preference');
   await settings.getByRole('button', { name: 'Uložit' }).click();
   await expect(settings).toBeHidden();
 }
@@ -238,26 +223,25 @@ test('a preferred parking spot persists across a reload, then clears back to no 
   await userTwoPage.goto(LOT_PATH);
 
   const settings = await openSettings(userTwoPage);
-  const preferredSpot = settings.getByLabel('Preferované parkovací místo');
-  const selectedValue = await selectByLabel(preferredSpot, PREFERRED_SPOT_OPTION);
+  await selectOption(userTwoPage, 'Preferované parkovací místo', PREFERRED_SPOT_OPTION);
   await settings.getByRole('button', { name: 'Uložit' }).click();
   await expect(settings).toBeHidden();
 
   await userTwoPage.reload();
   const settingsAfterReload = await openSettings(userTwoPage);
-  await expect(settingsAfterReload.getByLabel('Preferované parkovací místo')).toHaveValue(
-    selectedValue
-  );
+  await expect(
+    settingsAfterReload.getByRole('button', { name: 'Preferované parkovací místo' })
+  ).toContainText(PREFERRED_SPOT_OPTION);
 
-  await settingsAfterReload
-    .getByLabel('Preferované parkovací místo')
-    .selectOption({ label: 'Bez preference' });
+  await selectOption(userTwoPage, 'Preferované parkovací místo', 'Bez preference');
   await settingsAfterReload.getByRole('button', { name: 'Uložit' }).click();
   await expect(settingsAfterReload).toBeHidden();
 
   await userTwoPage.reload();
   const settingsFinal = await openSettings(userTwoPage);
-  await expect(settingsFinal.getByLabel('Preferované parkovací místo')).toHaveValue('');
+  await expect(
+    settingsFinal.getByRole('button', { name: 'Preferované parkovací místo' })
+  ).toContainText('Bez preference');
   await settingsFinal.getByRole('button', { name: 'Zrušit', exact: true }).click();
   await expect(settingsFinal).toBeHidden();
 });

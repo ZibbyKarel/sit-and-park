@@ -15,13 +15,13 @@ runbook: how to start it, migrate it, back it up, and what to do when it grows.
 Requires Docker and the Node version in [`.nvmrc`](.nvmrc).
 
 ```bash
-npm ci
+pnpm install
 cp .env.example .env                  # git-ignored; edit if you like
 cp .env.example apps/garage/web/.env         # Next.js reads env files from its own directory
 docker compose --profile dev up -d    # PostgreSQL 17, mock OIDC issuer, adminer
-npx prisma migrate deploy
-npx prisma db seed                    # development fixture: 9 spots, 4 users
-npm run dev:garage                 # api on :3000, web on :4200
+pnpm exec prisma migrate deploy
+pnpm exec prisma db seed                    # development fixture: 9 spots, 4 users
+pnpm dev:garage                 # api on :3000, web on :4200
 ```
 
 Then open <http://localhost:4200> and sign in — see **How to log in on dev**,
@@ -55,24 +55,24 @@ does not recognise.
 | Dev Inactive | `dev-inactive` | `{"email":"inactive@example.com","name":"Dev Inactive"}` | USER  |
 
 These four come from the seed fixture (`libs/garage/database/src/lib/seed-data.ts`)
-and only exist after `npx prisma db seed`. Open a second browser (or a private
+and only exist after `pnpm exec prisma db seed`. Open a second browser (or a private
 window) as `dev-user2` to see the realtime cell-lock and booking broadcasts
 land in another tab.
 
 ## Everyday commands
 
 ```bash
-npm run dev:garage  # serve this app's api and web (continuous)
-npm run lint           # every project in the workspace, both applications
-npm run typecheck
-npm test               # unit suites; excludes *.db.spec.ts, which need Postgres
-npm run build          # every app plus Storybook
-npm run format:check   # add --all to check the whole tree, as CI does
+pnpm dev:garage  # serve this app's api and web (continuous)
+pnpm lint           # every project in the workspace, both applications
+pnpm typecheck
+pnpm test               # unit suites; excludes *.db.spec.ts, which need Postgres
+pnpm build          # every app
+pnpm format:check   # add --all to check the whole tree, as CI does
 
-npx nx run api:test-db                     # the database suites (needs Postgres)
-npx nx run web:test -- lot-view            # one file, by name pattern
-npx nx run api-e2e:e2e                     # the API over real HTTP
-npx nx run web-e2e:e2e                     # the eight Playwright journeys
+pnpm nx run api:test-db                     # the database suites (needs Postgres)
+pnpm nx run web:test -- lot-view            # one file, by name pattern
+pnpm nx run api-e2e:e2e                     # the API over real HTTP
+pnpm nx run web-e2e:e2e                     # the eight Playwright journeys
 ```
 
 `doc/testing.md` explains what each layer covers and what has to be running.
@@ -141,8 +141,8 @@ up` is not what shipped
 ## Migrations
 
 ```bash
-npx prisma migrate dev --name <name>   # author one, in development
-npx prisma migrate deploy              # apply pending ones — the only production verb
+pnpm exec prisma migrate dev --name <name>   # author one, in development
+pnpm exec prisma migrate deploy              # apply pending ones — the only production verb
 ```
 
 In the containerised stack `migrate deploy` is the `migrate` service and runs
@@ -154,12 +154,12 @@ Details and the "where storage differs from the contract" table are in
 ## Seeding
 
 ```bash
-npx prisma db seed
+pnpm exec prisma db seed
 ```
 
 A **development** fixture — 9 parking spots, 4 users, the reservation window
 settings — idempotent, and never run against production.
-`npx nx run web-e2e:e2e` leaves the reservation window at 31 days; re-running
+`pnpm nx run web-e2e:e2e` leaves the reservation window at 31 days; re-running
 the seed puts it back to 7.
 
 ## Regenerating an ICS token

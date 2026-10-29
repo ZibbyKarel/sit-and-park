@@ -1,10 +1,12 @@
 'use client';
 
-import { Container } from '@garage/design-system/primitives';
+import { LocalizationProvider } from '@shoptet/ui';
 import { IntlProvider, negotiateLocale } from '@garage/i18n';
 import { ScreenError } from '../shell/screen-state/screen-state';
 import cs from '../../messages/cs.json';
 import en from '../../messages/en.json';
+import styles from './container.module.css';
+import '@shoptet/ui/index.css';
 import './global.css';
 
 /**
@@ -64,11 +66,13 @@ export default function GlobalError({
     <html lang={locale}>
       <body>
         <IntlProvider locale={locale} messages={messages}>
-          <main>
-            <Container padding={[16, 4]}>
-              <ScreenError error={error} onRetry={reset} />
-            </Container>
-          </main>
+          <LocalizationProvider locale={locale === 'en' ? 'en-US' : 'cs-CZ'}>
+            <main>
+              <div className={`${styles.container} ${styles.roomy}`}>
+                <ScreenError error={error} onRetry={reset} />
+              </div>
+            </main>
+          </LocalizationProvider>
         </IntlProvider>
       </body>
     </html>

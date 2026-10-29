@@ -1,7 +1,7 @@
 'use client';
 
-import { Container } from '@garage/design-system/primitives';
 import { ScreenError } from '../shell/screen-state/screen-state';
+import styles from './container.module.css';
 
 /**
  * The last line of defence: anything a page or a layout throws lands here.
@@ -25,9 +25,9 @@ export default function AppError({
 }) {
   return (
     <main>
-      <Container padding={[16, 4]}>
+      <div className={`${styles.container} ${styles.roomy}`}>
         <ScreenError error={error} onRetry={reset} headingLevel={2} />
-      </Container>
+      </div>
     </main>
   );
 }

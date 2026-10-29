@@ -2,8 +2,10 @@
 
 import { useId } from 'react';
 import type { ParkingSpot } from '@garage/contract';
-import { Chip, Stack, Text } from '@garage/design-system/primitives';
+import { Text } from '@shoptet/ui';
+import { Chip } from '../../../ui/chip/chip';
 import { useTranslations } from '@garage/i18n';
+import styles from './category-band.module.css';
 import { toCategoryCounts } from './spots-view';
 
 /**
@@ -19,29 +21,21 @@ export function CategoryBand({ spots }: { readonly spots: readonly ParkingSpot[]
   return (
     // A named group, so the band is distinguishable from the table's own
     // "Kategorie" column heading — to a screen reader as much as to a test.
-    <Stack role="group" aria-labelledby={labelId} direction="row" align="center" wrap spacing={3}>
-      <Text
-        as="span"
-        id={labelId}
-        size="xs"
-        weight="bold"
-        tone="subtle"
-        tracking="caps"
-        transform="uppercase"
-      >
-        {t('spotsCategories')}
-      </Text>
+    <div role="group" aria-labelledby={labelId} className={styles.band}>
+      <span id={labelId} className={styles.label}>
+        <Text appearance="strong-sm" variant="tertiary">
+          {t('spotsCategories')}
+        </Text>
+      </span>
       {toCategoryCounts(spots).map(({ group, count }) => (
         <Chip key={group} size="sm" tone="muted" weight="medium">
           {group}
-          <Text as="span" tone="subtle">
-            {count}
-          </Text>
+          <Text variant="tertiary">{count}</Text>
         </Chip>
       ))}
-      <Text as="span" size="xs" tone="subtle">
+      <Text appearance="sm" variant="tertiary">
         {t('spotsCategoriesFixed')}
       </Text>
-    </Stack>
+    </div>
   );
 }

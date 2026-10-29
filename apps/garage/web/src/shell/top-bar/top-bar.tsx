@@ -5,10 +5,9 @@
  * identity and its menu on the right.
  *
  * Drawn from `doc/design/screens/02-avatar-menu.png` and the markup behind it
- * (`doc/design/garage-design.dc.html`, the `isApp` branch). Composition
- * only — `Avatar`, `Badge` and `Dropdown` are design-system primitives, and
- * nothing presentational is invented here. The menu's keyboard behaviour,
- * roving tabindex, click-outside and Escape handling all come from `Dropdown`.
+ * (`doc/design/garage-design.dc.html`, the `isApp` branch). The menu's
+ * keyboard behaviour, focus and Escape handling all come from `@shoptet/ui`'s
+ * `Menu`.
  *
  * It takes what it draws as props and reports what was chosen through two
  * callbacks; `../app-top-bar.tsx` is the half that reads the session and the
@@ -18,21 +17,21 @@
  * ask about all of them without a router, a session or a network.
  */
 
-import { Avatar, Badge, Box, Dropdown, Link, Stack, Text } from '@garage/design-system/primitives';
-import type { DropdownItem } from '@garage/design-system/primitives';
+import { Avatar, Icon, Menu, Stack, Tag, Text } from '@shoptet/ui';
 import type { UserRole } from '@garage/contract';
 import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@garage/i18n';
 import NextLink from 'next/link';
 import { ADMIN_ROUTE, LOT_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import { Brand } from '../brand';
-import { initialsOf } from '../initials';
+import styles from './top-bar.module.css';
 
-/** Menu entry ids. `Dropdown.onSelect` reports one of these back. */
+/** Menu entry ids. `onSelect` is called with one of these. */
 export const MENU_SETTINGS = 'settings';
 export const MENU_ADMIN = 'administration';
 export const MENU_SIGN_OUT = 'sign-out';
 
-/** Prefix of the `Dropdown` item id for a language choice: `locale:cs`, `locale:en`. */
+/** Prefix of the menu item id for a language choice: `locale:cs`, `locale:en`. */
 export const MENU_LOCALE_PREFIX = 'locale:';
 
 export interface TopBarProps {
@@ -67,39 +66,6 @@ export function TopBar({
   const t = useTranslations('nav');
   const isAdmin = role === 'ADMIN';
 
-  // A labelled group of radio-style entries rather than a submenu: two
-  // languages do not earn a nested panel, and `Dropdown` has no submenu to
-  // nest into. The header is a disabled item, which is how `Dropdown` renders
-  // text the arrow keys skip.
-  const languageItems: DropdownItem[] = [
-    { id: 'language-separator', separator: true },
-    { id: 'language-header', label: t('language'), disabled: true },
-    ...LOCALES.map((candidate) => ({
-      id: `${MENU_LOCALE_PREFIX}${candidate}`,
-      label: LOCALE_LABELS[candidate],
-      checked: candidate === locale,
-    })),
-  ];
-
-  const items: DropdownItem[] = [
-    { id: 'identity-separator', separator: true },
-    { id: MENU_SETTINGS, label: t('settings') },
-    ...(isAdmin
-      ? [
-          {
-            id: MENU_ADMIN,
-            label: t('administration'),
-            // The design draws a right arrow on this entry alone, marking it
-            // as the one that leaves the current screen.
-            trailing: <span aria-hidden="true">→</span>,
-          },
-        ]
-      : []),
-    ...languageItems,
-    { id: 'sign-out-separator', separator: true },
-    { id: MENU_SIGN_OUT, label: t('signOut'), danger: true },
-  ];
-
   const onSelect = (id: string) => {
     if (id === MENU_SETTINGS) {
       onNavigate(SETTINGS_ROUTE);
@@ -118,65 +84,76 @@ export function TopBar({
   };
 
   return (
-    // `Box` supplies the sticky positioning (`position="sticky"`, `inset="top"`),
-    // the `--z-sticky` layer (`layer="sticky"`), the fixed bar height
-    // (`height="bar"`, i.e. `h-16`), the bottom-only rule (`border="bottom"`,
-    // i.e. `border-b border-border` — matching the original single-element
-    // markup exactly, not the four-sided `border border-border` a bare
-    // `border` boolean would emit) and the horizontal padding. `Stack` is the
-    // `flex items-center justify-between gap-4` row inside it, with
-    // `height="full"` (`h-full`) so it fills the bar's fixed 64px instead of
-    // sizing to its own content — `align="center"` then centres against that
-    // real height, matching the original `flex h-16 items-center`.
-    <Box
-      as="header"
-      position="sticky"
-      inset="top"
-      layer="sticky"
-      height="bar"
-      border="bottom"
-      background="bg"
-      padding={[0, 4]}
-    >
-      <Stack direction="row" height="full" align="center" justify="between" spacing={4}>
-        <Link tone="plain" as={NextLink} href={LOT_ROUTE}>
-          <Brand />
-        </Link>
+    <header className={styles.bar}>
+      <NextLink href={LOT_ROUTE} className={styles.brandLink}>
+        <Brand />
+      </NextLink>
 
-        <Stack direction="row" align="center" spacing={3}>
+      <Stack orientation="horizontal" align="center" gap="md">
+        {isAdmin ? (
+          <span className={styles.adminBadge}>
+            <Tag level="notice">{t('adminBadge')}</Tag>
+          </span>
+        ) : null}
+
+        <Menu
+          placement="bottom end"
+          trigger={({ props }) => (
+            <button type="button" {...props} aria-label={t('userMenu')} className={styles.trigger}>
+              <Avatar name={name} />
+              <span aria-hidden="true">▾</span>
+            </button>
+          )}
+        >
+          {/* Disabled, so the arrow keys skip it: this is the identity header, not a choice. */}
+          <Menu.Item disabled>
+            <div className={styles.identity}>
+              <Text appearance="strong-md">{name}</Text>
+              <Text appearance="sm" variant="secondary">
+                {email}
+              </Text>
+            </div>
+          </Menu.Item>
+          <Menu.Divider />
+          <Menu.Item onAction={() => onSelect(MENU_SETTINGS)}>{t('settings')}</Menu.Item>
           {isAdmin ? (
-            <Badge tone="info" transform="uppercase">
-              {t('adminBadge')}
-            </Badge>
+            <Menu.Item onAction={() => onSelect(MENU_ADMIN)}>
+              <span className={styles.entry}>
+                {t('administration')}
+                {/* The design draws a right arrow on this entry alone: it leaves the current screen. */}
+                <span aria-hidden="true">→</span>
+              </span>
+            </Menu.Item>
           ) : null}
-
-          <Dropdown
-            triggerLabel={t('userMenu')}
-            label={t('userMenu')}
-            trigger={
-              <>
-                <Avatar tone="dark" initials={initialsOf(name)} />
-                <Text as="span" weight="medium">
-                  {name}
-                </Text>
-                <Text as="span" size="xs" tone="subtle" aria-hidden="true">
-                  ▾
-                </Text>
-              </>
-            }
-            header={
-              <div>
-                <Text weight="bold">{name}</Text>
-                <Text size="xs" tone="subtle">
-                  {email}
-                </Text>
-              </div>
-            }
-            items={items}
-            onSelect={onSelect}
-          />
-        </Stack>
+          <Menu.Divider />
+          {/* `Menu` has no radio items, so the active language carries a checkmark and is a plain item. */}
+          <Menu.Item disabled>
+            <Text appearance="sm" variant="secondary">
+              {t('language')}
+            </Text>
+          </Menu.Item>
+          {LOCALES.map((candidate) => (
+            <Menu.Item
+              key={candidate}
+              onAction={() => onSelect(`${MENU_LOCALE_PREFIX}${candidate}`)}
+            >
+              <span className={styles.entry}>
+                {LOCALE_LABELS[candidate]}
+                {candidate === locale ? (
+                  <span data-active="true">
+                    <Icon icon="shp-checkmark" size="sm" />
+                    <VisuallyHidden> {t('languageCurrent')}</VisuallyHidden>
+                  </span>
+                ) : null}
+              </span>
+            </Menu.Item>
+          ))}
+          <Menu.Divider />
+          <Menu.Item destructive onAction={() => onSelect(MENU_SIGN_OUT)}>
+            {t('signOut')}
+          </Menu.Item>
+        </Menu>
       </Stack>
-    </Box>
+    </header>
   );
 }

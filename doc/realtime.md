@@ -361,7 +361,7 @@ into this form's problem.
 
 Tests live beside the code: `socket.spec.ts`, `connection.spec.tsx`,
 `cell-lock.spec.tsx`, `validation.spec.ts` (78 tests, measured
-`npx nx run realtime-client:test`).
+`pnpm nx run realtime-client:test`).
 
 The socket in those tests is a **real** `socket.io-client` socket. Only the
 transport is replaced — `manager.open()` becomes a no-op and `manager._packet()`
@@ -608,7 +608,7 @@ spot was taken. The fix is a Socket.io adapter, inside
 left as a comment so the change has one call site:
 
 ```ts
-// npm i @socket.io/redis-adapter redis
+// pnpm add @socket.io/redis-adapter redis
 const pub = createClient({ url: REDIS_URL });
 const sub = pub.duplicate();
 await Promise.all([pub.connect(), sub.connect()]);

@@ -12,13 +12,9 @@
  * from the one size below.
  *
  * The body takes its colour from a `var(...)` reference passed in as `fill`,
- * a plain SVG presentation attribute — not a Tailwind `text-*` utility plus
- * `fill="currentColor"`, which was this file's previous mechanism and is the
- * one thing removing Tailwind from this app could not keep: there is no
- * `className` left to carry it. `lot-view.ts`'s `carColorVar()` is what picks
- * the reference. The five accent rects below follow the same idiom
- * `global.css`'s `.lot-asphalt`/`.lot-hatch` already use for a literal colour
- * mixed with transparency, so the palette stays the design system's either way.
+ * a plain SVG presentation attribute. `lot-view.ts`'s `carColorVar()` picks
+ * the reference. The accent rects below mix the map's `--lot-*`
+ * paint with transparency, the way `global.css`'s `.lot-asphalt` does.
  *
  * Purely decorative: the holder's name and plate are written underneath in
  * real text, so a second announcement of the same fact would be noise.
@@ -31,7 +27,6 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
       viewBox="-4 0 66 104"
       width="62"
       height="98"
-      // eslint-disable-next-line no-restricted-syntax -- `.lot-car`: the glyph's own drop shadow, an illustration property no design-system prop expresses.
       className="lot-car"
     >
       {/* wing mirrors, behind the body */}
@@ -41,7 +36,7 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
         width="5"
         height="9"
         rx="2"
-        fill="color-mix(in srgb, var(--brand-dark) 40%, transparent)"
+        fill="color-mix(in srgb, var(--lot-ink) 40%, transparent)"
       />
       <rect
         x="57"
@@ -49,7 +44,7 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
         width="5"
         height="9"
         rx="2"
-        fill="color-mix(in srgb, var(--brand-dark) 40%, transparent)"
+        fill="color-mix(in srgb, var(--lot-ink) 40%, transparent)"
       />
       {/* body */}
       <path
@@ -63,7 +58,7 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
         width="42"
         height="20"
         rx="7"
-        fill="color-mix(in srgb, var(--brand-dark) 45%, transparent)"
+        fill="color-mix(in srgb, var(--lot-ink) 45%, transparent)"
       />
       <rect
         x="5"
@@ -71,7 +66,7 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
         width="48"
         height="34"
         rx="6"
-        fill="color-mix(in srgb, var(--neutral-0) 15%, transparent)"
+        fill="color-mix(in srgb, var(--lot-white) 15%, transparent)"
       />
       <rect
         x="8"
@@ -79,7 +74,7 @@ export function CarGlyph({ colorVar }: { readonly colorVar: string }) {
         width="42"
         height="16"
         rx="5"
-        fill="color-mix(in srgb, var(--brand-dark) 35%, transparent)"
+        fill="color-mix(in srgb, var(--lot-ink) 35%, transparent)"
       />
     </svg>
   );

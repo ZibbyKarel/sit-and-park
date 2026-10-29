@@ -1,5 +1,7 @@
 # 0301 – The design system is one package, and the layer rule moved to lint paths
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-09-08 · **Status:** accepted · **Task:** `TODO.md` item 1 ·
 **Supersedes the mechanism of:** `doc/decision/0007-*` (the `ds:` tag dimension)
 

@@ -78,7 +78,7 @@ export default defineConfig({
       // defaults — so it was removed rather than left looking effective.
       // `doc/decision/0186-*` records what actually keeps the suite under the
       // limit and what to do on the day it does not.
-      command: 'npx nx run api:serve',
+      command: 'pnpm nx run api:serve',
       url: `${apiUrl}/health/ready`,
       // Unconditionally `true`, unlike the web server below: Nx's `dependsOn`
       // has already started this one whether or not `CI` is set, so refusing to
@@ -106,7 +106,7 @@ export default defineConfig({
       // than per page, it is one connection, 89 documents out of 89
       // (`doc/decision/0221-*`, `src/realtime-connection.spec.ts`).
       //
-      // **`next start` directly, not `npx nx run web:start`, and that is the
+      // **`next start` directly, not `pnpm nx run web:start`, and that is the
       // whole point of this line.** Nx's `run-commands` executor spawns its
       // task with `detached: process.platform !== 'win32'` — a *new process
       // group* — and its own source says why that is safe for Nx: "detached
@@ -125,7 +125,7 @@ export default defineConfig({
       // is now a real Nx dependency in `apps/garage/web-e2e/project.json` — it never
       // came from this string, which `@nx/playwright` cannot parse into a
       // target because of the `-- --port` it used to carry.
-      command: 'npx next start --port 4200',
+      command: 'pnpm exec next start --port 4200',
       // `web:build` and `web:start` both pin this, because Nx injects the
       // workspace `.env` (NODE_ENV=development) into every target and serving
       // a production build under it is the mixed React resolution

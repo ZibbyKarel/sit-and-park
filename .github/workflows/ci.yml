@@ -3,8 +3,8 @@
 # Four jobs, run in parallel, each gating something the others structurally
 # cannot see:
 #
-#   verify    formatting, lint, typecheck, the unit suites, both builds and
-#             both Storybooks. No Docker, no database — this is the fast lane.
+#   verify    formatting, lint, typecheck, the unit suites, both builds.
+#             No Docker, no database — this is the fast lane.
 #   database  the eight `*.db.spec.ts` suites, against a real PostgreSQL 17.
 #   e2e       the API over HTTP and the eight browser journeys, against a real
 #             PostgreSQL 17 and a real OIDC issuer.
@@ -62,27 +62,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           # `.nvmrc` is the single source of truth for the Node major, shared
           # with both Dockerfiles (`node:24-alpine`).
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       # `--all`, not the default: without a base ref to diff against, plain
       # `nx format:check` checks nothing at all on a fresh checkout and passes
       # vacuously.
-      - run: npx nx format:check --all
+      - run: pnpm nx format:check --all
 
-      # `build-storybook` is on this list because `npm run build` — what a
-      # developer runs — is `-t build,build-storybook`, and this job ran only
-      # `build`. `plan.md` makes a story mandatory for every primitive and
-      # every compound, so a broken story is a broken deliverable; without it
-      # here, one reaches `main` and the first person to notice is whoever runs
-      # the local script next.
-      - run: npx nx run-many -t lint,typecheck,test,build,build-storybook
+      - run: pnpm nx run-many -t lint,typecheck,test,build
 
   database:
     name: database suites (api:test-db)
@@ -97,7 +93,7 @@ jobs:
           POSTGRES_DB: garage
         ports:
           - 5432:5432
-        # Without a health check the job would start `npm ci` and reach the
+        # Without a health check the job would start `pnpm install --frozen-lockfile` and reach the
         # tests before Postgres finished its own initdb, and the failure would
         # look like a flaky test rather than a race in this file.
         options: >-
@@ -116,19 +112,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       # No migration step: `apps/garage/api/src/testing/database/global-setup.ts`
       # creates a throwaway database per run, applies the committed migrations
       # to it and repoints `DATABASE_URL` at it — and **throws** when
       # `DATABASE_URL` is absent rather than skipping, which is what makes an
       # unreachable Postgres fail this job instead of silently passing it.
-      - run: npx nx run api:test-db
+      - run: pnpm nx run api:test-db
 
       # `schema.prisma` is the artefact both parity suites derive from and
       # neither checks: `schema-contract-parity.spec.ts` compares the *committed
@@ -152,8 +150,8 @@ jobs:
       # nothing: `migrate status` exits 1 and `migrate diff --exit-code` exits 2.
       # Measured both ways — empty database exit 1, same database after
       # `migrate deploy` exit 0.
-      - run: npx prisma migrate deploy
-      - run: npx nx run database:check-schema
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm nx run database:check-schema
 
   e2e:
     name: end-to-end (api-e2e, web-e2e)
@@ -216,27 +214,29 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - uses: pnpm/action-setup@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
-          cache: npm
+          cache: pnpm
 
-      - run: npm ci
+      - run: pnpm install --frozen-lockfile
 
       # Chromium only, matching `playwright.config.mts`: this suite drives two
       # and three concurrent sessions against one database, so a second and
       # third browser would triple the contention for no coverage
       # (`doc/decision/0182-*`). `--with-deps` installs the system libraries
       # the runner image does not carry.
-      - run: npx playwright install --with-deps chromium
+      - run: pnpm exec playwright install --with-deps chromium
 
       # Unlike the `database` job, nothing here creates its own schema:
       # `api-e2e` talks to a booted API over HTTP and `web-e2e` drives a
       # browser, so both need the real database migrated and seeded first. The
       # seed is what makes `dev-admin` an admin — the role is a column, and no
       # token can grant it.
-      - run: npx prisma migrate deploy
-      - run: npx prisma db seed
+      - run: pnpm exec prisma migrate deploy
+      - run: pnpm exec prisma db seed
 
       # The issuer answers its discovery document only once it has finished
       # starting. Without this the first sign-in would fail as a mysterious
@@ -257,8 +257,8 @@ jobs:
       # kills whatever holds port 3000 and `web-e2e` then has Nx start its own
       # API. Neither carries `continue-on-error`: a red journey here is a red
       # build, which is the whole point of the job.
-      - run: npx nx run api-e2e:e2e
-      - run: npx nx run web-e2e:e2e
+      - run: pnpm nx run api-e2e:e2e
+      - run: pnpm nx run web-e2e:e2e
 
       # The report and the traces are the only way to read a browser failure
       # that did not happen on your machine. `if: failure()` because on a green

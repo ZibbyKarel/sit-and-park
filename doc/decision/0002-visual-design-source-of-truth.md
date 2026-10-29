@@ -1,5 +1,7 @@
 # 0002 – Visual design: downloaded locally, tokens from the Shoptet DS
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-08-28 · **Status:** accepted
 
 ## What

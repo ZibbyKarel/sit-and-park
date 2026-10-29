@@ -7,7 +7,7 @@
  * `data-testid` hooks, and every wait is on a condition rather than a delay.
  *
  * `/admin` is a route, not a modal, and `AdminScreen` puts its four sections
- * behind an ARIA tab strip (`libs/shared/design-system/src/primitives/lib/tabs`), so
+ * behind an ARIA tab strip (`@shoptet/ui` `Tabs`), so
  * reaching a section is two steps: arrive at the route, then select the tab.
  * {@link goToAdminTab} does both, and asserts the arrival — a screen that
  * renders the `FORBIDDEN` empty state because the profile has not landed yet
@@ -55,7 +55,7 @@ export async function goToAdminTab(page: Page, tab: AdminTab): Promise<Locator> 
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
 
-  const strip = page.getByRole('tablist', { name: 'Sekce správy' });
+  const strip = page.getByRole('tablist');
   const trigger = strip.getByRole('tab', { name: ADMIN_TABS[tab], exact: true });
   await trigger.click();
   await expect(trigger).toHaveAttribute('aria-selected', 'true');

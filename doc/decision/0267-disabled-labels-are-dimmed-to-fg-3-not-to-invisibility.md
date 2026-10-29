@@ -1,5 +1,7 @@
 # 0267 – Disabled labels are dimmed to `--fg-3`, not to invisibility
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `Button`'s `DISABLED_CLASSES` and `Stepper`'s `StepButton` drew their label with

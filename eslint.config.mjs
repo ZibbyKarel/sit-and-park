@@ -38,10 +38,6 @@ const WRAPPED_LIBRARIES = {
     owner: 'libs/shared/form',
     use: '@garage/form',
   },
-  '@tanstack/react-table': {
-    owner: 'libs/shared/design-system/src/compounds',
-    use: '@garage/design-system/compounds',
-  },
   '@orpc/client': {
     owner: 'libs/shared/api-client',
     use: '@garage/api-client',
@@ -80,9 +76,7 @@ const WRAPPED_LIBRARIES = {
  * block that sets it wins outright, so a lib adding its own bans without
  * spreading these in would silently switch the wrapper ban off for itself —
  * which is exactly the kind of enforcement-shaped hole this file has been
- * caught in before. `libs/shared/design-system/eslint.config.mjs` spreads
- * `restrictWrappedLibraries().patterns` into every one of its blocks for that
- * reason.
+ * caught in before.
  */
 export function restrictWrappedLibraries(allowedPackages = []) {
   return {
@@ -125,7 +119,7 @@ export function restrictWrappedLibrariesDynamically(allowedPackages = []) {
       // Both escapes are load-bearing: an unescaped `.` would make
       // `socket.io-client` match `socketXio-client`, and an unescaped `/` ends
       // the regex literal mid-selector — esquery rejected
-      // `@tanstack/react-table` outright until this was added.
+      // `@scope/name` packages outright until this was added.
       const source = `/^${pkg.replaceAll('.', '\\.').replaceAll('/', '\\/')}(\\/|$)/`;
       const message = `Do not reach "${pkg}" directly — use the wrapper lib ${use} (${owner}). Only ${owner} may import "${pkg}", and that includes require() and dynamic import().`;
       return [
@@ -182,35 +176,6 @@ const NPM_ALLOWLIST = {
   feature: ['tslib'],
 
   /**
-   * Design system (`libs/shared/design-system`). React plus styling helpers and
-   * Storybook; TanStack Table is here because the design system's compounds
-   * layer owns the DataTable wrapper. Never a backend package.
-   */
-  ui: [
-    'tslib',
-    'react',
-    'react/*',
-    'react-dom',
-    'react-dom/*',
-    'clsx',
-    'tailwind-merge',
-    'class-variance-authority',
-    '@tanstack/react-table',
-    '@tanstack/react-table/*',
-    'storybook',
-    'storybook/*',
-    '@storybook/*',
-    // Storybook's Tailwind v4 bridge, used only in `.storybook/main.ts`.
-    '@tailwindcss/vite',
-    // Test-only. The boundary rule cannot distinguish a spec file from a
-    // shipped one, so these have to be allowed for the whole tag; keeping
-    // them out would ban every design-system test.
-    '@testing-library/react',
-    '@testing-library/user-event',
-    '@testing-library/jest-dom',
-  ],
-
-  /**
    * Wrapper libs. Each one exists precisely to be the single importer of one
    * third-party package, so this is the union of `WRAPPED_LIBRARIES` plus the
    * React/Next peers those wrappers are built on. The union is intentionally
@@ -258,10 +223,10 @@ const NPM_ALLOWLIST = {
     // itself, not just the contract lib built on it.
     'zod',
     'zod/*',
-    // Test-only, same reasoning as `ui` above: the boundary rule cannot tell
+    // Test-only: the boundary rule cannot tell
     // a spec file from a shipped one, so these have to be allowed for the
     // whole tag. Needed by `libs/shared/i18n`'s component test (`IntlProvider`) and
-    // `libs/shared/form`'s (`userEvent.type`/`.click` on rendered primitives).
+    // `libs/shared/form`'s (`userEvent.type`/`.click` on rendered inputs).
     '@testing-library/react',
     '@testing-library/jest-dom',
     '@testing-library/user-event',
@@ -332,7 +297,7 @@ const TOOLING_CONFIG_IMPORTS = [
 
 /**
  * `@nx/enforce-module-boundaries`'s `depConstraints`, factored out to a named
- * constant so `libs/shared/form`'s test-only override below (`formSpecDepConstraints`)
+ * constant so `libs/garage/calendar-export`'s test-only override below
  * can clone it rather than silently drifting from a second, hand-copied array.
  * Flat config replaces a rule's whole option object for a later, matching
  * config block — it does not merge — so any override has to restate every
@@ -343,10 +308,10 @@ const DEP_CONSTRAINTS = [
   // --- type dimension -------------------------------------------
   // Every project carries exactly one `type:` tag, so this dimension
   // is where the npm allow-lists live. See NPM_ALLOWLIST above for
-  // why they are not repeated on `scope:` / `ds:`.
+  // why they are not repeated on `scope:`.
   //
   // Layering, top to bottom, is acyclic:
-  //   app → feature → ui → util → contract → foundation
+  //   app → feature → util → contract → foundation
   // `type:util` may depend on `type:contract` (that is what
   // `libs/shared/api-client` is for), and `type:contract` depends on
   // `layer:foundation` — not on `type:util` — so the two directions
@@ -361,21 +326,8 @@ const DEP_CONSTRAINTS = [
   // Feature libs hold domain composition.
   {
     sourceTag: 'type:feature',
-    onlyDependOnLibsWithTags: [
-      'type:feature',
-      'type:ui',
-      'type:util',
-      'type:contract',
-      'type:data',
-    ],
+    onlyDependOnLibsWithTags: ['type:feature', 'type:util', 'type:contract', 'type:data'],
     allowedExternalImports: NPM_ALLOWLIST.feature,
-  },
-  // The design system is domain-free: it must never reach into
-  // feature or application code.
-  {
-    sourceTag: 'type:ui',
-    onlyDependOnLibsWithTags: ['type:ui', 'type:util'],
-    allowedExternalImports: NPM_ALLOWLIST.ui,
   },
   {
     sourceTag: 'type:util',
@@ -423,54 +375,7 @@ const DEP_CONSTRAINTS = [
     sourceTag: 'scope:shared',
     onlyDependOnLibsWithTags: ['scope:shared'],
   },
-
-  // --- design-system layer dimension ----------------------------
-  // Gone, deliberately. `ds:tokens` / `ds:primitives` / `ds:compounds` tagged
-  // three Nx projects, and `@nx/enforce-module-boundaries` constrained the
-  // tokens -> primitives -> compounds direction between them. The three layers
-  // are now three directories of one project (`libs/shared/design-system`), and one
-  // project carries one tag set, so there is no project boundary left for these
-  // entries to match — leaving them here would be three constraints that never
-  // fire, which is worse than none.
-  //
-  // The rule itself is unchanged and still enforced: `plan.md` line 51 states
-  // it, and `libs/shared/design-system/eslint.config.mjs` now enforces it with
-  // path-scoped `no-restricted-imports` groups that catch both the workspace
-  // alias and a relative escape, each with a probe recorded beside it. See
-  // doc/decision/0301-the-design-system-is-one-package-and-the-layer-rule-moved-to-lint-paths.md.
-  //
-  // The npm surface stays where it always was, on the `type:` dimension
-  // (`doc/decision/0017-*`): a second allow-list on a `ds:` tag was probed at
-  // Task 8's merge and does **not** intersect — Nx accepts a package as soon as
-  // any matching constraint permits it.
 ];
-
-/**
- * `depConstraints` for `libs/shared/form`'s own **test** files only: identical to
- * `DEP_CONSTRAINTS`, except the `type:util` entry also allows `type:ui`.
- *
- * Why this exists: `libs/shared/form`'s test suite demonstrates the wrapper's whole
- * reason for being — a real, Zod-validated, submittable form built from
- * `@garage/form` plus design-system primitives (`Input`, `Select`,
- * `Checkbox`), with no direct `react-hook-form` import anywhere in that file
- * (`doc/decision/0030-*`, Task 18). That demo can only run if the test file
- * may import the design system (`design-system`, `type:ui`), which the general
- * `type:util` constraint forbids — composing the design system is supposed to
- * happen in app/feature code (global constraint 5), and `libs/shared/form`'s own
- * *shipped* source must stay just as constrained as every other wrapper lib.
- *
- * Scoped to `libs/shared/form/**\/*.spec.{ts,tsx}` below, nowhere else: every other
- * `type:util` project, and `libs/shared/form`'s non-test source, still gets the
- * unmodified `DEP_CONSTRAINTS`.
- */
-const formSpecDepConstraints = DEP_CONSTRAINTS.map((constraint) =>
-  constraint.sourceTag === 'type:util'
-    ? {
-        ...constraint,
-        onlyDependOnLibsWithTags: [...constraint.onlyDependOnLibsWithTags, 'type:ui'],
-      }
-    : constraint
-);
 
 /**
  * `depConstraints` for `libs/garage/calendar-export`'s own **test** files only:
@@ -487,7 +392,7 @@ const formSpecDepConstraints = DEP_CONSTRAINTS.map((constraint) =>
  * Scoped rather than added to `NPM_ALLOWLIST.util`, which is where it started:
  * that list applies to every `type:util` project at once, so an entry there
  * reaches the shipped source of six unrelated wrapper libs that have no
- * business parsing calendars. Same shape as `formSpecDepConstraints` above.
+ * business parsing calendars.
  *
  * `apps/garage/api`'s calendar pipeline spec also uses it and needs no entry — it is
  * `type:app`, whose allow-list is broad by design.
@@ -593,13 +498,9 @@ export default [
     },
   },
   ...wrapperLibOverrides,
-  // See `formSpecDepConstraints` above: only `libs/shared/form`'s own test files may
-  // reach the design system (`design-system`, `type:ui`), to demonstrate the wrapper
-  // building a real form without a direct `react-hook-form` import.
-  // `allowCircularSelfDependency` is needed alongside it because that same
-  // demo imports `@garage/form` by its workspace alias from inside
-  // `libs/shared/form` itself (the point being to prove the *public* API is enough),
-  // which the boundary rule otherwise flags as a circular self-dependency.
+  // `libs/shared/form`'s own tests import `@garage/form` by its workspace alias
+  // from inside the lib (proving the *public* API is enough), which the boundary
+  // rule otherwise flags as a circular self-dependency.
   {
     basePath: workspaceRoot,
     files: ['libs/shared/form/**/*.spec.ts', 'libs/shared/form/**/*.spec.tsx'],
@@ -610,7 +511,7 @@ export default [
           enforceBuildableLibDependency: true,
           allowCircularSelfDependency: true,
           allow: TOOLING_CONFIG_IMPORTS,
-          depConstraints: formSpecDepConstraints,
+          depConstraints: DEP_CONSTRAINTS,
         },
       ],
     },
@@ -729,8 +630,8 @@ export default [
    * **`apps/garage/web/**` is deliberately out.** Its React
    * `void queryClient.invalidateQueries(...)` sites need their own pass, and a
    * half-considered sweep of them would bury the backend result this block is
-   * for. `.tsx` is listed for `libs/**` only, for the same reason: the design
-   * system and the wrapper libs are in, the app's React tree is not.
+   * for. `.tsx` is listed for `libs/**` only, for the same reason: the
+   * wrapper libs are in, the app's React tree is not.
    *
    * One visible consequence, so nobody "fixes" it by halves: the `libs/shared/form`
    * specs now wrap `handleSubmit` in `void`, while the two production callers

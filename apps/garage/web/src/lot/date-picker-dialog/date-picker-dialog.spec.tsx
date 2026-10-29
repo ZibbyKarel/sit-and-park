@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import { createDateFormatters, IntlProvider } from '@garage/i18n';
 import csMessages from '../../../messages/cs.json';
 import { DatePickerDialog } from './date-picker-dialog';
+import { selectOption } from '../../test-utils/select-option';
 
 const cs = createDateFormatters('cs');
 
@@ -68,8 +69,8 @@ describe('DatePickerDialog — browsing does not select', () => {
     const { user } = renderDialog();
     const dialog = screen.getByRole('dialog', { name: 'datePickerTitle' });
 
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'monthLabel' }), '1');
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'yearLabel' }), '2027');
+    await selectOption(user, /monthLabel/, cs.monthName(1));
+    await selectOption(user, /yearLabel/, '2027');
 
     expect(
       within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate('2027-01-01')}` })

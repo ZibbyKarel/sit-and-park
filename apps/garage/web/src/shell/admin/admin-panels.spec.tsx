@@ -2,6 +2,8 @@ import { act, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import type { AdminUser, MyProfile, ParkingSpot, ReservationHolder } from '@garage/contract';
+import { LocalizationProvider } from '@shoptet/ui';
+import { selectOption } from '../../test-utils/select-option';
 import { IntlProvider, todayInPrague } from '@garage/i18n';
 import cs from '../../../messages/cs.json';
 import { failureWithCode } from '../../testing/contract-failure';
@@ -176,11 +178,13 @@ function makeApi(responders: Record<string, Responder>) {
 
 function renderPanel(node: ReactNode) {
   render(
-    <IntlProvider locale="cs" messages={cs}>
-      <QueryClientProvider client={createQueryClient()}>
-        <ToastProvider>{node}</ToastProvider>
-      </QueryClientProvider>
-    </IntlProvider>
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <QueryClientProvider client={createQueryClient()}>
+          <ToastProvider>{node}</ToastProvider>
+        </QueryClientProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
   return userEvent.setup();
 }
@@ -486,10 +490,10 @@ describe('AdminSpotsPanel', () => {
     const user = renderPanel(<AdminSpotsPanel />);
     await screen.findByText(SPOT.label);
 
-    await user.selectOptions(
-      within(await findRow(SPOT.id)).getByRole('combobox', {
-        name: `spotsGroupSelectLabel: label=${SPOT.label}`,
-      }),
+    await findRow(SPOT.id);
+    await selectOption(
+      user,
+      new RegExp(`spotsGroupSelectLabel: label=${SPOT.label}$`, 'u'),
       'SHARED'
     );
 
@@ -747,13 +751,15 @@ function renderLimitsPanel() {
   const client = createQueryClient();
   const invalidate = jest.spyOn(client, 'invalidateQueries');
   render(
-    <IntlProvider locale="cs" messages={cs}>
-      <QueryClientProvider client={client}>
-        <ToastProvider>
-          <AdminLimitsPanel />
-        </ToastProvider>
-      </QueryClientProvider>
-    </IntlProvider>
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <QueryClientProvider client={client}>
+          <ToastProvider>
+            <AdminLimitsPanel />
+          </ToastProvider>
+        </QueryClientProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
   return { user: userEvent.setup(), invalidate };
 }
@@ -780,7 +786,7 @@ describe('AdminLimitsPanel', () => {
     const { user, invalidate } = renderLimitsPanel();
     await screen.findByText('limitsCapValue: count=7');
 
-    await user.click(screen.getByRole('button', { name: 'limitsCapIncrement' }));
+    await user.click(screen.getByRole('button', { name: /^Zvýšit/u }));
 
     await waitFor(() =>
       expect(fake.inputsTo('admin.reservationLimits.update')).toEqual([
@@ -810,7 +816,7 @@ describe('AdminLimitsPanel', () => {
     const { user } = renderLimitsPanel();
     await screen.findByText('limitsCapValue: count=7');
 
-    await user.click(screen.getByRole('button', { name: 'limitsCapIncrement' }));
+    await user.click(screen.getByRole('button', { name: /^Zvýšit/u }));
 
     expect(await screen.findByText('errLimitsValidation')).toBeInTheDocument();
     expect(screen.queryByText('limitsSaved')).not.toBeInTheDocument();

@@ -1,5 +1,7 @@
 # 0311 – The application layer carries no Tailwind
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-09-11 · **Status:** accepted · **Task:** repository owner's request ·
 **Builds on:** `doc/decision/0301-the-design-system-is-one-package-and-the-layer-rule-moved-to-lint-paths.md`
 

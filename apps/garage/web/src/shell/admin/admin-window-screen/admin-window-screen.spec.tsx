@@ -1,4 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
+import { LocalizationProvider } from '@shoptet/ui';
 import userEvent from '@testing-library/user-event';
 import type { MonthWindowOverview, ReservationLockMode } from '@garage/contract';
 import { IntlProvider } from '@garage/i18n';
@@ -81,15 +82,17 @@ function renderScreen({
     ...overrides,
   };
 
-  render(
-    <IntlProvider locale="cs" messages={cs}>
-      <ToastProvider>
-        <AdminWindowScreen {...props} />
-      </ToastProvider>
-    </IntlProvider>
+  const { unmount } = render(
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <ToastProvider>
+          <AdminWindowScreen {...props} />
+        </ToastProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
 
-  return { onRetry, onChange, user: userEvent.setup() };
+  return { onRetry, onChange, unmount, user: userEvent.setup() };
 }
 
 /** The `<li>` for one month, found by its heading text. */
@@ -110,41 +113,31 @@ describe('AdminWindowScreen', () => {
       expect(screen.getByText('windowOpenDescription')).toBeInTheDocument();
     });
 
-    it('shows the current setting declined into Czech', () => {
-      renderScreen({ openDaysBefore: 7 });
-
-      expect(screen.getByRole('spinbutton', { name: 'windowDaysLabel' })).toHaveAttribute(
-        'aria-valuetext',
-        'windowDaysValue: count=7'
-      );
-    });
-
     it.each([
       [1, 'windowDaysValue: count=1'],
       [3, 'windowDaysValue: count=3'],
       [7, 'windowDaysValue: count=7'],
       [21, 'windowDaysValue: count=21'],
-    ])('declines %i as "%s"', (days, text) => {
+    ])('shows the current setting %i declined into Czech as "%s"', (days, text) => {
       renderScreen({ openDaysBefore: days });
 
-      expect(screen.getByRole('spinbutton', { name: 'windowDaysLabel' })).toHaveAttribute(
-        'aria-valuetext',
-        text
-      );
+      expect(screen.getByRole('textbox', { name: 'windowDaysLabel' })).toHaveValue(String(days));
+      expect(screen.getByText(text)).toBeInTheDocument();
     });
 
     it('stays inside the range the contract accepts', () => {
-      renderScreen({ openDaysBefore: 7 });
+      const { unmount } = renderScreen({ openDaysBefore: 1 });
+      expect(screen.getByRole('button', { name: /^Snížit/u })).toBeDisabled();
+      unmount();
 
-      const stepper = screen.getByRole('spinbutton', { name: 'windowDaysLabel' });
-      expect(stepper).toHaveAttribute('aria-valuemin', '1');
-      expect(stepper).toHaveAttribute('aria-valuemax', '31');
+      renderScreen({ openDaysBefore: 31 });
+      expect(screen.getByRole('button', { name: /^Zvýšit/u })).toBeDisabled();
     });
 
     it('sends both fields on a day change, because the contract replaces rather than patches', async () => {
       const { onChange, user } = renderScreen({ openDaysBefore: 7, lockMode: 'FORCE_OPEN' });
 
-      await user.click(screen.getByRole('button', { name: 'windowDaysIncrement' }));
+      await user.click(screen.getByRole('button', { name: /^Zvýšit/u }));
 
       expect(onChange).toHaveBeenCalledWith({ openDaysBefore: 8, lockMode: 'FORCE_OPEN' });
     });
@@ -170,7 +163,7 @@ describe('AdminWindowScreen', () => {
     it('freezes both controls while a save is in flight', () => {
       renderScreen({ isSaving: true });
 
-      expect(screen.getByRole('button', { name: 'windowDaysIncrement' })).toBeDisabled();
+      expect(screen.getByRole('button', { name: /^Zvýšit/u })).toBeDisabled();
       expect(screen.getByRole('radio', { name: 'windowLockFORCE_OPEN' })).toBeDisabled();
     });
 
@@ -260,24 +253,12 @@ describe('AdminWindowScreen', () => {
     renderScreen({ reservationWindow: { kind: 'loading' } });
 
     expect(screen.getByRole('status')).toHaveTextContent('loading');
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   describe('the colour of a month badge, which is read before its label is', () => {
-    /**
-     * One class per tone, read off `badge.tsx`'s own `TONE_CLASSES`. Asserting
-     * a class asserts an implementation detail of the primitive on purpose: the
-     * tone is a colour, `05-admin-window.png` uses the colour as the signal,
-     * and a class is all a jsdom test can see of one.
-     */
-    const TONE_CLASS = {
-      success: 'bg-brand-green-100',
-      warning: 'bg-brand-yellow-100',
-      neutral: 'bg-bg-muted',
-    } as const;
-
     // `Otevřeno` green, `Uzamčeno` yellow, `Zatím neotevřeno` grey.
-    const DESIGN_TONE = { OPEN: 'success', LOCKED: 'warning', NOT_YET_OPEN: 'neutral' } as const;
+    const DESIGN_TONE = { OPEN: 'success', LOCKED: 'alert', NOT_YET_OPEN: 'default' } as const;
     const LABEL = {
       OPEN: 'windowStateOPEN',
       LOCKED: 'windowStateLOCKED',
@@ -294,8 +275,9 @@ describe('AdminWindowScreen', () => {
       // The expectation is the design's colour, not `BADGE_STATE_TONE[state]` —
       // reading back the map the render used would agree with any mutation of
       // it, which is exactly the survivor this replaces.
-      expect(screen.getByText(LABEL[state]).className.split(/\s+/u)).toContain(
-        TONE_CLASS[DESIGN_TONE[state]]
+      // `@shoptet/ui`'s Tag carries its level only as a `tag--<level>` class.
+      expect(screen.getByText(LABEL[state]).closest('.tag')).toHaveClass(
+        `tag--${DESIGN_TONE[state]}`
       );
     });
   });

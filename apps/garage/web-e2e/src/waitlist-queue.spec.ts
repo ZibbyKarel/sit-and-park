@@ -253,16 +253,21 @@ test('a second queue entry lands at position 2, and the admin can only queue the
   // into 2 without either half of the product rule being broken. The two
   // absences below hold regardless of how many other active accounts a
   // concurrent run happens to create.
-  const targetSelect = adminDialog.getByLabel('Přidat do fronty'); // queueHolderField
+  // The select is a popover listbox, so the options exist only once it is open.
+  const targetSelect = adminDialog.getByRole('button', { name: 'Přidat do fronty' }); // queueHolderField
+  await targetSelect.click();
+  const options = adminPage.getByRole('listbox').getByRole('option');
   // Anchored, not a plain substring: "Dev User" is itself a prefix of
   // "Dev User Two" (the same hazard `lot-page.ts`'s `reserveSpotFor` already
   // documents), so an unanchored match on either would find one name inside
   // the other's row.
-  await expect(targetSelect.locator('option', { hasText: /^Dev User$/u })).toHaveCount(0);
-  await expect(targetSelect.locator('option', { hasText: /^Dev User Two$/u })).toHaveCount(0);
-  await expect(
-    targetSelect.locator('option', { hasText: new RegExp(`^${ADMIN.displayName}$`, 'u') })
-  ).toHaveCount(1);
+  await expect(options.filter({ hasText: /^Dev User$/u })).toHaveCount(0);
+  await expect(options.filter({ hasText: /^Dev User Two$/u })).toHaveCount(0);
+  await expect(options.filter({ hasText: new RegExp(`^${ADMIN.displayName}$`, 'u') })).toHaveCount(
+    1
+  );
+  await adminPage.keyboard.press('Escape');
+  await expect(adminPage.getByRole('listbox')).toBeHidden();
 
   // `defaultQueueTargetId` (`queue-target-input.ts`) picks the viewer
   // whenever they appear *anywhere* in the filtered list, falling back to the

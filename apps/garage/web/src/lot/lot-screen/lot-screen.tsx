@@ -30,7 +30,7 @@ import {
 import { useSession } from '@garage/auth/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCellLock, useRealtime } from '@garage/realtime-client';
-import { EmptyState } from '@garage/design-system/compounds';
+import { EmptyState } from '../../ui/empty-state/empty-state';
 import { toContractError } from '@garage/api-client';
 import { useApi } from '../../shell/api-provider/api-provider';
 import { useCurrentUser } from '../../shell/use-current-user';

@@ -31,6 +31,7 @@ import type { Locator, Page } from '@playwright/test';
 import { goToAdminTab, tableRow } from './support/admin-page';
 import { e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
 import { expect, test } from './support/fixtures';
+import { selectOption } from './support/select-option';
 import { LOT_PATH } from './support/oidc-login';
 import { USER } from './support/personas';
 import {
@@ -135,16 +136,16 @@ test('an admin creates a new parking spot, and it appears as a bookable tile for
   const dialog = spotFormDialog(adminPage);
   await expect(dialog).toBeVisible();
   await dialog.getByLabel('Štítek').fill(SPOT);
-  await dialog.getByLabel('Kategorie').selectOption('SHARED');
+  await selectOption(adminPage, 'Kategorie', 'SHARED', dialog);
   await dialog.getByRole('button', { name: 'Uložit' }).click();
   await expect(dialog).toBeHidden();
 
   const row = tableRow(panel, SPOT);
   await expect(row).toBeVisible();
-  // The row's own category cell is a `<Select>`, not static text
+  // The row's own category cell is a select, not static text
   // (`admin-spots-screen.tsx`'s `group` column) — reading it back is the only
   // proof the submitted category was actually stored, not silently dropped.
-  await expect(row.getByRole('combobox', { name: `Kategorie místa ${SPOT}` })).toHaveValue(
+  await expect(row.getByRole('button', { name: `Kategorie místa ${SPOT}` })).toContainText(
     'SHARED'
   );
 
@@ -161,7 +162,7 @@ test("a duplicate label is refused with the screen's own message", async ({ admi
 
   const dialog = spotFormDialog(adminPage);
   await dialog.getByLabel('Štítek').fill(SPOT);
-  await dialog.getByLabel('Kategorie').selectOption('IT');
+  await selectOption(adminPage, 'Kategorie', 'IT', dialog);
   await dialog.getByRole('button', { name: 'Uložit' }).click();
 
   // The unique-index conflict, not the generic write-failure sentence

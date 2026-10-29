@@ -34,12 +34,13 @@ FROM node:24-alpine AS builder
 
 WORKDIR /workspace
 
-COPY package.json package-lock.json ./
-RUN npm ci
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-RUN npx nx run web:build --skip-nx-cache
+RUN pnpm nx run web:build --skip-nx-cache
 
 # ---------------------------------------------------------------------------
 # runner

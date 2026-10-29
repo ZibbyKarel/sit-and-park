@@ -1,5 +1,7 @@
 # 0265 – Two below-AA colour pairings the design owns are pinned, not fixed
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **This record exists to reach a designer.** It is the only open item from the
 design system's contrast pass, and nothing in the code can close it.
 

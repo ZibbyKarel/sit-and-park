@@ -1,5 +1,5 @@
 /**
- * Development seed. Run with `npx prisma db seed` from the repo root.
+ * Development seed. Run with `pnpm exec prisma db seed` from the repo root.
  *
  * Idempotent: every write is an `upsert` on the row's natural key, so running
  * it twice changes nothing and running it against a partially seeded database

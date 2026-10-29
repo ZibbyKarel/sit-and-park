@@ -10,7 +10,7 @@
  * dialog opens) are testable with plain props, no session, no query client and
  * no live API.
  *
- * Per `doc/design/screens/11-settings.png`, drawn with `Modal` rather than a
+ * Per `doc/design/screens/11-settings.png`, drawn with `@shoptet/ui`'s `Modal` rather than a
  * bespoke card — `doc/decision/0150-*` records why the whole screen renders as
  * that shared primitive instead of a second, hand-built dialog shell. The ICS
  * section below the form has no design to copy from; `doc/decision/0151-*`
@@ -22,17 +22,19 @@ import * as z from 'zod';
 import type { MyProfile, ParkingSpot, UpdateMySettingsInput } from '@garage/contract';
 import { toContractError } from '@garage/api-client';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
-import { Button, Input, Modal, Select, Stack, Text } from '@garage/design-system/primitives';
-import { ConfirmDialog } from '@garage/design-system/compounds';
+import { Button, Modal, SingleSelectField, Stack, Text } from '@shoptet/ui';
+import { TextField } from '../../ui/text-field/text-field';
 import { useTranslations } from '@garage/i18n';
+import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
+import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import { useNotify } from '../notifications/toast-provider';
 import { ScreenError, ScreenLoading } from '../screen-state/screen-state';
 import { NO_PREFERRED_SPOT, shouldClearPreferredSpot, toIcsFeedView } from './settings-view';
 import { IcsSection } from './ics-section';
 
 /**
- * Links the Save button in `Modal`'s `footer` (outside the `<form>`, by
- * construction — see `ModalProps.footer`) to the `<form>` it submits, via the
+ * Links the Save button in `Modal.Footer` (outside the `<form>`, by
+ * construction) to the `<form>` it submits, via the
  * standard `form="…"` button attribute. This is also what makes pressing
  * Enter in a field submit natively, rather than doing nothing (Task 26
  * review, M4).
@@ -53,6 +55,11 @@ const settingsFormSchema = z.object({
   preferredParkingSpotId: z.string(),
 });
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
+
+interface SpotOption {
+  readonly value: string;
+  readonly label: string;
+}
 
 function toUpdateInput(values: SettingsFormValues): UpdateMySettingsInput {
   const trimmedPlate = values.licensePlate.trim();
@@ -125,7 +132,7 @@ export interface SettingsScreenProps {
   /**
    * Called for every way out: Cancel, Escape, and a saved form. There is
    * deliberately no × (the design draws none — `doc/decision/0150-*`) and the
-   * scrim does not close the dialog either (`closeOnScrimClick={false}` below)
+   * scrim does not close the dialog either (`canBeDismissed={false}` below)
    * — this modal holds unsaved input, and a stray click must not discard it.
    */
   readonly onClose: () => void;
@@ -197,6 +204,11 @@ export function SettingsScreen({
     }
   }, [spots, spotsPending, spotsError, form]);
 
+  const spotOptions: SpotOption[] = [
+    { value: NO_PREFERRED_SPOT, label: t('preferredSpotNone') },
+    ...spots.map((spot) => ({ value: spot.id, label: `${spot.label} · ${spot.group}` })),
+  ];
+
   const ready = !isPending && !isError && profile !== undefined;
 
   const icsFeed = toIcsFeedView(ics.apiOrigin, ics.token);
@@ -229,14 +241,12 @@ export function SettingsScreen({
   const saveErrorMessage = describeError(saveError);
   const regenerateErrorMessage = describeError(ics.regenerateError);
 
-  // Each toast used to be gated by the JSX branch it rendered in — the first
-  // two by the `{ready ? … : null}` form section, the third by `ConfirmDialog`
-  // itself, whose `Modal` renders no children at all while `open` is `false`
-  // (`libs/shared/design-system/.../modal.tsx`). `useNotify` calls are
-  // unconditional (rules of hooks), so the same gating has to move into the
-  // `message` argument instead — otherwise e.g. a stale `regenerateError`
-  // would keep showing a toast on the settings screen after the confirmation
-  // dialog that used to contain it has been cancelled and closed.
+  // Each toast is gated by the JSX branch it belongs to — the first two by
+  // the `{ready ? … : null}` form section, the third by the confirm dialog
+  // being open. `useNotify` calls are unconditional (rules of hooks), so the
+  // gating lives in the `message` argument — otherwise e.g. a stale
+  // `regenerateError` would keep showing a toast after the confirmation
+  // dialog has been cancelled and closed.
   useNotify(ready && spotsError ? t('preferredSpotLoadError') : null, 'danger');
   useNotify(ready ? saveErrorMessage : null, 'danger');
   useNotify(confirmOpen ? regenerateErrorMessage : null, 'danger');
@@ -265,106 +275,104 @@ export function SettingsScreen({
     }
   }
 
+  // Not while the confirm dialog is open: that one handles its own Escape.
+  useEscapeToClose(!confirmOpen, onClose);
+
   return (
     <>
-      <Modal
-        open
-        onClose={onClose}
-        title={t('title')}
-        description={ready ? t('description') : undefined}
-        size="md"
-        // The design draws no × in the corner (`doc/decision/0150-*`), and a
-        // click on the scrim must not throw unsaved edits away — `Modal`'s own
-        // prop docs call out exactly this case for `closeOnScrimClick={false}`.
-        hideCloseButton
-        closeOnScrimClick={false}
-        footer={
-          ready ? (
-            <>
-              <Button variant="secondary" size="lg" onClick={onClose} disabled={isSaving}>
-                {t('cancel')}
-              </Button>
-              {/* `type="submit" form={SETTINGS_FORM_ID}` rather than an
-                  `onClick` handler: this button lives in `Modal`'s `footer`,
-                  outside the `<form>` below, but the `form` attribute still
-                  makes it that form's submit button — which is also what
-                  makes pressing Enter in a field submit the form natively. */}
-              <Button
-                type="submit"
-                form={SETTINGS_FORM_ID}
-                variant="primary"
-                size="lg"
-                loading={isSaving}
-              >
-                {t('save')}
-              </Button>
-            </>
-          ) : undefined
-        }
-      >
-        {isPending ? <ScreenLoading /> : null}
-        {isError ? <ScreenError error={error} onRetry={onRetry} headingLevel={3} /> : null}
+      <Modal isOpen onClose={onClose} canBeDismissed={false} maxWidth>
+        <Modal.Header subheader={ready ? t('description') : undefined}>{t('title')}</Modal.Header>
+        <Modal.Content>
+          {isPending ? <ScreenLoading /> : null}
+          {isError ? <ScreenError error={error} onRetry={onRetry} headingLevel={3} /> : null}
 
-        {ready ? (
-          <FormProvider {...form}>
-            <Stack spacing={5}>
-              {/*
-               * The `<form>` element itself stays plain — nothing here or in
-               * `settings-screen.spec.tsx` depends on it being the flex
-               * container. `Stack` supplies the `gap-5` layout as its one
-               * (and only) child.
-               */}
-              <form
-                id={SETTINGS_FORM_ID}
-                onSubmit={form.handleSubmit((values) => onSave(toUpdateInput(values)))}
-              >
-                <Stack spacing={5}>
-                  <FormField
-                    name="licensePlate"
-                    render={({ field, error: fieldError }) => (
-                      <Input
-                        label={t('licensePlateLabel')}
-                        error={fieldError ? t('licensePlateTooLong') : undefined}
-                        {...field}
-                      />
-                    )}
-                  />
-                  <FormField
-                    name="preferredParkingSpotId"
-                    render={({ field, error: fieldError }) => (
-                      <Select label={t('preferredSpotLabel')} error={fieldError} {...field}>
-                        <option value={NO_PREFERRED_SPOT}>{t('preferredSpotNone')}</option>
-                        {spots.map((spot) => (
-                          <option key={spot.id} value={spot.id}>
-                            {spot.label} · {spot.group}
-                          </option>
-                        ))}
-                      </Select>
-                    )}
-                  />
-                  {spotsPending ? (
-                    <Text size="sm" tone="subtle">
-                      {t('preferredSpotLoading')}
-                    </Text>
-                  ) : null}
-                </Stack>
-              </form>
+          {ready ? (
+            <FormProvider {...form}>
+              <Stack gap="xl">
+                <form
+                  id={SETTINGS_FORM_ID}
+                  onSubmit={form.handleSubmit((values) => onSave(toUpdateInput(values)))}
+                >
+                  <Stack gap="xl">
+                    <FormField
+                      name="licensePlate"
+                      render={({ field, error: fieldError }) => (
+                        <TextField
+                          label={t('licensePlateLabel')}
+                          name={field.name}
+                          ref={field.ref}
+                          value={field.value}
+                          onChange={field.onChange}
+                          onBlur={field.onBlur}
+                          {...(fieldError ? { error: t('licensePlateTooLong') } : {})}
+                        />
+                      )}
+                    />
+                    <FormField
+                      name="preferredParkingSpotId"
+                      render={({ field, error: fieldError }) => (
+                        <SingleSelectField
+                          label={t('preferredSpotLabel')}
+                          options={spotOptions}
+                          getOptionValue={(option) => option.value}
+                          getOptionLabel={(option) => option.label}
+                          name={field.name}
+                          value={field.value}
+                          onChange={(value) => field.onChange(value ?? NO_PREFERRED_SPOT)}
+                          ref={field.ref}
+                          {...(fieldError ? { error: fieldError } : {})}
+                        />
+                      )}
+                    />
+                    {spotsPending ? (
+                      <Text appearance="sm" variant="tertiary">
+                        {t('preferredSpotLoading')}
+                      </Text>
+                    ) : null}
+                  </Stack>
+                </form>
 
-              {/* Deliberately outside the `<form>` above: the ICS section acts
+                {/* Deliberately outside the `<form>` above: the ICS section acts
                   immediately on its own two buttons (both `type="button"`), not
                   on a Save/Cancel submit, and keeping it out of the form means
                   pressing Enter while focused on the read-only feed-URL input
                   cannot trigger a licence-plate/preferred-spot save. */}
-              <IcsSection
-                headingId="ics-heading"
-                feed={icsFeed}
-                copyState={copyState}
-                onCopy={() => void handleCopy()}
-                onRequestRegenerate={() => setConfirmOpen(true)}
-                isRegenerating={ics.isRegenerating}
-              />
-            </Stack>
-          </FormProvider>
+                <IcsSection
+                  headingId="ics-heading"
+                  feed={icsFeed}
+                  copyState={copyState}
+                  onCopy={() => void handleCopy()}
+                  onRequestRegenerate={() => setConfirmOpen(true)}
+                  isRegenerating={ics.isRegenerating}
+                />
+              </Stack>
+            </FormProvider>
+          ) : null}
+        </Modal.Content>
+        {ready ? (
+          <Modal.Footer>
+            {({ primaryButtonProps, secondaryButtonProps }) => (
+              <>
+                <Button {...secondaryButtonProps} size="lg" onClick={onClose} disabled={isSaving}>
+                  {t('cancel')}
+                </Button>
+                {/* `type="submit" form={SETTINGS_FORM_ID}` rather than an
+                    `onClick` handler: this button lives outside the `<form>`
+                    above, but the `form` attribute still makes it that form's
+                    submit button — which is also what makes pressing Enter in
+                    a field submit the form natively. */}
+                <Button
+                  {...primaryButtonProps}
+                  type="submit"
+                  form={SETTINGS_FORM_ID}
+                  size="lg"
+                  isLoading={isSaving}
+                >
+                  {t('save')}
+                </Button>
+              </>
+            )}
+          </Modal.Footer>
         ) : null}
       </Modal>
 

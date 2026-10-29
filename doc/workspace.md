@@ -29,10 +29,6 @@ apps/
     api-e2e/    Jest integration tests against the API tags: type:app,  scope:api
 libs/
   shared/       more than one application consumes these
-    design-system/
-                one project, three layers under src/ (tokens, primitives,
-                compounds) + Storybook 10
-                                      tags: type:ui,   scope:web
     form/       react-hook-form wrapper              tags: type:util, scope:web
     i18n/       next-intl wrapper + Czech messages   tags: type:util, scope:web
     api-client/ oRPC client typed from the contract  tags: type:util, scope:web
@@ -61,7 +57,7 @@ prisma.config.ts  Prisma CLI configuration (schema in libs/garage/database, `.en
 ```
 
 **Nx project names are flat and unprefixed** (`web`, `api`, `contract`, …),
-so `npx nx run web:test` still addresses the parking app's web project
+so `pnpm nx run web:test` still addresses the parking app's web project
 regardless of where its directory sits. That is fine while there is one
 application and becomes ambiguous with two; prefixing them is a separate
 change, deliberately not bundled with the move (decision 0310).
@@ -110,21 +106,21 @@ and if you are adding several, do the scope rename first.
 
 ## Scripts
 
-Everything runs from the repo root via npm. **An unsuffixed script is
+Everything runs from the repo root via pnpm. **An unsuffixed script is
 workspace-wide** — it covers every project of every application, which is what
 CI's `verify` job needs and what "is the tree green" means here. A `:<app>`
 suffix scopes a script to one application.
 
 | command | what it does |
 | --- | --- |
-| `npm run dev:garage` | `serve` + `dev` for that app's `api` and `web` – continuous |
-| `npm run lint` | ESLint across every project (`nx run-many -t lint`), **`--max-warnings=0`** |
-| `npm run typecheck` | `tsc --noEmit` against every project's tsconfigs |
-| `npm run test` | Jest unit tests (`nx run-many -t test`) |
-| `npm run build` | production build of every app, plus Storybook |
-| `npm run affected` | `nx affected -t lint,test,build` – only what changed (for CI) |
-| `npm run format` | Prettier write |
-| `npm run format:check` | Prettier check (fails if anything is unformatted) |
+| `pnpm dev:garage` | `serve` + `dev` for that app's `api` and `web` – continuous |
+| `pnpm lint` | ESLint across every project (`nx run-many -t lint`), **`--max-warnings=0`** |
+| `pnpm typecheck` | `tsc --noEmit` against every project's tsconfigs |
+| `pnpm test` | Jest unit tests (`nx run-many -t test`) |
+| `pnpm build` | production build of every app |
+| `pnpm affected` | `nx affected -t lint,test,build` – only what changed (for CI) |
+| `pnpm format` | Prettier write |
+| `pnpm format:check` | Prettier check (fails if anything is unformatted) |
 
 `dev:garage` is the only script that needs scoping today, because serving
 two applications' `api` and `web` at once is never what you want. It selects
@@ -135,33 +131,24 @@ the `app:` tag does not. Every project carries one — `app:garage` or
 `app:shared` — and `nx show projects -p tag:app:garage` is how you ask what
 it covers. Adding `dev:<second-app>` is then one line.
 
-E2e tests aren't part of `npm run test`; they run on demand:
+E2e tests aren't part of `pnpm test`; they run on demand:
 
 ```bash
-npx nx run web-e2e:e2e      # Playwright; starts the dev server itself
-npx nx run api-e2e:e2e      # Jest; starts api:serve itself
-```
-
-**Storybook is part of `npm run build`** (`nx run-many -t build,build-storybook`)
-and of `npm run affected`, so a broken story is caught in CI rather than only by
-hand. The individual targets for working on the design system:
-
-```bash
-npx nx run design-system:storybook         # dev server, port 4400
-npx nx run design-system:build-storybook   # static build
+pnpm nx run web-e2e:e2e      # Playwright; starts the dev server itself
+pnpm nx run api-e2e:e2e      # Jest; starts api:serve itself
 ```
 
 Useful individual targets:
 
 ```bash
-npx nx run web:dev          # Next.js dev server
-npx nx run api:serve        # NestJS in watch mode
-npx nx run-many -t lint --skip-nx-cache   # bypass the cache
-npx nx graph                # dependency graph
+pnpm nx run web:dev          # Next.js dev server
+pnpm nx run api:serve        # NestJS in watch mode
+pnpm nx run-many -t lint --skip-nx-cache   # bypass the cache
+pnpm nx graph                # dependency graph
 ```
 
 CI has no pipeline file yet – deliberately. The scripts above are designed so
-a pipeline just has to call them (`npm ci && npm run affected`).
+a pipeline just has to call them (`pnpm install && pnpm affected`).
 
 ---
 
@@ -181,7 +168,7 @@ No project may turn any of these off. When new code hits
 
 Every project has its own `typecheck` target (`nx:run-commands` +
 `tsc --noEmit`). **A new lib must add one too** – otherwise it never becomes
-part of `npm run typecheck`.
+part of `pnpm typecheck`.
 
 ---
 
@@ -201,8 +188,7 @@ carries exactly one `type:` tag), which is why the npm allow-list
 | tag | meaning | may depend on | may use from npm |
 | --- | --- | --- | --- |
 | `type:app` | an application (`apps/*`) | anything; nothing may depend on an app | `*` |
-| `type:feature` | domain composition | `feature`, `ui`, `util`, `contract`, `data` | `tslib` |
-| `type:ui` | the design system, domain-free | `ui`, `util` | React, `clsx`, `tailwind-merge`, `class-variance-authority`, TanStack Table, Storybook |
+| `type:feature` | domain composition | `feature`, `util`, `contract`, `data` | `tslib` |
 | `type:util` | wrapper layers and helpers | `util`, `contract` | React/Next + the union of packages from `WRAPPED_LIBRARIES` |
 | `type:contract` | `libs/garage/contract` – Zod + oRPC | `layer:foundation` | `zod`, `@orpc/contract`, `tslib` |
 | `type:data` | data access (`libs/garage/database`) | `data`, `util`, `contract` | Prisma |
@@ -238,41 +224,13 @@ This dimension enforces decision `0003`: `apps/garage/api` (`scope:api`) may dep
 on `libs/garage/shared-types` (`scope:shared`), but **not** on `libs/shared/i18n`
 (`scope:web`), so `next-intl` never reaches the backend.
 
-### The `ds:` dimension – gone, and what replaced it
+### The `ds:` dimension and the `type:ui` tag – gone
 
-`ds:tokens` / `ds:primitives` / `ds:compounds` tagged three Nx projects and gave
-`@nx/enforce-module-boundaries` a handle on the direction tokens → primitives →
-compounds (`doc/decision/0007-*`). The three layers are now three directories of
-one project, so there is no project boundary left for the constraints to match
-and they were removed rather than left to never fire.
-
-The rule is unchanged and still machine-enforced: path-scoped
-`no-restricted-imports` groups in `libs/shared/design-system/eslint.config.mjs`, one
-per layer, catching both the workspace alias and a relative escape. See
-`doc/decision/0301-the-design-system-is-one-package-and-the-layer-rule-moved-to-lint-paths.md`.
-
-These entries carry **no** `allowedExternalImports`, and that is deliberate.
-Task 8's branch put a tighter npm list on the then-existing `ds:tokens` and
-`ds:primitives` tags, on
-the theory that because Nx ANDs the dimensions a second list must be an
-intersection and could only narrow. **That theory was probed at merge and it is
-false.** With `clsx` on `type:ui`'s list and absent from a `ds:primitives` list,
-an `import clsx from 'clsx'` inside the primitives layer produced no
-error at all: one matching constraint that permits a package is enough, so the
-second list never narrows anything. Shipping it would have been a rule that
-reads as enforcement and enforces nothing – which is the failure mode
-`eslint.config.mjs` has already been caught in four times, and the reason this
-document tells you to probe a boundary rule rather than read it.
-
-The npm surface therefore stays on the `type:` dimension
-(`doc/decision/0017-*`). The design system's genuinely tighter surface – it is
-meant to be a closed layer with a near-zero runtime dependency footprint, and
-`cx.ts` exists precisely so that no class-name helper has to be installed – is
-enforced by `no-restricted-imports` in `libs/shared/design-system/eslint.config.mjs`,
-where it does fire. That one file carries the probe that proves it, and every
-block in it spreads the wrapper-ban patterns back in: `no-restricted-imports` is a single rule, so a lib-local block
-that sets it replaces the root's copy outright, and a lib adding its own bans
-without spreading those in would silently switch the wrapper ban off for itself.
+`ds:tokens` / `ds:primitives` / `ds:compounds` and later the `type:ui` tag
+belonged to the in-house design system, which is deleted
+(`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`).
+UI comes from `@shoptet/ui`, imported by the app, so no lib carries a UI tag.
+The npm surface stays on the `type:` dimension (`doc/decision/0017-*`).
 
 ---
 
@@ -284,7 +242,6 @@ only allowed place is the wrapper lib that owns them:
 | forbidden package | use instead | only allowed directory |
 | --- | --- | --- |
 | `react-hook-form` | `@garage/form` | `libs/shared/form` (done) |
-| `@tanstack/react-table` | `@garage/design-system/compounds` | `libs/shared/design-system/src/compounds` |
 | `@tanstack/react-query` | `@garage/query` | `libs/query` (done) |
 | `@orpc/client` | `@garage/api-client` | `libs/shared/api-client` (done) |
 | `socket.io-client` | `@garage/realtime-client` | `libs/garage/realtime-client` (done) |
@@ -325,21 +282,13 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
 
    ```bash
    # a pure TypeScript lib (contract, util, backend service)
-   npx nx g @nx/js:lib libs/garage/shared-types --name=shared-types \
+   pnpm nx g @nx/js:lib libs/garage/shared-types --name=shared-types \
      --unitTestRunner=jest --bundler=none --linter=eslint --useProjectJson
 
-   # a React lib (design system, frontend wrappers)
-   npx nx g @nx/react:lib libs/shared/design-system/primitives --name=design-system-primitives \
+   # a React lib (frontend wrappers)
+   pnpm nx g @nx/react:lib libs/shared/form --name=form \
      --unitTestRunner=jest --bundler=none --linter=eslint --useProjectJson
    ```
-
-   The design-system command above is **history**, kept because it records how
-   the workspace was scaffolded. The three design-system libs it produced were
-   later merged into one project, `design-system`, with the layers as
-   directories under `libs/shared/design-system/src/` and the `ds:*` tags removed —
-   `doc/decision/0301-the-design-system-is-one-package-and-the-layer-rule-moved-to-lint-paths.md`.
-   Generating a new design-system layer is not a thing you do any more; you add
-   a directory.
 
 2. **Set the tags** in `libs/<name>/project.json`. Planned split:
 
@@ -347,7 +296,6 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
    | --- | --- |
    | `libs/garage/contract` | `type:contract`, `scope:shared` |
    | `libs/garage/shared-types` | `type:util`, `scope:shared`, `layer:foundation` |
-   | `libs/shared/design-system` | `type:ui`, `scope:web` |
    | `libs/shared/form`, `libs/query`, `libs/shared/api-client`, `libs/garage/realtime-client`, `libs/garage/auth`, `libs/shared/i18n` | `type:util`, `scope:web` |
    | `libs/garage/calendar-export` | `type:util`, `scope:api` |
    | `libs/garage/database` | `type:data`, `scope:api` |
@@ -366,7 +314,7 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
    }
    ```
 
-4. **Verify**: `npm run lint && npm run typecheck && npm run test`.
+4. **Verify**: `pnpm lint && pnpm typecheck && pnpm test`.
 
 > **Lint fails on warnings too.** `nx.json` adds `--max-warnings=0` to every
 > `lint` target. Without it, `nx run-many` exits 0 even if ESLint printed
@@ -378,6 +326,6 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
 
 ## Formatting notes
 
-`npm run format` runs over the source code, not over `doc/` – hand-written
+`pnpm format` runs over the source code, not over `doc/` – hand-written
 documents and the design export are in `.prettierignore`, so Prettier doesn't
 reflow tables and text that aren't its to format.

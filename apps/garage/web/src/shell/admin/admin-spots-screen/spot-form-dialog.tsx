@@ -3,16 +3,12 @@
 import * as z from 'zod';
 import type { ParkingSpot } from '@garage/contract';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
-import {
-  Button,
-  Checkbox,
-  Input,
-  Modal,
-  Select,
-  Stack,
-  Toast,
-} from '@garage/design-system/primitives';
+import { Button, CheckboxField, Modal, SingleSelectField, Stack } from '@shoptet/ui';
+import { TextField } from '../../../ui/text-field/text-field';
+import { Toast } from '../../../ui/toast/toast';
 import { PARKING_GROUPS, useTranslations } from '@garage/i18n';
+
+const GROUP_OPTIONS = PARKING_GROUPS.map((group) => ({ group }));
 
 /** Field-level validation. The contract re-checks the same shape on arrival. */
 const spotFormSchema = z.object({
@@ -62,62 +58,76 @@ export function SpotFormDialog({
   });
 
   return (
-    <Modal
-      open
-      onClose={onCancel}
-      title={spot === null ? t('spotsCreateTitle') : t('spotsEditTitle', { label: spot.label })}
-      size="sm"
-      footer={
-        <>
-          <Button variant="secondary" size="lg" onClick={onCancel} disabled={saving}>
-            {t('spotsCancel')}
-          </Button>
-          <Button variant="primary" size="lg" onClick={submit} loading={saving}>
-            {t('spotsSave')}
-          </Button>
-        </>
-      }
-    >
-      <FormProvider {...form}>
-        <Stack spacing={5}>
-          <FormField
-            name="label"
-            render={({ field, error: fieldError }) => (
-              <Input
-                label={t('spotsLabelField')}
-                error={fieldError ? t('spotsLabelRequired') : undefined}
-                {...field}
-              />
-            )}
-          />
-          <FormField
-            name="group"
-            render={({ field, error: fieldError }) => (
-              <Select label={t('spotsGroupField')} error={fieldError} {...field}>
-                {PARKING_GROUPS.map((group) => (
-                  <option key={group} value={group}>
-                    {group}
-                  </option>
-                ))}
-              </Select>
-            )}
-          />
-          <FormField
-            name="evCharger"
-            render={({ field }) => (
-              <Checkbox
-                label={t('spotsEvChargerField')}
-                name={field.name}
-                ref={field.ref}
-                checked={field.value}
-                onBlur={field.onBlur}
-                onChange={(event) => field.onChange(event.target.checked)}
-              />
-            )}
-          />
-          {errorMessage ? <Toast tone="danger">{errorMessage}</Toast> : null}
-        </Stack>
-      </FormProvider>
+    <Modal isOpen onClose={onCancel}>
+      <Modal.Header>
+        {spot === null ? t('spotsCreateTitle') : t('spotsEditTitle', { label: spot.label })}
+      </Modal.Header>
+      <Modal.Content>
+        <FormProvider {...form}>
+          <Stack gap="xl">
+            <FormField
+              name="label"
+              render={({ field, error: fieldError }) => (
+                <TextField
+                  label={t('spotsLabelField')}
+                  {...(fieldError ? { error: t('spotsLabelRequired') } : {})}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onChange={field.onChange}
+                  onBlur={field.onBlur}
+                />
+              )}
+            />
+            <FormField
+              name="group"
+              render={({ field, error: fieldError }) => (
+                <SingleSelectField
+                  label={t('spotsGroupField')}
+                  {...(fieldError ? { error: fieldError } : {})}
+                  options={GROUP_OPTIONS}
+                  getOptionValue={(option) => option.group}
+                  getOptionLabel={(option) => option.group}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value}
+                  onChange={(group) => {
+                    if (group !== null) {
+                      field.onChange(group);
+                    }
+                  }}
+                />
+              )}
+            />
+            <FormField
+              name="evCharger"
+              render={({ field }) => (
+                <CheckboxField
+                  label={t('spotsEvChargerField')}
+                  name={field.name}
+                  ref={field.ref}
+                  checked={field.value}
+                  onBlur={field.onBlur}
+                  onChange={(checked) => field.onChange(checked)}
+                />
+              )}
+            />
+            {errorMessage ? <Toast tone="danger">{errorMessage}</Toast> : null}
+          </Stack>
+        </FormProvider>
+      </Modal.Content>
+      <Modal.Footer>
+        {({ primaryButtonProps, secondaryButtonProps }) => (
+          <>
+            <Button {...secondaryButtonProps} size="lg" onClick={onCancel} disabled={saving}>
+              {t('spotsCancel')}
+            </Button>
+            <Button {...primaryButtonProps} size="lg" onClick={submit} isLoading={saving}>
+              {t('spotsSave')}
+            </Button>
+          </>
+        )}
+      </Modal.Footer>
     </Modal>
   );
 }

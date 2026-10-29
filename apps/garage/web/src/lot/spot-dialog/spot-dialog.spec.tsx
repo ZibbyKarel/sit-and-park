@@ -1,6 +1,6 @@
 import { screen } from '@testing-library/react';
 import { mine, renderDialog, spot, takenByOther } from './spot-dialog.test-helpers';
-import { GUEST_HOLDER_VALUE } from './holder-input';
+import { selectOption } from '../../test-utils/select-option';
 
 /**
  * Which actions the dialog offers, in which state.
@@ -212,10 +212,11 @@ describe('SpotDialog — an admin reserving a free bay', () => {
   }
 
   it('offers the holder selector, with the admin themselves preselected', async () => {
-    renderAdmin();
+    const { user } = renderAdmin();
 
     const select = screen.getByLabelText('holderField');
-    expect(select).toHaveValue('admin-1');
+    expect(select).toHaveTextContent(/Dev Admin/);
+    await user.click(select);
     expect(screen.getByRole('option', { name: 'holderGuestOption' })).toBeInTheDocument();
     // With a plate on file, the option label carries it too — the whole point
     // of a selector that was meant to show "jméno i spz". Without one (Jana
@@ -243,7 +244,7 @@ describe('SpotDialog — an admin reserving a free bay', () => {
   it('reserves for another user, with the plate the admin typed', async () => {
     const { onReserve, user } = renderAdmin();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-2');
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.type(screen.getByLabelText('plateField'), '9XY 8765');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
@@ -259,14 +260,14 @@ describe('SpotDialog — an admin reserving a free bay', () => {
     const plate = screen.getByLabelText('plateField');
 
     expect(plate).toHaveAttribute('placeholder', '1AA 1111');
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-2');
+    await selectOption(user, 'holderField', /Jana Nováková/);
     expect(plate).toHaveAttribute('placeholder', 'noPlate');
   });
 
   it('asks for a guest’s name, and refuses to submit without one', async () => {
     const { onReserve, user } = renderAdmin();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'GUEST');
+    await selectOption(user, 'holderField', 'holderGuestOption');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(onReserve).not.toHaveBeenCalled();
@@ -296,7 +297,7 @@ describe('SpotDialog — an admin reserving a free bay', () => {
 
     rerender({ viewerUserId: 'admin-1' });
 
-    expect(screen.getByLabelText('holderField')).toHaveValue('admin-1');
+    expect(screen.getByLabelText('holderField')).toHaveTextContent(/Dev Admin/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
     expect(onReserve).toHaveBeenCalledWith({
       kind: 'USER',
@@ -308,12 +309,12 @@ describe('SpotDialog — an admin reserving a free bay', () => {
   it('does not carry a guest name from one bay into the next', async () => {
     const { user, rerender } = renderAdmin();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'GUEST');
+    await selectOption(user, 'holderField', 'holderGuestOption');
     await user.type(screen.getByLabelText('guestNameField'), 'Jan Host');
 
     rerender({ spot: spot({ spotId: 'spot-b', label: 'E2.93' }) });
 
-    expect(screen.getByLabelText('holderField')).toHaveValue('admin-1');
+    expect(screen.getByLabelText('holderField')).toHaveTextContent(/Dev Admin/);
     expect(screen.queryByLabelText('guestNameField')).not.toBeInTheDocument();
   });
 
@@ -330,17 +331,17 @@ describe('SpotDialog — an admin reserving a free bay', () => {
   it('offers a guest half-hour block, and submits it through onReserveTimed rather than onReserve', async () => {
     const { onReserve, onReserveTimed, user } = renderAdmin();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), GUEST_HOLDER_VALUE);
+    await selectOption(user, 'holderField', 'holderGuestOption');
     await user.type(screen.getByLabelText('guestNameField'), 'Jan Host');
     // No duration select yet — the whole-day / block choice.
     expect(screen.queryByLabelText('startTimeField')).not.toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('durationField'), 'TIMED');
+    await selectOption(user, 'durationField', 'durationTimed');
     expect(screen.getByLabelText('startTimeField')).toBeInTheDocument();
     expect(screen.getByLabelText('endTimeField')).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('startTimeField'), '09:00');
-    await user.selectOptions(screen.getByLabelText('endTimeField'), '10:30');
+    await selectOption(user, 'startTimeField', '9:00');
+    await selectOption(user, 'endTimeField', '10:30');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(onReserveTimed).toHaveBeenCalledWith({
@@ -355,11 +356,11 @@ describe('SpotDialog — an admin reserving a free bay', () => {
   it('refuses to submit a guest block whose end is not later than its start', async () => {
     const { onReserveTimed, user } = renderAdmin();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), GUEST_HOLDER_VALUE);
+    await selectOption(user, 'holderField', 'holderGuestOption');
     await user.type(screen.getByLabelText('guestNameField'), 'Jan Host');
-    await user.selectOptions(screen.getByLabelText('durationField'), 'TIMED');
-    await user.selectOptions(screen.getByLabelText('startTimeField'), '10:00');
-    await user.selectOptions(screen.getByLabelText('endTimeField'), '09:30');
+    await selectOption(user, 'durationField', 'durationTimed');
+    await selectOption(user, 'startTimeField', '10:00');
+    await selectOption(user, 'endTimeField', '9:30');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(onReserveTimed).not.toHaveBeenCalled();
@@ -417,8 +418,8 @@ describe('SpotDialog — a timed spot’s guest blocks', () => {
     expect(onCancelTimedReservation).toHaveBeenCalledWith('block-1');
 
     await user.type(screen.getByLabelText('guestNameField'), 'Petr Nový');
-    await user.selectOptions(screen.getByLabelText('startTimeField'), '11:00');
-    await user.selectOptions(screen.getByLabelText('endTimeField'), '11:30');
+    await selectOption(user, 'startTimeField', '11:00');
+    await selectOption(user, 'endTimeField', '11:30');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(onReserveTimed).toHaveBeenCalledWith({
@@ -512,12 +513,13 @@ describe('SpotDialog — an admin adding somebody to the queue', () => {
     });
   }
 
-  it('still shows the queue heading to an admin when nobody is waiting, with a selector', () => {
-    renderAdminQueue();
+  it('still shows the queue heading to an admin when nobody is waiting, with a selector', async () => {
+    const { user } = renderAdminQueue();
 
     expect(screen.getByText('queueHeading')).toBeInTheDocument();
     expect(screen.getByText('queueEmpty')).toBeInTheDocument();
-    expect(screen.getByLabelText('queueHolderField')).toHaveValue('admin-1');
+    expect(screen.getByLabelText('queueHolderField')).toHaveTextContent(/Dev Admin/);
+    await user.click(screen.getByLabelText('queueHolderField'));
     expect(screen.getByRole('option', { name: 'Jana Nováková' })).toBeInTheDocument();
   });
 
@@ -533,7 +535,7 @@ describe('SpotDialog — an admin adding somebody to the queue', () => {
   it('adds the selected user instead, when the admin picks somebody else', async () => {
     const { onJoinWaitlist, user } = renderAdminQueue();
 
-    await user.selectOptions(screen.getByLabelText('queueHolderField'), 'user-2');
+    await selectOption(user, 'queueHolderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaQueue' }));
 
     expect(onJoinWaitlist).toHaveBeenCalledWith('user-2');
@@ -558,7 +560,7 @@ describe('SpotDialog — an admin adding somebody to the queue', () => {
     // filtered list exists to prevent up front.
     const { onJoinWaitlist, user } = renderAdminQueue({ viewerUserId: 'admin-9' });
 
-    expect(screen.getByLabelText('queueHolderField')).toHaveValue('admin-1');
+    expect(screen.getByLabelText('queueHolderField')).toHaveTextContent(/Dev Admin/);
 
     await user.click(screen.getByRole('button', { name: 'ctaQueue' }));
     expect(onJoinWaitlist).toHaveBeenCalledWith('admin-1');

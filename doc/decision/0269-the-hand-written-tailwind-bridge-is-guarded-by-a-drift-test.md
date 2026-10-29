@@ -1,5 +1,7 @@
 # 0269 – The hand-written Tailwind bridge is guarded by a drift test, and the colour list is derived
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `assets/theme.css` — the `@theme inline` bridge that turns `tokens.css`'s custom

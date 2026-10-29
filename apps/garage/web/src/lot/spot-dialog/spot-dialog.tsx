@@ -33,30 +33,19 @@
  */
 
 import { useEffect } from 'react';
-import {
-  Avatar,
-  Badge,
-  Box,
-  Button,
-  Callout,
-  IconCircle,
-  Modal,
-  Spacer,
-  Stack,
-  Text,
-} from '@garage/design-system/primitives';
+import { Avatar, Button, Modal, Spacer, SystemMessage, Tag } from '@shoptet/ui';
 import { useDateFormatters, useTranslations } from '@garage/i18n';
 import type { DateOnly } from '@garage/i18n';
 import { FormProvider, useAppForm } from '@garage/form';
 import type { ReservationHolderInput } from '@garage/contract';
 import { toContractError } from '@garage/api-client';
-import { initialsOf } from '../../shell/initials';
 import { useNotify } from '../../shell/notifications/toast-provider';
 import { formatTimeRange } from '../lot-view';
 import type { SpotView } from '../lot-view';
 import { HolderFields } from './holder-fields';
 import { GUEST_HOLDER_VALUE, holderFormSchema, toReservationRequest } from './holder-input';
 import type { HolderFormValues, HolderOption } from './holder-input';
+import styles from './spot-dialog.module.css';
 import { QueueTargetFields } from './queue-target-fields';
 import { defaultQueueTargetId, queueTargetFormSchema } from './queue-target-input';
 import type { QueueTargetFormValues } from './queue-target-input';
@@ -345,206 +334,149 @@ export function SpotDialog({
 
   return (
     <Modal
-      open
+      isOpen
       onClose={onClose}
-      eyebrow={t('modalEyebrow', { label: spot.label })}
-      title={title}
-      description={description}
       // The design's modal has no × in the corner — its only close control is
-      // the footer button — and drawing both would put two controls with the
-      // same accessible name, doing the same thing, in the same dialog.
-      // Escape and the scrim still close it; `Modal` keeps both regardless.
-      hideCloseButton
-      // For a normal user nothing here is unsaved input — the dialog holds no
-      // form (see the module docs). For an admin reserving for someone else, a
-      // half-typed guest name or plate override is lost on a scrim click too —
-      // the same trade-off the design's own modal makes everywhere else, and
-      // small enough not to warrant a confirm-to-discard step.
-      closeOnScrimClick
-      footer={
-        <>
-          {showCancel ? (
-            <>
-              <Button variant="danger" loading={pending} onClick={onCancelReservation}>
-                {t('cancelReservation')}
-              </Button>
-              {/* `Modal`'s footer wraps every child in one `justify-end` flex row
-                  (owned by `modal.tsx`, out of reach here). A growing `Spacer`
-                  right after this button reproduces the `mr-auto` it used to
-                  carry — pushing this button to the left edge while the rest
-                  stay clustered on the right. */}
-              <Spacer />
-            </>
-          ) : null}
-          <Button variant="secondary" onClick={onClose}>
-            {t('close')}
-          </Button>
-          {showPrimary ? (
-            isTaken ? (
-              isQueued ? (
-                <Button variant="outline" loading={pending} onClick={onLeaveWaitlist}>
-                  {t('leaveQueue')}
+      // the footer button. Escape, the scrim and the × all dismiss; none of
+      // them guards unsaved input, which is a trade-off the design's own
+      // modals make everywhere else.
+    >
+      <Modal.Header subheader={description}>{title}</Modal.Header>
+      <Modal.Content>
+        <p className={styles.eyebrow}>{t('modalEyebrow', { label: spot.label })}</p>
+
+        {showHolderForm ? (
+          <FormProvider {...form}>
+            <HolderFields
+              options={holderOptions}
+              holderId={holderId}
+              duration={duration}
+              timedOnly={isTimedSpot}
+            />
+          </FormProvider>
+        ) : null}
+
+        {spot.timedBlocks.length > 0 ? (
+          // Guest blocks already on this spot — a `'timed'` appearance never
+          // co-occurs with `isTaken` (`toSpotView`'s precedence), so this and
+          // the taken-holder panel below are mutually exclusive in practice.
+          <section className={styles.section}>
+            <h3 className={styles.heading}>{t('timedBlocksHeading')}</h3>
+            <ul className={styles.blocks}>
+              {spot.timedBlocks.map((block) => (
+                <li key={block.id} className={styles.block}>
+                  <strong>{formatTimeRange(block)}</strong>
+                  <span>{block.guestName}</span>
+                  {block.licensePlate === null ? null : (
+                    <span className={styles.muted}>{block.licensePlate}</span>
+                  )}
+                  {isAdmin ? (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      isLoading={pending}
+                      onClick={() => onCancelTimedReservation(block.id)}
+                    >
+                      {t('timedBlockCancel')}
+                    </Button>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null}
+
+        {isTaken && spot.holderName !== null ? (
+          <section className={styles.section}>
+            <div className={styles.holder}>
+              <Avatar
+                name={spot.holderName}
+                {...(spot.holderPlate === null
+                  ? {}
+                  : { description: t('occupiedBy', { plate: spot.holderPlate }) })}
+              />
+              {spot.holderIsGuest ? <Tag size="sm">{t('guestHolder')}</Tag> : null}
+            </div>
+
+            {isAdmin || spot.waitlistCount > 0 ? (
+              <>
+                <h3 className={styles.heading}>{t('queueHeading')}</h3>
+                <p className={styles.muted}>
+                  {spot.waitlistCount === 0
+                    ? t('queueEmpty')
+                    : t('waiting', { count: spot.waitlistCount })}
+                </p>
+                {spot.viewerWaitlistPosition !== null ? (
+                  <p className={styles.position}>
+                    {t('queuePosition', { position: spot.viewerWaitlistPosition })}
+                  </p>
+                ) : null}
+                {showQueueTargetForm ? (
+                  <FormProvider {...queueForm}>
+                    <QueueTargetFields options={queueTargetOptions} />
+                  </FormProvider>
+                ) : null}
+              </>
+            ) : null}
+          </section>
+        ) : null}
+
+        {!canReserve && !isInfo ? (
+          <div className={styles.section}>
+            <SystemMessage level="alert" description={t('lockNote', { month: monthName })} />
+          </div>
+        ) : null}
+      </Modal.Content>
+      <Modal.Footer>
+        {({ primaryButtonProps, secondaryButtonProps }) => (
+          <>
+            {showCancel ? (
+              <>
+                <Button
+                  {...primaryButtonProps}
+                  variant="destructive"
+                  isLoading={pending}
+                  onClick={onCancelReservation}
+                >
+                  {t('cancelReservation')}
                 </Button>
+                {/* Pushes the cancel button to the left edge while the rest stay on the right. */}
+                <Spacer grow />
+              </>
+            ) : null}
+            <Button {...secondaryButtonProps} onClick={onClose}>
+              {t('close')}
+            </Button>
+            {showPrimary ? (
+              isTaken ? (
+                isQueued ? (
+                  <Button {...secondaryButtonProps} isLoading={pending} onClick={onLeaveWaitlist}>
+                    {t('leaveQueue')}
+                  </Button>
+                ) : (
+                  <Button
+                    {...primaryButtonProps}
+                    isLoading={pending}
+                    disabled={queueTargetPending}
+                    onClick={showQueueTargetForm ? submitQueueTarget : () => onJoinWaitlist()}
+                  >
+                    {t('ctaQueue')}
+                  </Button>
+                )
               ) : (
                 <Button
-                  loading={pending}
-                  disabled={queueTargetPending}
-                  onClick={showQueueTargetForm ? submitQueueTarget : () => onJoinWaitlist()}
+                  {...primaryButtonProps}
+                  isLoading={pending}
+                  disabled={holderPending}
+                  onClick={showHolderForm ? submitHolder : () => onReserve()}
                 >
-                  {t('ctaQueue')}
+                  {t('ctaReserve')}
                 </Button>
               )
-            ) : (
-              <Button
-                loading={pending}
-                disabled={holderPending}
-                onClick={showHolderForm ? submitHolder : () => onReserve()}
-              >
-                {t('ctaReserve')}
-              </Button>
-            )
-          ) : null}
-        </>
-      }
-    >
-      {showHolderForm ? (
-        <FormProvider {...form}>
-          <HolderFields
-            options={holderOptions}
-            holderId={holderId}
-            duration={duration}
-            timedOnly={isTimedSpot}
-          />
-        </FormProvider>
-      ) : null}
-
-      {spot.timedBlocks.length > 0 ? (
-        // Guest blocks already on this spot — a `'timed'` appearance never
-        // co-occurs with `isTaken` (`toSpotView`'s precedence), so this and
-        // the taken-holder panel below are mutually exclusive in practice.
-        <Box margin={[0, 0, 5, 0]}>
-          <Box margin={[0, 0, 2, 0]}>
-            <Text size="xs" weight="bold" tone="muted" transform="uppercase" tracking="caps">
-              {t('timedBlocksHeading')}
-            </Text>
-          </Box>
-          <Stack spacing={2}>
-            {spot.timedBlocks.map((block) => (
-              <Stack key={block.id} direction="row" align="center" spacing={3}>
-                <Text size="sm" weight="bold">
-                  {formatTimeRange(block)}
-                </Text>
-                <Text size="sm">{block.guestName}</Text>
-                {block.licensePlate === null ? null : (
-                  <Text size="sm" tone="subtle">
-                    {block.licensePlate}
-                  </Text>
-                )}
-                {isAdmin ? (
-                  <Button
-                    variant="secondary"
-                    size="sm"
-                    loading={pending}
-                    onClick={() => onCancelTimedReservation(block.id)}
-                  >
-                    {t('timedBlockCancel')}
-                  </Button>
-                ) : null}
-              </Stack>
-            ))}
-          </Stack>
-        </Box>
-      ) : null}
-
-      {isTaken && spot.holderName !== null ? (
-        // `mb-5` was this block's own placement, not the card's chrome.
-        <Box margin={[0, 0, 5, 0]}>
-          {/* `mb-3 rounded-md border border-border px-4 py-3` — a *neutral*
-              bordered panel, so `Callout` (whose only tones are
-              `warning`/`success`) does not fit; `Box` carries the chrome
-              instead, wrapping a `Stack` for the row layout. */}
-          <Box margin={[0, 0, 3, 0]} radius="md" border padding={[3, 4]}>
-            <Stack direction="row" align="center" spacing={3}>
-              <Avatar initials={initialsOf(spot.holderName)} tone="neutral" size="lg" />
-              {/* Replaces the plain `<div>` that held the name and plate lines.
-                  Neither line carried a margin class before — the gap between
-                  them was the browser's default paragraph margin (1em = 16px
-                  at the base font size, collapsed between adjacent blocks).
-                  `Text` always emits `m-0`, so that invisible UA spacing is
-                  made explicit here as the equal `spacing={4}` (16px) step. */}
-              <Stack spacing={4}>
-                {/* `spacing={2}` (8px) stands in for the guest badge's old
-                    `ml-2` — same value, expressed as a row gap instead of a
-                    margin so the badge can leave the `<p>` and become a real
-                    `Badge` sibling. */}
-                <Stack direction="row" align="center" spacing={2}>
-                  <Text size="base" weight="bold">
-                    {spot.holderName}
-                  </Text>
-                  {spot.holderIsGuest ? (
-                    <Badge size="sm" tone="tag">
-                      {t('guestHolder')}
-                    </Badge>
-                  ) : null}
-                </Stack>
-                {spot.holderPlate === null ? null : (
-                  <Text size="sm" tone="subtle">
-                    {t('occupiedBy', { plate: spot.holderPlate })}
-                  </Text>
-                )}
-              </Stack>
-            </Stack>
-          </Box>
-
-          {isAdmin || spot.waitlistCount > 0 ? (
-            <>
-              <Box margin={[0, 0, 2, 0]}>
-                <Text size="xs" weight="bold" tone="muted" transform="uppercase" tracking="caps">
-                  {t('queueHeading')}
-                </Text>
-              </Box>
-              {spot.waitlistCount === 0 ? (
-                <Text size="base" tone="subtle">
-                  {t('queueEmpty')}
-                </Text>
-              ) : (
-                <Text size="base" tone="subtle">
-                  {t('waiting', { count: spot.waitlistCount })}
-                </Text>
-              )}
-              {spot.viewerWaitlistPosition !== null ? (
-                <Box margin={[1, 0, 0, 0]}>
-                  <Text size="base" weight="bold">
-                    {t('queuePosition', { position: spot.viewerWaitlistPosition })}
-                  </Text>
-                </Box>
-              ) : null}
-              {showQueueTargetForm ? (
-                <FormProvider {...queueForm}>
-                  <QueueTargetFields options={queueTargetOptions} />
-                </FormProvider>
-              ) : null}
-            </>
-          ) : null}
-        </Box>
-      ) : null}
-
-      {!canReserve && !isInfo ? (
-        <Box margin={[0, 0, 5, 0]}>
-          <Callout
-            tone="warning"
-            icon={
-              <IconCircle size="sm" shape="square" tone="yellow" weight="bold">
-                ⊘
-              </IconCircle>
-            }
-          >
-            <Text size="sm" leading="normal">
-              {t('lockNote', { month: monthName })}
-            </Text>
-          </Callout>
-        </Box>
-      ) : null}
+            ) : null}
+          </>
+        )}
+      </Modal.Footer>
     </Modal>
   );
 }

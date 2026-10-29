@@ -1,5 +1,7 @@
 # 0072 – Sorting is a two-state toggle, and no TanStack type crosses the wrapper
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `DataTable` is the workspace's only importer of `@tanstack/react-table`

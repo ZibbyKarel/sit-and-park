@@ -17,16 +17,22 @@
  * 2. `IntlProvider` next, so that a failure rendered by any screen already has
  *    translated copy available. Its locale and catalog are resolved on the
  *    server (`layout.tsx`) and passed in — this component chooses neither.
- * 3. `QueryClientProvider`, then `ApiProvider` — the client is built from the
+ * 3. `LocalizationProvider` and `RouterProvider` from `@shoptet/ui`: the first
+ *    carries the library's own strings (mapped from the app locale), the second
+ *    makes its links navigate through the Next.js router.
+ * 4. `QueryClientProvider`, then `ApiProvider` — the client is built from the
  *    token provider, so it has to be inside `AuthProvider`, and the query
  *    utilities are built from the client.
- * 4. `RealtimeBoundary` innermost: it is the only one that needs both a
+ * 5. `RealtimeBoundary` innermost: it is the only one that needs both a
  *    session *status* and a token, and it holds the socket closed until there
  *    is one.
  */
 
 import { useState } from 'react';
 import type { ReactNode } from 'react';
+import { useRouter } from 'next/navigation';
+import { LocalizationProvider, RouterProvider } from '@shoptet/ui';
+import type { SupportedLocale } from '@shoptet/ui';
 import { AuthProvider } from '@garage/auth/client';
 import type { AuthSession } from '@garage/auth/client';
 import { IntlProvider } from '@garage/i18n';
@@ -35,6 +41,9 @@ import { QueryClientProvider } from '@tanstack/react-query';
 import { createQueryClient } from '../shell/query/query-client';
 import { ApiProvider } from '../shell/api-provider/api-provider';
 import { RealtimeBoundary } from '../shell/realtime-boundary/realtime-boundary';
+
+/** `@shoptet/ui` wants a BCP-47 tag; the app's `Locale` is the bare language. */
+const SHOPTET_LOCALES: Record<Locale, SupportedLocale> = { cs: 'cs-CZ', en: 'en-US' };
 
 export interface ProvidersProps {
   /**
@@ -71,15 +80,20 @@ export function Providers({
   // policy is a product decision (`apps/garage/web/src/shell/query/query-client.ts`),
   // not something a call site should re-derive.
   const [queryClient] = useState(() => createQueryClient());
+  const router = useRouter();
 
   return (
     <AuthProvider session={session}>
       <IntlProvider locale={locale} messages={messages}>
-        <QueryClientProvider client={queryClient}>
-          <ApiProvider url={apiUrl}>
-            <RealtimeBoundary url={socketUrl}>{children}</RealtimeBoundary>
-          </ApiProvider>
-        </QueryClientProvider>
+        <LocalizationProvider locale={SHOPTET_LOCALES[locale]}>
+          <RouterProvider navigate={(href) => router.push(href)}>
+            <QueryClientProvider client={queryClient}>
+              <ApiProvider url={apiUrl}>
+                <RealtimeBoundary url={socketUrl}>{children}</RealtimeBoundary>
+              </ApiProvider>
+            </QueryClientProvider>
+          </RouterProvider>
+        </LocalizationProvider>
       </IntlProvider>
     </AuthProvider>
   );

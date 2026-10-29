@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import { LocalizationProvider } from '@shoptet/ui';
 import userEvent from '@testing-library/user-event';
 import { IntlProvider } from '@garage/i18n';
 import cs from '../../../../messages/cs.json';
@@ -26,15 +27,17 @@ function renderScreen({ monthlyReservationCap = 5, limits, ...overrides }: Limit
     ...overrides,
   };
 
-  render(
-    <IntlProvider locale="cs" messages={cs}>
-      <ToastProvider>
-        <AdminLimitsScreen {...props} />
-      </ToastProvider>
-    </IntlProvider>
+  const { unmount } = render(
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <ToastProvider>
+          <AdminLimitsScreen {...props} />
+        </ToastProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
 
-  return { onRetry, onChange, user: userEvent.setup() };
+  return { onRetry, onChange, unmount, user: userEvent.setup() };
 }
 
 describe('AdminLimitsScreen', () => {
@@ -44,41 +47,31 @@ describe('AdminLimitsScreen', () => {
     expect(screen.getByText('limitsDescription')).toBeInTheDocument();
   });
 
-  it('shows the current cap declined into Czech', () => {
-    renderScreen({ monthlyReservationCap: 7 });
-
-    expect(screen.getByRole('spinbutton', { name: 'limitsCapLabel' })).toHaveAttribute(
-      'aria-valuetext',
-      'limitsCapValue: count=7'
-    );
-  });
-
   it.each([
     [1, 'limitsCapValue: count=1'],
     [2, 'limitsCapValue: count=2'],
     [5, 'limitsCapValue: count=5'],
     [21, 'limitsCapValue: count=21'],
-  ])('declines %i as "%s"', (count, text) => {
+  ])('shows the current cap %i declined into Czech as "%s"', (count, text) => {
     renderScreen({ monthlyReservationCap: count });
 
-    expect(screen.getByRole('spinbutton', { name: 'limitsCapLabel' })).toHaveAttribute(
-      'aria-valuetext',
-      text
-    );
+    expect(screen.getByRole('textbox', { name: 'limitsCapLabel' })).toHaveValue(String(count));
+    expect(screen.getByText(text)).toBeInTheDocument();
   });
 
   it('stays inside the range the contract accepts', () => {
-    renderScreen();
+    const { unmount } = renderScreen({ monthlyReservationCap: 1 });
+    expect(screen.getByRole('button', { name: /^Snížit/u })).toBeDisabled();
+    unmount();
 
-    const stepper = screen.getByRole('spinbutton', { name: 'limitsCapLabel' });
-    expect(stepper).toHaveAttribute('aria-valuemin', '1');
-    expect(stepper).toHaveAttribute('aria-valuemax', '31');
+    renderScreen({ monthlyReservationCap: 31 });
+    expect(screen.getByRole('button', { name: /^Zvýšit/u })).toBeDisabled();
   });
 
   it('sends the new cap on a change, because the contract replaces rather than patches', async () => {
     const { onChange, user } = renderScreen({ monthlyReservationCap: 7 });
 
-    await user.click(screen.getByRole('button', { name: 'limitsCapIncrement' }));
+    await user.click(screen.getByRole('button', { name: /^Zvýšit/u }));
 
     expect(onChange).toHaveBeenCalledWith({ monthlyReservationCap: 8 });
   });
@@ -86,7 +79,7 @@ describe('AdminLimitsScreen', () => {
   it('freezes the stepper while a save is in flight', () => {
     renderScreen({ isSaving: true });
 
-    expect(screen.getByRole('button', { name: 'limitsCapIncrement' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /^Zvýšit/u })).toBeDisabled();
   });
 
   it('confirms a save, and stops confirming once something changes again', () => {
@@ -117,7 +110,7 @@ describe('AdminLimitsScreen', () => {
     renderScreen({ limits: { kind: 'loading' } });
 
     expect(screen.getByRole('status')).toHaveTextContent('loading');
-    expect(screen.queryByRole('spinbutton')).not.toBeInTheDocument();
+    expect(screen.queryByRole('textbox')).not.toBeInTheDocument();
   });
 
   it('offers a retry when the setting could not be loaded', async () => {

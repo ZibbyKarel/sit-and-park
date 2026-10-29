@@ -23,6 +23,7 @@
     "settings": "Settings (car license plate)",
     "administration": "Administration",
     "language": "Language",
+    "languageCurrent": "(current)",
     "signOut": "Sign out"
   },
   "sections": {
@@ -245,8 +246,6 @@
     "windowOpenDescription": "How many days before a month starts its reservations open. Until the month starts the monthly reservation limit applies; from its first day anyone can reserve the remaining free spots without a limit. A user can cancel their own reservation at any time.",
     "windowDaysLabel": "Open this many days in advance",
     "windowDaysValue": "{count, plural, one {# day} other {# days}}",
-    "windowDaysDecrement": "One day less",
-    "windowDaysIncrement": "One day more",
     "windowLockLabel": "Lock mode",
     "windowLockAUTO": "Automatic",
     "windowLockFORCE_OPEN": "Force open",

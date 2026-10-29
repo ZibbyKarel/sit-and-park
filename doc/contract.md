@@ -774,7 +774,7 @@ must not reach for transport, and ESLint enforces that.
    input, an invalid input, edge values. For an enum, also test the exact
    composition of the list — so extending it shows up in the diff.
 5. **Re-export** it from `schemas/index.ts` if you added a file.
-6. **Verify**: `npm run lint && npm run typecheck && npm run test`.
+6. **Verify**: `pnpm lint && pnpm typecheck && pnpm test`.
 
 What **does not** get added: a new error code with no entry in this document,
 a new AuditLog action without extending `AUDIT_LOG_ACTIONS`, and any

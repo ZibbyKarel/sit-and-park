@@ -23,6 +23,7 @@
     "settings": "Nastavení (SPZ auta)",
     "administration": "Správa",
     "language": "Jazyk",
+    "languageCurrent": "(aktuální)",
     "signOut": "Odhlásit se"
   },
   "sections": {
@@ -245,8 +246,6 @@
     "windowOpenDescription": "Kolik dní před začátkem měsíce se otevřou rezervace na ten měsíc. Do začátku měsíce platí měsíční limit rezervací, od prvního dne měsíce si může kdokoli rezervovat zbylá volná místa bez limitu. Uživatel může svoji rezervaci kdykoliv zrušit.",
     "windowDaysLabel": "Otevřít X dní předem",
     "windowDaysValue": "{count, plural, one {# den} few {# dny} other {# dní}}",
-    "windowDaysDecrement": "O den méně",
-    "windowDaysIncrement": "O den více",
     "windowLockLabel": "Režim zámku",
     "windowLockAUTO": "Automaticky",
     "windowLockFORCE_OPEN": "Vynutit otevřeno",

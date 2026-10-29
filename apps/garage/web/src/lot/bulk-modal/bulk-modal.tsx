@@ -32,17 +32,10 @@ import {
 } from '@garage/i18n';
 import { DEFAULT_MONTHLY_RESERVATION_CAP } from '@garage/shared-types';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import {
-  Button,
-  Callout,
-  List,
-  ListItem,
-  Modal,
-  Stack,
-  Text,
-  ToggleTile,
-  VisuallyHidden,
-} from '@garage/design-system/primitives';
+import { Button, Modal, SystemMessage } from '@shoptet/ui';
+import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
+import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import type { ConfirmBulkOutput, PreviewBulkOutput } from '@garage/contract';
 import { FormProvider, useAppForm } from '@garage/form';
 import { useApi } from '../../shell/api-provider/api-provider';
@@ -66,6 +59,7 @@ import { BulkHolderFields } from './holder-fields';
 import { bulkHolderFormSchema, defaultBulkHolderId } from './holder-input';
 import type { BulkHolderFormValues } from './holder-input';
 import { SchedulePreviewModal } from './schedule-preview-modal';
+import styles from './bulk-modal.module.css';
 
 export interface BulkReservationModalProps {
   readonly open: boolean;
@@ -152,6 +146,8 @@ function BulkReservationModalContent({
   holderError,
 }: BulkReservationModalProps) {
   const t = useTranslations('bulk');
+  // Every step below, `SchedulePreviewModal` included, is one modal at a time.
+  useEscapeToClose(open, onClose);
   const f = useDateFormatters();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -433,69 +429,60 @@ function BulkReservationModalContent({
   if (result !== null) {
     const differences = diffBulkSchedule(proposal?.days ?? [], result.days);
     return (
-      <Modal
-        open={open}
-        onClose={onClose}
-        size="md"
-        title={t('resultTitle')}
-        description={t('resultDescription')}
-        closeLabel={t('close')}
-        closeOnScrimClick={false}
-        footer={<Button onClick={onClose}>{t('ctaDone')}</Button>}
-      >
-        <Stack spacing={4}>
-          {/*
-            The two visible children below (the status/alert panel and the
-            calendar table) sit a `gap-5` apart, one step wider than the
-            `gap-4` between the table and the summary line — the same two
-            steps `mb-5`/`mt-4` expressed by hand before. `Stack.spacing` is
-            uniform, so the only way to keep both steps is to nest one.
-          */}
-          <Stack spacing={5}>
+      <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+        <Modal.Header subheader={t('resultDescription')}>{t('resultTitle')}</Modal.Header>
+        <Modal.Content>
+          <div className={styles.stack}>
             {differences.length === 0 ? (
-              <Text as="p" role="status" tone="subtle" size="base">
+              <p role="status" className={styles.subtle}>
                 {t('resultUnchanged')}
-              </Text>
+              </p>
             ) : (
-              <Callout tone="warning" role="alert">
-                <Stack spacing={3}>
-                  <Stack spacing={1}>
-                    <Text as="p" size="base" weight="bold" tone="default">
-                      {t('resultChangedTitle')}
-                    </Text>
-                    <Text as="p" size="base" tone="muted" leading="loose">
-                      {t('resultChangedDescription')}
-                    </Text>
-                  </Stack>
-                  <List spacing={2}>
-                    {differences.map((difference) => (
-                      <ListItem key={difference.date}>
-                        <Text as="span" size="base" weight="bold" tone="default">
-                          {f.dayAndMonth(difference.date)} · {f.weekdayName(difference.date)}
-                        </Text>
-                        <Text as="span" size="base" display="block" tone="muted">
-                          {t('resultChangedProposed')}: {describeOutcome(difference.proposed)}
-                        </Text>
-                        <Text as="span" size="base" display="block" tone="muted">
-                          {t('resultChangedActual')}: {describeOutcome(difference.confirmed)}
-                        </Text>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Stack>
-              </Callout>
+              <div role="alert">
+                <SystemMessage
+                  level="alert"
+                  title={t('resultChangedTitle')}
+                  description={
+                    <>
+                      <span className={styles.block}>{t('resultChangedDescription')}</span>
+                      <ul className={styles.differences}>
+                        {differences.map((difference) => (
+                          <li key={difference.date}>
+                            <strong>
+                              {f.dayAndMonth(difference.date)} · {f.weekdayName(difference.date)}
+                            </strong>
+                            <span className={styles.block}>
+                              {t('resultChangedProposed')}: {describeOutcome(difference.proposed)}
+                            </span>
+                            <span className={styles.block}>
+                              {t('resultChangedActual')}: {describeOutcome(difference.confirmed)}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+                    </>
+                  }
+                />
+              </div>
             )}
 
             <CalendarTable days={result.days} t={t} />
-          </Stack>
 
-          <Text as="p" size="base" tone="muted">
-            {t('scheduleSummary', {
-              assigned: result.summary.assigned,
-              queued: result.summary.queued,
-            })}
-          </Text>
-        </Stack>
+            <p className={styles.muted}>
+              {t('scheduleSummary', {
+                assigned: result.summary.assigned,
+                queued: result.summary.queued,
+              })}
+            </p>
+          </div>
+        </Modal.Content>
+        <Modal.Footer>
+          {({ primaryButtonProps }) => (
+            <Button {...primaryButtonProps} onClick={onClose}>
+              {t('ctaDone')}
+            </Button>
+          )}
+        </Modal.Footer>
       </Modal>
     );
   }
@@ -508,25 +495,21 @@ function BulkReservationModalContent({
   // header button cannot cover. Deliberately **after** the result step above.
   if (!canReserveMonth) {
     return (
-      <Modal
-        open={open}
-        onClose={onClose}
-        size="md"
-        title={t('lockedTitle')}
-        closeLabel={t('close')}
-        // Consistent with the three flow steps: whichever of them this replaced
-        // was holding a selection, and a stray click on the scrim should not be
-        // how the user finds that out.
-        closeOnScrimClick={false}
-        footer={
-          <Button variant="secondary" onClick={onClose}>
-            {t('close')}
-          </Button>
-        }
-      >
-        <Text as="p" size="base" leading="loose" tone="subtle">
-          {t('lockedDescription')}
-        </Text>
+      // Consistent with the three flow steps: whichever of them this replaced
+      // was holding a selection, and a stray click on the scrim should not be
+      // how the user finds that out.
+      <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+        <Modal.Header>{t('lockedTitle')}</Modal.Header>
+        <Modal.Content>
+          <p className={styles.muted}>{t('lockedDescription')}</p>
+        </Modal.Content>
+        <Modal.Footer>
+          {({ secondaryButtonProps }) => (
+            <Button {...secondaryButtonProps} onClick={onClose}>
+              {t('close')}
+            </Button>
+          )}
+        </Modal.Footer>
       </Modal>
     );
   }
@@ -562,177 +545,154 @@ function BulkReservationModalContent({
 
   // ----------------------------------------------------------------- select
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="md"
-      title={t('title')}
-      description={t('description', {
-        month: f.monthLocative(parseDateOnly(anchorDate).month),
-      })}
-      closeLabel={t('close')}
-      closeOnScrimClick={false}
-      footer={
-        <>
-          <Button variant="secondary" onClick={onClose}>
-            {t('close')}
-          </Button>
-          <Button
-            loading={previewBulk.isPending}
-            disabled={selected.length === 0 || pending || (isAdmin && holderPending)}
-            onClick={
-              showHolderForm
-                ? holderForm.handleSubmit((values) => {
-                    previewBulk.mutate({ dates: [...selected], holderId: values.userId });
-                  })
-                : () => {
-                    previewBulk.mutate({ dates: [...selected] });
-                  }
-            }
-          >
-            {selected.length === 0
-              ? t('ctaSelectDays')
-              : t('ctaGenerate', { count: selected.length })}
-          </Button>
-        </>
-      }
-    >
-      {showHolderForm ? (
-        <FormProvider {...holderForm}>
-          <BulkHolderFields options={holderOptions} />
-        </FormProvider>
-      ) : null}
-
-      {/*
-        `border-spacing` has no Tailwind utility that takes a token, so the
-        grid chrome lives in the named `.calendar-grid` class in
-        `app/global.css` (owned by another agent in this rewrite) rather than
-        as an inline utility string here.
-      */}
-      {/* eslint-disable-next-line no-restricted-syntax -- `.calendar-grid` is the one class the design system cannot express (border-spacing has no token utility); see global.css */}
-      <table className="calendar-grid">
-        <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
-        <thead>
-          <tr>
-            {WEEKDAY_KEYS.map((key, column) => (
-              // `Text` now renders `as="th"` with a `scope` prop, so the
-              // `<th>`/inner-`<span>` pair collapses into one element. `Text`
-              // deliberately has no padding prop (no spacing surface was in
-              // scope for it), so the bottom padding is carried by
-              // `.calendar-grid th` in `global.css` instead.
-              <Text
-                key={key}
-                as="th"
-                scope="col"
-                size="xs"
-                weight="bold"
-                transform="uppercase"
-                tracking="caps"
-                tone={weekendHeads[column] === true ? 'faint' : 'subtle'}
-              >
-                {t(key)}
-              </Text>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {grid.weeks.map((week) => (
-            <tr key={week.key}>
-              {week.slots.map(({ key, day }) =>
-                day === null ? (
-                  <td key={key} />
-                ) : (
-                  <td key={key}>
-                    <ToggleTile
-                      shape="cell"
-                      transition="base"
-                      selected={day.selectable ? selectedSet.has(day.date) : false}
-                      selectable={
-                        day.selectable &&
-                        (selectedSet.has(day.date) || selected.length < remainingSlots)
-                      }
-                      aria-pressed={day.selectable ? selectedSet.has(day.date) : undefined}
-                      aria-label={
-                        !day.selectable && day.block === 'ALREADY_RESERVED'
-                          ? t(bookingForSomeoneElse ? 'dayCellReservedHolder' : 'dayCellReserved', {
-                              date: f.fullDate(day.date),
-                            })
-                          : day.selectable &&
-                              !(selectedSet.has(day.date) || selected.length < remainingSlots)
-                            ? // Distinct from `dayCellBlocked`: this day is a perfectly
-                              // good business day (`day.selectable`) that only can't be
-                              // picked *right now* because the batch would exceed the
-                              // monthly cap — a weekend/holiday/past-day cell never
-                              // reaches this branch. Reachable for a holder too since the
-                              // cap follows them rather than being suppressed, which is
-                              // why the copy has a holder-scoped variant.
-                              t(bookingForSomeoneElse ? 'dayCellCappedHolder' : 'dayCellCapped', {
-                                date: f.fullDate(day.date),
-                              })
-                            : day.selectable
-                              ? t('dayCell', { date: f.fullDate(day.date) })
-                              : t('dayCellBlocked', { date: f.fullDate(day.date) })
-                      }
-                      accentColor={
-                        !day.selectable &&
-                        day.block === 'ALREADY_RESERVED' &&
-                        !bookingForSomeoneElse &&
-                        viewerUserId !== null
-                          ? carColorVar(viewerUserId)
-                          : undefined
-                      }
-                      onClick={() => {
-                        toggleDay(day);
-                      }}
-                    >
-                      {day.dayOfMonth}
-                    </ToggleTile>
-                  </td>
-                )
-              )}
-            </tr>
-          ))}
-        </tbody>
-      </table>
-
-      {/*
-        `Stack` now exposes `spacingX`/`spacingY` (separate `gap-x-*`/`gap-y-*`)
-        alongside `spacing`, so the original `gap-x-4 gap-y-1` is reproduced
-        exactly rather than widened to `gap-4` on both axes.
-      */}
-      <Stack direction="row" wrap spacingX={4} spacingY={1}>
-        <Text as="span" size="sm" tone="subtle">
-          {t('nonSelectableNote')}
-        </Text>
-        <Text as="span" size="sm" weight="bold" tone="default">
-          {preferredSpotNote()}
-        </Text>
-        {/*
-          Shown whenever the cap is a live fact for this booking: the subject
-          already has reservations this month (`existingCount > 0`, so the
-          count itself is worth showing), OR this session's own selection has
-          reached the cap together with what already existed
-          (`existingCount + selected.length >= cap`, `cap` being whatever the
-          server reported alongside `existingCount` — not a hard-coded five) —
-          the case a subject starting the month at zero and picking as many
-          days as the cap allows in this one session hits, where
-          `existingCount` alone would stay `0` and the note would never appear
-          even though the day after the last pick is greying out.
-
-          The subject is the holder whenever an admin is booking for one, so
-          the note names them (`capNoteHolder`) rather than saying "you".
-
-          No note at all when the server reports no cap in force (`cap === null`).
-        */}
-        {cap !== null && (existingCount > 0 || existingCount + selected.length >= cap) ? (
-          <Text as="span" size="sm" tone="subtle">
-            {t(bookingForSomeoneElse ? 'capNoteHolder' : 'capNote', {
-              count: existingCount,
-              cap,
-            })}
-          </Text>
+    <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal.Header
+        subheader={t('description', {
+          month: f.monthLocative(parseDateOnly(anchorDate).month),
+        })}
+      >
+        {t('title')}
+      </Modal.Header>
+      <Modal.Content>
+        {showHolderForm ? (
+          <FormProvider {...holderForm}>
+            <BulkHolderFields options={holderOptions} />
+          </FormProvider>
         ) : null}
-      </Stack>
+
+        <table className="calendar-grid">
+          <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
+          <thead>
+            <tr>
+              {WEEKDAY_KEYS.map((key, column) => (
+                <th
+                  key={key}
+                  scope="col"
+                  data-weekend={weekendHeads[column] === true ? '' : undefined}
+                >
+                  {t(key)}
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {grid.weeks.map((week) => (
+              <tr key={week.key}>
+                {week.slots.map(({ key, day }) =>
+                  day === null ? (
+                    <td key={key} />
+                  ) : (
+                    <td key={key}>
+                      <ToggleTile
+                        shape="cell"
+                        transition="base"
+                        selected={day.selectable ? selectedSet.has(day.date) : false}
+                        selectable={
+                          day.selectable &&
+                          (selectedSet.has(day.date) || selected.length < remainingSlots)
+                        }
+                        aria-pressed={day.selectable ? selectedSet.has(day.date) : undefined}
+                        aria-label={
+                          !day.selectable && day.block === 'ALREADY_RESERVED'
+                            ? t(
+                                bookingForSomeoneElse ? 'dayCellReservedHolder' : 'dayCellReserved',
+                                { date: f.fullDate(day.date) }
+                              )
+                            : day.selectable &&
+                                !(selectedSet.has(day.date) || selected.length < remainingSlots)
+                              ? // Distinct from `dayCellBlocked`: this day is a perfectly
+                                // good business day (`day.selectable`) that only can't be
+                                // picked *right now* because the batch would exceed the
+                                // monthly cap — a weekend/holiday/past-day cell never
+                                // reaches this branch. Reachable for a holder too since the
+                                // cap follows them rather than being suppressed, which is
+                                // why the copy has a holder-scoped variant.
+                                t(bookingForSomeoneElse ? 'dayCellCappedHolder' : 'dayCellCapped', {
+                                  date: f.fullDate(day.date),
+                                })
+                              : day.selectable
+                                ? t('dayCell', { date: f.fullDate(day.date) })
+                                : t('dayCellBlocked', { date: f.fullDate(day.date) })
+                        }
+                        accentColor={
+                          !day.selectable &&
+                          day.block === 'ALREADY_RESERVED' &&
+                          !bookingForSomeoneElse &&
+                          viewerUserId !== null
+                            ? carColorVar(viewerUserId)
+                            : undefined
+                        }
+                        onClick={() => {
+                          toggleDay(day);
+                        }}
+                      >
+                        {day.dayOfMonth}
+                      </ToggleTile>
+                    </td>
+                  )
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+
+        <div className={styles.notes}>
+          <span className={styles.note}>{t('nonSelectableNote')}</span>
+          <strong className={styles.note}>{preferredSpotNote()}</strong>
+          {/*
+            Shown whenever the cap is a live fact for this booking: the subject
+            already has reservations this month (`existingCount > 0`, so the
+            count itself is worth showing), OR this session's own selection has
+            reached the cap together with what already existed
+            (`existingCount + selected.length >= cap`, `cap` being whatever the
+            server reported alongside `existingCount` — not a hard-coded five) —
+            the case a subject starting the month at zero and picking as many
+            days as the cap allows in this one session hits, where
+            `existingCount` alone would stay `0` and the note would never appear
+            even though the day after the last pick is greying out.
+
+            The subject is the holder whenever an admin is booking for one, so
+            the note names them (`capNoteHolder`) rather than saying "you".
+
+            No note at all when the server reports no cap in force (`cap === null`).
+          */}
+          {cap !== null && (existingCount > 0 || existingCount + selected.length >= cap) ? (
+            <span className={styles.note}>
+              {t(bookingForSomeoneElse ? 'capNoteHolder' : 'capNote', {
+                count: existingCount,
+                cap,
+              })}
+            </span>
+          ) : null}
+        </div>
+      </Modal.Content>
+      <Modal.Footer>
+        {({ primaryButtonProps, secondaryButtonProps }) => (
+          <>
+            <Button {...secondaryButtonProps} onClick={onClose}>
+              {t('close')}
+            </Button>
+            <Button
+              {...primaryButtonProps}
+              isLoading={previewBulk.isPending}
+              disabled={selected.length === 0 || pending || (isAdmin && holderPending)}
+              onClick={
+                showHolderForm
+                  ? holderForm.handleSubmit((values) => {
+                      previewBulk.mutate({ dates: [...selected], holderId: values.userId });
+                    })
+                  : () => {
+                      previewBulk.mutate({ dates: [...selected] });
+                    }
+              }
+            >
+              {selected.length === 0
+                ? t('ctaSelectDays')
+                : t('ctaGenerate', { count: selected.length })}
+            </Button>
+          </>
+        )}
+      </Modal.Footer>
     </Modal>
   );
 }

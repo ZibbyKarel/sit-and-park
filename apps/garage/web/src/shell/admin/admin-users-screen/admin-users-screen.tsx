@@ -42,15 +42,16 @@
 
 import { useMemo, useState } from 'react';
 import type { AdminListUsersOutput, AdminUser } from '@garage/contract';
-import { Avatar, Input, Stack, Switch, Text } from '@garage/design-system/primitives';
-import { ConfirmDialog, DataTable } from '@garage/design-system/compounds';
-import type { DataTableColumn } from '@garage/design-system/compounds';
+import { Avatar, SearchInput, Stack, Switch, Text } from '@shoptet/ui';
 import { useTranslations } from '@garage/i18n';
-import { initialsOf } from '../../initials';
+import { ConfirmDialog } from '../../../ui/confirm-dialog/confirm-dialog';
+import { DataTable } from '../../../ui/data-table/data-table';
+import type { DataTableColumn } from '../../../ui/data-table/data-table';
 import { useNotify } from '../../notifications/toast-provider';
 import { ScreenDataGuard } from '../../screen-state/screen-state';
 import type { ScreenData } from '../../screen-state/screen-state';
 import { useAdminWriteError } from '../admin-errors';
+import styles from './admin-users-screen.module.css';
 
 /** One field of one row is being written. `null` when nothing is in flight. */
 export interface PendingUserChange {
@@ -136,24 +137,13 @@ export function AdminUsersScreen({
       id: 'name',
       header: t('usersColumnName'),
       sortValue: (user) => user.name.toLocaleLowerCase('cs-CZ'),
-      cell: (user) => (
-        <Stack direction="row" align="center" spacing={3}>
-          <Avatar initials={initialsOf(user.name)} size="sm" />
-          <Text as="span" weight="bold">
-            {user.name}
-          </Text>
-        </Stack>
-      ),
+      cell: (user) => <Avatar name={user.name} variant="image+text" />,
     },
     {
       id: 'email',
       header: t('usersColumnEmail'),
       sortValue: (user) => user.email.toLocaleLowerCase('cs-CZ'),
-      cell: (user) => (
-        <Text as="span" tone="subtle">
-          {user.email}
-        </Text>
-      ),
+      cell: (user) => <Text variant="secondary">{user.email}</Text>,
     },
     {
       id: 'role',
@@ -163,9 +153,8 @@ export function AdminUsersScreen({
       cell: (user) => {
         const isLastActiveAdmin = user.role === 'ADMIN' && user.active && activeAdminCount <= 1;
         return (
-          <Stack
-            direction="row"
-            align="center"
+          <div
+            className={styles.switchCell}
             title={isLastActiveAdmin ? t('usersLastAdminHint') : undefined}
           >
             <Switch
@@ -174,13 +163,13 @@ export function AdminUsersScreen({
               // switch is disabled belongs in its own name, not only in
               // `title`, since `title` never reaches touch and is announced
               // inconsistently by screen readers.
-              aria-label={
+              label={
                 isLastActiveAdmin
                   ? t('usersLastAdminToggleLabel', { name: user.name })
                   : t('usersAdminToggleLabel', { name: user.name })
               }
               disabled={isLastActiveAdmin || isRowBusy(pendingChange, user.id)}
-              onCheckedChange={(next) => {
+              onChange={(next) => {
                 // Only the viewer taking their *own* role away asks first —
                 // and only in that direction. Granting is not the
                 // irreversible one.
@@ -191,7 +180,7 @@ export function AdminUsersScreen({
                 onRoleChange(user.id, next);
               }}
             />
-          </Stack>
+          </div>
         );
       },
     },
@@ -203,27 +192,22 @@ export function AdminUsersScreen({
       cell: (user) => {
         const isSelf = user.id === viewerId;
         return (
-          <Stack
-            direction="row"
-            align="center"
-            title={isSelf ? t('usersSelfActiveHint') : undefined}
-          >
+          <div className={styles.switchCell} title={isSelf ? t('usersSelfActiveHint') : undefined}>
             <Switch
-              tone="success"
               checked={user.active}
               // The reason a switch is disabled belongs in its name, not only
               // in the `title` above: `title` is announced inconsistently and
               // never appears on touch, and the people who most need to know
               // why the control refuses them are the ones who cannot hover.
-              aria-label={
+              label={
                 isSelf
                   ? t('usersSelfActiveToggleLabel', { name: user.name })
                   : t('usersActiveToggleLabel', { name: user.name })
               }
               disabled={isSelf || isRowBusy(pendingChange, user.id)}
-              onCheckedChange={(next) => onActiveChange(user.id, next)}
+              onChange={(next) => onActiveChange(user.id, next)}
             />
-          </Stack>
+          </div>
         );
       },
     },
@@ -232,7 +216,7 @@ export function AdminUsersScreen({
   return (
     <ScreenDataGuard state={users} onRetry={onRetry} headingLevel={3}>
       {() => (
-        <Stack spacing={4}>
+        <Stack gap="lg">
           <DataTable
             columns={columns}
             data={visible}
@@ -240,23 +224,14 @@ export function AdminUsersScreen({
             title={t('usersTitle')}
             description={t('usersDescription', { count: all.length })}
             actions={
-              <Input
-                type="search"
-                // `aria-label`, not `label`: the design draws a bare field with a
-                // placeholder and no visible caption, and a placeholder is not an
-                // accessible name — it disappears the moment anything is typed.
-                aria-label={t('usersSearchLabel')}
+              <SearchInput
+                // A bare field with a placeholder and no visible caption, as
+                // the design draws it. The label is the accessible name: a
+                // placeholder disappears the moment anything is typed.
+                label={t('usersSearchLabel')}
                 placeholder={t('usersSearchPlaceholder')}
                 value={search}
-                onChange={(event) => setSearch(event.currentTarget.value)}
-                // `width="full"` covers the base `w-full` step; the original
-                // `sm:w-80` cap (staying full-width below the `sm` breakpoint,
-                // capped at 320px from it up) has no equivalent — no primitive
-                // here takes a breakpoint-keyed width, and inventing one for
-                // this single call site was rejected. Dropping the cap is a
-                // small, stated visual change: the search field now stays
-                // full-width at every breakpoint instead of capping at 320px
-                // on wider screens.
+                onChange={setSearch}
                 width="full"
               />
             }

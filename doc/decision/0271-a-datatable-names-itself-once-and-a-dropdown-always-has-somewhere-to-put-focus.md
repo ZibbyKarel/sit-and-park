@@ -1,5 +1,7 @@
 # 0271 – A DataTable names itself once, and a Dropdown always has somewhere to put focus
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 Two small accessibility fixes in the same round, recorded together because
 neither is large enough to stand alone and both are "the markup was reasonable
 and the announced result was not".

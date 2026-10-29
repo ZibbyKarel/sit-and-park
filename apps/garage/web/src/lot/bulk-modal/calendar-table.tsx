@@ -2,21 +2,21 @@
 
 import { useDateFormatters } from '@garage/i18n';
 import type { useTranslations } from '@garage/i18n';
-import { Badge, Box, List, ListItem, Stack, Text } from '@garage/design-system/primitives';
-import type { BadgeTone } from '@garage/design-system/primitives';
+import { Tag } from '@shoptet/ui';
 import {
   toBadgeMessage,
   toScheduleRows,
   type BulkBadgeView,
   type BulkDayOutcomeView,
 } from './bulk-view';
+import styles from './bulk-modal.module.css';
 
-const BADGE_TONES: Record<BulkBadgeView['kind'], BadgeTone> = {
+const BADGE_LEVELS = {
   ASSIGNED_PREFERRED: 'success',
-  ASSIGNED: 'info',
-  QUEUED: 'warning',
-  UNAVAILABLE: 'neutral',
-};
+  ASSIGNED: 'notice',
+  QUEUED: 'alert',
+  UNAVAILABLE: 'default',
+} as const satisfies Record<BulkBadgeView['kind'], 'default' | 'success' | 'notice' | 'alert'>;
 
 export function badgeLabel(badge: BulkBadgeView, t: ReturnType<typeof useTranslations>): string {
   const message = toBadgeMessage(badge);
@@ -44,31 +44,20 @@ export function CalendarTable({ days, t }: CalendarTableProps) {
   // Only a preview that filtered days out of its response would change that.
   const rows = toScheduleRows(days);
   return (
-    <List spacing={2}>
+    <ul className={styles.rows}>
       {rows.map((row) => (
-        // `ListItem` has no prop for a *full* border — only `divider="line"`
-        // (a bottom border shared between items via `List`'s context), which
-        // is a different shape from this row's own `rounded-sm border
-        // border-border` box. Reported as a DS gap in this file's rewrite
-        // report; `Box` supplies the border/radius/padding one level in.
-        <ListItem key={row.date}>
-          <Box border radius="sm" padding={[3, 4]}>
-            <Stack direction="row" wrap align="center" justify="between" spacing={3}>
-              <Text as="span" size="base" tone="default">
-                {f.dayAndMonth(row.date)} · {f.weekdayName(row.date)}
-              </Text>
-              <Stack direction="row" align="center" spacing={3}>
-                {row.spotLabel === null ? null : (
-                  <Text as="span" size="sm" weight="bold" tone="muted">
-                    {row.spotLabel}
-                  </Text>
-                )}
-                <Badge tone={BADGE_TONES[row.badge.kind]}>{badgeLabel(row.badge, t)}</Badge>
-              </Stack>
-            </Stack>
-          </Box>
-        </ListItem>
+        <li key={row.date} className={styles.row}>
+          <span>
+            {f.dayAndMonth(row.date)} · {f.weekdayName(row.date)}
+          </span>
+          <span className={styles.rowSide}>
+            {row.spotLabel === null ? null : (
+              <strong className={styles.spotLabel}>{row.spotLabel}</strong>
+            )}
+            <Tag level={BADGE_LEVELS[row.badge.kind]}>{badgeLabel(row.badge, t)}</Tag>
+          </span>
+        </li>
       ))}
-    </List>
+    </ul>
   );
 }

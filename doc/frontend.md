@@ -5,8 +5,7 @@ shell that Task 23 established: the route tree, the single client boundary and
 the order its providers nest in, the sign-in flow, the three screen states that
 feature screens compose and the `ScreenData<T>` union that says which of them a
 screen is in, the `*-view.ts` split that keeps a screen's decisions out of the
-component drawing them, the health route, and how Tailwind is wired to the
-design system's tokens.
+component drawing them, the health route, and how `@shoptet/ui` is styled and wired.
 
 User-visible copy is Czech; identifiers — including URLs — are English, along
 with everything else: comments, this file (`doc/decision/0029-*` for the
@@ -24,7 +23,6 @@ the library:
 | ------------------------------ | ----------------------------------------------- |
 | `next-auth`, `next-auth/react` | `@garage/auth`, `@garage/auth/client`           |
 | `@tanstack/react-query`        | `@garage/query`                                 |
-| `@tanstack/react-table`        | `@garage/design-system/compounds` (`DataTable`) |
 | `socket.io-client`             | `@garage/realtime-client`                       |
 | `next-intl`                    | `@garage/i18n`                                  |
 | `react-hook-form`              | `@garage/form`                                  |
@@ -40,8 +38,8 @@ three errors and exit code 1, including for the `next-auth/react` _subpath_.
 
 ```
 src/app/
-  layout.tsx                    root: <html lang="cs">, tokens, fonts, <Providers>
-  global.css                    Tailwind entry, imports the token theme
+  layout.tsx                    root: <html lang="cs">, @shoptet/ui/index.css, <Providers>
+  global.css                    app-local base styles and `--lot-*` custom properties
   providers.tsx                 the one 'use client' boundary
   error.tsx                     React error boundary  -> <ScreenError onRetry={reset}>
   not-found.tsx                 404
@@ -205,7 +203,7 @@ mutation state around them in as props, callbacks out — and
 `shell/settings-page.tsx` is the connected wrapper, following the same split
 as `TopBar`/`AppTopBar` and `AdminScreen`/`admin/page.tsx`.
 
-The screen renders as the design system's `Modal` (`doc/decision/0150-*`)
+The screen renders as `@shoptet/ui`'s `Modal` (`doc/decision/0150-*`)
 rather than a bespoke dialog, with its × hidden and `closeOnScrimClick={false}`
 (the design draws no ×, and this dialog holds unsaved input — fix-round note
 in `doc/decision/0150-*`): a licence-plate/preferred-spot form built with
@@ -323,8 +321,8 @@ place. The three renderers first:
 
 - **`ScreenLoading`** — `role="status"` with the default polite live region, so
   a screen reader announces the wait; label defaults to `Načítá se…`.
-- **`EmptyState`** — re-exported from `@garage/design-system/compounds`
-  rather than reimplemented.
+- **`EmptyState`** — the composition in `src/ui/empty-state`, which
+  `@shoptet/ui` has no equivalent for.
 - **`ScreenError`** — takes whatever the failing call threw, reads it through
   `toContractError`, and renders a Czech sentence **keyed off the error's
   code**. The error's own `message` is never shown: a contract error's message
@@ -337,9 +335,8 @@ Two places wire these up for free: `(app)/loading.tsx` gives every route a
 suspense fallback, and `app/error.tsx` renders `ScreenError` with `reset` as
 the retry.
 
-These live in app code rather than in the design system on purpose. Composing
-primitives and compounds into domain UI is app work; `EmptyState` is the
-design-system piece, and `ScreenError` is this application's opinion about how
+These live in app code on purpose. Composing `@shoptet/ui` parts into domain UI
+is app work; `EmptyState` is the generic piece (`src/ui`), and `ScreenError` is this application's opinion about how
 a contract error becomes a sentence.
 
 ### `ScreenData<T>`: the state as one value, not four props
@@ -383,7 +380,7 @@ Three details are worth knowing before using it:
   render as "empty".
 - **`ScreenQueryLike<T>`** — `{ isPending, isError, error, data }` — is written
   out here rather than imported as TanStack's `UseQueryResult`, so the seam
-  names no transport. A screen fed from `useQueries`, from a Storybook story or
+  names no transport. A screen fed from `useQueries`, from a test or
   from a parent's own state is adapted by the same function, and
   `@garage/query` stays the thin wrapper it is meant to be.
 - **`ScreenDataGuard`** is the two-branch guard every screen had copied into
@@ -533,29 +530,21 @@ Note the upstream path: the API's probes are **`/health/ready`**, not
 
 ## Styling
 
-`app/global.css` is the Tailwind v4 entry point. It imports the design
-system's theme (which is itself `@import 'tailwindcss'` plus the token file and
-an `@theme inline` block), then declares the three source trees Tailwind should
-scan for class names:
+`app/layout.tsx` imports `@shoptet/ui/index.css` once; it carries Inter and the
+`@shoptet/ui` custom properties (`--spacing-*`, `--background-*`,
+`--foreground-*`). Components come straight from `@shoptet/ui`; nothing wraps
+it. `app/providers.tsx` adds `LocalizationProvider` (`cs` to `cs-CZ`, `en` to
+`en-US`) and a `RouterProvider` backed by `next/navigation`, so links navigate
+client-side.
 
-```css
-@import "../../../../libs/shared/design-system/assets/theme.css";
-@source '../../src';
-@source '../../../../libs/shared/design-system/src/primitives';
-@source '../../../../libs/shared/design-system/src/compounds';
-```
-
-The `@source` lines are required: Tailwind v4 scans the importing project by
-default, and without them every class used _inside_ a primitive or compound
-would be absent from the app's stylesheet.
-
-`apps/garage/web/postcss.config.mjs` loads `@tailwindcss/postcss`, which is Next's
-side of the same wiring (Storybook uses `@tailwindcss/vite`).
-
-Tokens are used through their Tailwind names (`text-fg-3`, `border-border`,
-`rounded-cta`) or as CSS variables where no utility exists
-(`h-16 z-[var(--z-sticky)]`, `max-w-[var(--container)]`). No raw hex value,
-radius or spacing number is written in `apps/garage/web`.
+Styling a prop cannot express goes into a colocated CSS Module
+(`foo.module.css` next to `foo.tsx`) that uses those custom properties; there is
+no Tailwind. Compositions `@shoptet/ui` lacks (toast, confirm dialog, empty
+state, data table, toggle tile, ...) live in `src/ui/`, one folder per
+component, domain-free. Server components never import `@shoptet/ui` directly.
+Domain colours and the lot/calendar classes live in `global.css` on app-local
+`--lot-*` variables. See
+`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`.
 
 ## Environment
 

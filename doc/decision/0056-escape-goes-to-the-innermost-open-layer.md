@@ -1,5 +1,7 @@
 # 0056 – Escape goes to the innermost open layer
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Every overlay in `libs/shared/design-system/primitives` that can be dismissed with

@@ -45,23 +45,16 @@
 import { useState } from 'react';
 import type {
   CreateSpotInput,
-  ParkingGroup,
   ParkingSpot,
   SpotListOutput,
   UpdateSpotInput,
 } from '@garage/contract';
-import {
-  Badge,
-  BoltIcon,
-  Button,
-  Select,
-  Stack,
-  Switch,
-  Text,
-  VisuallyHidden,
-} from '@garage/design-system/primitives';
-import { ConfirmDialog, DataTable } from '@garage/design-system/compounds';
-import type { DataTableColumn } from '@garage/design-system/compounds';
+import { Button, SingleSelect, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { ConfirmDialog } from '../../../ui/confirm-dialog/confirm-dialog';
+import { DataTable } from '../../../ui/data-table/data-table';
+import type { DataTableColumn } from '../../../ui/data-table/data-table';
+import { BoltIcon } from '../../../ui/icons/icons';
+import { VisuallyHidden } from '../../../ui/visually-hidden/visually-hidden';
 import { PARKING_GROUPS, useTranslations } from '@garage/i18n';
 import { useNotify } from '../../notifications/toast-provider';
 import { ScreenDataGuard, type ScreenData } from '../../screen-state/screen-state';
@@ -74,6 +67,8 @@ import {
 } from './spots-view';
 import { CategoryBand } from './category-band';
 import { SpotFormDialog } from './spot-form-dialog';
+
+const GROUP_OPTIONS = PARKING_GROUPS.map((group) => ({ group }));
 
 /** How a spot stands today, as the day overview reports it. */
 export interface SpotToday {
@@ -190,13 +185,11 @@ export function AdminSpotsScreen({
       header: t('spotsColumnLabel'),
       sortValue: (spot) => spot.label,
       cell: (spot) => (
-        <Stack direction="row" align="center" spacing={2}>
-          <Text as="span" weight="bold">
-            {spot.label}
-          </Text>
+        <Stack orientation="horizontal" align="center" gap="sm">
+          <Text appearance="strong-md">{spot.label}</Text>
           {spot.evCharger ? <BoltIcon label={tLot('evCharger')} /> : null}
-          {spot.active ? null : <Badge tone="neutral">{t('spotsInactive')}</Badge>}
-          {spot.hidden ? <Badge tone="neutral">{t('spotsHidden')}</Badge> : null}
+          {spot.active ? null : <Tag level="default">{t('spotsInactive')}</Tag>}
+          {spot.hidden ? <Tag level="default">{t('spotsHidden')}</Tag> : null}
         </Stack>
       ),
     },
@@ -205,27 +198,22 @@ export function AdminSpotsScreen({
       header: t('spotsColumnGroup'),
       width: '160px',
       cell: (spot) => (
-        <Select
-          aria-label={t('spotsGroupSelectLabel', { label: spot.label })}
+        <SingleSelect
+          label={t('spotsGroupSelectLabel', { label: spot.label })}
+          options={GROUP_OPTIONS}
+          getOptionValue={(option) => option.group}
+          getOptionLabel={(option) => option.group}
           value={spot.group}
           disabled={pendingSpotId === spot.id}
-          onChange={(event) =>
-            void onSave({
-              id: spot.id,
-              label: spot.label,
-              group: event.currentTarget.value as ParkingGroup,
-            }).catch(() => {
-              // The row's failure is rendered by `writeFailure` above the table;
-              // an unhandled rejection here would only add noise to the console.
-            })
-          }
-        >
-          {PARKING_GROUPS.map((group) => (
-            <option key={group} value={group}>
-              {group}
-            </option>
-          ))}
-        </Select>
+          onChange={(group) => {
+            if (group !== null) {
+              void onSave({ id: spot.id, label: spot.label, group }).catch(() => {
+                // The row's failure is rendered by `writeFailure` above the table;
+                // an unhandled rejection here would only add noise to the console.
+              });
+            }
+          }}
+        />
       ),
     },
     {
@@ -234,25 +222,19 @@ export function AdminSpotsScreen({
       cell: (spot) => {
         const today = todayBySpotId.get(spot.id);
         if (today === undefined) {
-          return (
-            <Text as="span" tone="subtle">
-              {t('spotsTodayUnknown')}
-            </Text>
-          );
+          return <Text variant="tertiary">{t('spotsTodayUnknown')}</Text>;
         }
         return today.holderName === null ? (
-          <Text as="span" tone="subtle">
-            {t('dayStatusFree')}
-          </Text>
+          <Text variant="tertiary">{t('dayStatusFree')}</Text>
         ) : (
           // Same `ml-2`-as-row-gap replacement as `AdminDayScreen`'s status
           // column — this cell renders the identical guest tag.
-          <Stack direction="row" align="center" spacing={2}>
-            <Text as="span">{t('dayStatusTaken', { name: today.holderName })}</Text>
+          <Stack orientation="horizontal" align="center" gap="sm">
+            <Text>{t('dayStatusTaken', { name: today.holderName })}</Text>
             {today.holderIsGuest ? (
-              <Badge size="sm" tone="tag">
+              <Tag size="sm" level="default" variant="secondary">
                 {tLot('guestHolder')}
-              </Badge>
+              </Tag>
             ) : null}
           </Stack>
         );
@@ -264,11 +246,10 @@ export function AdminSpotsScreen({
       width: '110px',
       cell: (spot) => (
         <Switch
-          tone="success"
           checked={spot.active}
-          aria-label={t('spotsActiveToggleLabel', { label: spot.label })}
+          label={t('spotsActiveToggleLabel', { label: spot.label })}
           disabled={pendingSpotId === spot.id}
-          onCheckedChange={(next) => onActiveChange(spot.id, next)}
+          onChange={(next) => onActiveChange(spot.id, next)}
         />
       ),
     },
@@ -279,9 +260,9 @@ export function AdminSpotsScreen({
       cell: (spot) => (
         <Switch
           checked={spot.hidden}
-          aria-label={t('spotsHiddenToggleLabel', { label: spot.label })}
+          label={t('spotsHiddenToggleLabel', { label: spot.label })}
           disabled={pendingSpotId === spot.id}
-          onCheckedChange={(next) => onHiddenChange(spot.id, next)}
+          onChange={(next) => onHiddenChange(spot.id, next)}
         />
       ),
     },
@@ -292,9 +273,9 @@ export function AdminSpotsScreen({
       cell: (spot) => (
         <Switch
           checked={spot.evCharger}
-          aria-label={t('spotsEvChargerToggleLabel', { label: spot.label })}
+          label={t('spotsEvChargerToggleLabel', { label: spot.label })}
           disabled={pendingSpotId === spot.id}
-          onCheckedChange={(next) => onEvChargerChange(spot.id, next)}
+          onChange={(next) => onEvChargerChange(spot.id, next)}
         />
       ),
     },
@@ -304,7 +285,7 @@ export function AdminSpotsScreen({
       align: 'end',
       width: '210px',
       cell: (spot) => (
-        <Stack direction="row" align="center" spacing={2}>
+        <Stack orientation="horizontal" align="center" gap="sm">
           <Button
             variant="secondary"
             disabled={pendingSpotId === spot.id}
@@ -313,7 +294,7 @@ export function AdminSpotsScreen({
             {t('spotsEdit')}
           </Button>
           <Button
-            variant="danger"
+            variant="destructive"
             disabled={pendingSpotId === spot.id}
             onClick={() => changeDialog({ kind: 'delete', spot })}
           >
@@ -335,7 +316,7 @@ export function AdminSpotsScreen({
   return (
     <ScreenDataGuard state={spots} onRetry={onRetry} headingLevel={3}>
       {(loaded) => (
-        <Stack spacing={4}>
+        <Stack gap="lg">
           <DataTable
             columns={columns}
             data={[...loaded.spots]}

@@ -17,7 +17,6 @@ exactly one **wrapper lib** — the single place in the whole workspace allowed 
 | forbidden package       | wrapper lib                            | tag                      |
 | ----------------------- | -------------------------------------- | ------------------------ |
 | `react-hook-form`       | `libs/shared/form` (done, Task 18)            | `type:util`, `scope:web` |
-| `@tanstack/react-table` | `libs/shared/design-system/src/compounds`     | `type:ui`, `scope:web`   |
 | `@orpc/client`          | `libs/shared/api-client` (done, Task 19)      | `type:util`, `scope:web` |
 | `socket.io-client`      | `libs/garage/realtime-client`                 | `type:util`, `scope:web` |
 | `next-auth`             | `libs/garage/auth`                            | `type:util`, `scope:web` |
@@ -38,7 +37,7 @@ direct import anywhere else would break:
    to hand-written validation that drifts from the contract over time.
 3. **The boundary can be enforced mechanically, not just by review.** `eslint.config.mjs`
    (`no-restricted-imports` + `@nx/enforce-module-boundaries`) checks it on every
-   `npm run lint` run (`--max-warnings=0`) — a reviewer doesn't have to remember the rule,
+   `pnpm lint` run (`--max-warnings=0`) — a reviewer doesn't have to remember the rule,
    the build fails instead.
 
 ## How the ban is enforced
@@ -61,7 +60,7 @@ compares against the wrong path and never matches.
 host two applications (`doc/decision/0310-*`), the wrapper libs are split across
 `libs/shared/` and `libs/garage/`. Collapsing those owner globs to `libs/shared/**` to
 "simplify" the map would hand **every** shared lib **every** package's exception — and
-`npm run lint` would still pass, because the ban and the exception would still be generated
+`pnpm lint` would still pass, because the ban and the exception would still be generated
 from the same data, just from data that is now wrong. That is the "silently does nothing"
 failure in its purest form. Each owner stays the specific directory that owns its package,
 and the way to check it is a probe, not a green lint: put an import of a package a lib does
@@ -74,23 +73,22 @@ whom** (that `libs/shared/form` may import only `react-hook-form`, not `next-aut
 by the `no-restricted-imports` override, because the Nx dimension alone can't make that
 distinction (every wrapper lib carries the same tag at once).
 
-### `libs/shared/form` and the design system — why this isn't another exception in the same map
+### `libs/shared/form` and the UI library — why this isn't another exception in the same map
 
-`libs/shared/form` is unusual in one respect: `FormField` has to "connect" a Zod error and a
-design-system primitive (`Input`/`Select`/`Checkbox`), but it **does not import the design
-system** in its production code — it does this as a generic render prop
-(`doc/decision/0030-*`). Composing it with a concrete primitive is left to the caller
-(the future `apps/garage/web`), the same way as any other design-system composition. The only
-place where `libs/shared/form` needs the design system at all is its own demonstration test
-(`app-form.spec.tsx`) — and that has its own narrowly targeted ESLint override
-(`doc/decision/0030-*`), not an extension of `WRAPPED_LIBRARIES`.
+`libs/shared/form` is unusual in one respect: `FormField` has to "connect" a Zod error and an
+input component, but it **does not import any UI library** in its production code or its tests —
+it does this as a generic render prop (`doc/decision/0030-*`). Composing it with a concrete
+`@shoptet/ui` component is left to the caller (`apps/garage/web`), which passes
+`field.value`, `field.onChange`, `field.onBlur` and `field.ref` explicitly. The lib's own specs
+use native inputs, so `libs/shared/form` stays UI-library-agnostic
+(`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`).
 
 ### Usage example
 
 `FormField` is a generic render prop (see above) — it connects one field's value, `onChange`,
-`onBlur`, `ref`, and the resolved Zod error to whatever primitive the caller picks. For
-`Input` and `Select`, spreading `{...field}` directly is enough, because their
-`value`/`onChange` match what react-hook-form sends. **`Checkbox` does not** — it's a native
+`onBlur`, `ref`, and the resolved Zod error to whatever input the caller picks. For a text
+input, spreading `{...field}` directly is enough, because its
+`value`/`onChange` match what react-hook-form sends. **A checkbox does not** — it's a native
 `<input type="checkbox">`, which carries its state through `checked` (a boolean), not
 `value`, and whose `onChange` sends an event whose `target.checked` (not `target.value`)
 needs to be sent back into `field.onChange`. This is exactly where the render-prop design
@@ -99,7 +97,6 @@ domain form:
 
 ```tsx
 import * as z from "zod";
-import { Checkbox, Input, Select } from "@garage/design-system/primitives";
 import { FormField, FormProvider, useAppForm } from "@garage/form";
 
 const bookingSchema = z.object({
@@ -117,18 +114,24 @@ function BookingForm() {
   return (
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((values) => submitBooking(values))}>
-        {/* Input/Select: field shape already matches value/onChange, spread directly. */}
+        {/* Text input: field shape already matches value/onChange, spread directly. */}
         <FormField
           name="spotId"
-          render={({ field, error }) => <Input label="Parking spot" error={error} {...field} />}
+          render={({ field, error }) => (
+            <label>
+              Parking spot
+              <input {...field} aria-invalid={Boolean(error)} />
+              {error && <span role="alert">{error}</span>}
+            </label>
+          )}
         />
         <FormField
           name="vehicleType"
-          render={({ field, error }) => (
-            <Select label="Vehicle" error={error} {...field}>
+          render={({ field }) => (
+            <select {...field}>
               <option value="car">Car</option>
               <option value="motorcycle">Motorcycle</option>
-            </Select>
+            </select>
           )}
         />
 
@@ -138,15 +141,18 @@ function BookingForm() {
         <FormField
           name="recurring"
           render={({ field, error }) => (
-            <Checkbox
-              label="Repeat this reservation weekly"
-              error={error}
-              name={field.name}
-              checked={field.value}
-              onChange={(event) => field.onChange(event.target.checked)}
-              onBlur={field.onBlur}
-              ref={field.ref}
-            />
+            <label>
+              <input
+                type="checkbox"
+                name={field.name}
+                checked={field.value}
+                onChange={(event) => field.onChange(event.target.checked)}
+                onBlur={field.onBlur}
+                ref={field.ref}
+              />
+              Repeat this reservation weekly
+              {error && <span role="alert">{error}</span>}
+            </label>
           )}
         />
 
@@ -179,11 +185,11 @@ parking domain instead of the generic demo schema.
    - that application code **doesn't need to** import the wrapped library directly to use
      the wrapper — not just that the export exists, but a real, running example.
 5. **Verify both the ban and the exception with temporary probe files**, not just that
-   `npm run lint` passes green (`doc/workspace.md` — this trap has already happened three
+   `pnpm lint` passes green (`doc/workspace.md` — this trap has already happened three
    times): one import of the wrapped package inside the new lib (expected: passes), the same
    import from somewhere else (expected: fails with a message that names the correct
    wrapper). Delete the probe files once verified.
-6. `npm run lint && npm run typecheck && npm run test` + `npm run build`, add a section
+6. `pnpm lint && pnpm typecheck && pnpm test` + `pnpm build`, add a section
    here.
 
 ## `libs/shared/form` tests
@@ -191,7 +197,7 @@ parking domain instead of the generic demo schema.
 | file                    | what it verifies                                                                                                                                                                                                                                                  |
 | ----------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `use-app-form.spec.tsx` | `useAppForm` + `FormField` on a bare `<input>`: a Zod error propagates into `role="alert"` and `aria-invalid`; a valid submit calls the handler with the values after Zod parsing                                                                                 |
-| `app-form.spec.tsx`     | the same, on real `Input`/`Select`/`Checkbox` from `@garage/design-system/primitives` — three fields, three different primitives, one Zod schema; plus a test that reads its own source file and verifies there is no direct import of `react-hook-form` in it |
+| `app-form.spec.tsx`     | the same, on native `<input>`, `<select>` and checkbox elements — three fields, three different controls, one Zod schema; plus a test that reads its own source file and verifies there is no direct import of `react-hook-form` in it |
 
 Zod in the tests is always a local `z.object(...)` schema, not an import from
 `@garage/contract` — `libs/shared/form` is domain-independent, and `@orpc/contract` (ESM-only,
@@ -625,9 +631,8 @@ both the global ban and this lib's exemption were generated before the lib exist
 was added to `NPM_ALLOWLIST`, and `libs/garage/realtime-client/eslint.config.mjs` is the generator's
 default — it sets **no** `no-restricted-imports` of its own, so the root's copy is not
 replaced. (That rule is a single rule: a lib-local config that sets it wins outright and
-silently switches the wrapper ban off for that lib. Every block in
-`libs/shared/design-system/eslint.config.mjs` spreads `restrictWrappedLibraries().patterns`
-back in for exactly that reason.)
+silently switches the wrapper ban off for that lib, so a lib-local
+config that sets it must spread `restrictWrappedLibraries().patterns` back in for exactly that reason.)
 
 `socket.io-parser` was **not** allow-listed either, although the test fixture needs
 Socket.io's numeric packet type codes to feed an inbound packet — CONNECT_ERROR included, and

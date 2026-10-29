@@ -1,0 +1,77 @@
+.card {
+  overflow: hidden;
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-16);
+}
+
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid rgb(var(--border--neutral-low-default--light));
+}
+
+.actions {
+  display: flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+}
+
+.toolbar {
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid rgb(var(--border--neutral-low-default--light));
+}
+
+/* Specificity beats the library's `.table th` / `.table td` rules. */
+.host table {
+  min-width: var(--data-table-min-width, 0);
+  margin-bottom: 0;
+}
+.host table th[data-align='end'],
+.host table td[data-align='end'] {
+  text-align: right;
+}
+.host table th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.host table td {
+  vertical-align: middle;
+}
+.host table :is(th, td) {
+  border-inline: 0;
+}
+
+.sortButton {
+  display: inline-flex;
+  gap: var(--spacing-sm);
+  align-items: center;
+  width: 100%;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+  letter-spacing: inherit;
+  cursor: pointer;
+  background: transparent;
+  border: 0;
+  border-radius: var(--border-radius-border-radius-4);
+}
+.host table th[data-align='end'] .sortButton {
+  justify-content: flex-end;
+}
+.sortButton:focus-visible {
+  outline: 2px solid rgb(var(--border--controls-medium-selected--light));
+  outline-offset: 2px;
+}
+
+.sortGlyph {
+  font-size: 10px;
+  line-height: 1;
+}

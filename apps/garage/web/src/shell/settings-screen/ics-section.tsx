@@ -1,18 +1,11 @@
 'use client';
 
-import {
-  Box,
-  Button,
-  Divider,
-  Input,
-  Stack,
-  Text,
-  Toast,
-  type ToastTone,
-} from '@garage/design-system/primitives';
+import { Button, Divider, Stack, Text, TextField } from '@shoptet/ui';
 import { useTranslations } from '@garage/i18n';
+import { Toast, type ToastTone } from '../../ui/toast/toast';
 import type { IcsFeedView } from './settings-view';
 import type { CopyState } from './settings-screen';
+import styles from './ics-section.module.css';
 
 export interface IcsSectionProps {
   readonly headingId: string;
@@ -44,40 +37,32 @@ export function IcsSection({
   const t = useTranslations('settings');
 
   return (
-    <Box as="section" aria-labelledby={headingId}>
-      {/*
-       * `Divider` draws the top rule the plain `<section>` used to carry as
-       * `border-t`. `pt-5` (space between the rule and the heading below)
-       * becomes a top-only `Box` padding rather than `Divider`'s own
-       * `spacing`, because `Divider`'s `spacing` is symmetric (`my-*`) and
-       * would also add space *above* the rule — space this section already
-       * gets from the outer `Stack`'s own `spacing={5}` in `settings-screen.tsx`.
-       */}
+    <section aria-labelledby={headingId}>
       <Divider />
-      <Box padding={[5, 0, 0, 0]}>
-        <Stack spacing={3}>
-          <Stack spacing={1}>
-            <Text as="h3" id={headingId} size="sm" weight="bold">
-              {t('icsHeading')}
-            </Text>
-            <Text size="sm" tone="subtle">
+      <div className={styles.body}>
+        <Stack gap="md">
+          <Stack gap="xs">
+            <h3 id={headingId} className={styles.heading}>
+              <Text appearance="strong-sm">{t('icsHeading')}</Text>
+            </h3>
+            <Text appearance="sm" variant="tertiary">
               {t('icsDescription')}
             </Text>
           </Stack>
 
           {feed.kind === 'unavailable' ? (
-            <Text size="sm" tone="subtle">
+            <Text appearance="sm" variant="tertiary">
               {t('icsUnavailable')}
             </Text>
           ) : (
             <>
-              <Input
+              <TextField
                 label={t('icsUrlLabel')}
                 value={feed.url}
                 readOnly
-                onFocus={(event) => event.currentTarget.select()}
+                onFocus={(_value, event) => event?.currentTarget.select()}
               />
-              <Stack direction="row" align="center" wrap spacing={3}>
+              <Stack orientation="horizontal" align="center" wrap gap="md">
                 {/* `size="lg"`, matching the footer's Cancel/Save buttons — the
                     design shows one control height throughout the modal. */}
                 <Button type="button" variant="secondary" size="lg" onClick={onCopy}>
@@ -85,7 +70,7 @@ export function IcsSection({
                 </Button>
                 <Button
                   type="button"
-                  variant="outline"
+                  variant="secondary"
                   size="lg"
                   onClick={onRequestRegenerate}
                   disabled={isRegenerating}
@@ -101,7 +86,7 @@ export function IcsSection({
             </>
           )}
         </Stack>
-      </Box>
-    </Box>
+      </div>
+    </section>
   );
 }

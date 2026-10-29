@@ -24,10 +24,10 @@ All Prisma commands run from the **repo root** (`prisma.config.ts` lives there a
 knows where the schema is):
 
 ```bash
-npx prisma validate            # no database needed
-npx prisma generate            # no database needed; commit the result
-npx prisma migrate deploy      # apply migrations
-npx prisma db seed             # dev data
+pnpm exec prisma validate            # no database needed
+pnpm exec prisma generate            # no database needed; commit the result
+pnpm exec prisma migrate deploy      # apply migrations
+pnpm exec prisma db seed             # dev data
 nx test database               # unit tests (no database needed)
 ```
 

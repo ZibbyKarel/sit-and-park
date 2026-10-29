@@ -1,5 +1,7 @@
 # 0071 – `EmptyState` and `ConfirmDialog` are invented, not drawn
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Two of the three compounds have **no model in the design**:

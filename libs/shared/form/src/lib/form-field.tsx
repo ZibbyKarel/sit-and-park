@@ -7,16 +7,14 @@ export interface FormFieldRenderArgs<
   TName extends FieldPath<TFieldValues>,
 > {
   /**
-   * Spread onto the rendered primitive. Carries `name`, `value`, `onChange`,
-   * `onBlur` and `ref` — the exact shape `Input`/`Select`/`Checkbox` (and any
-   * other native-element primitive) already accept.
+   * Carries `name`, `value`, `onChange`, `onBlur` and `ref`. Spread it onto a
+   * native control, or pass the members to a component library's input
+   * explicitly — `onChange` accepts either a DOM event or a raw value.
    */
   readonly field: ControllerRenderProps<TFieldValues, TName>;
   /**
-   * This field's Zod issue message, or `undefined` while valid. Pass straight
-   * to a primitive's `error` prop — that single prop already drives the red
-   * border, `aria-invalid` and the announced message (`FieldOwnProps`,
-   * `libs/shared/design-system/src/primitives`), so this is the only wiring needed.
+   * This field's Zod issue message, or `undefined` while valid. Hand it to
+   * whatever the control uses to show an error message.
    */
   readonly error: string | undefined;
 }
@@ -27,7 +25,7 @@ export interface FormFieldProps<
 > {
   /** Path into the form's values, typed against the schema passed to `useAppForm`. */
   readonly name: TName;
-  /** Renders exactly one design-system primitive for this field. */
+  /** Renders exactly one input control for this field. */
   readonly render: (args: FormFieldRenderArgs<TFieldValues, TName>) => ReactElement;
   /**
    * Only needed when rendering outside a `FormProvider` tree. Normally
@@ -37,13 +35,13 @@ export interface FormFieldProps<
 }
 
 /**
- * Connects one field of an `useAppForm` form to one design-system primitive.
+ * Connects one field of an `useAppForm` form to one input control.
  *
  * Built on `useController` rather than `register`, specifically because
  * `useController` already resolves `formState.errors` down to *this* field's
  * message (`fieldState.error`) — `FormField` does not re-implement error-path
  * lookup, it just forwards what react-hook-form already computed. This is
- * also what keeps the primitives themselves free of react-hook-form: they
+ * also what keeps the controls themselves free of react-hook-form: they
  * only ever see plain props (`value`, `onChange`, `error`, ...), never a
  * `Control` or a registered ref API.
  */

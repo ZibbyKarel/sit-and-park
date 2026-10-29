@@ -13,20 +13,13 @@
  * - {@link RealtimeNotice} — the affordance for a refused socket.
  */
 
-import {
-  Box,
-  Button,
-  Callout,
-  Chip,
-  IconCircle,
-  Spacer,
-  Stack,
-  Text,
-  VisuallyHidden,
-} from '@garage/design-system/primitives';
+import { Button, SystemMessage } from '@shoptet/ui';
+import { Chip } from '../../ui/chip/chip';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import { useDateFormatters, useTranslations } from '@garage/i18n';
 import type { DateOnly } from '@garage/i18n';
 import type { BannerView, DayNoteView, LotCounts } from '../lot-view';
+import styles from './lot-header.module.css';
 
 export interface LotHeaderProps {
   readonly date: DateOnly;
@@ -65,65 +58,47 @@ export function LotHeader({
   const f = useDateFormatters();
 
   return (
-    // `mb-6` on the row below is caller spacing, not part of `Stack` — expressed
-    // as a wrapping `Box margin=` (a bottom-only quad, since `Stack` has no
-    // margin prop of its own).
-    <Box margin={[0, 0, 6, 0]}>
-      <Stack direction="row" wrap align="center" justify="between" spacing={6}>
-        {/* The design has no visible page title — the date pill is the heading
-            now — but the document still needs one `h1` for assistive tech. */}
-        <VisuallyHidden as="h1">{sectionTitle}</VisuallyHidden>
+    <div className={styles.header}>
+      {/* The design has no visible page title — the date pill is the heading
+          now — but the document still needs one `h1` for assistive tech. */}
+      <VisuallyHidden as="h1">{sectionTitle}</VisuallyHidden>
 
-        <Stack direction="row" wrap align="center" spacing={3}>
-          {/* `Box`'s radius scale now includes `cta`, the fully-rounded pill
-              step every other pill-shaped control in the design uses. */}
-          <Box border background="bg" padding={1} radius="cta">
-            <Stack direction="row" align="center" spacing={1}>
-              <Button
-                variant="ghost"
-                size="sm"
-                aria-label={t('previousDay')}
-                onClick={onPreviousDay}
-              >
-                <Text size="lg">‹</Text>
-              </Button>
-              <Button variant="ghost" size="sm" onClick={onOpenDatePicker}>
-                {f.fullDate(date)}
-              </Button>
-              <Button variant="ghost" size="sm" aria-label={t('nextDay')} onClick={onNextDay}>
-                <Text size="lg">›</Text>
-              </Button>
-            </Stack>
-          </Box>
-          <Text
-            size="xs"
-            weight="bold"
-            transform="uppercase"
-            tracking="caps"
-            tone={note.highlighted ? 'default' : 'subtle'}
+      <div className={styles.group}>
+        <div className={styles.datePill}>
+          <Button
+            variant="secondary"
+            size="sm"
+            aria-label={t('previousDay')}
+            onClick={onPreviousDay}
           >
-            {t(note.key, { name: note.name })}
-          </Text>
-        </Stack>
-
-        <Stack direction="row" wrap align="center" spacing={3}>
-          <Button variant="outline" size="sm" onClick={onToday}>
-            {t('today')}
+            <span className={styles.arrow}>‹</span>
           </Button>
-          {/* Byte-for-byte `Chip`'s `md` size + `outline` tone, rendered as the
-              `<p>` this call site has always used — see `chip.tsx`'s own
-              `ChipAs` doc comment, which names this exact spot. */}
-          <Chip size="md" tone="outline" as="p">
-            {t('occupiedCount', { taken: counts.taken, total: counts.free + counts.taken })}
-          </Chip>
-          {showBulk ? (
-            <Button size="sm" onClick={onBulk}>
-              {t('bulkReservation')}
-            </Button>
-          ) : null}
-        </Stack>
-      </Stack>
-    </Box>
+          <Button variant="secondary" size="sm" onClick={onOpenDatePicker}>
+            {f.fullDate(date)}
+          </Button>
+          <Button variant="secondary" size="sm" aria-label={t('nextDay')} onClick={onNextDay}>
+            <span className={styles.arrow}>›</span>
+          </Button>
+        </div>
+        <span className={styles.note} data-highlighted={note.highlighted ? '' : undefined}>
+          {t(note.key, { name: note.name })}
+        </span>
+      </div>
+
+      <div className={styles.group}>
+        <Button variant="secondary" size="sm" onClick={onToday}>
+          {t('today')}
+        </Button>
+        <Chip size="md" tone="outline" as="p">
+          {t('occupiedCount', { taken: counts.taken, total: counts.free + counts.taken })}
+        </Chip>
+        {showBulk ? (
+          <Button size="sm" onClick={onBulk}>
+            {t('bulkReservation')}
+          </Button>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -143,27 +118,12 @@ export function WindowBanner({ banner }: { readonly banner: BannerView }) {
   const isSuccess = banner.tone === 'success';
 
   return (
-    // `mb-5` was baked into the panel's own className before `Callout` existed;
-    // it is caller placement, not chrome, so it moves to a wrapping `Box`.
-    <Box margin={[0, 0, 5, 0]}>
-      <Callout
-        tone={isSuccess ? 'success' : 'warning'}
-        align="center"
-        role="status"
-        icon={
-          // `tone="green"` reads `text-brand-dark` here, not white — a
-          // deliberate contrast fix (`doc/decision/0266`) that changes this
-          // glyph's colour on the green banner.
-          <IconCircle size="sm" shape="square" tone={isSuccess ? 'green' : 'yellow'} weight="bold">
-            {isSuccess ? '✓' : '⊘'}
-          </IconCircle>
-        }
-      >
-        <Text size="base" leading="snug">
-          {t(banner.messageKey, banner.values)}
-        </Text>
-      </Callout>
-    </Box>
+    <div role="status" className={styles.notice}>
+      <SystemMessage
+        level={isSuccess ? 'success' : 'alert'}
+        description={t(banner.messageKey, banner.values)}
+      />
+    </div>
   );
 }
 
@@ -198,27 +158,18 @@ export function RealtimeNotice({
   const t = useTranslations('lot');
 
   return (
-    <Box margin={[0, 0, 5, 0]}>
-      {/* No `icon` slot here, so `Callout` imposes no layout of its own — the
-          text-plus-button row is this caller's own `Stack`, exactly as
-          `callout.tsx`'s doc comment names this call site. */}
-      <Callout tone="warning" role="status">
-        <Stack direction="row" wrap align="center" spacing={3}>
-          <Text size="base" leading="snug">
-            {t('realtimeRejected')}
-          </Text>
-          {onReconnect === undefined ? null : (
-            <>
-              {/* Grows to fill the row, pushing the button to the trailing edge —
-                  the same job the original `<p className="flex-1">` did. */}
-              <Spacer />
-              <Button variant="secondary" size="sm" onClick={onReconnect}>
-                {t('realtimeReconnect')}
-              </Button>
-            </>
-          )}
-        </Stack>
-      </Callout>
-    </Box>
+    <div role="status" className={styles.notice}>
+      <SystemMessage
+        level="alert"
+        description={t('realtimeRejected')}
+        controls={
+          onReconnect === undefined ? undefined : (
+            <Button variant="secondary" size="sm" onClick={onReconnect}>
+              {t('realtimeReconnect')}
+            </Button>
+          )
+        }
+      />
+    </div>
   );
 }

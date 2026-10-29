@@ -1,5 +1,7 @@
 # 0268 – The spacing scale stays open, the enumeration stays, and the comment that claimed otherwise is gone
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `assets/theme.css` enumerates thirteen `--spacing-N: var(--space-N)` keys and

@@ -5,7 +5,7 @@
  * the app, and no pretty-printer even in development. A pretty transport runs
  * the formatter on a worker thread, which is one more thing to close during
  * graceful shutdown and one more way for the last lines before exit to be lost;
- * `nx serve api | npx pino-pretty` gives a developer the same output without
+ * `nx serve api | pnpm exec pino-pretty` gives a developer the same output without
  * putting that in the process.
  *
  * ## Request correlation

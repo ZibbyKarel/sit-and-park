@@ -1,0 +1,10 @@
+.container {
+  width: 100%;
+  max-width: 1200px;
+  margin-inline: auto;
+  padding: 32px 16px;
+}
+
+.roomy {
+  padding-block: 64px;
+}

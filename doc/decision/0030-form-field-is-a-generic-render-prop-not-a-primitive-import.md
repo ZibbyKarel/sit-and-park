@@ -1,5 +1,7 @@
 # 0030 – `FormField` is a generic render prop; `libs/shared/form` does not import the design system
 
+> Partly superseded by (the design system parts) [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-08-28 · **Status:** accepted · **Task:** 18 (`libs/shared/form`)
 
 ## What

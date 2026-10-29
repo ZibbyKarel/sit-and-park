@@ -68,6 +68,7 @@ Thumbs.db
 # Claude Code
 .claude/worktrees
 .claude/settings.local.json
+/worktrees/
 
 # Next.js
 .next

@@ -20,16 +20,9 @@
  */
 
 import { useState } from 'react';
-import {
-  Box,
-  Button,
-  Modal,
-  Select,
-  Stack,
-  Text,
-  ToggleTile,
-  VisuallyHidden,
-} from '@garage/design-system/primitives';
+import { Button, Modal, SingleSelect } from '@shoptet/ui';
+import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import {
   addMonths,
   parseDateOnly,
@@ -39,6 +32,7 @@ import {
   type DateOnly,
 } from '@garage/i18n';
 import { buildDatePickerGrid } from './date-picker-view';
+import styles from './date-picker-dialog.module.css';
 
 export interface DatePickerDialogProps {
   readonly open: boolean;
@@ -51,6 +45,14 @@ export interface DatePickerDialogProps {
 }
 
 const MONTHS_IN_YEAR = 12;
+
+interface NumberOption {
+  readonly value: number;
+  readonly label: string;
+}
+
+const getOptionValue = (option: NumberOption) => option.value;
+const getOptionLabel = (option: NumberOption) => option.label;
 
 /**
  * Keyed on `open` and `selectedDate` for the same reason
@@ -88,19 +90,19 @@ function DatePickerDialogContent({
     'weekdaySun',
   ] as const;
 
+  const monthOptions = Array.from({ length: MONTHS_IN_YEAR }, (_unused, index) => ({
+    value: index + 1,
+    label: f.monthName(index + 1),
+  }));
+  const yearOptions = years.map((year) => ({ value: year, label: String(year) }));
+
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="sm"
-      title={t('datePickerTitle')}
-      closeLabel={t('close')}
-    >
-      {/* `mb-4` is this row's own placement above the grid — `Stack` has no margin prop, hence the `Box` wrapper. */}
-      <Box margin={[0, 0, 4, 0]}>
-        <Stack direction="row" align="center" spacing={2}>
+    <Modal isOpen={open} onClose={onClose}>
+      <Modal.Header>{t('datePickerTitle')}</Modal.Header>
+      <Modal.Content>
+        <div className={styles.nav}>
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             aria-label={t('previousDay')}
             onClick={() => {
@@ -109,44 +111,32 @@ function DatePickerDialogContent({
           >
             ‹
           </Button>
-          {/*
-            `Select` now takes `width="grow"`, which emits the wrapper's
-            `flex-1` — filling the row between the two arrow buttons and the
-            year select — through a real prop instead of `wrapperClassName`.
-          */}
-          <Select
-            aria-label={t('monthLabel')}
-            value={String(parts.month)}
-            onChange={(event) => {
-              setViewAnchor((current) =>
-                addMonths(current, Number(event.target.value) - parts.month)
-              );
+          <div className={styles.grow}>
+            <SingleSelect
+              label={t('monthLabel')}
+              value={parts.month}
+              options={monthOptions}
+              getOptionValue={getOptionValue}
+              getOptionLabel={getOptionLabel}
+              onChange={(month) => {
+                if (month === null) return;
+                setViewAnchor((current) => addMonths(current, month - parts.month));
+              }}
+            />
+          </div>
+          <SingleSelect
+            label={t('yearLabel')}
+            value={parts.year}
+            options={yearOptions}
+            getOptionValue={getOptionValue}
+            getOptionLabel={getOptionLabel}
+            onChange={(year) => {
+              if (year === null) return;
+              setViewAnchor((current) => addMonths(current, (year - parts.year) * MONTHS_IN_YEAR));
             }}
-            width="grow"
-          >
-            {Array.from({ length: MONTHS_IN_YEAR }, (_unused, index) => index + 1).map((month) => (
-              <option key={month} value={month}>
-                {f.monthName(month)}
-              </option>
-            ))}
-          </Select>
-          <Select
-            aria-label={t('yearLabel')}
-            value={String(parts.year)}
-            onChange={(event) => {
-              setViewAnchor((current) =>
-                addMonths(current, (Number(event.target.value) - parts.year) * MONTHS_IN_YEAR)
-              );
-            }}
-          >
-            {years.map((year) => (
-              <option key={year} value={year}>
-                {year}
-              </option>
-            ))}
-          </Select>
+          />
           <Button
-            variant="outline"
+            variant="secondary"
             size="sm"
             aria-label={t('nextDay')}
             onClick={() => {
@@ -155,67 +145,51 @@ function DatePickerDialogContent({
           >
             ›
           </Button>
-        </Stack>
-      </Box>
+        </div>
 
-      {/* eslint-disable-next-line no-restricted-syntax -- `.calendar-grid` is the one class the design system cannot express (border-spacing has no token utility); see global.css */}
-      <table className="calendar-grid">
-        <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
-        <thead>
-          <tr>
-            {WEEKDAY_KEYS.map((key) => (
-              // `Text` renders `as="th"` with a `scope` prop, same as
-              // `bulk-modal.tsx`'s weekday heads — collapses the `<th>`/inner
-              // `<span>` pair into one element. This dialog has no weekend
-              // recess to preserve, so the tone has no conditional. The
-              // bottom padding is carried by `.calendar-grid th` in
-              // `global.css`.
-              <Text
-                key={key}
-                as="th"
-                scope="col"
-                size="xs"
-                weight="bold"
-                transform="uppercase"
-                tracking="caps"
-                tone="subtle"
-              >
-                {t(key)}
-              </Text>
-            ))}
-          </tr>
-        </thead>
-        <tbody>
-          {grid.weeks.map((week) => (
-            <tr key={week.key}>
-              {week.slots.map(({ key, day }) =>
-                day === null ? (
-                  <td key={key} />
-                ) : (
-                  <td key={key}>
-                    <ToggleTile
-                      shape="cell"
-                      selected={day.selected}
-                      selectable={day.selectable}
-                      aria-pressed={day.selectable ? day.selected : undefined}
-                      aria-label={
-                        day.selectable
-                          ? t('dayCell', { date: f.fullDate(day.date) })
-                          : t('dayCellBlocked', { date: f.fullDate(day.date) })
-                      }
-                      onClick={() => {
-                        onSelect(day.date);
-                      }}
-                    >
-                      {day.dayOfMonth}
-                    </ToggleTile>
-                  </td>
-                )
-              )}
+        <table className="calendar-grid">
+          <VisuallyHidden as="caption">{t('gridLabel')}</VisuallyHidden>
+          <thead>
+            <tr>
+              {WEEKDAY_KEYS.map((key) => (
+                <th key={key} scope="col">
+                  {t(key)}
+                </th>
+              ))}
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {grid.weeks.map((week) => (
+              <tr key={week.key}>
+                {week.slots.map(({ key, day }) =>
+                  day === null ? (
+                    <td key={key} />
+                  ) : (
+                    <td key={key}>
+                      <ToggleTile
+                        shape="cell"
+                        selected={day.selected}
+                        selectable={day.selectable}
+                        aria-pressed={day.selectable ? day.selected : undefined}
+                        aria-label={
+                          day.selectable
+                            ? t('dayCell', { date: f.fullDate(day.date) })
+                            : t('dayCellBlocked', { date: f.fullDate(day.date) })
+                        }
+                        onClick={() => {
+                          onSelect(day.date);
+                        }}
+                      >
+                        {day.dayOfMonth}
+                      </ToggleTile>
+                    </td>
+                  )
+                )}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </Modal.Content>
     </Modal>
   );
 }
