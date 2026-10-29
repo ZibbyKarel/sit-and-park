@@ -201,7 +201,7 @@ The actual `.env` files are in `.gitignore` – they are never committed.
    For everyday development the applications run on the host instead:
 
    ```bash
-   pnpm nx run api:serve   # NestJS, port per PORT in .env (default 3001)
+   pnpm nx run api:serve   # NestJS, port per PORT in .env (default 3000)
    pnpm nx run web:dev     # Next.js on 4200 — the port is pinned in apps/garage/web/project.json
    ```
 
@@ -247,7 +247,7 @@ docker compose --env-file .env.docker --profile dev --profile app config
 
 ```bash
 # DATABASE_URL is deliberately missing
-NODE_ENV=development PORT=3001 \
+NODE_ENV=development PORT=3000 \
 AUTH_OKTA_ISSUER=http://localhost:8080/default AUTH_OKTA_AUDIENCE=api://default \
 CORS_ALLOWED_ORIGINS=http://localhost:4200 LOG_LEVEL=info \
 node dist/apps/garage/api/main.js

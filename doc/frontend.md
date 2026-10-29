@@ -110,7 +110,7 @@ start Auth.js in `loading` and render every visitor as signed-out for a frame.
 
 ## The three URLs derived from `NEXT_PUBLIC_API_URL`
 
-`src/api-url.ts`. The configured value (`http://localhost:3001/api`) is the
+`src/api-url.ts`. The configured value (`http://localhost:3000/api`) is the
 API's base URL and is **not itself** any of the endpoints the app calls:
 
 | Consumer     | Function               | Result                                                                  |

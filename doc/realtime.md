@@ -53,7 +53,7 @@ export function Providers({ children }: { children: ReactNode }) {
 
 `url` is the API's **origin**, never `NEXT_PUBLIC_API_URL` itself. `io(url)`
 reads a path in the URL as a **namespace**, not as a mount point, so
-`http://localhost:3001/api` dials the `/api` namespace — which the gateway does
+`http://localhost:3000/api` dials the `/api` namespace — which the gateway does
 not register, and the refusal looks like an auth failure. The Socket.io mount
 point is the separate `path` option (`DEFAULT_SOCKET_PATH`). `apiOriginOf` lives
 in `apps/garage/web/src/api-url.ts` alongside the other two derivations; see

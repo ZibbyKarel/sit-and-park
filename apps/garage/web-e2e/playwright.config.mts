@@ -16,7 +16,7 @@ import { workspaceRoot } from '@nx/devkit';
  *
  * ## The four things this file settles
  *
- * 1. **Ports.** The web app is on 4200, not 3001. `PORT=3001` in the workspace
+ * 1. **Ports.** The web app is on 4200, not 3000. `PORT=3000` in the workspace
  *    `.env` belongs to the API, Nx injects it into every target, and
  *    `apps/garage/web/project.json` pins `next dev --port 4200` because of it. 4200 is
  *    also the origin named by `CORS_ALLOWED_ORIGINS` and by the redirect URI
@@ -41,7 +41,7 @@ import { workspaceRoot } from '@nx/devkit';
 const baseURL = process.env['BASE_URL'] ?? 'http://localhost:4200';
 
 /** Where the API lives. Only its readiness probe is used from here. */
-const apiUrl = process.env['E2E_API_URL'] ?? 'http://localhost:3001';
+const apiUrl = process.env['E2E_API_URL'] ?? 'http://localhost:3000';
 
 export default defineConfig({
   ...nxE2EPreset(import.meta.dirname, { testDir: './src' }),
@@ -68,7 +68,7 @@ export default defineConfig({
       // show project web-e2e --json` shows `dependsOn: [{projects: ['api'],
       // target: 'serve'}]`, which exists only because of the string below. So
       // Nx starts the API first, with Nx's environment, and Playwright finds
-      // port 3001 already answering and adopts it.
+      // port 3000 already answering and adopts it.
       //
       // The entry is kept because it is what *declares* that dependency, and
       // because it still starts an API when something runs `playwright test`
