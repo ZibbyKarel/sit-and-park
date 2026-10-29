@@ -1,9 +1,10 @@
 'use client';
 
 import type { useTranslations } from '@garage/i18n';
-import { Box, Button, Modal, Text } from '@garage/design-system/primitives';
+import { Button, Modal } from '@shoptet/ui';
 import type { PreviewBulkOutput } from '@garage/contract';
 import { CalendarTable } from './calendar-table';
+import styles from './bulk-modal.module.css';
 
 /**
  * Step 2 of {@link BulkReservationModalContent} in `./bulk-modal.tsx` — the schedule
@@ -37,29 +38,11 @@ export function SchedulePreviewModal({
   onConfirm,
 }: SchedulePreviewModalProps) {
   return (
-    <Modal
-      open={open}
-      onClose={onClose}
-      size="md"
-      title={t('scheduleTitle')}
-      description={t('scheduleDescription')}
-      closeLabel={t('close')}
-      closeOnScrimClick={false}
-      footer={
-        <>
-          <Button variant="secondary" disabled={pending} onClick={onBack}>
-            {t('ctaBack')}
-          </Button>
-          <Button loading={confirmPending} disabled={pending} onClick={onConfirm}>
-            {t('ctaConfirm')}
-          </Button>
-        </>
-      }
-    >
-      <CalendarTable days={proposal.days} t={t} />
-      {/* `mt-4` is this line's placement under the table, not its own chrome — see `Box.margin`. */}
-      <Box margin={[4, 0, 0, 0]}>
-        <Text as="p" size="base" tone="muted">
+    <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal.Header subheader={t('scheduleDescription')}>{t('scheduleTitle')}</Modal.Header>
+      <Modal.Content>
+        <CalendarTable days={proposal.days} t={t} />
+        <p className={styles.summary}>
           {/*
             The server's own count, exactly as the result step uses
             `result.summary`. Re-deriving it here by filtering `days` would put
@@ -71,8 +54,25 @@ export function SchedulePreviewModal({
             assigned: proposal.summary.assigned,
             queued: proposal.summary.queued,
           })}
-        </Text>
-      </Box>
+        </p>
+      </Modal.Content>
+      <Modal.Footer>
+        {({ primaryButtonProps, secondaryButtonProps }) => (
+          <>
+            <Button {...secondaryButtonProps} disabled={pending} onClick={onBack}>
+              {t('ctaBack')}
+            </Button>
+            <Button
+              {...primaryButtonProps}
+              isLoading={confirmPending}
+              disabled={pending}
+              onClick={onConfirm}
+            >
+              {t('ctaConfirm')}
+            </Button>
+          </>
+        )}
+      </Modal.Footer>
     </Modal>
   );
 }

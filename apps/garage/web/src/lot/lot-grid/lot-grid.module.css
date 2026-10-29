@@ -1,0 +1,45 @@
+.band {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
+}
+
+.heading {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.groupName {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--lot-white) 90%, transparent);
+}
+
+.free {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--lot-white) 50%, transparent);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xl);
+  margin: 0;
+  padding: 0 var(--spacing-xs);
+  list-style: none;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.legendText {
+  font-size: 12px;
+  color: color-mix(in srgb, var(--lot-white) 70%, transparent);
+}

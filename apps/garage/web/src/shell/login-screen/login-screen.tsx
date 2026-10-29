@@ -13,9 +13,11 @@
  * `doc/auth.md` §"The flow, end to end".
  */
 
-import { Box, Button, IconCircle, Stack, Text } from '@garage/design-system/primitives';
+import { Button, Paragraph, Stack, Text } from '@shoptet/ui';
 import { useTranslations } from '@garage/i18n';
 import { Brand } from '../brand';
+import { IconCircle } from '../../ui/icon-circle/icon-circle';
+import styles from './login-screen.module.css';
 
 export interface LoginScreenProps {
   /** Server Action that starts the Okta authorization-code flow. */
@@ -26,30 +28,20 @@ export function LoginScreen({ action }: LoginScreenProps) {
   const t = useTranslations('login');
 
   return (
-    // Split across two layers: `Box` carries the background and the
-    // horizontal-only padding (`px-4`), `Stack` the full-viewport height
-    // (`minHeight="viewport"`, i.e. `min-h-dvh`) and the centring
-    // (`align`/`justify`/`spacing`) that used to sit on one element together.
-    // `text-center` had no single prop either — each text child below gets
-    // its own `align="center"` instead of relying on inheritance.
-    <Box background="bg" padding={[0, 4]}>
-      <Stack minHeight="viewport" align="center" justify="center" spacing={8}>
+    <div className={styles.canvas}>
+      <Stack align="center" justify="center" gap="xxl">
         <Brand size="lg" asHeading />
 
-        <Text size="md" leading="loose" tone="subtle" align="center">
+        <Paragraph appearance="lg" variant="secondary" align="center">
           {t('tagline')}
           <br />
           {t('taglineSecondary')}
-        </Text>
+        </Paragraph>
 
         <form action={action}>
-          <Button
-            type="submit"
-            size="xl"
-            startAdornment={
-              // The design's inset "O" chip: a translucent square on the blue
-              // fill, not an icon. `translucent-light` (`bg-bg/20`) is the
-              // white surface token at the design's 22% alpha.
+          <Button type="submit" size="lg">
+            <span className={styles.signIn}>
+              {/* The design's inset "O" chip: a translucent square on the blue fill, not an icon. */}
               <IconCircle
                 aria-hidden="true"
                 size="xs"
@@ -60,24 +52,17 @@ export function LoginScreen({ action }: LoginScreenProps) {
               >
                 O
               </IconCircle>
-            }
-          >
-            {t('signIn')}
+              {t('signIn')}
+            </span>
           </Button>
         </form>
 
-        <Text
-          as="p"
-          size="xs"
-          weight="bold"
-          transform="uppercase"
-          tracking="caps"
-          tone="faint"
-          align="center"
-        >
-          {t('footnote')}
-        </Text>
+        <span className={styles.footnote}>
+          <Text appearance="strong-sm" variant="tertiary" align="center">
+            {t('footnote')}
+          </Text>
+        </span>
       </Stack>
-    </Box>
+    </div>
   );
 }

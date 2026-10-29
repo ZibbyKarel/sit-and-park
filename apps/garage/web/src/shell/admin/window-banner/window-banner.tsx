@@ -12,7 +12,7 @@
  */
 
 import type { MonthWindowOverview } from '@garage/contract';
-import { Toast } from '@garage/design-system/primitives';
+import { Toast } from '../../../ui/toast/toast';
 import { useDateFormatters, useTranslations } from '@garage/i18n';
 import { toAdminWindowBannerView } from './window-view';
 
@@ -25,9 +25,5 @@ export function WindowBanner({ window: month }: WindowBannerProps) {
   const f = useDateFormatters();
   const banner = toAdminWindowBannerView(month, f);
 
-  return (
-    <Toast tone={banner.tone} icon={banner.glyph}>
-      {t(banner.messageKey, banner.values)}
-    </Toast>
-  );
+  return <Toast tone={banner.tone}>{t(banner.messageKey, banner.values)}</Toast>;
 }

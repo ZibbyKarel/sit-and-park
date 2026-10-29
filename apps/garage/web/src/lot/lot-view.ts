@@ -37,7 +37,6 @@ import type {
   PublicTimedReservation,
 } from '@garage/contract';
 import type { RealtimeStatus } from '@garage/realtime-client';
-import { CAR_COLOR_PALETTE } from '@garage/design-system/tokens';
 import type { HolderOption } from './spot-dialog/holder-input';
 
 /**
@@ -48,13 +47,14 @@ import type { HolderOption } from './spot-dialog/holder-input';
  */
 export const LOT_GROUP_ORDER: readonly ParkingGroup[] = ['IT', 'SHARED'];
 
+/** The three car colours, mirrored by `--lot-car-1..3` in `app/global.css`. */
+export const CAR_COLOR_PALETTE = ['#fcaf00', '#00e25a', '#3b88ff'] as const;
+
 /**
  * Which of the three car colours a user's car is drawn in.
  *
  * `doc/design/README.md` requires this be "deterministically per user, not
- * randomly — otherwise a car's color would change on every render", and
- * `car-palette.ts` repeats it: the design system holds the palette and the
- * consumer picks the index, because picking needs to know what the subject is.
+ * randomly — otherwise a car's color would change on every render".
  *
  * FNV-1a over the UTF-16 code units of the id, folded to 32 bits. Any stable
  * hash would do; this one is four lines, has no dependency, and spreads the
@@ -73,24 +73,15 @@ export function carColorIndex(userId: string): number {
   return hash % CAR_COLOR_PALETTE.length;
 }
 
-/**
- * `--color-car-1..3` (`theme.css`), as `var()` references rather than
- * Tailwind utilities — `car-glyph.tsx` sets these directly as an SVG `fill`
- * presentation attribute, not through a `className`, so there is no utility
- * to spell here for the app to spend.
- */
-export const CAR_COLOR_VARS = [
-  'var(--color-car-1)',
-  'var(--color-car-2)',
-  'var(--color-car-3)',
-] as const;
+/** `--lot-car-1..3` (`app/global.css`), as `var()` references for the car glyph's SVG `fill`. */
+export const CAR_COLOR_VARS = ['var(--lot-car-1)', 'var(--lot-car-2)', 'var(--lot-car-3)'] as const;
 
 /**
  * A guest's car glyph. Deliberately outside {@link CAR_COLOR_VARS}: those
  * are a stable hash of a user id, and a guest has no id — falling through to
  * index 0 would hand every guest the first user's colour.
  */
-export const GUEST_CAR_COLOR_VAR = 'var(--color-fg-3)';
+export const GUEST_CAR_COLOR_VAR = 'var(--lot-guest-car)';
 
 /** The car glyph's fill for one holder. Stable for the life of that user. */
 export function carColorVar(userId: string): string {
@@ -162,12 +153,8 @@ export interface SpotView {
   readonly holderName: string | null;
   readonly holderPlate: string | null;
   /**
-   * The car glyph's fill, as a `var(...)` reference, for `taken`. The field
-   * keeps this name — not `carColorVar` — because `spot-dialog.tsx` (a
-   * different agent's file) constructs this same shape in its own fixtures;
-   * renaming the field would break a file this task does not own. Only the
-   * *value* changed, from a Tailwind class to a CSS custom-property
-   * reference — see `carColorVar()` below.
+   * The car glyph's fill, as a `var(...)` reference, for `taken` — see
+   * `carColorVar()` below.
    */
   readonly carColorClass: string | null;
   /** Who is editing, for `editing`. */

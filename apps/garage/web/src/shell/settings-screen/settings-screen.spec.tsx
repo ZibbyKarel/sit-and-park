@@ -4,6 +4,7 @@ import { createApiClient } from '@garage/api-client';
 import { IntlProvider } from '@garage/i18n';
 import type { MyProfile, ParkingSpot } from '@garage/contract';
 import cs from '../../../messages/cs.json';
+import { selectOption } from '../../test-utils/select-option';
 import { ToastProvider } from '../notifications/toast-provider';
 import { SettingsScreen } from './settings-screen';
 import type { SettingsScreenProps } from './settings-screen';
@@ -233,16 +234,20 @@ describe('SettingsScreen — the form', () => {
     renderScreen();
 
     expect(screen.getByLabelText('licensePlateLabel')).toHaveValue('4AB 1234');
-    expect(screen.getByLabelText('preferredSpotLabel')).toHaveValue('spot-1');
+    expect(screen.getByLabelText('preferredSpotLabel')).toHaveTextContent('E2.92 · IT');
   });
 
-  it('lists active spots as "label · group", plus a no-preference option', () => {
-    renderScreen();
+  it('lists active spots as "label · group", plus a no-preference option', async () => {
+    const { user } = renderScreen();
 
-    const select = screen.getByLabelText('preferredSpotLabel') as HTMLSelectElement;
-    const optionTexts = Array.from(select.options).map((option) => option.textContent);
+    await user.click(screen.getByLabelText('preferredSpotLabel'));
+    const options = within(await screen.findByRole('listbox')).getAllByRole('option');
 
-    expect(optionTexts).toEqual(['preferredSpotNone', 'E2.92 · IT', 'E2.65 · SHARED']);
+    expect(options.map((option) => option.textContent)).toEqual([
+      'preferredSpotNone',
+      'E2.92 · IT',
+      'E2.65 · SHARED',
+    ]);
   });
 
   it('sends the trimmed licence plate and the selected spot on save', async () => {
@@ -250,7 +255,7 @@ describe('SettingsScreen — the form', () => {
 
     await user.clear(screen.getByLabelText('licensePlateLabel'));
     await user.type(screen.getByLabelText('licensePlateLabel'), '  9ZZ 8888  ');
-    await user.selectOptions(screen.getByLabelText('preferredSpotLabel'), 'spot-2');
+    await selectOption(user, 'preferredSpotLabel', 'E2.65 · SHARED');
     await user.click(screen.getByRole('button', { name: 'save' }));
 
     expect(onSave).toHaveBeenCalledWith({
@@ -271,7 +276,7 @@ describe('SettingsScreen — the form', () => {
   it('sends null for the preferred spot when "Bez preference" is chosen', async () => {
     const { onSave, user } = renderScreen();
 
-    await user.selectOptions(screen.getByLabelText('preferredSpotLabel'), '');
+    await selectOption(user, 'preferredSpotLabel', 'preferredSpotNone');
     await user.click(screen.getByRole('button', { name: 'save' }));
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ preferredParkingSpotId: null }));
@@ -286,11 +291,11 @@ describe('SettingsScreen — the form', () => {
     expect(onSave).not.toHaveBeenCalled();
   });
 
-  it('disables Cancel and shows a spinner on Save while saving', () => {
+  it('disables Cancel and marks Save busy while saving', () => {
     renderScreen({ isSaving: true });
 
     expect(screen.getByRole('button', { name: 'cancel' })).toBeDisabled();
-    expect(screen.getByTestId('button-spinner')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save/ })).toHaveAttribute('aria-busy', 'true');
   });
 
   it('shows no error toast when there is nothing to report', () => {
@@ -547,8 +552,9 @@ describe('SettingsScreen — the ICS section', () => {
     await user.click(screen.getByRole('button', { name: 'icsRegenerate' }));
     const dialog = screen.getByRole('dialog', { name: 'icsRegenerateConfirmTitle' });
 
-    expect(within(dialog).getByRole('button', { name: 'icsRegenerateConfirmButton' })).toHaveClass(
-      'bg-danger-100'
+    // `@shoptet/ui` exposes the variant only as a class: there is no role or data attribute for it.
+    expect(within(dialog).getByRole('button', { name: /icsRegenerateConfirmButton/ })).toHaveClass(
+      'btn-destructive'
     );
   });
 
@@ -637,6 +643,8 @@ describe('SettingsScreen — the ICS section', () => {
     rerenderWith({ isRegenerating: true });
 
     const dialog = screen.getByRole('dialog', { name: 'icsRegenerateConfirmTitle' });
-    expect(within(dialog).getByTestId('button-spinner')).toBeInTheDocument();
+    expect(
+      within(dialog).getByRole('button', { name: /icsRegenerateConfirmButton/ })
+    ).toHaveAttribute('aria-busy', 'true');
   });
 });

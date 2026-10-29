@@ -1,0 +1,29 @@
+.corner {
+  position: absolute;
+}
+
+.topLeft {
+  top: var(--spacing-sm);
+  left: var(--spacing-sm);
+  pointer-events: none;
+}
+
+.bottomCenter {
+  bottom: var(--spacing-sm);
+  left: 50%;
+  transform: translateX(-50%);
+  pointer-events: none;
+}
+
+.topRight {
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.padded {
+  padding: 0 var(--spacing-sm);
+}

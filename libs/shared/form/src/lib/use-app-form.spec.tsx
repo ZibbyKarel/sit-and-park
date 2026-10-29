@@ -1,7 +1,7 @@
 /**
  * Unit-level coverage of `useAppForm` + `FormField` on their own, with a bare
- * `<input>` rather than a design-system primitive — the design-system
- * integration (and the "no direct react-hook-form import" proof) lives in
+ * `<input>` — the fuller
+ * demo form (and the "no direct react-hook-form import" proof) lives in
  * `app-form.spec.tsx`. This file exists so the wrapper's own plumbing is
  * covered independently of that heavier demo.
  */

@@ -17,6 +17,7 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import { parseDateOnly, todayInPrague } from '@garage/shared-types';
 import type { DateOnly } from '@garage/shared-types';
 import { dayAndMonthCzech } from './dates';
+import { selectOption } from './select-option';
 
 /** The tile for one spot, whatever state it is in. */
 export function spotTile(page: Page, label: string): Locator {
@@ -70,6 +71,22 @@ export function spotDialog(page: Page): Locator {
  * followed immediately by a full stop, which no other day in the grid can
  * also produce (`7.` cannot match inside `17.` or `27.`).
  */
+/** The month select lists `f.monthName(n)`, the nominative Czech month names. */
+const MONTH_NAMES_CZ = [
+  'leden',
+  'únor',
+  'březen',
+  'duben',
+  'květen',
+  'červen',
+  'červenec',
+  'srpen',
+  'září',
+  'říjen',
+  'listopad',
+  'prosinec',
+];
+
 const CZECH_WEEKDAY_START = /^(pondělí|úterý|středa|čtvrtek|pátek|sobota|neděle) /u;
 
 export async function goToDate(page: Page, target: DateOnly): Promise<void> {
@@ -81,10 +98,10 @@ export async function goToDate(page: Page, target: DateOnly): Promise<void> {
   await expect(dialog).toBeVisible();
 
   if (wanted.year !== from.year) {
-    await dialog.getByRole('combobox', { name: 'Rok' }).selectOption(String(wanted.year));
+    await selectOption(page, 'Rok', String(wanted.year), dialog);
   }
   if (wanted.month !== from.month) {
-    await dialog.getByRole('combobox', { name: 'Měsíc' }).selectOption(String(wanted.month));
+    await selectOption(page, 'Měsíc', MONTH_NAMES_CZ[wanted.month - 1] ?? '', dialog);
   }
 
   await dialog
@@ -133,12 +150,11 @@ export async function reserveSpot(page: Page, label: string): Promise<void> {
  * `holder` is a user's display name, or `'Hosta'` for a guest — the visible
  * option text, so this reads like the thing a person does.
  *
- * A holder with a plate on file now has it appended to the option's label
- * (`holder-fields.tsx`, "Jana Nováková — 1AB 2345"), so `selectOption({
- * label })`'s exact match no longer finds it. This finds the `<option>` whose
- * label is `holder` on its own, or `holder` followed by " — <plate>" — a
- * plain substring match on `holder` alone is not enough, since "Dev User" is
- * also a prefix of the seeded "Dev User Two" — and selects it by value.
+ * A holder with a plate on file has it appended to the option's label
+ * (`holder-fields.tsx`, "Jana Nováková — 1AB 2345"), so the option is matched
+ * as `holder` on its own or `holder` followed by " — <plate>" — a plain
+ * substring match on `holder` alone is not enough, since "Dev User" is also a
+ * prefix of the seeded "Dev User Two".
  */
 export async function reserveSpotFor(
   page: Page,
@@ -147,12 +163,8 @@ export async function reserveSpotFor(
   guestName?: string
 ): Promise<void> {
   const dialog = await openSpot(page, label);
-  const select = dialog.getByLabel('Rezervovat pro');
   const escaped = holder.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  const value = await select
-    .locator('option', { hasText: new RegExp(`^${escaped}( — .*)?$`) })
-    .getAttribute('value');
-  await select.selectOption(value ?? holder);
+  await selectOption(page, 'Rezervovat pro', new RegExp(`^${escaped}( — .*)?$`), dialog);
   if (guestName !== undefined) {
     await dialog.getByLabel('Jméno hosta').fill(guestName);
   }
@@ -227,7 +239,7 @@ export async function selectBulkDay(page: Page, date: DateOnly): Promise<void> {
 
 /** Picks who the batch is for, from the admin-only "Rezervovat pro" select. */
 export async function pickBulkHolder(page: Page, name: string): Promise<void> {
-  await page.getByLabel('Rezervovat pro').selectOption({ label: name });
+  await selectOption(page, 'Rezervovat pro', name);
 }
 
 export async function generateBulkSchedule(page: Page): Promise<void> {
@@ -242,7 +254,7 @@ export async function generateBulkSchedule(page: Page): Promise<void> {
  */
 export async function bulkResultSpotLabel(page: Page, date: DateOnly): Promise<string> {
   const row = page.getByRole('listitem').filter({ hasText: dayAndMonthCzech(date) });
-  const label = await row.locator('span.font-bold').first().textContent();
+  const label = await row.locator('strong').first().textContent();
   if (label === null) {
     throw new Error(`No spot label found for ${date} in the bulk result.`);
   }

@@ -17,7 +17,7 @@ import {
   useTranslations,
 } from '@garage/i18n';
 import type { ReservationLimitSettings } from '@garage/contract';
-import { Card, Stack, Stepper, Text } from '@garage/design-system/primitives';
+import { Card, CounterInput, H3, Paragraph, Stack, Text } from '@shoptet/ui';
 import { useNotify } from '../../notifications/toast-provider';
 import { ScreenDataGuard } from '../../screen-state/screen-state';
 import type { ScreenData } from '../../screen-state/screen-state';
@@ -57,37 +57,38 @@ export function AdminLimitsScreen({
       {({ monthlyReservationCap }) => (
         <section aria-label={t('limitsTitle')}>
           <Card>
-            <Stack spacing={5}>
-              <Stack spacing={2}>
-                <Text as="h3" size="lg" weight="bold">
-                  {t('limitsTitle')}
-                </Text>
-                <Text size="sm" tone="subtle" leading="loose">
-                  {t('limitsDescription')}
-                </Text>
-              </Stack>
+            <Card.Content>
+              <Stack gap="xl">
+                <Stack gap="sm">
+                  <H3 appearance="h4">{t('limitsTitle')}</H3>
+                  <Paragraph appearance="sm" variant="secondary">
+                    {t('limitsDescription')}
+                  </Paragraph>
+                </Stack>
 
-              <Stack spacing={3}>
-                <Text size="xs" weight="bold" tone="subtle" tracking="caps" transform="uppercase">
-                  {t('limitsCapLabel')}
-                </Text>
-                <Stepper
-                  label={t('limitsCapLabel')}
-                  value={monthlyReservationCap}
-                  min={MIN_MONTHLY_RESERVATION_CAP}
-                  max={MAX_MONTHLY_RESERVATION_CAP}
-                  disabled={isSaving}
-                  decrementLabel={t('limitsCapDecrement')}
-                  incrementLabel={t('limitsCapIncrement')}
-                  formatValue={(count) => t('limitsCapValue', { count })}
-                  onValueChange={(next) => onChange({ monthlyReservationCap: next })}
-                />
-              </Stack>
+                <Stack gap="md">
+                  <CounterInput
+                    label={t('limitsCapLabel')}
+                    value={monthlyReservationCap}
+                    min={MIN_MONTHLY_RESERVATION_CAP}
+                    max={MAX_MONTHLY_RESERVATION_CAP}
+                    disabled={isSaving}
+                    onChange={(next) => {
+                      if (next !== null) {
+                        onChange({ monthlyReservationCap: next });
+                      }
+                    }}
+                  />
+                  <Text appearance="strong-md">
+                    {t('limitsCapValue', { count: monthlyReservationCap })}
+                  </Text>
+                </Stack>
 
-              <Text size="sm" tone="subtle">
-                {t('limitsHint')}
-              </Text>
-            </Stack>
+                <Paragraph appearance="sm" variant="secondary">
+                  {t('limitsHint')}
+                </Paragraph>
+              </Stack>
+            </Card.Content>
           </Card>
         </section>
       )}

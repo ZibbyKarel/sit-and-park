@@ -8,7 +8,7 @@ import { ADMIN_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { TopBar } from './top-bar';
 
 /**
- * The real `IntlProvider` and the real `Dropdown`, not doubles: what is under
+ * The real `IntlProvider` and the real `Menu`, not doubles: what is under
  * test is which entries the menu offers and what selecting one reports, and
  * both of those are properties of the composition rather than of this file.
  * Only the two callbacks are stubbed, because they are the seam by design.
@@ -132,38 +132,31 @@ describe('TopBar', () => {
   });
 
   describe('the language switcher', () => {
+    /** The active language is the one item carrying the checkmark. */
+    function isMarked(item: HTMLElement) {
+      return item.querySelector('[data-active="true"]') !== null;
+    }
+
     it('offers both languages and marks the active one', async () => {
       const { user } = renderTopBar({ locale: 'cs' });
       await openMenu(user);
 
-      expect(screen.getByRole('menuitemradio', { name: /Čeština/ })).toHaveAttribute(
-        'aria-checked',
-        'true'
-      );
-      expect(screen.getByRole('menuitemradio', { name: /English/ })).toHaveAttribute(
-        'aria-checked',
-        'false'
-      );
+      expect(isMarked(screen.getByRole('menuitem', { name: /Čeština/ }))).toBe(true);
+      expect(isMarked(screen.getByRole('menuitem', { name: /English/ }))).toBe(false);
     });
 
     it('marks English when English is the active locale', async () => {
       const { user } = renderTopBar({ locale: 'en' });
       await openMenu(user);
 
-      expect(screen.getByRole('menuitemradio', { name: /English/ })).toHaveAttribute(
-        'aria-checked',
-        'true'
-      );
-      expect(screen.getByRole('menuitemradio', { name: /Čeština/ })).toHaveAttribute(
-        'aria-checked',
-        'false'
-      );
+      expect(isMarked(screen.getByRole('menuitem', { name: /English/ }))).toBe(true);
+      expect(isMarked(screen.getByRole('menuitem', { name: /Čeština/ }))).toBe(false);
     });
 
     it('reports the language the user picked', async () => {
       const { user, onLocaleChange } = renderTopBar({ locale: 'cs' });
       await openMenu(user);
-      await user.click(screen.getByRole('menuitemradio', { name: /English/ }));
+      await user.click(screen.getByRole('menuitem', { name: /English/ }));
 
       expect(onLocaleChange).toHaveBeenCalledWith('en');
     });
@@ -171,7 +164,7 @@ describe('TopBar', () => {
     it('does not report a change when the active language is picked again', async () => {
       const { user, onLocaleChange } = renderTopBar({ locale: 'cs' });
       await openMenu(user);
-      await user.click(screen.getByRole('menuitemradio', { name: /Čeština/ }));
+      await user.click(screen.getByRole('menuitem', { name: /Čeština/ }));
 
       expect(onLocaleChange).not.toHaveBeenCalled();
     });

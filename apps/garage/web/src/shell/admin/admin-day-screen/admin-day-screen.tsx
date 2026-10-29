@@ -25,15 +25,17 @@
  */
 
 import type { DayOverviewOutput, DaySpotOverview } from '@garage/contract';
-import { Badge, Button, Chip, Stack, Text } from '@garage/design-system/primitives';
-import { DataTable } from '@garage/design-system/compounds';
-import type { DataTableColumn } from '@garage/design-system/compounds';
+import { Button, H3, Stack, Tag, Text } from '@shoptet/ui';
+import { Chip } from '../../../ui/chip/chip';
+import { DataTable } from '../../../ui/data-table/data-table';
+import type { DataTableColumn } from '../../../ui/data-table/data-table';
 import { useDateFormatters, useTranslations } from '@garage/i18n';
 import type { DateOnly } from '@garage/i18n';
 import { formatTimeRange } from '../../../lot/lot-view';
 import { ScreenDataGuard } from '../../screen-state/screen-state';
 import type { ScreenData } from '../../screen-state/screen-state';
 import { WindowBanner } from '../window-banner/window-banner';
+import styles from './admin-day-screen.module.css';
 
 export interface AdminDayScreenProps {
   /** The day being shown, `YYYY-MM-DD` in Europe/Prague. */
@@ -64,14 +66,12 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
       header: t('dayColumnLabel'),
       sortValue: (row) => row.spot.label,
       cell: (row) => (
-        <Stack direction="row" align="center" spacing={2}>
-          <Text as="span" weight="bold">
-            {row.spot.label}
-          </Text>
+        <Stack orientation="horizontal" align="center" gap="sm">
+          <Text appearance="strong-md">{row.spot.label}</Text>
           {row.spot.hidden ? (
-            <Badge size="sm" tone="neutral">
+            <Tag size="sm" level="default">
               {tLot('hiddenSpot')}
-            </Badge>
+            </Tag>
           ) : null}
         </Stack>
       ),
@@ -80,11 +80,7 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
       id: 'group',
       header: t('dayColumnGroup'),
       sortValue: (row) => row.spot.group,
-      cell: (row) => (
-        <Text as="span" tone="muted">
-          {row.spot.group}
-        </Text>
-      ),
+      cell: (row) => <Text variant="secondary">{row.spot.group}</Text>,
     },
     {
       id: 'status',
@@ -101,27 +97,22 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
             : '',
       cell: (row) =>
         row.reservation !== null ? (
-          // The `ml-2` on the hand-rolled guest tag was the gap between the
-          // holder's name and the tag next to it — a row `Stack` with that
-          // same gap replaces both the margin and the tag's own markup.
-          <Stack direction="row" align="center" spacing={2}>
-            <Text as="span">{t('dayStatusTaken', { name: row.reservation.holder.name })}</Text>
+          <Stack orientation="horizontal" align="center" gap="sm">
+            <Text>{t('dayStatusTaken', { name: row.reservation.holder.name })}</Text>
             {row.reservation.holder.kind === 'GUEST' ? (
-              <Badge size="sm" tone="tag">
+              <Tag size="sm" level="default" variant="secondary">
                 {tLot('guestHolder')}
-              </Badge>
+              </Tag>
             ) : null}
           </Stack>
         ) : row.timedReservations.length > 0 ? (
-          <Text as="span">
+          <Text>
             {t('dayStatusTimed', {
               times: row.timedReservations.map((block) => formatTimeRange(block)).join(', '),
             })}
           </Text>
         ) : (
-          <Text as="span" tone="subtle">
-            {t('dayStatusFree')}
-          </Text>
+          <Text variant="tertiary">{t('dayStatusFree')}</Text>
         ),
     },
     {
@@ -131,11 +122,9 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
       sortValue: (row) => row.waitlistCount,
       cell: (row) =>
         row.waitlistCount === 0 ? (
-          <Text as="span" tone="subtle">
-            {t('dayQueueNone')}
-          </Text>
+          <Text variant="tertiary">{t('dayQueueNone')}</Text>
         ) : (
-          <Badge tone="warning">{t('dayQueueCount', { count: row.waitlistCount })}</Badge>
+          <Tag level="alert">{t('dayQueueCount', { count: row.waitlistCount })}</Tag>
         ),
     },
   ];
@@ -149,17 +138,17 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
         const taken = overview.spots.length - free;
 
         return (
-          <Stack spacing={6}>
-            <Stack direction="row" wrap align="center" justify="between" spacing={4}>
-              <Stack spacing={1}>
-                <Text size="xs" weight="bold" tone="subtle" tracking="caps" transform="uppercase">
-                  {t('dayEyebrow')}
-                </Text>
-                <Text as="h3" size="2xl" weight="bold" tracking="tight">
-                  {f.fullDate(date)}
-                </Text>
+          <Stack gap="xl">
+            <div className={styles.header}>
+              <Stack gap="xs">
+                <span className={styles.eyebrow}>
+                  <Text appearance="strong-sm" variant="tertiary">
+                    {t('dayEyebrow')}
+                  </Text>
+                </span>
+                <H3 appearance="h2">{f.fullDate(date)}</H3>
               </Stack>
-              <Stack direction="row" wrap align="center" spacing={3}>
+              <div className={styles.summary}>
                 <Chip size="lg" dot="green">
                   {t('dayFree', { count: free })}
                 </Chip>
@@ -169,8 +158,8 @@ export function AdminDayScreen({ date, day, onRetry, onOpenLot }: AdminDayScreen
                 <Button variant="primary" onClick={onOpenLot}>
                   {t('dayOpenLot')}
                 </Button>
-              </Stack>
-            </Stack>
+              </div>
+            </div>
 
             <WindowBanner window={overview.window} />
 

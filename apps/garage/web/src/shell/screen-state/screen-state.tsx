@@ -6,22 +6,20 @@
  * `plan.md` (Fáze 6, point 3) requires each screen to define a loading, an
  * empty and an error state, and requires a contract error code to reach the
  * user as a sentence rather than an enum name. These are those pieces —
- * composed, not invented: the empty and error states are the design system's
- * `EmptyState` compound, and the retry control is its `Button` primitive.
+ * composed from `ui/empty-state` and `@shoptet/ui`'s `Button` and `Loader`.
  *
- * They live in app code rather than in `libs/shared/design-system/src/compounds` because
- * they carry domain knowledge the design system must not: `ScreenError` reads
- * a **contract** error and translates a member of the contract's closed error
- * enum. `EmptyState` itself stays domain-free, which is why it is imported
- * here rather than extended there.
+ * They live next to the screens rather than in `ui/` because they carry
+ * domain knowledge `ui/` must not: `ScreenError` reads a **contract** error
+ * and translates a member of the contract's closed error enum.
  */
 
 import type { ReactNode } from 'react';
-import { Box, Button, Spinner, Stack, Text } from '@garage/design-system/primitives';
-import { EmptyState } from '@garage/design-system/compounds';
-import type { EmptyStateHeadingLevel } from '@garage/design-system/compounds';
+import { Button, Loader, Stack, Text } from '@shoptet/ui';
 import { toContractError } from '@garage/api-client';
 import { useTranslations } from '@garage/i18n';
+import { EmptyState } from '../../ui/empty-state/empty-state';
+import type { EmptyStateHeadingLevel } from '../../ui/empty-state/empty-state';
+import styles from './screen-state.module.css';
 
 export interface ScreenLoadingProps {
   /** Overrides the default "Načítá se…". */
@@ -32,33 +30,22 @@ export interface ScreenLoadingProps {
  * A screen waiting for its first data.
  *
  * `role="status"` with the default `aria-live="polite"` is what makes the
- * spinner an announcement rather than a decoration: a screen reader says the
+ * loader an announcement rather than a decoration: a screen reader says the
  * label when this appears, and says the screen's content when it is replaced.
- * The spinner itself is `aria-hidden`, because the label already says it.
  */
 export function ScreenLoading({ label }: ScreenLoadingProps) {
   const t = useTranslations('shell');
   const text = label ?? t('loading');
 
   return (
-    // `Box` supplies the `py-16 px-6` padding — `Stack` has no padding prop
-    // of its own, so the two layers split the job the way `Card`/`Container`
-    // already do elsewhere (padding on an outer `Box`/`div`, layout on the
-    // flex child). `role="status"` stays on the `Stack`: that is the element
-    // whose accessible content changes when this state is replaced.
-    <Box padding={[16, 6]}>
-      <Stack role="status" align="center" justify="center" spacing={3}>
-        {/*
-         * `Spinner size="md"` is byte-identical to the hand-rolled ring this
-         * used to be (`size-6 animate-spin rounded-cta border-2 border-border
-         * border-t-brand-blue`), now owned by the design system.
-         */}
-        <Spinner size="md" />
-        <Text as="span" size="sm" tone="subtle">
+    <div role="status" className={styles.loading}>
+      <Stack align="center" justify="center" gap="md">
+        <Loader size="md" label={text} />
+        <Text appearance="sm" variant="tertiary">
           {text}
         </Text>
       </Stack>
-    </Box>
+    </div>
   );
 }
 
@@ -212,10 +199,8 @@ export function ScreenDataGuard<T>({
 /**
  * The **empty** state, re-exported rather than re-implemented.
  *
- * `EmptyState` (Task 22) is already the design system's "there is nothing
- * here" block and it is domain-free, which is exactly right — only the screen
- * knows what its own emptiness means, so nothing generic about parking belongs
- * in it. Re-exporting it here means a screen imports all three of its states
- * from one place instead of two.
+ * `EmptyState` is the domain-free "there is nothing here" block — only the
+ * screen knows what its own emptiness means. Re-exporting it here means a
+ * screen imports all three of its states from one place.
  */
 export { EmptyState };

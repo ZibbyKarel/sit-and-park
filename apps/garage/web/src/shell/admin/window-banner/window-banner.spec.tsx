@@ -5,21 +5,6 @@ import cs from '../../../../messages/cs.json';
 import { WindowBanner } from './window-banner';
 import { BANNER_STATE_TONE, STATE_GLYPH } from './window-view';
 
-/**
- * One class per tone, read off `toast.tsx`'s own `TONE_CLASSES`.
- *
- * Asserting a class is asserting an implementation detail of the primitive, and
- * that is deliberate: the tone is a *colour*, the design uses the colour as the
- * signal, and the only thing a jsdom test can see of a colour is the class that
- * carries it. A rename in `toast.tsx` failing here is the correct outcome — it
- * is a change to what an admin sees.
- */
-const TONE_CLASS = {
-  success: 'bg-brand-green-100',
-  warning: 'bg-brand-yellow-100',
-  neutral: 'bg-bg',
-} as const;
-
 function aWindow(overrides: Partial<MonthWindowOverview> = {}): MonthWindowOverview {
   return {
     month: '2026-09',
@@ -122,16 +107,13 @@ describe('WindowBanner', () => {
     });
 
     it.each(['OPEN', 'LOCKED', 'NOT_YET_OPEN'] as const)(
-      'paints a %s month in that colour, and marks it with that glyph',
+      'paints a %s month in that colour',
       (state) => {
         renderBanner({ state });
 
         // Not `BANNER_STATE_TONE[state]`: reading the map the render used would pass
         // whatever the map said, which is the mutant this exists to catch.
-        expect(screen.getByRole('status').className.split(/\s+/u)).toContain(
-          TONE_CLASS[DESIGN_TONE[state]]
-        );
-        expect(screen.getByText(DESIGN_GLYPH[state])).toBeInTheDocument();
+        expect(screen.getByRole('status')).toHaveAttribute('data-tone', DESIGN_TONE[state]);
       }
     );
   });

@@ -1,17 +1,19 @@
 /**
  * The whole point of `libs/shared/form` is that a real, validated, submittable form
- * can be built from `@garage/form` plus design-system primitives without
- * ever importing `react-hook-form` directly (`doc/wrappers.md`). This file's
- * own import list — `@garage/form`, `@garage/design-system/primitives`
- * and `zod`, nothing else — *is* that proof, and the last test below reads
- * this file's own source back off disk to make the claim self-checking
- * rather than something a reviewer has to take on faith.
+ * can be built from `@garage/form` plus plain elements without ever importing
+ * `react-hook-form` directly (`doc/wrappers.md`). This file's own import list —
+ * `@garage/form` and `zod`, nothing else — *is* that proof, and the last test
+ * below reads this file's own source back off disk to make the claim
+ * self-checking rather than something a reviewer has to take on faith.
+ *
+ * Native `<input>`/`<select>` on purpose: the lib is UI-library-agnostic, so
+ * its spec depends on no component library either.
  */
 import { readFileSync } from 'node:fs';
+import type { ReactNode } from 'react';
 import * as z from 'zod';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { Checkbox, Input, Select } from '@garage/design-system/primitives';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
 
 const demoSchema = z.object({
@@ -25,12 +27,30 @@ const demoSchema = z.object({
 
 type DemoValues = z.infer<typeof demoSchema>;
 
+/** A label, a control and the field's resolved error as an announced message. */
+function Row({
+  label,
+  error,
+  children,
+}: {
+  readonly label: string;
+  readonly error: string | undefined;
+  readonly children: (props: { 'aria-invalid': boolean }) => ReactNode;
+}) {
+  return (
+    <label>
+      {label}
+      {children({ 'aria-invalid': error !== undefined })}
+      {error === undefined ? null : <span role="alert">{error}</span>}
+    </label>
+  );
+}
+
 /**
  * A complete form: text input, select, checkbox, all validated by one Zod
- * schema and rendered through design-system primitives. No primitive here
- * knows anything about react-hook-form — each `FormField` hands it plain
- * `value`/`onChange`/`onBlur`/`name`/`ref` props and a resolved `error`
- * string, per `FieldOwnProps`.
+ * schema and rendered as native elements. Each `FormField` hands the control
+ * plain `value`/`onChange`/`onBlur`/`name`/`ref` props and a resolved `error`
+ * string.
  */
 function DemoForm({ onValid }: { readonly onValid: (values: DemoValues) => void }) {
   const form = useAppForm({
@@ -45,33 +65,49 @@ function DemoForm({ onValid }: { readonly onValid: (values: DemoValues) => void 
       <form onSubmit={(event) => void form.handleSubmit(onValid)(event)}>
         <FormField
           name="name"
-          render={({ field, error }) => <Input label="Name" error={error} {...field} />}
+          render={({ field, error }) => (
+            <Row label="Name" error={error}>
+              {(aria) => <input {...aria} {...field} />}
+            </Row>
+          )}
         />
         <FormField
           name="email"
-          render={({ field, error }) => <Input label="Email" error={error} {...field} />}
+          render={({ field, error }) => (
+            <Row label="Email" error={error}>
+              {(aria) => <input {...aria} {...field} />}
+            </Row>
+          )}
         />
         <FormField
           name="role"
           render={({ field, error }) => (
-            <Select label="Role" error={error} {...field}>
-              <option value="driver">Driver</option>
-              <option value="admin">Admin</option>
-            </Select>
+            <Row label="Role" error={error}>
+              {(aria) => (
+                <select {...aria} {...field}>
+                  <option value="driver">Driver</option>
+                  <option value="admin">Admin</option>
+                </select>
+              )}
+            </Row>
           )}
         />
         <FormField
           name="acceptsTerms"
           render={({ field, error }) => (
-            <Checkbox
-              label="I accept the terms"
-              error={error}
-              name={field.name}
-              checked={field.value}
-              onChange={(event) => field.onChange(event.target.checked)}
-              onBlur={field.onBlur}
-              ref={field.ref}
-            />
+            <Row label="I accept the terms" error={error}>
+              {(aria) => (
+                <input
+                  {...aria}
+                  type="checkbox"
+                  name={field.name}
+                  checked={field.value}
+                  onChange={(event) => field.onChange(event.target.checked)}
+                  onBlur={field.onBlur}
+                  ref={field.ref}
+                />
+              )}
+            </Row>
           )}
         />
         <button type="submit">Submit</button>
@@ -80,21 +116,19 @@ function DemoForm({ onValid }: { readonly onValid: (values: DemoValues) => void 
   );
 }
 
-describe('a form built only from @garage/form + design-system primitives', () => {
-  it('reflects Zod validation errors into each primitive error state, observably', async () => {
+describe('a form built only from @garage/form + native elements', () => {
+  it('reflects Zod validation errors into each control error state, observably', async () => {
     const user = userEvent.setup();
     render(<DemoForm onValid={jest.fn()} />);
 
     await user.click(screen.getByRole('button', { name: 'Submit' }));
 
-    const nameField = screen.getByLabelText('Name');
-    const emailField = screen.getByLabelText('Email');
-    const termsField = screen.getByLabelText('I accept the terms');
+    const nameField = screen.getByRole('textbox', { name: /^Name/ });
+    const emailField = screen.getByRole('textbox', { name: /^Email/ });
+    const termsField = screen.getByRole('checkbox', { name: /I accept the terms/ });
 
     // What a screen reader/user actually observes: an announced message
     // (`role="alert"`) plus `aria-invalid`, not merely an errors object.
-    // `role="alert"` takes its *accessible name* from an explicit label, not
-    // its text content, so the messages are asserted via content, not `name`.
     const alerts = await screen.findAllByRole('alert');
     const alertText = alerts.map((alert) => alert.textContent);
     expect(alertText).toEqual(
@@ -114,10 +148,10 @@ describe('a form built only from @garage/form + design-system primitives', () =>
     const onValid = jest.fn();
     render(<DemoForm onValid={onValid} />);
 
-    await user.type(screen.getByLabelText('Name'), 'Jana Nováková');
-    await user.type(screen.getByLabelText('Email'), 'jana@example.com');
-    await user.selectOptions(screen.getByLabelText('Role'), 'admin');
-    await user.click(screen.getByLabelText('I accept the terms'));
+    await user.type(screen.getByRole('textbox', { name: /^Name/ }), 'Jana Nováková');
+    await user.type(screen.getByRole('textbox', { name: /^Email/ }), 'jana@example.com');
+    await user.selectOptions(screen.getByRole('combobox', { name: /^Role/ }), 'admin');
+    await user.click(screen.getByRole('checkbox', { name: /I accept the terms/ }));
     await user.click(screen.getByRole('button', { name: 'Submit' }));
 
     expect(await screen.findByRole('button', { name: 'Submit' })).toBeEnabled();

@@ -10,16 +10,14 @@
  * Narrower than `HolderFields` on purpose: a waitlist entry has no guest
  * branch and no plate override (`WaitlistEntry.userId` is non-nullable), so
  * this is the selector alone.
- *
- * Domain composition, so it lives in app feature code and never in
- * `libs/shared/design-system` (`plan.md`, design-system-first).
- */
+ * */
 
-import { Box, Select, Stack } from '@garage/design-system/primitives';
+import { SingleSelectField } from '@shoptet/ui';
 import { FormField } from '@garage/form';
 import { useTranslations } from '@garage/i18n';
 import type { HolderOption } from './holder-input';
 import type { QueueTargetFormValues } from './queue-target-input';
+import styles from './spot-dialog.module.css';
 
 export interface QueueTargetFieldsProps {
   readonly options: readonly HolderOption[];
@@ -28,24 +26,26 @@ export interface QueueTargetFieldsProps {
 export function QueueTargetFields({ options }: QueueTargetFieldsProps) {
   const t = useTranslations('lot');
 
-  // `mt-3` was baked into the field stack's own className; caller placement,
-  // not `Stack` chrome, so it moves to a wrapping `Box margin=`.
   return (
-    <Box margin={[3, 0, 0, 0]}>
-      <Stack spacing={4}>
-        <FormField<QueueTargetFormValues, 'userId'>
-          name="userId"
-          render={({ field, error: fieldError }) => (
-            <Select label={t('queueHolderField')} error={fieldError} {...field}>
-              {options.map((option) => (
-                <option key={option.userId} value={option.userId}>
-                  {option.name}
-                </option>
-              ))}
-            </Select>
-          )}
-        />
-      </Stack>
-    </Box>
+    <div className={styles.queueTarget}>
+      <FormField<QueueTargetFormValues, 'userId'>
+        name="userId"
+        render={({ field, error: fieldError }) => (
+          <SingleSelectField
+            label={t('queueHolderField')}
+            error={fieldError}
+            name={field.name}
+            value={field.value}
+            options={options.map((option) => ({ value: option.userId, label: option.name }))}
+            getOptionValue={(option) => option.value}
+            getOptionLabel={(option) => option.label}
+            onChange={(value) => {
+              field.onChange(value ?? '');
+            }}
+            ref={field.ref}
+          />
+        )}
+      />
+    </div>
   );
 }

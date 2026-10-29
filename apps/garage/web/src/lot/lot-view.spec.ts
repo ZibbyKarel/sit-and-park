@@ -1,8 +1,8 @@
 import type { AdminUser, DaySpotOverview, MonthWindowOverview } from '@garage/contract';
-import { CAR_COLOR_PALETTE } from '@garage/design-system/tokens';
 import { createDateFormatters } from '@garage/i18n';
 import type { PublicTimedReservation } from '@garage/contract';
 import {
+  CAR_COLOR_PALETTE,
   CAR_COLOR_VARS,
   GUEST_CAR_COLOR_VAR,
   carColorVar,
@@ -125,7 +125,7 @@ describe('carColorIndex', () => {
     // mutating only the helper the tests call, when the call site is what
     // ships.
     for (const id of ['', 'a', VIEWER, OTHER, 'spot-holder-7', 'ř💥']) {
-      expect(carColorVar(id)).toBe(`var(--color-car-${carColorIndex(id) + 1})`);
+      expect(carColorVar(id)).toBe(`var(--lot-car-${carColorIndex(id) + 1})`);
     }
   });
 

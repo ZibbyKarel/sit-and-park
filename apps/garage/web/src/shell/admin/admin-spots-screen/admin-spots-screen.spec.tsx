@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { render, screen, waitFor, within } from '@testing-library/react';
+import { LocalizationProvider } from '@shoptet/ui';
+import { selectOption } from '../../../test-utils/select-option';
 import userEvent from '@testing-library/user-event';
 import type { ParkingSpot, SpotListOutput } from '@garage/contract';
 import { IntlProvider } from '@garage/i18n';
@@ -82,11 +84,13 @@ function renderScreen(overrides: Overrides = {}) {
   const { props, spies } = makeProps(overrides);
 
   render(
-    <IntlProvider locale="cs" messages={cs}>
-      <ToastProvider>
-        <AdminSpotsScreen {...props} />
-      </ToastProvider>
-    </IntlProvider>
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <ToastProvider>
+          <AdminSpotsScreen {...props} />
+        </ToastProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
 
   return { ...spies, user: userEvent.setup() };
@@ -125,11 +129,13 @@ function renderFailingWrites(failure: unknown) {
   }
 
   render(
-    <IntlProvider locale="cs" messages={cs}>
-      <ToastProvider>
-        <Harness />
-      </ToastProvider>
-    </IntlProvider>
+    <LocalizationProvider locale="cs-CZ">
+      <IntlProvider locale="cs" messages={cs}>
+        <ToastProvider>
+          <Harness />
+        </ToastProvider>
+      </IntlProvider>
+    </LocalizationProvider>
   );
 
   return userEvent.setup();
@@ -229,18 +235,18 @@ describe('AdminSpotsScreen', () => {
       renderScreen();
 
       expect(
-        within(rowOf(SHARED)).getByRole('combobox', { name: 'spotsGroupSelectLabel: label=E2.96' })
-      ).toHaveValue('SHARED');
+        within(rowOf(SHARED)).getByLabelText(/spotsGroupSelectLabel: label=E2\.96$/u)
+      ).toHaveTextContent('SHARED');
     });
 
-    it('offers exactly the closed enum, no more', () => {
-      renderScreen();
+    it('offers exactly the closed enum, no more', async () => {
+      const { user } = renderScreen();
 
-      const select = within(rowOf(TAKEN)).getByRole('combobox', {
-        name: 'spotsGroupSelectLabel: label=E2.92',
-      });
+      await user.click(
+        within(rowOf(TAKEN)).getByLabelText(/spotsGroupSelectLabel: label=E2\.92$/u)
+      );
       expect(
-        within(select)
+        within(await screen.findByRole('listbox'))
           .getAllByRole('option')
           .map((o) => o.textContent)
       ).toEqual(['IT', 'SHARED']);
@@ -249,10 +255,7 @@ describe('AdminSpotsScreen', () => {
     it('saves the label unchanged alongside the new category', async () => {
       const { onSave, user } = renderScreen();
 
-      await user.selectOptions(
-        within(rowOf(TAKEN)).getByRole('combobox', { name: 'spotsGroupSelectLabel: label=E2.92' }),
-        'SHARED'
-      );
+      await selectOption(user, /spotsGroupSelectLabel: label=E2\.92$/u, 'SHARED');
 
       expect(onSave).toHaveBeenCalledWith({ id: TAKEN.id, label: 'E2.92', group: 'SHARED' });
     });
@@ -387,7 +390,7 @@ describe('AdminSpotsScreen', () => {
 
       await user.click(screen.getByRole('button', { name: 'spotsAdd' }));
       await user.type(inDialog().getByLabelText('spotsLabelField'), 'E2.10');
-      await user.selectOptions(inDialog().getByLabelText('spotsGroupField'), 'SHARED');
+      await selectOption(user, 'spotsGroupField', 'SHARED');
       await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
 
       await waitFor(() =>
@@ -466,7 +469,7 @@ describe('AdminSpotsScreen', () => {
         screen.getByRole('dialog', { name: 'spotsEditTitle: label=E2.96' })
       ).toBeInTheDocument();
       expect(inDialog().getByLabelText('spotsLabelField')).toHaveValue('E2.96');
-      expect(inDialog().getByLabelText('spotsGroupField')).toHaveValue('SHARED');
+      expect(inDialog().getByLabelText('spotsGroupField')).toHaveTextContent('SHARED');
     });
 
     it('sends the edited values with the spot’s id', async () => {
@@ -702,7 +705,8 @@ describe('AdminSpotsScreen', () => {
     renderScreen();
 
     const header = screen.getByRole('columnheader', { name: 'spotsColumnActions' });
-    expect(within(header).getByText('spotsColumnActions')).toHaveClass('sr-only');
+    // Present in the header's accessible name, and the only thing in it.
+    expect(header).toHaveTextContent('spotsColumnActions');
   });
 
   describe('what a write in flight freezes', () => {

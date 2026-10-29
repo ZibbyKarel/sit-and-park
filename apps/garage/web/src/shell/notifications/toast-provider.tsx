@@ -3,10 +3,8 @@
 /**
  * The single place every screen's toasts converge.
  *
- * `doc/decision/0055-toast-and-tooltip-are-presentational.md` kept the design
- * system's `Toast`/`ToastRegion` free of an imperative queue and left the
- * queue itself to the app once call sites started repeating — which they
- * did, across six files. This is that queue: one `AppToastRegion`, mounted
+ * `ui/toast`'s `Toast`/`ToastRegion` are presentational and carry no queue.
+ * This is that queue: one `AppToastRegion`, mounted
  * once in `(app)/layout.tsx`, fed by `useNotify` calls from anywhere in the
  * tree below it.
  *
@@ -27,7 +25,7 @@ import {
   useState,
   type ReactNode,
 } from 'react';
-import { Toast, type ToastTone } from '@garage/design-system/primitives';
+import { Toast, type ToastTone } from '../../ui/toast/toast';
 import { AppToastRegion } from './toast-region';
 
 interface ToastEntry {

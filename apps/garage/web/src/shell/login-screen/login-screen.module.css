@@ -1,0 +1,18 @@
+.canvas {
+  display: flex;
+  min-height: 100dvh;
+  flex-direction: column;
+  justify-content: center;
+  padding-inline: 16px;
+}
+
+.signIn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.footnote {
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

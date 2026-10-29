@@ -141,7 +141,7 @@ test.describe('the language a person chooses', () => {
       // The group header, in Czech, is what says the *menu* is still Czech at
       // the moment of the choice — the entries themselves are endonyms.
       await expect(page.getByText(COPY.language.cs)).toBeVisible();
-      await page.getByRole('menuitemradio', { name: 'English' }).click();
+      await page.getByRole('menuitem', { name: 'English' }).click();
 
       // `router.refresh()`, so the switch itself is a re-render, not a load.
       await expectLocale(page, 'en');
@@ -170,7 +170,7 @@ test.describe('the language a person chooses', () => {
       await page.goto(LOT_PATH);
       await page.getByRole('button', { name: COPY.userMenu.en }).click();
       await expect(page.getByText(COPY.language.en)).toBeVisible();
-      await page.getByRole('menuitemradio', { name: 'Čeština' }).click();
+      await page.getByRole('menuitem', { name: 'Čeština' }).click();
 
       await expectLocale(page, 'cs');
 

@@ -2,15 +2,15 @@
  * `@garage/form` — the only place in the workspace allowed to import
  * `react-hook-form` (enforced in `eslint.config.mjs`, see `doc/wrappers.md`).
  *
- * The bridge between `libs/garage/contract`'s Zod schemas and the design system's
- * input primitives (`Input`, `Select`, `Checkbox`, ...):
+ * The bridge between `libs/garage/contract`'s Zod schemas and the app's input
+ * controls, whatever component library draws them:
  *
  * - `useAppForm` — wires a Zod schema into react-hook-form via
  *   `@hookform/resolvers/zod`.
  * - `FormProvider` — supplies the resulting form as context to the tree
  *   below it.
  * - `FormField` — connects one field's value and Zod error message to one
- *   primitive, without the primitive ever seeing react-hook-form itself.
+ *   control, without the control ever seeing react-hook-form itself.
  *
  * Deliberately narrow: this is the whole API. See `doc/wrappers.md` for why.
  */

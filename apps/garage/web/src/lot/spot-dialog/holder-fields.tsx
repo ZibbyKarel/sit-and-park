@@ -9,17 +9,26 @@
  * `apps/garage/web/src/shell/admin/admin-spots-screen/spot-form-dialog.tsx` uses —
  * `form.handleSubmit` is created in the component that owns the modal, and the
  * fields sit under the provider.
- *
- * Domain composition, so it lives in app feature code and never in
- * `libs/shared/design-system` (`plan.md`, design-system-first).
- */
+ * */
 
-import { Box, Input, Select, Stack } from '@garage/design-system/primitives';
+import { SingleSelectField, TextField } from '@shoptet/ui';
 import { FormField } from '@garage/form';
 import { HALF_HOUR_END_TIMES, HALF_HOUR_START_TIMES, useTranslations } from '@garage/i18n';
 import { formatTimeOfDay } from '../lot-view';
 import { GUEST_HOLDER_VALUE, plateHintFor } from './holder-input';
 import type { HolderDuration, HolderFormValues, HolderOption } from './holder-input';
+import styles from './spot-dialog.module.css';
+
+interface Choice {
+  readonly value: string;
+  readonly label: string;
+}
+
+const getChoiceValue = (choice: Choice) => choice.value;
+const getChoiceLabel = (choice: Choice) => choice.label;
+
+const timeChoices = (times: readonly string[]): Choice[] =>
+  times.map((time) => ({ value: time, label: formatTimeOfDay(time) }));
 
 export interface HolderFieldsProps {
   readonly options: readonly HolderOption[];
@@ -41,103 +50,143 @@ export function HolderFields({ options, holderId, duration, timedOnly }: HolderF
   const isGuest = timedOnly || holderId === GUEST_HOLDER_VALUE;
   const showTimeFields = timedOnly || duration === 'TIMED';
 
-  // `mb-5` was baked into the field stack's own className; it is this
-  // component's placement in `SpotDialog`, not part of `Stack`'s own chrome,
-  // so it moves to a wrapping `Box margin=`.
+  const holderChoices: Choice[] = [
+    ...options.map((option) => ({
+      value: option.userId,
+      label: option.licensePlate === null ? option.name : `${option.name} — ${option.licensePlate}`,
+    })),
+    { value: GUEST_HOLDER_VALUE, label: t('holderGuestOption') },
+  ];
+  const durationChoices: Choice[] = [
+    { value: 'FULL_DAY', label: t('durationFullDay') },
+    { value: 'TIMED', label: t('durationTimed') },
+  ];
+
   return (
-    <Box margin={[0, 0, 5, 0]}>
-      <Stack spacing={4}>
-        {timedOnly ? null : (
-          <FormField<HolderFormValues, 'holderId'>
-            name="holderId"
-            render={({ field, error: fieldError }) => (
-              <Select label={t('holderField')} error={fieldError} {...field}>
-                {options.map((option) => (
-                  <option key={option.userId} value={option.userId}>
-                    {option.name}
-                    {option.licensePlate === null ? '' : ` — ${option.licensePlate}`}
-                  </option>
-                ))}
-                <option value={GUEST_HOLDER_VALUE}>{t('holderGuestOption')}</option>
-              </Select>
-            )}
-          />
-        )}
-
-        {isGuest ? (
-          <FormField<HolderFormValues, 'guestName'>
-            name="guestName"
-            render={({ field, error: fieldError }) => (
-              <Input
-                label={t('guestNameField')}
-                // The schema carries no messages — it is built at module level,
-                // where there is no translator — so the copy is resolved here.
-                error={fieldError === undefined ? undefined : t('guestNameRequired')}
-                {...field}
-              />
-            )}
-          />
-        ) : null}
-
-        {isGuest && !timedOnly ? (
-          <FormField<HolderFormValues, 'duration'>
-            name="duration"
-            render={({ field }) => (
-              <Select label={t('durationField')} {...field}>
-                <option value="FULL_DAY">{t('durationFullDay')}</option>
-                <option value="TIMED">{t('durationTimed')}</option>
-              </Select>
-            )}
-          />
-        ) : null}
-
-        {showTimeFields ? (
-          <>
-            <FormField<HolderFormValues, 'startTime'>
-              name="startTime"
-              render={({ field }) => (
-                <Select label={t('startTimeField')} {...field}>
-                  {HALF_HOUR_START_TIMES.map((time) => (
-                    <option key={time} value={time}>
-                      {formatTimeOfDay(time)}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            />
-            <FormField<HolderFormValues, 'endTime'>
-              name="endTime"
-              render={({ field, error: fieldError }) => (
-                <Select
-                  label={t('endTimeField')}
-                  error={fieldError === undefined ? undefined : t('timeRangeInvalid')}
-                  {...field}
-                >
-                  {HALF_HOUR_END_TIMES.map((time) => (
-                    <option key={time} value={time}>
-                      {formatTimeOfDay(time)}
-                    </option>
-                  ))}
-                </Select>
-              )}
-            />
-          </>
-        ) : null}
-
-        <FormField<HolderFormValues, 'licensePlate'>
-          name="licensePlate"
+    <div className={styles.fields}>
+      {timedOnly ? null : (
+        <FormField<HolderFormValues, 'holderId'>
+          name="holderId"
           render={({ field, error: fieldError }) => (
-            <Input
-              label={t('plateField')}
-              // Blank means "use the holder's stored plate", so the placeholder is
-              // what will actually be used — not a hint about formatting.
-              placeholder={hint ?? t('noPlate')}
+            <SingleSelectField
+              label={t('holderField')}
               error={fieldError}
-              {...field}
+              name={field.name}
+              value={field.value}
+              options={holderChoices}
+              getOptionValue={getChoiceValue}
+              getOptionLabel={getChoiceLabel}
+              onChange={(value) => {
+                field.onChange(value ?? '');
+              }}
+              ref={field.ref}
             />
           )}
         />
-      </Stack>
-    </Box>
+      )}
+
+      {isGuest ? (
+        <FormField<HolderFormValues, 'guestName'>
+          name="guestName"
+          render={({ field, error: fieldError }) => (
+            <TextField
+              label={t('guestNameField')}
+              // The schema carries no messages — it is built at module level,
+              // where there is no translator — so the copy is resolved here.
+              {...(fieldError === undefined ? {} : { error: t('guestNameRequired') })}
+              name={field.name}
+              value={field.value}
+              onChange={(value) => {
+                field.onChange(value);
+              }}
+              onBlur={() => {
+                field.onBlur();
+              }}
+            />
+          )}
+        />
+      ) : null}
+
+      {isGuest && !timedOnly ? (
+        <FormField<HolderFormValues, 'duration'>
+          name="duration"
+          render={({ field }) => (
+            <SingleSelectField
+              label={t('durationField')}
+              name={field.name}
+              value={field.value}
+              options={durationChoices}
+              getOptionValue={getChoiceValue}
+              getOptionLabel={getChoiceLabel}
+              onChange={(value) => {
+                field.onChange(value ?? 'FULL_DAY');
+              }}
+              ref={field.ref}
+            />
+          )}
+        />
+      ) : null}
+
+      {showTimeFields ? (
+        <>
+          <FormField<HolderFormValues, 'startTime'>
+            name="startTime"
+            render={({ field }) => (
+              <SingleSelectField
+                label={t('startTimeField')}
+                name={field.name}
+                value={field.value}
+                options={timeChoices(HALF_HOUR_START_TIMES)}
+                getOptionValue={getChoiceValue}
+                getOptionLabel={getChoiceLabel}
+                onChange={(value) => {
+                  field.onChange(value ?? '');
+                }}
+                ref={field.ref}
+              />
+            )}
+          />
+          <FormField<HolderFormValues, 'endTime'>
+            name="endTime"
+            render={({ field, error: fieldError }) => (
+              <SingleSelectField
+                label={t('endTimeField')}
+                error={fieldError === undefined ? undefined : t('timeRangeInvalid')}
+                name={field.name}
+                value={field.value}
+                options={timeChoices(HALF_HOUR_END_TIMES)}
+                getOptionValue={getChoiceValue}
+                getOptionLabel={getChoiceLabel}
+                onChange={(value) => {
+                  field.onChange(value ?? '');
+                }}
+                ref={field.ref}
+              />
+            )}
+          />
+        </>
+      ) : null}
+
+      <FormField<HolderFormValues, 'licensePlate'>
+        name="licensePlate"
+        render={({ field, error: fieldError }) => (
+          <TextField
+            label={t('plateField')}
+            // Blank means "use the holder's stored plate", so the placeholder is
+            // what will actually be used — not a hint about formatting.
+            placeholder={hint ?? t('noPlate')}
+            {...(fieldError === undefined ? {} : { error: fieldError })}
+            name={field.name}
+            value={field.value}
+            onChange={(value) => {
+              field.onChange(value);
+            }}
+            onBlur={() => {
+              field.onBlur();
+            }}
+          />
+        )}
+      />
+    </div>
   );
 }

@@ -29,19 +29,8 @@ import type {
   MonthWindowOverview,
   ReservationLockMode,
 } from '@garage/contract';
-import {
-  Badge,
-  Box,
-  Card,
-  Divider,
-  Grid,
-  List,
-  ListItem,
-  Stack,
-  Stepper,
-  Text,
-} from '@garage/design-system/primitives';
-import type { BadgeTone } from '@garage/design-system/primitives';
+import { Card, CounterInput, Divider, Grid, H3, Paragraph, Stack, Tag, Text } from '@shoptet/ui';
+import type { ComponentProps } from 'react';
 import {
   MAX_OPEN_DAYS_BEFORE,
   MIN_OPEN_DAYS_BEFORE,
@@ -56,9 +45,12 @@ import { ScreenDataGuard } from '../../screen-state/screen-state';
 import type { ScreenData } from '../../screen-state/screen-state';
 import { useAdminWriteError } from '../admin-errors';
 import { LockModeChoice } from '../lock-mode-choice/lock-mode-choice';
+import styles from './admin-window-screen.module.css';
+
+type TagLevel = NonNullable<ComponentProps<typeof Tag>['level']>;
 
 /**
- * Badge colour per state, straight off `05-admin-window.png`: `Otevřeno` is a
+ * Tag level per state, straight off `05-admin-window.png`: `Otevřeno` is a
  * green pill, `Uzamčeno` a yellow one, `Zatím neotevřeno` a grey one.
  *
  * Exported so a spec can pin it. The colour is not decoration on this screen —
@@ -70,10 +62,10 @@ import { LockModeChoice } from '../lock-mode-choice/lock-mode-choice';
  * design artifact, and a pin of its own. See that docblock for why they stay
  * two maps.
  */
-export const BADGE_STATE_TONE: Record<MonthLockState, BadgeTone> = {
+export const BADGE_STATE_TONE: Record<MonthLockState, TagLevel> = {
   OPEN: 'success',
-  LOCKED: 'warning',
-  NOT_YET_OPEN: 'neutral',
+  LOCKED: 'alert',
+  NOT_YET_OPEN: 'default',
 };
 
 export interface AdminWindowScreenProps {
@@ -117,88 +109,67 @@ export function AdminWindowScreen({
   return (
     <ScreenDataGuard state={reservationWindow} onRetry={onRetry} headingLevel={3}>
       {({ settings: { openDaysBefore, lockMode }, months }) => (
-        <Grid columns={{ base: 1, md: 2 }} spacing={6}>
+        <Grid columns={2} gap="xl">
           <section aria-label={t('windowOpenTitle')}>
-            {/*
-              `Card`'s `fillHeight` prop (`h-full`) is `Grid`'s two direct
-              children stretching to end level — `Grid` gets no `align` prop
-              of its own because CSS grid's default `align-items: stretch`
-              already does this for both cards without one.
-            */}
-            <Card fillHeight>
-              <Stack spacing={5}>
-                <Stack spacing={2}>
-                  <Text as="h3" size="lg" weight="bold">
-                    {t('windowOpenTitle')}
-                  </Text>
-                  {/*
-                    Original was `leading-relaxed` (1.625). `Text`'s `leading`
-                    scale has no `relaxed` step, but `loose` in this
-                    workspace resolves to `1.6` (`theme.css` maps
-                    `--lh-loose: 1.6`), not stock Tailwind's `2` — within 1.5%
-                    of the original, so it is used rather than left unset.
-                  */}
-                  <Text size="sm" tone="subtle" leading="loose">
-                    {t('windowOpenDescription')}
-                  </Text>
-                </Stack>
+            <Card>
+              <Card.Content>
+                <Stack gap="xl">
+                  <Stack gap="sm">
+                    <H3 appearance="h4">{t('windowOpenTitle')}</H3>
+                    <Paragraph appearance="sm" variant="secondary">
+                      {t('windowOpenDescription')}
+                    </Paragraph>
+                  </Stack>
 
-                <Stack spacing={3}>
-                  <Text size="xs" weight="bold" tone="subtle" tracking="caps" transform="uppercase">
-                    {t('windowDaysLabel')}
-                  </Text>
-                  <Stepper
-                    label={t('windowDaysLabel')}
-                    value={openDaysBefore}
-                    min={MIN_OPEN_DAYS_BEFORE}
-                    max={MAX_OPEN_DAYS_BEFORE}
+                  <Stack gap="md">
+                    <CounterInput
+                      label={t('windowDaysLabel')}
+                      value={openDaysBefore}
+                      min={MIN_OPEN_DAYS_BEFORE}
+                      max={MAX_OPEN_DAYS_BEFORE}
+                      disabled={isSaving}
+                      onChange={(next) => {
+                        if (next !== null) {
+                          onChange({ openDaysBefore: next, lockMode });
+                        }
+                      }}
+                    />
+                    <Text appearance="strong-md">
+                      {t('windowDaysValue', { count: openDaysBefore })}
+                    </Text>
+                  </Stack>
+
+                  <LockModeChoice
+                    label={t('windowLockLabel')}
+                    value={lockMode}
                     disabled={isSaving}
-                    decrementLabel={t('windowDaysDecrement')}
-                    incrementLabel={t('windowDaysIncrement')}
-                    formatValue={(count) => t('windowDaysValue', { count })}
-                    onValueChange={(next) => onChange({ openDaysBefore: next, lockMode })}
+                    options={RESERVATION_LOCK_MODES.map((mode) => ({
+                      value: mode,
+                      label: t(`windowLock${mode}`),
+                    }))}
+                    onValueChange={(next) => onChange({ openDaysBefore, lockMode: next })}
                   />
                 </Stack>
-
-                <LockModeChoice
-                  label={t('windowLockLabel')}
-                  value={lockMode}
-                  disabled={isSaving}
-                  options={RESERVATION_LOCK_MODES.map((mode) => ({
-                    value: mode,
-                    label: t(`windowLock${mode}`),
-                  }))}
-                  onValueChange={(next) => onChange({ openDaysBefore, lockMode: next })}
-                />
-              </Stack>
+              </Card.Content>
             </Card>
           </section>
 
           <section aria-label={t('windowMonthsTitle')}>
-            <Card padding={0} fillHeight>
-              <Stack>
-                {/*
-                  `Box` composes the header's own padding, `Divider` the rule
-                  under it — the same two classes the hand-rolled
-                  `border-b border-divider px-6 py-5` div carried at once.
-                */}
-                <Box padding={[5, 6]}>
-                  <Stack spacing={1}>
-                    <Text as="h3" size="lg" weight="bold">
-                      {t('windowMonthsTitle')}
-                    </Text>
-                    <Text size="sm" tone="subtle">
-                      {t('windowMonthsDescription', { today: f.dayMonthAndYear(today) })}
-                    </Text>
-                  </Stack>
-                </Box>
-                <Divider tone="divider" />
-                <List divider="line">
-                  {months.map((month) => (
-                    <MonthRow key={month.month} month={month} />
-                  ))}
-                </List>
-              </Stack>
+            <Card>
+              <div className={styles.monthsHeader}>
+                <Stack gap="xs">
+                  <H3 appearance="h4">{t('windowMonthsTitle')}</H3>
+                  <Paragraph appearance="sm" variant="secondary">
+                    {t('windowMonthsDescription', { today: f.dayMonthAndYear(today) })}
+                  </Paragraph>
+                </Stack>
+              </div>
+              <Divider />
+              <ul className={styles.months}>
+                {months.map((month) => (
+                  <MonthRow key={month.month} month={month} />
+                ))}
+              </ul>
             </Card>
           </section>
         </Grid>
@@ -216,27 +187,21 @@ function MonthRow({ month }: { readonly month: MonthWindowOverview }) {
     to: f.dayAndMonth(month.windowTo),
   };
 
+  // The e2e suite locates this row by role and reads its two `<p>` elements
+  // by position (`admin-window.spec.ts`), so both stay real paragraphs.
   return (
-    // `divider="line"` on the enclosing `List` supplies the
-    // `border-b border-divider last:border-b-0` this `<li>` used to carry
-    // itself. The e2e suite locates this row by role and reads its two `<p>`
-    // elements by position (`admin-window.spec.ts:93,99`) — `Text`'s default
-    // `as="p"` keeps both real paragraphs, in the same order.
-    <ListItem padding={[4, 6]} direction="row" wrap align="center" justify="between" spacing={3}>
-      <Stack spacing={1}>
-        <Text weight="bold">{f.monthAndYear(startOfYearMonth(month.month))}</Text>
-        {/*
-          Original was `mt-0.5` (2px). `Stack`'s gap scale starts at `1`
-          (4px) — the nearest step, used here as an approximation, not an
-          exact match.
-        */}
-        <Text size="sm" tone="subtle">
+    <li className={styles.month}>
+      <Stack gap="xs">
+        <Paragraph appearance="strong-md">
+          {f.monthAndYear(startOfYearMonth(month.month))}
+        </Paragraph>
+        <Paragraph appearance="sm" variant="secondary">
           {month.lockMode === 'AUTO'
             ? t('windowMonthRangeAuto', range)
             : t('windowMonthRangeForced', range)}
-        </Text>
+        </Paragraph>
       </Stack>
-      <Badge tone={BADGE_STATE_TONE[month.state]}>{t(`windowState${month.state}`)}</Badge>
-    </ListItem>
+      <Tag level={BADGE_STATE_TONE[month.state]}>{t(`windowState${month.state}`)}</Tag>
+    </li>
   );
 }

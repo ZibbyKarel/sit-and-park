@@ -1,0 +1,24 @@
+/* The card's own padding is on `Card.Content`; the months list runs edge to edge. */
+.monthsHeader {
+  padding: var(--spacing-lg) var(--spacing-xl);
+}
+
+.months {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.month {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-top: 1px solid rgb(var(--border--neutral-low-default--light));
+}
+
+.month:first-child {
+  border-top: 0;
+}

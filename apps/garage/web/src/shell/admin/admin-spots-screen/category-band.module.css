@@ -1,0 +1,11 @@
+.band {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+}
+
+.label {
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}

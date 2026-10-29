@@ -18,17 +18,15 @@
  * it is paid here rather than skipped: **roving tabindex** (the group is one
  * stop in the page's tab order, on the selected pill) plus **arrow keys that
  * move and select**, wrapping at both ends. That is the same pattern, and the
- * same reasoning, as `Tabs` in the design system
+ * same reasoning, as a tab strip
  * (`doc/decision/0054-keyboard-navigation-for-dropdown-and-tabs.md`).
- *
- * Domain-free enough to be a primitive, but it is not one: it exists for this
- * screen only, and the design system does not take a component in on
- * speculation.
  */
 
 import { useId, useRef, type KeyboardEvent } from 'react';
 import type { ReservationLockMode } from '@garage/contract';
-import { Stack, Text, ToggleTile } from '@garage/design-system/primitives';
+import { Text } from '@shoptet/ui';
+import { ToggleTile } from '../../../ui/toggle-tile/toggle-tile';
+import styles from './lock-mode-choice.module.css';
 
 export interface LockModeOption {
   readonly value: ReservationLockMode;
@@ -103,34 +101,24 @@ export function LockModeChoice({
   }
 
   return (
-    <Stack spacing={3}>
-      <Text
-        as="span"
-        id={labelId}
-        size="xs"
-        weight="bold"
-        tone="subtle"
-        tracking="caps"
-        transform="uppercase"
-      >
-        {label}
-      </Text>
-      <Stack
+    <div className={styles.root}>
+      <span id={labelId} className={styles.label}>
+        <Text appearance="strong-sm" variant="secondary">
+          {label}
+        </Text>
+      </span>
+      <div
         role="radiogroup"
         aria-labelledby={labelId}
         onKeyDown={onKeyDown}
-        direction="row"
-        wrap
-        spacing={3}
+        className={styles.pills}
       >
         {options.map((option, index) => {
           const isSelected = option.value === value;
 
           return (
-            // `ToggleTile shape="pill"` reproduces the selected/unselected/
-            // disabled state machine this file used to hand-roll (including
-            // the same `FOCUS_RING` and `transition="fast"` timing) — only
-            // the keyboard/ARIA wiring below stays this component's own.
+            // `ToggleTile shape="pill"` carries the selected/unselected/disabled
+            // states; the keyboard/ARIA wiring below is this component's own.
             <ToggleTile
               key={option.value}
               ref={(node) => {
@@ -151,7 +139,7 @@ export function LockModeChoice({
             </ToggleTile>
           );
         })}
-      </Stack>
-    </Stack>
+      </div>
+    </div>
   );
 }

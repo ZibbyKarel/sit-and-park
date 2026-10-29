@@ -1,19 +1,11 @@
 'use client';
 
-import {
-  Badge,
-  BoltIcon,
-  Box,
-  EyeOffIcon,
-  IconCircle,
-  INSET_FOCUS_RING,
-  Stack,
-  Text,
-  cx,
-} from '@garage/design-system/primitives';
+import { Tag } from '@shoptet/ui';
+import { BoltIcon, EyeOffIcon } from '../../ui/icons/icons';
 import { useTranslations } from '@garage/i18n';
 import { formatTimeRange, type SpotView } from '../lot-view';
 import { CarGlyph } from './car-glyph';
+import styles from './spot-tile.module.css';
 
 export interface SpotTileProps {
   readonly spot: SpotView;
@@ -113,149 +105,66 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
           onOpen(spot.spotId);
         }}
         aria-label={accessibleName}
-        className={cx('lot-bay-button', INSET_FOCUS_RING)}
+        className="lot-bay-button"
       >
-        <Text as="span" size="sm" weight="bold" tracking="wide" tone="inverse-80">
-          {spot.label}
-        </Text>
+        <span className="lot-bay-label">{spot.label}</span>
 
         {spot.appearance === 'free' ? (
-          // `Stack` now takes `as="span"`, so the flex layout (column,
-          // centred, `gap-3`) moves onto it — `.lot-bay-free` shrinks to
-          // just the dashed outline, the width/flex-sizing pair, and the
-          // inherited caption/icon colour (`IconCircle`'s `translucent` tone
-          // sets no foreground of its own), none of which `Stack` reaches.
-          <Stack
-            as="span"
-            direction="column"
-            align="center"
-            justify="center"
-            spacing={3}
-            className="lot-bay-free"
-          >
-            <IconCircle
-              size="md"
-              shape="circle"
-              tone="translucent"
-              fontSize="xl"
-              weight="bold"
-              leading="none"
-            >
+          <span className="lot-bay-free">
+            <span aria-hidden="true" className="lot-bay-glyph lot-bay-glyph--plus">
               +
-            </IconCircle>
-            <Text as="span" size="sm" weight="medium">
-              {t('free')}
-            </Text>
-          </Stack>
+            </span>
+            <span className="lot-bay-caption">{t('free')}</span>
+          </span>
         ) : null}
 
         {spot.appearance === 'timed' ? (
-          // Same frame as `'free'` — dashed outline, width/flex-sizing,
-          // inherited caption colour — with the blocks' time ranges in place
-          // of "Volné" and no car glyph.
-          <Stack
-            as="span"
-            direction="column"
-            align="center"
-            justify="center"
-            spacing={1}
-            className="lot-bay-free"
-          >
+          // Same frame as `'free'`, with the blocks' time ranges in place of
+          // "Volné" and no car glyph.
+          <span className="lot-bay-free">
             {spot.timedBlocks.slice(0, 2).map((block) => (
-              <Text key={block.id} as="span" size="xs" weight="medium" align="center">
+              <span key={block.id} className="lot-bay-caption">
                 {formatTimeRange(block)}
-              </Text>
+              </span>
             ))}
             {spot.timedBlocks.length > 2 ? (
-              <Text as="span" size="xs" align="center">
+              <span className="lot-bay-caption">
                 {t('tileMoreBlocks', { count: spot.timedBlocks.length - 2 })}
-              </Text>
+              </span>
             ) : null}
-          </Stack>
+          </span>
         ) : null}
 
         {spot.appearance === 'taken' && spot.carColorClass !== null ? (
-          // Same move as `.lot-bay-free`: the flex layout is now `Stack`'s
-          // job (`justify="start"` — the design starts this group at the top
-          // of the bay, not centred, unlike the other three states).
-          // `.lot-bay-taken` shrinks to the width/flex-sizing pair alone; it
-          // never carried a border or colour of its own.
-          <Stack
-            as="span"
-            direction="column"
-            align="center"
-            justify="start"
-            spacing={2}
-            className="lot-bay-taken"
-          >
+          <span className="lot-bay-taken">
             <CarGlyph colorVar={spot.carColorClass} />
-            <Text as="span" display="block" size="sm" weight="bold" tone="inverse" align="center">
-              {spot.holderName}
-            </Text>
+            <span className="lot-bay-name">{spot.holderName}</span>
             {spot.holderPlate === null ? null : (
-              <Text
-                as="span"
-                display="block"
-                size="xs"
-                tracking="normal"
-                tone="inverse-60"
-                align="center"
-              >
-                {spot.holderPlate}
-              </Text>
+              <span className="lot-bay-plate">{spot.holderPlate}</span>
             )}
-          </Stack>
+          </span>
         ) : null}
 
         {spot.appearance === 'window-locked' ? (
-          // Same move as `.lot-bay-free`. `.lot-bay-locked` shrinks to the
-          // solid tinted outline, the width/flex-sizing pair and the
-          // inherited caption/icon colour.
-          <Stack
-            as="span"
-            direction="column"
-            align="center"
-            justify="center"
-            spacing={3}
-            className="lot-bay-locked"
-          >
-            <IconCircle size="md" shape="circle" tone="translucent">
+          <span className="lot-bay-locked">
+            <span aria-hidden="true" className="lot-bay-glyph">
               ⊘
-            </IconCircle>
-            <Box padding={[0, 2]}>
-              <Text as="span" size="xs" leading="snug" align="center">
-                {t('tileLocked')}
-              </Text>
-            </Box>
-          </Stack>
+            </span>
+            <span className={`lot-bay-caption ${styles.padded}`}>{t('tileLocked')}</span>
+          </span>
         ) : null}
 
         {spot.appearance === 'editing' ? (
-          // Same move as `.lot-bay-free`. `.lot-bay-editing` shrinks to its
-          // own yellow outline and the width/flex-sizing pair;
-          // `.lot-hatch` (the hatched fill, Task 24's painted-surface class)
-          // is unrelated to this move and stays exactly as it was.
-          <Stack
-            as="span"
-            direction="column"
-            align="center"
-            justify="center"
-            spacing={3}
-            className={cx('lot-hatch', 'lot-bay-editing')}
-          >
-            <IconCircle size="md" shape="circle" tone="yellow" fontSize="base" weight="bold">
+          <span className="lot-hatch lot-bay-editing">
+            <span aria-hidden="true" className="lot-bay-glyph lot-bay-glyph--editing">
               ✎
-            </IconCircle>
-            <Box padding={[0, 2]}>
-              <Text as="span" size="xs" leading="snug" align="center" tone="inverse">
-                {t('tileEditing')}
-                <br />
-                <Text as="strong" weight="bold">
-                  {spot.editorName}
-                </Text>
-              </Text>
-            </Box>
-          </Stack>
+            </span>
+            <span className={`lot-bay-caption ${styles.padded}`}>
+              {t('tileEditing')}
+              <br />
+              <strong>{spot.editorName}</strong>
+            </span>
+          </span>
         ) : null}
       </button>
 
@@ -263,35 +172,33 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
         // A sibling of the bay's button, like the waitlist pill: the bolt has
         // its own accessible name and its own place in the reading order, so
         // the button's `accessibleName` above stays exactly what it was.
-        <Box placement="top-left" interactive="none">
+        <div className={`${styles.corner} ${styles.topLeft}`}>
           <BoltIcon label={t('evCharger')} />
-        </Box>
+        </div>
       ) : null}
 
       {spot.waitlistCount > 0 ? (
-        <Box placement="bottom-center" interactive="none">
-          <Badge tone="warning">{t('waiting', { count: spot.waitlistCount })}</Badge>
-        </Box>
+        <div className={`${styles.corner} ${styles.bottomCenter}`}>
+          <Tag level="alert">{t('waiting', { count: spot.waitlistCount })}</Tag>
+        </div>
       ) : null}
 
       {spot.hidden || spot.showAdminMenu ? (
-        <Box placement="top-right">
-          <Stack direction="column" align="center" spacing={1}>
-            {spot.showAdminMenu ? (
-              <button
-                type="button"
-                onClick={() => {
-                  onAdminOpen(spot.spotId);
-                }}
-                aria-label={t('spotMenu', { label: spot.label })}
-                className="lot-spot-menu"
-              >
-                ⋯
-              </button>
-            ) : null}
-            {spot.hidden ? <EyeOffIcon label={t('hiddenSpot')} /> : null}
-          </Stack>
-        </Box>
+        <div className={`${styles.corner} ${styles.topRight}`}>
+          {spot.showAdminMenu ? (
+            <button
+              type="button"
+              onClick={() => {
+                onAdminOpen(spot.spotId);
+              }}
+              aria-label={t('spotMenu', { label: spot.label })}
+              className="lot-spot-menu"
+            >
+              ⋯
+            </button>
+          ) : null}
+          {spot.hidden ? <EyeOffIcon label={t('hiddenSpot')} /> : null}
+        </div>
       ) : null}
     </div>
   );

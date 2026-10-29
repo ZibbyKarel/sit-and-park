@@ -14,6 +14,7 @@ import type { HolderOption } from '../spot-dialog/holder-input';
 import { profile as sharedProfile, T0 } from '../../testing/fixtures';
 import { createProviderWrapper } from '../../testing/providers';
 import { BulkReservationModal } from './bulk-modal';
+import { selectOption } from '../../test-utils/select-option';
 
 /**
  * The bulk modal, wired.
@@ -333,18 +334,13 @@ describe('BulkReservationModal — step 1, choosing the days', () => {
     // heads a step lighter, which is what makes the boundary readable when the
     // cells below are grey for three different reasons.
     //
-    // `Text` now renders `as="th"` directly (see `bulk-modal.tsx`), so the
-    // tone class lands on the `<th>` itself rather than on a nested `<span>` —
-    // this queries the head element directly. The asserted class strings are
-    // unchanged, only what carries them.
     setup();
     const heads = screen.getAllByRole('columnheader');
     for (const head of heads.slice(0, 5)) {
-      expect(head).toHaveClass('text-fg-3');
+      expect(head).not.toHaveAttribute('data-weekend');
     }
     for (const head of heads.slice(5)) {
-      expect(head).toHaveClass('text-neutral-400');
-      expect(head).not.toHaveClass('text-fg-3');
+      expect(head).toHaveAttribute('data-weekend');
     }
   });
 
@@ -487,7 +483,7 @@ describe('BulkReservationModal — step 1, choosing the days', () => {
     await user.click(screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' }));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: 'ctaGenerate: count=1' })).toHaveAttribute(
+      expect(screen.getByRole('button', { name: /ctaGenerate: count=1/ })).toHaveAttribute(
         'aria-busy',
         'true'
       );
@@ -697,7 +693,7 @@ describe('BulkReservationModal — the cap follows the holder, not the viewer', 
       holderMonthOutput: { month: '2026-09', reservedDates: [], count: 0, cap: 5 },
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
 
     await waitFor(() => {
       expect(apiMocks.adminReservationMonth).toHaveBeenCalledWith(
@@ -717,7 +713,7 @@ describe('BulkReservationModal — the cap follows the holder, not the viewer', 
       holderMonthOutput: { month: '2026-09', reservedDates: [], count: 0, cap: 5 },
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
 
     const previouslyReserved = await screen.findByRole('button', {
       name: 'dayCell: date=středa 16. září 2026',
@@ -734,7 +730,7 @@ describe('BulkReservationModal — the cap follows the holder, not the viewer', 
       holderMonthOutput: { month: '2026-09', reservedDates: ['2026-09-16'], count: 4, cap: 5 },
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
 
     // The holder's own reserved day is blocked, and named as theirs — but not
     // painted in the viewer's own car colour, which would claim it as theirs.
@@ -773,7 +769,7 @@ describe('BulkReservationModal — the cap follows the holder, not the viewer', 
     // Switching the holder to somebody with one slot left must not carry the
     // five days over — the server would reject the whole batch, which is the
     // defect this change exists to remove.
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
 
     expect(await screen.findByRole('button', { name: 'ctaSelectDays' })).toBeInTheDocument();
   });
@@ -784,12 +780,12 @@ describe('BulkReservationModal — the cap follows the holder, not the viewer', 
       holderMonthOutput: { month: '2026-09', reservedDates: [], count: 0, cap: 5 },
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
     expect(
       screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' })
     ).not.toBeDisabled();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'admin-1');
+    await selectOption(user, 'holderField', 'Dev Admin');
     expect(
       await screen.findByRole('button', { name: 'dayCellCapped: date=úterý 1. září 2026' })
     ).toBeDisabled();
@@ -856,7 +852,7 @@ describe('BulkReservationModal — the admin holder selector', () => {
 
   it('offers a holder selector for an admin, defaulting to the admin themselves', () => {
     setup({ isAdmin: true, viewerUserId: 'admin-1', holderOptions: ADMIN_OPTIONS });
-    expect(screen.getByLabelText('holderField')).toHaveValue('admin-1');
+    expect(screen.getByLabelText('holderField')).toHaveTextContent(/Dev Admin/);
   });
 
   it('previews for the selected holder, not the admin', async () => {
@@ -866,7 +862,7 @@ describe('BulkReservationModal — the admin holder selector', () => {
       holderOptions: ADMIN_OPTIONS,
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
     await user.click(screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' }));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));
 
@@ -901,7 +897,7 @@ describe('BulkReservationModal — the admin holder selector', () => {
       }),
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
     await user.click(screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' }));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));
     await user.click(await screen.findByRole('button', { name: 'ctaConfirm' }));
@@ -1024,7 +1020,7 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
     expect(screen.queryByText('scheduleSummary: assigned=2,queued=0')).not.toBeInTheDocument();
   });
 
-  it('paints each badge in the tone the brief names — green, blue, yellow', async () => {
+  it('paints each badge at the level the brief names — success, notice, alert', async () => {
     // Crosses three files rather than restating one: the brief's colour →
     // `BADGE_TONES` → `badge.tsx`'s token classes. A tone swap, a `Badge` tone
     // rename or a token remap all fail here, and none of them is visible in a
@@ -1058,11 +1054,11 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
     });
     await reachSchedule(user);
 
-    expect(screen.getByText('badgeAssignedPreferred: position=0')).toHaveClass(
-      'bg-brand-green-100'
-    );
-    expect(screen.getByText('badgeAssigned: position=0')).toHaveClass('bg-brand-blue-100');
-    expect(screen.getByText('badgeQueued: position=1')).toHaveClass('bg-brand-yellow-100');
+    // `Tag` has no level attribute of its own; its level modifier class is the only carrier.
+    const tag = (text: string) => screen.getByText(text).closest('.tag');
+    expect(tag('badgeAssignedPreferred: position=0')).toHaveClass('tag--success');
+    expect(tag('badgeAssigned: position=0')).toHaveClass('tag--notice');
+    expect(tag('badgeQueued: position=1')).toHaveClass('tag--alert');
   });
 
   it('goes back to the grid with the selection intact', async () => {
@@ -1225,7 +1221,7 @@ describe('BulkReservationModal — the confirmed result against the proposal', (
       ],
     });
 
-    await user.selectOptions(screen.getByLabelText('holderField'), 'user-1');
+    await selectOption(user, 'holderField', 'Dev User');
     const confirm = await reachSchedule(user);
     await user.click(confirm);
 

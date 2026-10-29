@@ -8,6 +8,7 @@ import { profile, T0 } from '../../testing/fixtures';
 import { failureWithCode } from '../../testing/contract-failure';
 import { createProviderWrapper } from '../../testing/providers';
 import { LotScreen } from './lot-screen';
+import { selectOption } from '../../test-utils/select-option';
 
 const cs = createDateFormatters('cs');
 
@@ -630,8 +631,8 @@ describe('LotScreen — every write closes the dialog and invalidates the day', 
 
     await user.click(screen.getByRole('button', { name: /^tileTimedLabel: label=E2\.95,/u }));
     await user.type(await screen.findByLabelText('guestNameField'), 'Petr Nový');
-    await user.selectOptions(screen.getByLabelText('startTimeField'), '11:00');
-    await user.selectOptions(screen.getByLabelText('endTimeField'), '11:30');
+    await selectOption(user, 'startTimeField', '11:00');
+    await selectOption(user, 'endTimeField', '11:30');
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     await waitFor(() =>
@@ -840,7 +841,7 @@ describe('LotScreen — every write closes the dialog and invalidates the day', 
     );
 
     await user.click(screen.getByRole('button', { name: /^reserveSpotAction: label=E2\.93,/u }));
-    await user.selectOptions(await screen.findByLabelText('holderField'), OTHER_USER);
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
     expect(await screen.findByText('errHolderLimitReached')).toBeInTheDocument();
 
@@ -979,7 +980,7 @@ describe('LotScreen — the header date picker', () => {
 
     await user.click(screen.getByRole('button', { name: cs.fullDate(DATE) }));
     const dialog = screen.getByRole('dialog', { name: 'datePickerTitle' });
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'monthLabel' }), '2');
+    await selectOption(user, /monthLabel/, cs.monthName(2));
     await user.click(
       within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate('2026-02-27')}` })
     );
@@ -993,7 +994,7 @@ describe('LotScreen — the header date picker', () => {
 
     await user.click(screen.getByRole('button', { name: cs.fullDate(DATE) }));
     const dialog = screen.getByRole('dialog', { name: 'datePickerTitle' });
-    await user.selectOptions(within(dialog).getByRole('combobox', { name: 'yearLabel' }), '2027');
+    await selectOption(user, /yearLabel/, '2027');
     await user.click(
       within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate('2027-01-29')}` })
     );
@@ -1140,7 +1141,7 @@ describe('LotScreen — an admin naming a holder', () => {
     });
 
     await user.click(await screen.findByRole('button', { name: /E2\.93/ }));
-    await user.selectOptions(await screen.findByLabelText('holderField'), OTHER_USER);
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     await waitFor(() =>
@@ -1179,7 +1180,7 @@ describe('LotScreen — an admin naming a holder', () => {
     );
 
     await user.click(await screen.findByRole('button', { name: /E2\.93/ }));
-    await user.selectOptions(await screen.findByLabelText('holderField'), OTHER_USER);
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(await screen.findByText('errHolderLimitReached')).toBeInTheDocument();
@@ -1213,7 +1214,7 @@ describe('LotScreen — an admin naming a holder', () => {
     );
 
     await user.click(await screen.findByRole('button', { name: /E2\.93/ }));
-    await user.selectOptions(await screen.findByLabelText('holderField'), OTHER_USER);
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(await screen.findByText('errHolderMonthlyLimitReached')).toBeInTheDocument();
@@ -1262,11 +1263,11 @@ describe('LotScreen — an admin naming a holder', () => {
     );
 
     await user.click(await screen.findByRole('button', { name: /E2\.93/ }));
-    await user.selectOptions(await screen.findByLabelText('holderField'), OTHER_USER);
+    await selectOption(user, 'holderField', /Jana Nováková/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
     expect(await screen.findByText('errHolderLimitReached')).toBeInTheDocument();
 
-    await user.selectOptions(screen.getByLabelText('holderField'), VIEWER);
+    await selectOption(user, 'holderField', /Karel Zíbar/);
     await user.click(screen.getByRole('button', { name: 'ctaReserve' }));
 
     expect(await screen.findByText('RESERVATION_LIMIT_REACHED')).toBeInTheDocument();

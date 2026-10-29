@@ -24,12 +24,13 @@
  * admin.
  */
 
-import type { ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
+import { H1, Stack, Tabs, Text } from '@shoptet/ui';
 import type { UserRole } from '@garage/contract';
 import { useTranslations } from '@garage/i18n';
-import { Stack, Tabs, Text } from '@garage/design-system/primitives';
-import { EmptyState } from '@garage/design-system/compounds';
+import { EmptyState } from '../../ui/empty-state/empty-state';
 import { ScreenError, ScreenLoading } from '../screen-state/screen-state';
+import styles from './admin-screen.module.css';
 
 /** The body of each tab, in the order the design's strip lists them. */
 export interface AdminPanels {
@@ -53,6 +54,8 @@ export interface AdminScreenProps {
   readonly panels: AdminPanels;
 }
 
+type AdminTabId = keyof AdminPanels;
+
 export function AdminScreen({
   role,
   isPending,
@@ -64,6 +67,7 @@ export function AdminScreen({
   const errors = useTranslations('errors');
   const sections = useTranslations('sections');
   const t = useTranslations('admin');
+  const [activeTab, setActiveTab] = useState<AdminTabId>('overview');
 
   if (isPending) {
     return <ScreenLoading />;
@@ -78,33 +82,27 @@ export function AdminScreen({
   }
 
   return (
-    <>
-      {/*
-        `mt-2 mb-6` on the heading below was the gap between the eyebrow and
-        the title *and* the gap after the title before the tab strip — `Text`
-        emits no margin of its own, so both are now `Stack spacing`: one
-        wrapping the pair, one after it.
-      */}
-      <Stack spacing={6}>
-        <Stack spacing={2}>
-          <Text size="xs" weight="bold" tone="subtle" tracking="caps" transform="uppercase">
+    <Stack gap="xl">
+      <Stack gap="sm">
+        <span className={styles.eyebrow}>
+          <Text appearance="strong-sm" variant="secondary">
             {t('eyebrow')}
           </Text>
-          <Text as="h1" size="3xl" weight="bold" tracking="tight">
-            {sections('administration')}
-          </Text>
-        </Stack>
-        <Tabs
-          label={t('tabsLabel')}
-          items={[
-            { id: 'overview', label: t('tabOverview'), content: panels.overview },
-            { id: 'users', label: t('tabUsers'), content: panels.users },
-            { id: 'spots', label: t('tabSpots'), content: panels.spots },
-            { id: 'window', label: t('tabWindow'), content: panels.window },
-            { id: 'limits', label: t('tabLimits'), content: panels.limits },
-          ]}
-        />
+        </span>
+        <H1>{sections('administration')}</H1>
       </Stack>
-    </>
+      <Tabs
+        tabs={[
+          { id: 'overview', title: t('tabOverview'), content: panels.overview },
+          { id: 'users', title: t('tabUsers'), content: panels.users },
+          { id: 'spots', title: t('tabSpots'), content: panels.spots },
+          { id: 'window', title: t('tabWindow'), content: panels.window },
+          { id: 'limits', title: t('tabLimits'), content: panels.limits },
+        ]}
+        activeTabId={activeTab}
+        onTabChange={setActiveTab}
+        autoActivate
+      />
+    </Stack>
   );
 }

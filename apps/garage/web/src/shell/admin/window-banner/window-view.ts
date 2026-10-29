@@ -54,7 +54,7 @@ export const STATE_GLYPH: Record<MonthLockState, string> = {
 
 /**
  * Named here rather than imported as `ToastTone`, so this module names no
- * design-system component: the banner picks the primitive, the rule picks the
+ * component: the banner picks the primitive, the rule picks the
  * meaning. The three values are `ToastTone`'s, and the banner's `tone` prop is
  * what type-checks that they still are.
  */
