@@ -212,3 +212,4 @@ for why, and take the next number from the end of this list.
 - [`0316-hidden-spots-are-seen-and-booked-by-admins-only`](0316-hidden-spots-are-seen-and-booked-by-admins-only.md) — 0316 – Hidden spots are seen and booked by admins only
 - [`0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`](0317-the-ev-charger-flag-is-informational-and-shown-to-everyone.md) — 0317 – The EV charger flag is informational and shown to everyone
 - [`0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted`](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md) — 0318 – UI comes from @shoptet/ui and the in-house design system is deleted
+- [`0319-pnpm-is-the-package-manager`](0319-pnpm-is-the-package-manager.md) — 0319 – pnpm is the package manager, and npm is not used anywhere

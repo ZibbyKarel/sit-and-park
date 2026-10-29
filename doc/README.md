@@ -15,7 +15,7 @@ something new:
 everything here. `doc/implementation-plan.md` is its breakdown into tasks.
 
 This index is generated from the filesystem and accounts for every file under
-`doc/`: 21 topic documents, 204 decision records, and `doc/design/`.
+`doc/`: 21 topic documents, 205 decision records, and `doc/design/`.
 
 ---
 
@@ -61,5 +61,5 @@ staying alive (historical: `@shoptet/ui` is the visual source of truth now, `doc
 ## Decision records
 
 Indexed in their own directory: [`doc/decision/README.md`](decision/README.md)
-lists all 204 records, one line each, in the same format as the topic-document
+lists all 205 records, one line each, in the same format as the topic-document
 table above.

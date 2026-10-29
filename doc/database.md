@@ -357,20 +357,20 @@ paths into `libs/garage/database` itself.
 
 | command                                | what it does                                                                                 |
 | -------------------------------------- | -------------------------------------------------------------------------------------------- |
-| `npx prisma validate`                  | validates the schema (no database needed)                                                    |
-| `npx prisma format`                    | formats `schema.prisma` (no database needed)                                                 |
-| `npx prisma generate`                  | regenerates the client into `libs/garage/database/src/generated/prisma` (no database needed) |
-| `npx prisma migrate dev --name <name>` | dev: creates a new migration and applies it                                                  |
-| `npx prisma migrate deploy`            | production/CI: applies existing migrations, generates nothing                                |
-| `npx prisma migrate status`            | what's applied and what's missing                                                            |
-| `npx prisma db seed`                   | runs `libs/garage/database/src/scripts/seed.ts`                                              |
-| `npx prisma studio`                    | a data browser (dev)                                                                         |
+| `pnpm exec prisma validate`                  | validates the schema (no database needed)                                                    |
+| `pnpm exec prisma format`                    | formats `schema.prisma` (no database needed)                                                 |
+| `pnpm exec prisma generate`                  | regenerates the client into `libs/garage/database/src/generated/prisma` (no database needed) |
+| `pnpm exec prisma migrate dev --name <name>` | dev: creates a new migration and applies it                                                  |
+| `pnpm exec prisma migrate deploy`            | production/CI: applies existing migrations, generates nothing                                |
+| `pnpm exec prisma migrate status`            | what's applied and what's missing                                                            |
+| `pnpm exec prisma db seed`                   | runs `libs/garage/database/src/scripts/seed.ts`                                              |
+| `pnpm exec prisma studio`                    | a data browser (dev)                                                                         |
 
 A typical first run:
 
 ```bash
-npx prisma migrate deploy
-npx prisma db seed
+pnpm exec prisma migrate deploy
+pnpm exec prisma db seed
 ```
 
 ### Trap: hand-written SQL and `migrate dev`
@@ -384,10 +384,10 @@ schema (the `CHECK` constraints, the trigger, the singleton `INSERT`).
 The procedure for every subsequent schema change:
 
 ```bash
-npx prisma migrate dev --create-only --name <name>   # only generates the SQL
+pnpm exec prisma migrate dev --create-only --name <name>   # only generates the SQL
 # → open the generated migration.sql and delete any
 #   DROP CONSTRAINT ...singleton_check / ...range_check / DROP TRIGGER
-npx prisma migrate dev                                 # now apply it
+pnpm exec prisma migrate dev                                 # now apply it
 ```
 
 If the hand-written SQL ever grows, an alternative is to move it into a

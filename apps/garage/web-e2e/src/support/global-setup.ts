@@ -39,7 +39,7 @@ export default function globalSetup(): void {
     );
   }
 
-  run('npx', ['prisma', 'db', 'seed']);
+  run('pnpm', ['exec', 'prisma', 'db', 'seed']);
   run('node', ['--require', '@swc-node/register', 'libs/garage/database/src/scripts/reset-e2e.ts']);
 }
 

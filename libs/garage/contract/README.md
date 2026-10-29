@@ -18,5 +18,5 @@ Documentation: `doc/contract.md`.
 ## Tests
 
 ```bash
-npx nx run contract:test
+pnpm nx run contract:test
 ```

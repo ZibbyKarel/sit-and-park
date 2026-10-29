@@ -9,10 +9,10 @@
  *
  * Everything database-related is run from the repo root:
  *
- *   npx prisma migrate dev --name <name>
- *   npx prisma migrate deploy
- *   npx prisma db seed
- *   npx prisma generate
+ *   pnpm exec prisma migrate dev --name <name>
+ *   pnpm exec prisma migrate deploy
+ *   pnpm exec prisma db seed
+ *   pnpm exec prisma generate
  *
  * See `doc/database.md`.
  */

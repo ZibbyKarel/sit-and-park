@@ -150,8 +150,8 @@ repository already contains `plan.md` (gitignored), `CLAUDE.md`, `README.md`,
     lint/test/build, what the Nx tags mean, and how to add a new lib with the
     right tags.
 
-**Verification (must pass and be documented in the report):** `npm run lint`,
-`npm run typecheck`, `npm run build` on a clean workspace, plus a
+**Verification (must pass and be documented in the report):** `pnpm lint`,
+`pnpm typecheck`, `pnpm build` on a clean workspace, plus a
 demonstration that ESLint actually rejects a forbidden import (add a
 temporary file, show the error, delete the file).
 
@@ -192,7 +192,7 @@ Tailwind config beyond what the Nx generator for Next creates.
    from production only by env values (no test-only branches in code), how to
    verify the mock OIDC is running.
 
-**Verification:** `npm run build` passes; starting the app with a required
+**Verification:** `pnpm build` passes; starting the app with a required
 variable missing ends in an immediate crash with a readable message (document
 it with output).
 `docker compose config` validates the file **with no daemon needed to be

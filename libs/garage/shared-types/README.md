@@ -22,5 +22,5 @@ Documentation: `doc/contract.md`, `doc/decision/0003-*`, `0004-*`, `0013-calenda
 ## Tests
 
 ```bash
-npx nx run shared-types:test
+pnpm nx run shared-types:test
 ```

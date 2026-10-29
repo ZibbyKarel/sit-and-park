@@ -31,7 +31,7 @@ this app's contract at runtime; that must be resolved before a second
 contract exists).
 
 **Nx project names are flat**: `web`, `api`, `contract` and the rest are
-unprefixed, so `npx nx run web:test` still works from anywhere and the
+unprefixed, so `pnpm nx run web:test` still works from anywhere and the
 commands below are unaffected by the directory layout. They will not stay
 that way — project names are globally unique, so a second application cannot
 own a project called `api` either, and scaffolding it forces the rename.
@@ -41,12 +41,12 @@ Every project therefore also carries an **`app:` tag** — `app:garage` or
 `nx run-many -t lint -p tag:app:garage`, never `-p api,web`. The tag
 survives the rename; a list of project names does not. In `package.json`,
 an unsuffixed script is workspace-wide and a `:<app>` suffix scopes it
-(`npm run dev:garage`).
+(`pnpm dev:garage`).
 
 The parking app is scaffolded and all of Fáze 0–7 is written:
 `apps/garage/api` (NestJS 11), `apps/garage/web` (Next.js 16),
 `apps/garage/api-e2e`, `apps/garage/web-e2e`, and ten libs.
-`npm ci` first — several agents have skipped it in a fresh worktree and spent
+`pnpm install` first — several agents have skipped it in a fresh worktree and spent
 the next hour on spurious `Module not found` errors in `api:build`.
 
 **When you move a project, grep for the string literals `'apps'` and `'libs'`
@@ -56,7 +56,7 @@ somewhere far away — that is how `prisma.config.ts`, the database suites'
 migrations directory and the e2e build-identity guard each broke once.
 
 **The documentation map is `doc/README.md`**; it indexes every topic document
-and all 204 decision records. `README.md` is the operational runbook.
+and all 205 decision records. `README.md` is the operational runbook.
 
 Before reading a specific topic document or decision record, check its
 index first — `doc/README.md` for topic documents, `doc/decision/README.md`
@@ -73,37 +73,37 @@ command that was true when it was written and is false now is worse than an
 absent one, because a reader trusts it.
 
 ```bash
-npm ci                 # always, in a fresh worktree, before anything else
+pnpm install                 # always, in a fresh worktree, before anything else
 
-npm run dev:garage  # serve,dev for this app's api and web — continuous
-npm run lint           # nx run-many -t lint
-npm run typecheck      # nx run-many -t typecheck
-npm test               # nx run-many -t test
-npm run build          # nx run-many -t build
-npm run format:check   # nx format:check   (CI adds --all; see below)
-npm run format         # nx format:write
+pnpm dev:garage  # serve,dev for this app's api and web — continuous
+pnpm lint           # nx run-many -t lint
+pnpm typecheck      # nx run-many -t typecheck
+pnpm test               # nx run-many -t test
+pnpm build          # nx run-many -t build
+pnpm format:check   # nx format:check   (CI adds --all; see below)
+pnpm format         # nx format:write
 ```
 
 Per project and per file:
 
 ```bash
-npx nx run web:test                      # one project
-npx nx run web:test -- lot-view          # one file, by name pattern
-npx nx run api:build
-npx nx serve api                         # continuous, port 3000
-npx nx run web:dev                       # continuous, port 4200 (pinned; see below)
-npx nx show project api --json           # what targets a project actually has
+pnpm nx run web:test                      # one project
+pnpm nx run web:test -- lot-view          # one file, by name pattern
+pnpm nx run api:build
+pnpm nx serve api                         # continuous, port 3000
+pnpm nx run web:dev                       # continuous, port 4200 (pinned; see below)
+pnpm nx show project api --json           # what targets a project actually has
 ```
 
 Layers that need infrastructure — see `doc/testing.md` for what each covers:
 
 ```bash
 docker compose --profile dev up -d       # PostgreSQL 17, mock OIDC issuer, adminer
-npx prisma migrate deploy
-npx prisma db seed
-npx nx run api:test-db                   # the eight *.db.spec.ts suites (needs DATABASE_URL)
-npx nx run api-e2e:e2e
-npx nx run web-e2e:e2e                   # documented in doc/testing.md, not re-measured here
+pnpm exec prisma migrate deploy
+pnpm exec prisma db seed
+pnpm nx run api:test-db                   # the eight *.db.spec.ts suites (needs DATABASE_URL)
+pnpm nx run api-e2e:e2e
+pnpm nx run web-e2e:e2e                   # documented in doc/testing.md, not re-measured here
 ```
 
 **`api:test-db` needs `DATABASE_URL` in the environment**, and in the repository
@@ -115,7 +115,7 @@ Either copy `.env` in, or pass it for the one command:
 
 ```bash
 DATABASE_URL=$(grep '^DATABASE_URL=' /path/to/shoptet-apps/.env | sed 's/^DATABASE_URL=//') \
-  npx nx run api:test-db
+  pnpm nx run api:test-db
 ```
 
 `web-e2e:e2e` is **48 passed, exit 0** — the fifteen spec files, the three
@@ -124,7 +124,7 @@ In a worktree it needs the whole `.env` copied in, not just `DATABASE_URL`;
 without it the API exits on its own env schema before a test runs. Measured in
 both configurations, because they are not the same suite: `nxE2EPreset` sets
 `workers: process.env.CI ? 1 : undefined`, so a local run is parallel and CI's
-is serial. `CI=true npx nx run web-e2e:e2e --skip-nx-cache` is the one command
+is serial. `CI=true pnpm nx run web-e2e:e2e --skip-nx-cache` is the one command
 that reproduces what CI actually runs — **48 passed, exit 0, 27.6 s**, against
 18 s parallel. Four things are worth knowing before you run it yourself:
 
@@ -151,7 +151,7 @@ that reproduces what CI actually runs — **48 passed, exit 0, 27.6 s**, against
   corrupt the write; the same thing has been seen here as exit 1 after 509
   passing tests. Read the suite's own summary line, not just `$?`.
 
-**`npm test` does not run the database suites.** `apps/garage/api/jest.config.cts`
+**`pnpm test` does not run the database suites.** `apps/garage/api/jest.config.cts`
 excludes `*.db.spec.ts` because they need a live PostgreSQL; they run under
 `api:test-db`, and in CI in their own job. A change to `SELECT … FOR UPDATE`,
 to transaction isolation, or to waitlist promotion is untested until you have

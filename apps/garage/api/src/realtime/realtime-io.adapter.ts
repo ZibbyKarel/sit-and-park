@@ -41,7 +41,7 @@
  * and nothing else:
  *
  * ```ts
- * // npm i @socket.io/redis-adapter redis
+ * // pnpm add @socket.io/redis-adapter redis
  * const pub = createClient({ url: REDIS_URL });
  * const sub = pub.duplicate();
  * await Promise.all([pub.connect(), sub.connect()]);

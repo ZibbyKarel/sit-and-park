@@ -20,10 +20,10 @@
 # could fix. Reformatting them instead would rewrite vendored text and make the
 # next upstream sync a conflict.
 /.agents
-**/package-lock.json
+**/pnpm-lock.yaml
 
 # Prisma Client, generated 1:1 from libs/garage/database/prisma/schema.prisma and
 # committed so that lint/typecheck/test/build need no database and no generate
 # step (same reasoning as tokens.css above). Prisma owns this formatting.
-# Regenerate via `npx prisma generate`; never hand-edit.
+# Regenerate via `pnpm exec prisma generate`; never hand-edit.
 /libs/garage/database/src/generated

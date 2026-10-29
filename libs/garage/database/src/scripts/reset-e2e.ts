@@ -4,7 +4,7 @@
  * Run from the repo root, with `DATABASE_URL` in the environment:
  *
  * ```
- * npx nx run database:reset-e2e
+ * pnpm nx run database:reset-e2e
  * ```
  *
  * `apps/garage/web-e2e`'s `globalSetup` runs it (as a subprocess) before the browsers
@@ -171,7 +171,7 @@ async function main(): Promise<void> {
     // for anyone whose run was interrupted; and `assertDisposableDatabase`
     // above means the only databases reachable without an explicit override are
     // local ones whose settings nobody is entitled to rely on between runs.
-    // `npx prisma db seed` puts it back to 7 days.
+    // `pnpm exec prisma db seed` puts it back to 7 days.
     await prisma.reservationWindowSettings.upsert({
       where: { id: RESERVATION_WINDOW_SETTINGS_ID },
       update: { openDaysBefore: MAX_OPEN_DAYS_BEFORE, lockMode: 'AUTO' },

@@ -70,7 +70,7 @@ Two things worth remembering here:
   `app.useLogger(app.get(Logger))`, which never gets a chance to run when validation fails.
   See "Risk" in `doc/decision/0036-*`.
 
-Reproducing this without Docker: build (`npx nx build api`) and run
+Reproducing this without Docker: build (`pnpm nx build api`) and run
 `node dist/apps/garage/api/main.js` with an incomplete environment – instructions in
 `doc/environment.md`, the "Demonstrating fail-fast" section.
 
@@ -140,7 +140,7 @@ nothing behind it.
 **Health probes are not written to the request log** – they'd run every few seconds and
 bury actual traffic.
 
-For readable output in development: `npx nx run api:serve | npx pino-pretty`. `pino-pretty`
+For readable output in development: `pnpm nx run api:serve | pnpm exec pino-pretty`. `pino-pretty`
 is **not** a project dependency, reasons in `doc/decision/0036-*`.
 
 ---

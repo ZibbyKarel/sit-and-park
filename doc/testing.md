@@ -107,8 +107,8 @@ Then, once:
 ```bash
 cp .env.example .env            # if you have not already
 cp .env.example apps/garage/web/.env   # Next.js reads its own directory
-npx prisma migrate deploy
-npx prisma db seed
+pnpm exec prisma migrate deploy
+pnpm exec prisma db seed
 ```
 
 `.env` is git-ignored and **does not travel with a git worktree**. If you are
@@ -135,10 +135,10 @@ transport is at **`/api/rpc/…`**, not `/api/…`.
 ### Unit tests
 
 ```bash
-npx nx run-many -t test              # everything
-npx nx run web:test                  # one project
-npx nx run web:test -- lot-view      # one file, by name pattern
-npx nx run web:test -- --coverage    # with coverage
+pnpm nx run-many -t test              # everything
+pnpm nx run web:test                  # one project
+pnpm nx run web:test -- lot-view      # one file, by name pattern
+pnpm nx run web:test -- --coverage    # with coverage
 ```
 
 No Docker. This is what `nx run-many -t lint,typecheck,test,build` runs, and
@@ -147,19 +147,19 @@ what CI gates on.
 ### Database tests
 
 ```bash
-npx nx run api:test-db
+pnpm nx run api:test-db
 ```
 
 Needs PostgreSQL up and `DATABASE_URL` set. They run against the **real dev
 database**, `--runInBand`, and clean up after themselves.
 
 `prisma migrate reset` is not part of any of this and should not be reached for:
-if the schema is behind, `npx prisma migrate deploy` is the command.
+if the schema is behind, `pnpm exec prisma migrate deploy` is the command.
 
 ### API end-to-end
 
 ```bash
-npx nx run api-e2e:e2e
+pnpm nx run api-e2e:e2e
 ```
 
 Starts its own API (`dependsOn: ["api:build", "api:serve"]`), waits for the
@@ -173,21 +173,21 @@ its `globalTeardown` calls `killPort`. Two consequences worth knowing:
   process"* and eventually fail in `globalSetup` with `[AggregateError]` from
   `waitForPortOpen`. Stop the other one first — and note that killing the
   *process* is not always enough: a serve whose Nx wrapper died untidily leaves
-  the lock behind, and `npx nx reset` is what clears it.
+  the lock behind, and `pnpm nx reset` is what clears it.
 
 To run the specs against an API you are already serving, skip the target and
 run Jest directly from the project directory — same caveat about the teardown:
 
 ```bash
-cd apps/garage/api-e2e && npx jest --runInBand
+cd apps/garage/api-e2e && pnpm exec jest --runInBand
 ```
 
 ### Browser end-to-end
 
 ```bash
-npx nx run web-e2e:e2e                              # the whole suite
-npx nx run web-e2e:e2e -- src/cell-lock.spec.ts     # one spec
-npx nx run web-e2e:e2e -- --headed --debug          # watch it happen
+pnpm nx run web-e2e:e2e                              # the whole suite
+pnpm nx run web-e2e:e2e -- src/cell-lock.spec.ts     # one spec
+pnpm nx run web-e2e:e2e -- --headed --debug          # watch it happen
 ```
 
 Everything it needs, it arranges:
@@ -198,7 +198,7 @@ Everything it needs, it arranges:
    The reset clears next month's reservations and queue entries and sets the
    reservation window to `AUTO` at 31 days, so that the month the suite books
    into is genuinely open (`doc/decision/0181-*`). **It leaves that setting
-   behind**; `npx prisma db seed` puts it back to 7 days.
+   behind**; `pnpm exec prisma db seed` puts it back to 7 days.
 2. **The servers.** These come from two different places, which matters more
    than it sounds:
    - **The API is started by Nx**, not by Playwright. `@nx/playwright` reads the
@@ -206,7 +206,7 @@ Everything it needs, it arranges:
      dependency, so Nx runs it first and Playwright adopts the result. Nothing
      set in `playwright.config.mts` reaches that process — see the throttle
      entry under "When it goes wrong".
-   - **The web app is started by Playwright**, as `npx next start --port 4200`
+   - **The web app is started by Playwright**, as `pnpm exec next start --port 4200`
      in `apps/garage/web`: the **built** app, not `next dev`. `next dev` runs React
      `StrictMode`, which mounts every effect twice and gives each page a second
      socket.io connection; the built app does that far less
@@ -345,7 +345,7 @@ a machine driving browsers — Playwright will adopt that one:
 
 ```bash
 lsof -ti tcp:3000 | xargs kill -9
-THROTTLE_LIMIT=10000 THROTTLE_STRICT_LIMIT=1000 npx nx run api:serve
+THROTTLE_LIMIT=10000 THROTTLE_STRICT_LIMIT=1000 pnpm nx run api:serve
 ```
 
 Or simply wait a minute between runs; a single run fits inside 300.

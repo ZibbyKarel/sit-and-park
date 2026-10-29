@@ -9,13 +9,13 @@
 #
 #   builder      the Nx workspace, all dependencies, `nx run api:build`.
 #                Webpack emits a single bundled `dist/apps/garage/api/main.js` plus a
-#                *pruned* `package.json`/`package-lock.json` naming only the
+#                *pruned* `package.json`/`pnpm-lock.yaml` naming only the
 #                packages the bundle still requires at runtime
 #                (`generatePackageJson: true` in apps/garage/api/webpack.config.js).
-#   runtime-deps `npm ci` against that pruned lockfile — ~29 packages instead
+#   runtime-deps `pnpm install --prod` against that pruned lockfile — ~29 packages instead
 #                of the workspace's full tree, and no build tooling.
 #   runner       the bundle plus those modules. Nothing else: no sources, no
-#                lockfile of the workspace, no npm cache, no `.env`.
+#                lockfile of the workspace, no package-manager cache, no `.env`.
 #
 # **No secret is baked in.** There is no `ARG` in this file and nothing reads
 # `.env` (`.dockerignore` keeps it out of the context entirely). Every value
@@ -37,11 +37,12 @@ FROM node:24-alpine AS builder
 WORKDIR /workspace
 
 # Dependencies first: this layer is reused for every build in which the
-# lockfile has not moved, which is nearly all of them. `npm ci` honours the
-# `allowScripts` allow-list in package.json (npm >= 11.6), so only the seven
-# packages named there may run install scripts.
-COPY package.json package-lock.json ./
-RUN npm ci
+# lockfile has not moved, which is nearly all of them. pnpm honours the
+# `allowBuilds` allow-list in pnpm-workspace.yaml, so only the packages named
+# there may run install scripts.
+RUN corepack enable
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
@@ -49,7 +50,7 @@ COPY . .
 # cache is not configured, so the flag only removes a pointless lookup — but it
 # also makes it impossible for a stale `.nx` copied in by a future, looser
 # .dockerignore to answer for a real build.
-RUN npx nx run api:build --skip-nx-cache
+RUN pnpm nx run api:build --skip-nx-cache
 
 # ---------------------------------------------------------------------------
 # runtime-deps
@@ -58,29 +59,16 @@ FROM node:24-alpine AS runtime-deps
 
 WORKDIR /app
 
-COPY --from=builder /workspace/dist/apps/garage/api/package.json ./package.json
+# Same pnpm as the root `packageManager`; the generated manifest carries none.
+RUN corepack enable && corepack prepare pnpm@11.18.0 --activate
 
-# `npm install`, not `npm ci` — and that is a finding, not a preference.
-# Webpack emits a pruned `package-lock.json` alongside the manifest, but the
-# two do not agree: `npm ci` against them fails with
-# `Missing: content-type@1.0.5 from lock file`, because the pruner leaves
-# express 5 (nested under @nestjs/platform-express) resolving its
-# `content-type` to an entry that is shadowed by the 2.1.0 copy beside it. Nx's
-# own `api:prune`/`prune-lockfile` targets, which exist for this, cannot run in
-# this workspace either: `@nx/js:prune-lockfile` wants `apps/garage/api/package.json`,
-# and this workspace is project.json-only (doc/decision/0006-*).
-#
-# The cost is honest and bounded: every *direct* dependency is exact-pinned by
-# the generated manifest (29 of them, all `x.y.z`, no ranges), so only
-# transitive versions are resolved at build time. The alternative — `npm ci
-# --omit=dev` against the workspace lockfile — is fully locked but installs the
-# web app's tree as well: 766 MB and 447 packages against 137 MB and 195 here,
-# both measured. See doc/decision/0203-*.
-#
+COPY --from=builder /workspace/dist/apps/garage/api/package.json /workspace/dist/apps/garage/api/pnpm-lock.yaml ./
+
 # `--ignore-scripts` is not belt-and-braces: nothing in this set needs to run
 # code at install time, and an image build is exactly where an install script
-# should not be able to.
-RUN npm install --omit=dev --ignore-scripts --no-audit --no-fund
+# should not be able to. `--frozen-lockfile` works here because Nx emits a
+# matching `pnpm-lock.yaml` next to the pruned manifest.
+RUN pnpm install --prod --frozen-lockfile --ignore-scripts
 
 # ---------------------------------------------------------------------------
 # migrator — `prisma migrate deploy`, and nothing else
@@ -104,15 +92,17 @@ WORKDIR /app
 # node_modules rewrites every file into a second layer — measured here at
 # 1.24 GB for the image against 393 MB for this ordering. Installing as the
 # user that will run keeps one copy and needs no chown at all.
-RUN chown node:node /app
+RUN corepack enable && chown node:node /app
 USER node
 
+RUN corepack prepare pnpm@11.18.0 --activate
+
 # Versions pinned to the workspace lockfile's resolutions, so this is the same
-# CLI a developer runs. `--no-save` because nothing here is a package, and the
-# cache is dropped in the same layer that fills it.
-RUN npm install --no-save --ignore-scripts --no-audit --no-fund \
-  prisma@7.10.0 dotenv@17.4.2 \
-  && npm cache clean --force
+# CLI a developer runs. The manifest is a stub because nothing here is a
+# package, and the store is dropped in the same layer that fills it.
+RUN echo '{"private":true,"packageManager":"pnpm@11.18.0"}' > package.json \
+  && pnpm add --ignore-scripts prisma@7.10.0 dotenv@17.4.2 \
+  && rm -rf ~/.local/share/pnpm ~/.cache
 
 # `prisma.config.ts` resolves the schema as
 # `join(import.meta.dirname, 'libs', 'database')`, so the two have to keep this
@@ -120,7 +110,8 @@ RUN npm install --no-save --ignore-scripts --no-audit --no-fund \
 COPY --from=builder /workspace/prisma.config.ts ./prisma.config.ts
 COPY --from=builder /workspace/libs/garage/database/prisma ./libs/garage/database/prisma
 
-CMD ["npx", "prisma", "migrate", "deploy"]
+# The binary directly, not `pnpm exec`: corepack would fetch pnpm again at start.
+CMD ["node_modules/.bin/prisma", "migrate", "deploy"]
 
 # ---------------------------------------------------------------------------
 # runner

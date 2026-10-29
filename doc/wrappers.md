@@ -37,7 +37,7 @@ direct import anywhere else would break:
    to hand-written validation that drifts from the contract over time.
 3. **The boundary can be enforced mechanically, not just by review.** `eslint.config.mjs`
    (`no-restricted-imports` + `@nx/enforce-module-boundaries`) checks it on every
-   `npm run lint` run (`--max-warnings=0`) — a reviewer doesn't have to remember the rule,
+   `pnpm lint` run (`--max-warnings=0`) — a reviewer doesn't have to remember the rule,
    the build fails instead.
 
 ## How the ban is enforced
@@ -60,7 +60,7 @@ compares against the wrong path and never matches.
 host two applications (`doc/decision/0310-*`), the wrapper libs are split across
 `libs/shared/` and `libs/garage/`. Collapsing those owner globs to `libs/shared/**` to
 "simplify" the map would hand **every** shared lib **every** package's exception — and
-`npm run lint` would still pass, because the ban and the exception would still be generated
+`pnpm lint` would still pass, because the ban and the exception would still be generated
 from the same data, just from data that is now wrong. That is the "silently does nothing"
 failure in its purest form. Each owner stays the specific directory that owns its package,
 and the way to check it is a probe, not a green lint: put an import of a package a lib does
@@ -185,11 +185,11 @@ parking domain instead of the generic demo schema.
    - that application code **doesn't need to** import the wrapped library directly to use
      the wrapper — not just that the export exists, but a real, running example.
 5. **Verify both the ban and the exception with temporary probe files**, not just that
-   `npm run lint` passes green (`doc/workspace.md` — this trap has already happened three
+   `pnpm lint` passes green (`doc/workspace.md` — this trap has already happened three
    times): one import of the wrapped package inside the new lib (expected: passes), the same
    import from somewhere else (expected: fails with a message that names the correct
    wrapper). Delete the probe files once verified.
-6. `npm run lint && npm run typecheck && npm run test` + `npm run build`, add a section
+6. `pnpm lint && pnpm typecheck && pnpm test` + `pnpm build`, add a section
    here.
 
 ## `libs/shared/form` tests

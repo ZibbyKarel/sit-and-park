@@ -57,7 +57,7 @@ prisma.config.ts  Prisma CLI configuration (schema in libs/garage/database, `.en
 ```
 
 **Nx project names are flat and unprefixed** (`web`, `api`, `contract`, …),
-so `npx nx run web:test` still addresses the parking app's web project
+so `pnpm nx run web:test` still addresses the parking app's web project
 regardless of where its directory sits. That is fine while there is one
 application and becomes ambiguous with two; prefixing them is a separate
 change, deliberately not bundled with the move (decision 0310).
@@ -106,21 +106,21 @@ and if you are adding several, do the scope rename first.
 
 ## Scripts
 
-Everything runs from the repo root via npm. **An unsuffixed script is
+Everything runs from the repo root via pnpm. **An unsuffixed script is
 workspace-wide** — it covers every project of every application, which is what
 CI's `verify` job needs and what "is the tree green" means here. A `:<app>`
 suffix scopes a script to one application.
 
 | command | what it does |
 | --- | --- |
-| `npm run dev:garage` | `serve` + `dev` for that app's `api` and `web` – continuous |
-| `npm run lint` | ESLint across every project (`nx run-many -t lint`), **`--max-warnings=0`** |
-| `npm run typecheck` | `tsc --noEmit` against every project's tsconfigs |
-| `npm run test` | Jest unit tests (`nx run-many -t test`) |
-| `npm run build` | production build of every app |
-| `npm run affected` | `nx affected -t lint,test,build` – only what changed (for CI) |
-| `npm run format` | Prettier write |
-| `npm run format:check` | Prettier check (fails if anything is unformatted) |
+| `pnpm dev:garage` | `serve` + `dev` for that app's `api` and `web` – continuous |
+| `pnpm lint` | ESLint across every project (`nx run-many -t lint`), **`--max-warnings=0`** |
+| `pnpm typecheck` | `tsc --noEmit` against every project's tsconfigs |
+| `pnpm test` | Jest unit tests (`nx run-many -t test`) |
+| `pnpm build` | production build of every app |
+| `pnpm affected` | `nx affected -t lint,test,build` – only what changed (for CI) |
+| `pnpm format` | Prettier write |
+| `pnpm format:check` | Prettier check (fails if anything is unformatted) |
 
 `dev:garage` is the only script that needs scoping today, because serving
 two applications' `api` and `web` at once is never what you want. It selects
@@ -131,24 +131,24 @@ the `app:` tag does not. Every project carries one — `app:garage` or
 `app:shared` — and `nx show projects -p tag:app:garage` is how you ask what
 it covers. Adding `dev:<second-app>` is then one line.
 
-E2e tests aren't part of `npm run test`; they run on demand:
+E2e tests aren't part of `pnpm test`; they run on demand:
 
 ```bash
-npx nx run web-e2e:e2e      # Playwright; starts the dev server itself
-npx nx run api-e2e:e2e      # Jest; starts api:serve itself
+pnpm nx run web-e2e:e2e      # Playwright; starts the dev server itself
+pnpm nx run api-e2e:e2e      # Jest; starts api:serve itself
 ```
 
 Useful individual targets:
 
 ```bash
-npx nx run web:dev          # Next.js dev server
-npx nx run api:serve        # NestJS in watch mode
-npx nx run-many -t lint --skip-nx-cache   # bypass the cache
-npx nx graph                # dependency graph
+pnpm nx run web:dev          # Next.js dev server
+pnpm nx run api:serve        # NestJS in watch mode
+pnpm nx run-many -t lint --skip-nx-cache   # bypass the cache
+pnpm nx graph                # dependency graph
 ```
 
 CI has no pipeline file yet – deliberately. The scripts above are designed so
-a pipeline just has to call them (`npm ci && npm run affected`).
+a pipeline just has to call them (`pnpm install && pnpm affected`).
 
 ---
 
@@ -168,7 +168,7 @@ No project may turn any of these off. When new code hits
 
 Every project has its own `typecheck` target (`nx:run-commands` +
 `tsc --noEmit`). **A new lib must add one too** – otherwise it never becomes
-part of `npm run typecheck`.
+part of `pnpm typecheck`.
 
 ---
 
@@ -282,11 +282,11 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
 
    ```bash
    # a pure TypeScript lib (contract, util, backend service)
-   npx nx g @nx/js:lib libs/garage/shared-types --name=shared-types \
+   pnpm nx g @nx/js:lib libs/garage/shared-types --name=shared-types \
      --unitTestRunner=jest --bundler=none --linter=eslint --useProjectJson
 
    # a React lib (frontend wrappers)
-   npx nx g @nx/react:lib libs/shared/form --name=form \
+   pnpm nx g @nx/react:lib libs/shared/form --name=form \
      --unitTestRunner=jest --bundler=none --linter=eslint --useProjectJson
    ```
 
@@ -314,7 +314,7 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
    }
    ```
 
-4. **Verify**: `npm run lint && npm run typecheck && npm run test`.
+4. **Verify**: `pnpm lint && pnpm typecheck && pnpm test`.
 
 > **Lint fails on warnings too.** `nx.json` adds `--max-warnings=0` to every
 > `lint` target. Without it, `nx run-many` exits 0 even if ESLint printed
@@ -326,6 +326,6 @@ would stop `apps/garage/api` from pulling in Zod through `shared-types` (see
 
 ## Formatting notes
 
-`npm run format` runs over the source code, not over `doc/` – hand-written
+`pnpm format` runs over the source code, not over `doc/` – hand-written
 documents and the design export are in `.prettierignore`, so Prettier doesn't
 reflow tables and text that aren't its to format.
