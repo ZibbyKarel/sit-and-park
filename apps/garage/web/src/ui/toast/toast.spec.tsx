@@ -35,9 +35,7 @@ describe('Toast', () => {
           <button type="button" onClick={() => setShown(true)}>
             Uložit
           </button>
-          <ToastRegion label="Oznámení">
-            {shown ? <Toast onDismiss={() => setShown(false)}>Uloženo.</Toast> : null}
-          </ToastRegion>
+          <ToastRegion label="Oznámení">{shown ? <Toast>Uloženo.</Toast> : null}</ToastRegion>
         </div>
       );
     }
@@ -52,51 +50,8 @@ describe('Toast', () => {
     expect(trigger).toHaveFocus();
   });
 
-  it('renders a dismiss button only when it can be dismissed', async () => {
-    const user = userEvent.setup();
-    const onDismiss = jest.fn();
-
-    const { rerender } = render(<Toast>Uloženo.</Toast>);
-    expect(screen.queryByRole('button')).not.toBeInTheDocument();
-
-    rerender(<Toast onDismiss={onDismiss}>Uloženo.</Toast>);
-    await user.click(screen.getByRole('button', { name: 'Zavřít' }));
-
-    expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
-
-  it('gives the dismiss button a spoken name, and takes a Czech override', () => {
-    render(
-      <Toast onDismiss={jest.fn()} dismissLabel="Skrýt oznámení">
-        Uloženo.
-      </Toast>
-    );
-
-    expect(screen.getByRole('button', { name: 'Skrýt oznámení' })).toBeInTheDocument();
-  });
-
-  it('reaches the dismiss button by keyboard and fires it with Enter', async () => {
-    const user = userEvent.setup();
-    const onDismiss = jest.fn();
-    render(<Toast onDismiss={onDismiss}>Uloženo.</Toast>);
-
-    await user.tab();
-    expect(screen.getByRole('button', { name: 'Zavřít' })).toHaveFocus();
-
-    await user.keyboard('{Enter}');
-    expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
-
-  it('shows the title and message as one announcement', () => {
-    render(<Toast title="Uloženo">Změny se projeví zítra.</Toast>);
-
-    const toast = screen.getByRole('status');
-    expect(toast).toHaveTextContent('Uloženo');
-    expect(toast).toHaveTextContent('Změny se projeví zítra.');
-  });
-
   it('hides its tone glyph from assistive technology', () => {
-    render(<Toast title="Pozor">Něco se stalo.</Toast>);
+    render(<Toast>Něco se stalo.</Toast>);
 
     // The glyph repeats what the tone already says, so it has no name of its own.
     expect(screen.getByRole('status')).toHaveAccessibleName('');

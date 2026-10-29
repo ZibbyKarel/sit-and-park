@@ -1,6 +1,6 @@
 'use client';
 
-import { Icon, IconButton, Strong, Text } from '@shoptet/ui';
+import { Icon, Text } from '@shoptet/ui';
 import type { IconName } from '@shoptet/ui';
 import type { ReactNode } from 'react';
 
@@ -17,16 +17,10 @@ const TONE_ICON: Record<ToastTone, IconName> = {
 };
 
 export interface ToastProps {
-  /** Bold first line. Optional — a one-line notice needs only `children`. */
-  title?: ReactNode | undefined;
   /** The message itself. */
   children: ReactNode;
   /** Colour and, for `danger`, the announcement urgency. Defaults to `info`. */
   tone?: ToastTone | undefined;
-  /** Shows a dismiss button that calls this. */
-  onDismiss?: (() => void) | undefined;
-  /** Accessible name of the dismiss button. Defaults to `'Zavřít'`. */
-  dismissLabel?: string | undefined;
 }
 
 /**
@@ -35,16 +29,10 @@ export interface ToastProps {
  * focus. Presentational on purpose — when it appears and for how long is the
  * caller's state (see `ToastProvider`).
  *
- * Built from `Icon`/`IconButton` rather than `SystemMessage`, which hard-codes
+ * Built from `Icon` rather than `SystemMessage`, which hard-codes
  * `role="status"` and would nest a polite region inside the assertive one.
  */
-export function Toast({
-  title,
-  children,
-  tone = 'info',
-  onDismiss,
-  dismissLabel = 'Zavřít',
-}: ToastProps) {
+export function Toast({ children, tone = 'info' }: ToastProps) {
   return (
     <div role={tone === 'danger' ? 'alert' : 'status'} className={styles.root} data-tone={tone}>
       <span aria-hidden="true" className={styles.icon}>
@@ -52,23 +40,8 @@ export function Toast({
       </span>
 
       <div className={styles.body}>
-        {title ? <Strong>{title}</Strong> : null}
         <Text>{children}</Text>
       </div>
-
-      {onDismiss ? (
-        <span className={styles.dismiss}>
-          <IconButton
-            icon="shp-cross"
-            variant="secondary"
-            size="sm"
-            iconSize="sm"
-            ghost
-            aria-label={dismissLabel}
-            onClick={onDismiss}
-          />
-        </span>
-      ) : null}
     </div>
   );
 }
