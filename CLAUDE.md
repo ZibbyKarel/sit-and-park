@@ -90,7 +90,7 @@ Per project and per file:
 pnpm nx run web:test                      # one project
 pnpm nx run web:test -- lot-view          # one file, by name pattern
 pnpm nx run api:build
-pnpm nx serve api                         # continuous, port 3000
+pnpm nx serve api                         # continuous, port 3001
 pnpm nx run web:dev                       # continuous, port 4200 (pinned; see below)
 pnpm nx show project api --json           # what targets a project actually has
 ```
@@ -159,8 +159,8 @@ run that target.
 
 ### Things that are the way they are on purpose
 
-- **Ports.** The API is on 3000, the web app on 4200. `web:dev` is pinned to
-  `--port 4200` because the workspace-root `.env` carries `PORT=3000` (the
+- **Ports.** The API is on 3001, the web app on 4200. `web:dev` is pinned to
+  `--port 4200` because the workspace-root `.env` carries `PORT=3001` (the
   API's) and Nx injects it into every target; `next dev` would otherwise read
   it and collide. `web:start` deliberately still honours `PORT`, for
   containers — do not "fix" it.

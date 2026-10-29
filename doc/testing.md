@@ -119,7 +119,7 @@ Ports, because they are not free choices:
 
 | Port | What |
 | --- | --- |
-| `3000` | the API (`PORT` in `.env`; Nx injects it into every target) |
+| `3001` | the API (`PORT` in `.env`; Nx injects it into every target) |
 | `4200` | the web app — `apps/garage/web/project.json` pins `next dev --port 4200`, because `CORS_ALLOWED_ORIGINS` and the OIDC redirect URI both name it |
 | `5432` | PostgreSQL |
 | `8080` | `mock-oauth2-server` |
@@ -163,7 +163,7 @@ pnpm nx run api-e2e:e2e
 ```
 
 Starts its own API (`dependsOn: ["api:build", "api:serve"]`), waits for the
-port, runs the specs, and then **kills whatever is listening on port 3000** —
+port, runs the specs, and then **kills whatever is listening on port 3001** —
 its `globalTeardown` calls `killPort`. Two consequences worth knowing:
 
 - If you already have `nx run api:serve` up, this target will take it down with
@@ -213,7 +213,7 @@ Everything it needs, it arranges:
      (`doc/decision/0187-*`). The build is a real Nx dependency of `e2e`
      (`apps/garage/web-e2e/project.json`), Nx-cached, about six seconds cold.
 
-   The API is adopted if port 3000 is already answering — Nx has by then
+   The API is adopted if port 3001 is already answering — Nx has by then
    started it. **The web app is not.** `reuseExistingServer` is `false` for it,
    so an occupied 4200 stops the run with *"is already used"* rather than
    letting the suite test whatever is there. It used to go through
@@ -280,10 +280,10 @@ a slot.
 
 ## When it goes wrong
 
-### Before anything else: kill 3000 and 4200
+### Before anything else: kill 3001 and 4200
 
 ```bash
-lsof -ti tcp:3000 tcp:4200 | xargs kill -9
+lsof -ti tcp:3001 tcp:4200 | xargs kill -9
 ```
 
 **This is now enforced rather than remembered, and the paragraphs below are
@@ -344,7 +344,7 @@ The remedy is to start the API yourself, before the suite, with limits that suit
 a machine driving browsers — Playwright will adopt that one:
 
 ```bash
-lsof -ti tcp:3000 | xargs kill -9
+lsof -ti tcp:3001 | xargs kill -9
 THROTTLE_LIMIT=10000 THROTTLE_STRICT_LIMIT=1000 pnpm nx run api:serve
 ```
 
@@ -441,7 +441,7 @@ would tell you which.
 in the git-ignored `.env` at the repo root, which does not travel with a
 worktree.
 
-**Port 3000 goes away in the middle of something.** `nx run api-e2e:e2e`'s
+**Port 3001 goes away in the middle of something.** `nx run api-e2e:e2e`'s
 teardown kills it. See the API end-to-end section above.
 
 ---

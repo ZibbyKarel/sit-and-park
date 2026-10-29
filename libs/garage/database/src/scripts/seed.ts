@@ -44,7 +44,7 @@ import { seedUserUpsertArgs } from '../lib/seed-writes';
  * API's documented development port rather than a second source of truth.
  */
 function apiBaseUrl(): string {
-  return process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3000/api';
+  return process.env['NEXT_PUBLIC_API_URL'] ?? 'http://localhost:3001/api';
 }
 
 async function main(): Promise<void> {

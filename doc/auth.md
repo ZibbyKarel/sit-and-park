@@ -622,7 +622,7 @@ const api = createApiClient({ url: apiRpcUrl(env.NEXT_PUBLIC_API_URL), getAccess
 ```
 
 `apiRpcUrl` — `apps/garage/web/src/api-url.ts` — is not decoration. `NEXT_PUBLIC_API_URL`
-stops at the global prefix (`http://localhost:3000/api`), while the oRPC
+stops at the global prefix (`http://localhost:3001/api`), while the oRPC
 transport is mounted a segment below it (`MeController` is `@Controller('rpc')`),
 and `RPCLink` appends only the procedure's key path to the base it is given.
 Passing the configured URL straight in calls `POST /api/me/get`, which **404s —
