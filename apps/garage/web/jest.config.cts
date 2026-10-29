@@ -69,14 +69,6 @@ const esmOnlyPackages = [
   // Vendored inside `@shoptet/ui/dist/node_modules/.pnpm/`.
   'culori',
   '@github',
-  // `@garage/design-system/compounds` — `DataTable`, reached through the
-  // barrel by anything importing `EmptyState`. Only these four `@tanstack`
-  // packages, never the whole scope: `@tanstack/react-query` ships a `require`
-  // condition and must keep being ignored.
-  '@tanstack/react-table',
-  '@tanstack/table-core',
-  '@tanstack/react-store',
-  '@tanstack/store',
 ];
 
 const createJestConfig = nextJest({

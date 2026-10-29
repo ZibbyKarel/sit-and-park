@@ -23,6 +23,7 @@
     "settings": "Nastavení (SPZ auta)",
     "administration": "Správa",
     "language": "Jazyk",
+    "languageCurrent": "(aktuální)",
     "signOut": "Odhlásit se"
   },
   "sections": {

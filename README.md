@@ -66,7 +66,7 @@ npm run dev:garage  # serve this app's api and web (continuous)
 npm run lint           # every project in the workspace, both applications
 npm run typecheck
 npm test               # unit suites; excludes *.db.spec.ts, which need Postgres
-npm run build          # every app plus Storybook
+npm run build          # every app
 npm run format:check   # add --all to check the whole tree, as CI does
 
 npx nx run api:test-db                     # the database suites (needs Postgres)

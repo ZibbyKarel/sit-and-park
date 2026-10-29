@@ -15,7 +15,7 @@ something new:
 everything here. `doc/implementation-plan.md` is its breakdown into tasks.
 
 This index is generated from the filesystem and accounts for every file under
-`doc/`: 22 topic documents, 203 decision records, and `doc/design/`.
+`doc/`: 21 topic documents, 204 decision records, and `doc/design/`.
 
 ---
 
@@ -31,7 +31,6 @@ This index is generated from the filesystem and accounts for every file under
 | [`bulk-reservation-modal.md`](bulk-reservation-modal.md) | The front end of that allocator — the `Hromadná rezervace` modal in `apps/garage/web/src/lot/`.                                                                                                                                               |
 | [`contract.md`](contract.md)                             | `libs/garage/contract`, the single source of truth for every FE↔BE shape, and how to add a schema, a procedure or an error to it.                                                                                                            |
 | [`database.md`](database.md)                             | The PostgreSQL schema, Prisma 7 setup, migrations, the development seed, and backups.                                                                                                                                                         |
-| [`design-system.md`](design-system.md)                   | All three layers of the one `design-system` package: what a token is, how the CSS is generated, and what a primitive and a compound may and may not know.                                                                                     |
 | [`environment.md`](environment.md)                       | Every environment variable the two apps need, how the local Docker stack is started, and how dev, e2e and production differ (values only, never code).                                                                                        |
 | [`frontend.md`](frontend.md)                             | `apps/garage/web`: the route tree, the single client boundary, provider order, the sign-in flow, the screen states and the `ScreenData<T>` union that selects one, and the `*-view.ts` split between what a screen decides and what it draws. |
 | [`i18n.md`](i18n.md)                                     | `libs/shared/i18n` — the only place allowed to import `next-intl` — the two message catalogs in `apps/garage/web/messages`, how a request's locale is chosen, and the English glossary.                                                       |
@@ -48,19 +47,19 @@ This index is generated from the filesystem and accounts for every file under
 
 ## `doc/design/`
 
-The finished visual design, downloaded locally so it does not depend on a link
-staying alive (`doc/decision/0002-visual-design-source-of-truth`).
+The original visual design, downloaded locally so it does not depend on a link
+staying alive (historical: `@shoptet/ui` is the visual source of truth now, `doc/decision/0318-*`) (`doc/decision/0002-visual-design-source-of-truth`).
 
 | Path                                                    | What it is                                                                                           |
 | ------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | [`design/README.md`](design/README.md)                  | What was exported, from where, and how to read it.                                                   |
 | `design/garage-design.dc.html`                       | The design canvas itself.                                                                            |
-| `design/ds/colors_and_type.css`, `design/ds/support.js` | The source palette and type scale the tokens were derived from.                                      |
+| `design/ds/colors_and_type.css`, `design/ds/support.js` | The source palette and type scale of the retired in-house design system.                                      |
 | `design/ds/fonts/*.otf`                                 | Eight Neue Haas Grotesk faces (`doc/decision/0012-otf-fonts-committed-without-verified-license`).    |
 | `design/screens/*.png`                                  | 14 numbered screen exports plus two canvas overviews — the reference every screen was built against. |
 
 ## Decision records
 
 Indexed in their own directory: [`doc/decision/README.md`](decision/README.md)
-lists all 201 records, one line each, in the same format as the topic-document
+lists all 204 records, one line each, in the same format as the topic-document
 table above.

@@ -1,5 +1,7 @@
 # 0017 – The npm allow-list hangs off the `type:` dimension; `libs/garage/shared-types` gets `layer:foundation`
 
+> Partly superseded by (the design system parts) [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 **Date:** 2026-08-28 · **Status:** accepted · **Resolves:** the Task 3 review, findings S3 and N3
 
 ## What

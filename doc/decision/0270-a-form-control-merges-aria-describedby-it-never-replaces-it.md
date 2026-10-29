@@ -1,5 +1,7 @@
 # 0270 – A form control merges `aria-describedby`; it never replaces it
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `Input`, `Select`, `Checkbox` and `Radio` spread `{...rest}` onto the native

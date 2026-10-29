@@ -11,7 +11,8 @@
  * fields sit under the provider.
  * */
 
-import { SingleSelectField, TextField } from '@shoptet/ui';
+import { SingleSelectField } from '@shoptet/ui';
+import { TextField } from '../../ui/text-field/text-field';
 import { FormField } from '@garage/form';
 import { HALF_HOUR_END_TIMES, HALF_HOUR_START_TIMES, useTranslations } from '@garage/i18n';
 import { formatTimeOfDay } from '../lot-view';
@@ -95,6 +96,7 @@ export function HolderFields({ options, holderId, duration, timedOnly }: HolderF
               // where there is no translator — so the copy is resolved here.
               {...(fieldError === undefined ? {} : { error: t('guestNameRequired') })}
               name={field.name}
+              ref={field.ref}
               value={field.value}
               onChange={(value) => {
                 field.onChange(value);
@@ -177,6 +179,7 @@ export function HolderFields({ options, holderId, duration, timedOnly }: HolderF
             placeholder={hint ?? t('noPlate')}
             {...(fieldError === undefined ? {} : { error: fieldError })}
             name={field.name}
+            ref={field.ref}
             value={field.value}
             onChange={(value) => {
               field.onChange(value);

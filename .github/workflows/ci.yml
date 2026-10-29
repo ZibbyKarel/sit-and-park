@@ -3,8 +3,8 @@
 # Four jobs, run in parallel, each gating something the others structurally
 # cannot see:
 #
-#   verify    formatting, lint, typecheck, the unit suites, both builds and
-#             both Storybooks. No Docker, no database — this is the fast lane.
+#   verify    formatting, lint, typecheck, the unit suites, both builds.
+#             No Docker, no database — this is the fast lane.
 #   database  the eight `*.db.spec.ts` suites, against a real PostgreSQL 17.
 #   e2e       the API over HTTP and the eight browser journeys, against a real
 #             PostgreSQL 17 and a real OIDC issuer.
@@ -76,13 +76,7 @@ jobs:
       # vacuously.
       - run: npx nx format:check --all
 
-      # `build-storybook` is on this list because `npm run build` — what a
-      # developer runs — is `-t build,build-storybook`, and this job ran only
-      # `build`. `plan.md` makes a story mandatory for every primitive and
-      # every compound, so a broken story is a broken deliverable; without it
-      # here, one reaches `main` and the first person to notice is whoever runs
-      # the local script next.
-      - run: npx nx run-many -t lint,typecheck,test,build,build-storybook
+      - run: npx nx run-many -t lint,typecheck,test,build
 
   database:
     name: database suites (api:test-db)

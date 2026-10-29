@@ -1,5 +1,7 @@
 # 0055 – Toast and Tooltip are purely presentational
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 - **`Toast`** is one notification. No queue, no timer, no imperative

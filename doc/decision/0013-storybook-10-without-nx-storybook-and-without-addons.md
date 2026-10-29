@@ -1,5 +1,7 @@
 # 0013 – Storybook 10 configured by hand, without `@nx/storybook` and without addons
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Storybook 10 for `libs/shared/design-system/primitives` is set up **by hand**:

@@ -21,8 +21,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **This workspace is built to host more than one application**, though the
 parking app is currently the only one (a `wishlist` scaffold was removed). `apps/` and `libs/` are
 namespaced by owner: `apps/garage/*` and `libs/garage/*` belong to the
-parking app, `libs/shared/*` holds the four libs a second application also
-consumes (`design-system`, `form`, `i18n`, `api-client`). A lib's namespace
+parking app, `libs/shared/*` holds the three libs a second application also
+consumes (`form`, `i18n`, `api-client`). A lib's namespace
 is decided by **how many applications consume it**, not by how much code it
 holds — `doc/decision/0310-*` states the rule, records why `auth` and
 `shared-types` sit under `garage/` despite looking generic, and names the
@@ -56,7 +56,7 @@ somewhere far away — that is how `prisma.config.ts`, the database suites'
 migrations directory and the e2e build-identity guard each broke once.
 
 **The documentation map is `doc/README.md`**; it indexes every topic document
-and all 192 decision records. `README.md` is the operational runbook.
+and all 204 decision records. `README.md` is the operational runbook.
 
 Before reading a specific topic document or decision record, check its
 index first — `doc/README.md` for topic documents, `doc/decision/README.md`
@@ -79,7 +79,7 @@ npm run dev:garage  # serve,dev for this app's api and web — continuous
 npm run lint           # nx run-many -t lint
 npm run typecheck      # nx run-many -t typecheck
 npm test               # nx run-many -t test
-npm run build          # nx run-many -t build,build-storybook
+npm run build          # nx run-many -t build
 npm run format:check   # nx format:check   (CI adds --all; see below)
 npm run format         # nx format:write
 ```
@@ -181,7 +181,7 @@ run that target.
 ### CI
 
 `.github/workflows/ci.yml` — four jobs: `verify` (format, lint, typecheck,
-test, build, build-storybook), `database` (`api:test-db` against a `postgres:17`
+test, build), `database` (`api:test-db` against a `postgres:17`
 service), `e2e` (`api-e2e:e2e` and `web-e2e:e2e` against a `postgres:17` service
 and a `mock-oauth2-server` container), and `images` (both production images
 build). `doc/decision/0206-ci-runs-the-database-suites-against-a-real-postgres`
@@ -195,20 +195,20 @@ suite, which several config comments had been assuming for a while.
 
 ## Authoritative spec
 
-`plan.md` (in Czech) is the full, binding build spec for this project — a company parking-reservation app (Nx monorepo, Next.js + NestJS, oRPC/Zod contract-first, tokenized design system, realtime via Socket.io, Slack + ICS integrations). Key technology choices (oRPC over ts-rest, Zod v4, Tailwind v4 CSS-first tokens, Auth.js v5 + Okta JWKS validation in NestJS, Prisma 7, mock OIDC server for dev/e2e) were researched and fixed in `plan.md` (§"Klíčová technologická rozhodnutí") — do not swap them without the user's approval. It is intentionally strict about **architecture and the order of work**: each phase (Fáze 0–7, listed in the file) must build and pass its tests before the next phase begins. Read `plan.md` in full before starting or continuing implementation — do not summarize/rebuild its rules from memory, and do not skip ahead in phase order.
+`plan.md` (in Czech) is the full, binding build spec for this project — a company parking-reservation app (Nx monorepo, Next.js + NestJS, oRPC/Zod contract-first, `@shoptet/ui` design system, realtime via Socket.io, Slack + ICS integrations). Key technology choices (oRPC over ts-rest, Zod v4, Auth.js v5 + Okta JWKS validation in NestJS, Prisma 7, mock OIDC server for dev/e2e) were researched and fixed in `plan.md` (§"Klíčová technologická rozhodnutí") — do not swap them without the user's approval (the Tailwind v4 and design-system-first choices were superseded by `doc/decision/0318-*`). It is intentionally strict about **architecture and the order of work**: each phase (Fáze 0–7, listed in the file) must build and pass its tests before the next phase begins. Read `plan.md` in full before starting or continuing implementation — do not summarize/rebuild its rules from memory, and do not skip ahead in phase order.
 
 Non-negotiable architectural rules from `plan.md` that apply to every phase (see the file for full detail):
 
 - **Contract-first**: all FE↔BE data shapes are defined once as Zod schemas in the single `libs/garage/contract` lib — shared entity schemas plus two entry points: `@garage/contract` (API, via oRPC) and `@garage/contract/realtime` (Socket.io events — Zod payload schemas, validated server-side). TS types are always derived (`z.infer`), never hand-duplicated. No endpoint/DTO/event may exist in code before it exists in the contract. Errors are typed contract errors; reservation dates are date-only (`YYYY-MM-DD`) in Europe/Prague.
-- **Design-system-first**: tokens (`libs/shared/design-system/src/tokens`) → primitives (`libs/shared/design-system/src/primitives`) → compounds (`libs/shared/design-system/src/compounds`, e.g. DataTable) → domain-specific composition, which lives only in app feature code. The three layers are directories of one Nx project, `design-system`, with one entry point each. Primitives and compounds each get a Storybook story written alongside them and must stay presentation-only with no domain data; compounds may import primitives, never the reverse — enforced by path-scoped `no-restricted-imports` rules in `libs/shared/design-system/eslint.config.mjs` (`doc/decision/0301-the-design-system-is-one-package-and-the-layer-rule-moved-to-lint-paths.md`).
-- **Mandatory wrapper layers**: app/feature code must never import react-hook-form, TanStack Query/Table, socket.io-client, next-auth, next-intl, or ical-generator directly — always through the corresponding `libs/*` wrapper (table in `plan.md`). ESLint (Nx module boundaries / `no-restricted-imports`) must enforce this. A one-off, non-recurring third-party import elsewhere in app code is acceptable only with a comment explaining why no wrapper was created — but this exception does not apply to the libraries listed above.
+- **UI from `@shoptet/ui`**: UI comes from `@shoptet/ui` (exact pin `0.24.0-beta`, imported directly, no wrapper lib). Compositions it lacks live in `apps/garage/web/src/ui/`, one folder per component, domain-free, styled with colocated CSS Modules (no Tailwind, no Storybook). Server components never import `@shoptet/ui` directly (`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`; this supersedes `plan.md`'s design-system-first rule).
+- **Mandatory wrapper layers**: app/feature code must never import react-hook-form, TanStack Query, socket.io-client, next-auth, next-intl, or ical-generator directly — always through the corresponding `libs/*` wrapper (table in `plan.md`). ESLint (Nx module boundaries / `no-restricted-imports`) must enforce this. A one-off, non-recurring third-party import elsewhere in app code is acceptable only with a comment explaining why no wrapper was created — but this exception does not apply to the libraries listed above.
 - Validation is Zod-only; `class-validator`/`class-transformer` are not used in NestJS.
 - No Sentry/metrics/APM/alerting (next phase), no Slack slash commands or interactive Block Kit — Slack integration is outbound `chat.postMessage` notifications only. Note: structured logging (nestjs-pino), health endpoints and graceful shutdown are baseline hygiene required by `plan.md` (§"Provozní základ") and are **not** covered by the no-monitoring rule.
 - Single-instance deployment is the stated target: no Redis/BullMQ/message brokers in the MVP — build the documented abstractions (`LockService`, IoAdapter) and leave the upgrade paths described in `plan.md`.
 
 ## Visual design source of truth
 
-A finished visual design exists at the Claude Design link in `plan.md` (§"Vizuální design – zdroj pravdy"). Try to open it before inventing token/visual values for the design system (Fáze 2–3); if it's inaccessible, stop at the start of Fáze 2 and ask the user for an exported version rather than guessing, per the fallback procedure described there.
+`@shoptet/ui` is the visual source of truth. The Claude Design export linked from `plan.md` (§"Vizuální design – zdroj pravdy") and kept under `doc/design/` is historical: it is no longer the reference for tokens or components, so do not reintroduce its values.
 
 ## Working style expected in this repo
 

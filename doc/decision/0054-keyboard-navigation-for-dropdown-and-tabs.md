@@ -1,5 +1,7 @@
 # 0054 – Keyboard navigation for Dropdown and Tabs
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Both components run on a **roving tabindex** (exactly one element of the widget

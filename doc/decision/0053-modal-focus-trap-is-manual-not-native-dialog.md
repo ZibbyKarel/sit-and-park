@@ -1,5 +1,7 @@
 # 0053 – The modal's focus trap is manual, not a native `<dialog>`
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 > Escape handling and the trap's relationship to layers above it were changed
 > after this record was written; the current behaviour is in
 > `doc/decision/0056-escape-goes-to-the-innermost-open-layer.md`, and the

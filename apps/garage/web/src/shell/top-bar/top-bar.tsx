@@ -22,6 +22,7 @@ import type { UserRole } from '@garage/contract';
 import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@garage/i18n';
 import NextLink from 'next/link';
 import { ADMIN_ROUTE, LOT_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import { Brand } from '../brand';
 import styles from './top-bar.module.css';
 
@@ -141,6 +142,7 @@ export function TopBar({
                 {candidate === locale ? (
                   <span data-active="true">
                     <Icon icon="shp-checkmark" size="sm" />
+                    <VisuallyHidden> {t('languageCurrent')}</VisuallyHidden>
                   </span>
                 ) : null}
               </span>

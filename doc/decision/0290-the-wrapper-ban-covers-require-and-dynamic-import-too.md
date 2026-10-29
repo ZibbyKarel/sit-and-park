@@ -1,5 +1,7 @@
 # 0290 – The wrapper ban covers `require()` and dynamic `import()` too
 
+> Partly superseded by (the design system parts) [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 `eslint.config.mjs` gains `restrictWrappedLibrariesDynamically()`, a

@@ -1,5 +1,7 @@
 # 0012 – An extra focus ring beyond the design, and native elements in the primitives
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Two accessibility decisions for the `libs/shared/design-system/primitives` layer:

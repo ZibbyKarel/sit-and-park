@@ -35,6 +35,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Modal, SystemMessage } from '@shoptet/ui';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
+import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import type { ConfirmBulkOutput, PreviewBulkOutput } from '@garage/contract';
 import { FormProvider, useAppForm } from '@garage/form';
 import { useApi } from '../../shell/api-provider/api-provider';
@@ -145,6 +146,8 @@ function BulkReservationModalContent({
   holderError,
 }: BulkReservationModalProps) {
   const t = useTranslations('bulk');
+  // Every step below, `SchedulePreviewModal` included, is one modal at a time.
+  useEscapeToClose(open, onClose);
   const f = useDateFormatters();
   const api = useApi();
   const queryClient = useQueryClient();

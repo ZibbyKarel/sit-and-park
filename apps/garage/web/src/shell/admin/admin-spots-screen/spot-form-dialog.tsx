@@ -3,7 +3,8 @@
 import * as z from 'zod';
 import type { ParkingSpot } from '@garage/contract';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
-import { Button, CheckboxField, Modal, SingleSelectField, Stack, TextField } from '@shoptet/ui';
+import { Button, CheckboxField, Modal, SingleSelectField, Stack } from '@shoptet/ui';
+import { TextField } from '../../../ui/text-field/text-field';
 import { Toast } from '../../../ui/toast/toast';
 import { PARKING_GROUPS, useTranslations } from '@garage/i18n';
 
@@ -71,6 +72,7 @@ export function SpotFormDialog({
                   label={t('spotsLabelField')}
                   {...(fieldError ? { error: t('spotsLabelRequired') } : {})}
                   name={field.name}
+                  ref={field.ref}
                   value={field.value}
                   onChange={field.onChange}
                   onBlur={field.onBlur}

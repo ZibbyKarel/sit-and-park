@@ -23,6 +23,7 @@
     "settings": "Settings (car license plate)",
     "administration": "Administration",
     "language": "Language",
+    "languageCurrent": "(current)",
     "signOut": "Sign out"
   },
   "sections": {

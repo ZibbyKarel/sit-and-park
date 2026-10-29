@@ -1,5 +1,7 @@
 # 0052 – Overlay tokens and one layering scale
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 A new token module, `libs/shared/design-system/tokens/src/lib/overlays.ts`, and the

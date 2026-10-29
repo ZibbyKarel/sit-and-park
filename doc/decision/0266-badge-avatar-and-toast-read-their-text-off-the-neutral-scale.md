@@ -1,5 +1,7 @@
 # 0266 – Tinted surfaces read their text off the neutral scale; the tint carries the tone
 
+> Superseded by [0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md).
+
 ## What
 
 Four colour pairings in `libs/shared/design-system/primitives` changed. In each, a

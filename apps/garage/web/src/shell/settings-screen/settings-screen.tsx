@@ -22,9 +22,11 @@ import * as z from 'zod';
 import type { MyProfile, ParkingSpot, UpdateMySettingsInput } from '@garage/contract';
 import { toContractError } from '@garage/api-client';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
-import { Button, Modal, SingleSelectField, Stack, Text, TextField } from '@shoptet/ui';
+import { Button, Modal, SingleSelectField, Stack, Text } from '@shoptet/ui';
+import { TextField } from '../../ui/text-field/text-field';
 import { useTranslations } from '@garage/i18n';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
+import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import { useNotify } from '../notifications/toast-provider';
 import { ScreenError, ScreenLoading } from '../screen-state/screen-state';
 import { NO_PREFERRED_SPOT, shouldClearPreferredSpot, toIcsFeedView } from './settings-view';
@@ -273,24 +275,8 @@ export function SettingsScreen({
     }
   }
 
-  // The design draws no × in the corner (`doc/decision/0150-*`) and a click on
-  // the scrim must not throw unsaved edits away, so the modal is not
-  // dismissable by itself — `canBeDismissed` is all-or-nothing and would take
-  // Escape with it. Escape is handled here instead, but not while the confirm
-  // dialog is open: that one handles its own. Open select popovers stop the
-  // event before it reaches the document.
-  useEffect(() => {
-    if (confirmOpen) {
-      return;
-    }
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        onClose();
-      }
-    };
-    document.addEventListener('keydown', onKeyDown);
-    return () => document.removeEventListener('keydown', onKeyDown);
-  }, [confirmOpen, onClose]);
+  // Not while the confirm dialog is open: that one handles its own Escape.
+  useEscapeToClose(!confirmOpen, onClose);
 
   return (
     <>
@@ -314,6 +300,7 @@ export function SettingsScreen({
                         <TextField
                           label={t('licensePlateLabel')}
                           name={field.name}
+                          ref={field.ref}
                           value={field.value}
                           onChange={field.onChange}
                           onBlur={field.onBlur}
