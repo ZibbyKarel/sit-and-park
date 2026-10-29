@@ -1,9 +1,11 @@
 import type { ReactNode } from 'react';
 import type { Metadata } from 'next';
+import { cookies } from 'next/headers';
 import { auth } from '../auth';
 import { apiOriginOrEmpty } from '../api-url';
 import { loadMessages } from '../i18n/load-messages';
 import { resolveRequestLocale } from '../i18n/resolve-locale';
+import { BRAND_CLASS, DARK_CLASS, THEME_COOKIE } from '../theme/theme';
 import { Providers } from './providers';
 import type csMessages from '../../messages/cs.json';
 import '@shoptet/ui/index.css';
@@ -54,9 +56,20 @@ export default async function RootLayout({ children }: { readonly children: Reac
   const locale = await resolveRequestLocale();
   const messages = await loadMessages(locale);
 
+  const theme = (await cookies()).get(THEME_COOKIE)?.value;
+  const dark = theme === 'dark';
+
   return (
     <html lang={locale}>
-      <body>
+      <body className={dark ? `${BRAND_CLASS} ${DARK_CLASS}` : BRAND_CLASS}>
+        {/* No saved choice yet: follow the OS. Runs before the content below paints, so no flash. */}
+        {theme ? null : (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `if(matchMedia('(prefers-color-scheme: dark)').matches)document.body.classList.add('${DARK_CLASS}')`,
+            }}
+          />
+        )}
         <Providers
           session={session}
           apiUrl={apiUrl}

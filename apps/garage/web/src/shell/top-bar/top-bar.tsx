@@ -52,6 +52,9 @@ export interface TopBarProps {
   readonly locale: Locale;
   /** Called with the locale the user picked. Never called for the active one. */
   readonly onLocaleChange: (locale: Locale) => void;
+  /** Whether dark mode is on, so the menu can mark it. */
+  readonly dark: boolean;
+  readonly onThemeToggle: () => void;
 }
 
 export function TopBar({
@@ -62,6 +65,8 @@ export function TopBar({
   onSignOut,
   locale,
   onLocaleChange,
+  dark,
+  onThemeToggle,
 }: TopBarProps) {
   const t = useTranslations('nav');
   const isAdmin = role === 'ADMIN';
@@ -148,6 +153,18 @@ export function TopBar({
               </span>
             </Menu.Item>
           ))}
+          <Menu.Divider />
+          <Menu.Item onAction={onThemeToggle}>
+            <span className={styles.entry}>
+              {t('darkMode')}
+              {dark ? (
+                <span data-active="true">
+                  <Icon icon="shp-checkmark" size="sm" />
+                  <VisuallyHidden> {t('darkModeOn')}</VisuallyHidden>
+                </span>
+              ) : null}
+            </span>
+          </Menu.Item>
           <Menu.Divider />
           <Menu.Item destructive onAction={() => onSelect(MENU_SIGN_OUT)}>
             {t('signOut')}

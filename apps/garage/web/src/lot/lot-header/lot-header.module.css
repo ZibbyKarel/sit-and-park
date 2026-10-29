@@ -18,10 +18,6 @@
   display: flex;
   align-items: center;
   gap: var(--spacing-xs);
-  padding: var(--spacing-xs);
-  background: rgb(var(--background--neutral-base-default--light));
-  border: 1px solid rgb(var(--border--neutral-low-default--light));
-  border-radius: 9999px;
 }
 
 .arrow {

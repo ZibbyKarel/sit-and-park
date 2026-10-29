@@ -24,6 +24,8 @@
     "administration": "Správa",
     "language": "Jazyk",
     "languageCurrent": "(aktuální)",
+    "darkMode": "Tmavý režim",
+    "darkModeOn": "(zapnuto)",
     "signOut": "Odhlásit se"
   },
   "sections": {

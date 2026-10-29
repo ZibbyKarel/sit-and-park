@@ -20,10 +20,14 @@
   --lot-radius-sm: 12px;
 }
 
-/* Light theme only: the design defines one appearance. */
+/* Light by default; `body.theme-dark` (see `src/theme/theme.ts`) flips it. */
 html {
   -webkit-text-size-adjust: 100%;
   color-scheme: light;
+}
+
+html:has(body.theme-dark) {
+  color-scheme: dark;
 }
 
 body {

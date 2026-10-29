@@ -24,6 +24,8 @@
     "administration": "Administration",
     "language": "Language",
     "languageCurrent": "(current)",
+    "darkMode": "Dark mode",
+    "darkModeOn": "(on)",
     "signOut": "Sign out"
   },
   "sections": {

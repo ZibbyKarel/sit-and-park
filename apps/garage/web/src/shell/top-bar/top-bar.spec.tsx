@@ -35,6 +35,8 @@ function renderTopBar(
         onSignOut={onSignOut}
         locale={overrides.locale ?? 'cs'}
         onLocaleChange={onLocaleChange}
+        dark={false}
+        onThemeToggle={jest.fn()}
       />
     </IntlProvider>
   );

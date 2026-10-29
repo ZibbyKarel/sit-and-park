@@ -35,6 +35,7 @@ import { useRouter } from 'next/navigation';
 import { signOut, useRequireAuth } from '@garage/auth/client';
 import { DEFAULT_LOCALE, isLocale, useLocale } from '@garage/i18n';
 import { LOGIN_ROUTE } from '../routes';
+import { useThemeSwitch } from '../theme/use-theme-switch';
 import { TopBar } from './top-bar/top-bar';
 import { useLocaleSwitch } from './top-bar/use-locale-switch';
 import { useCurrentUser } from './use-current-user';
@@ -52,6 +53,7 @@ export function AppTopBar() {
   const contextLocale = useLocale();
   const locale = isLocale(contextLocale) ? contextLocale : DEFAULT_LOCALE;
   const switchLocale = useLocaleSwitch();
+  const { dark, toggle: toggleTheme } = useThemeSwitch();
 
   // The profile is authoritative once it arrives; until then the session's own
   // claims keep the bar from rendering an empty pill. Both can be absent on the
@@ -69,6 +71,8 @@ export function AppTopBar() {
       onSignOut={() => void signOut({ redirectTo: LOGIN_ROUTE })}
       locale={locale}
       onLocaleChange={switchLocale}
+      dark={dark}
+      onThemeToggle={toggleTheme}
     />
   );
 }
