@@ -121,7 +121,7 @@
     "axios": "^1.6.0",
     "cron": "^4.4.0",
     "dotenv": "^17.4.2",
-    "express": "^5.2.1",
+    "express": "^5.3.0",
     "helmet": "^8.3.0",
     "ical-generator": "11.1.1",
     "jsonwebtoken": "^9.0.3",
