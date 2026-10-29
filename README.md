@@ -21,7 +21,7 @@ cp .env.example apps/garage/web/.env         # Next.js reads env files from its 
 docker compose --profile dev up -d    # PostgreSQL 17, mock OIDC issuer, adminer
 pnpm exec prisma migrate deploy
 pnpm exec prisma db seed                    # development fixture: 9 spots, 4 users
-pnpm dev:garage                 # api on :3000, web on :4200
+pnpm dev:garage                 # api on :3001, web on :4200
 ```
 
 Then open <http://localhost:4200> and sign in — see **How to log in on dev**,
@@ -30,7 +30,7 @@ below.
 |             |                                                                                                                         |
 | ----------- | ----------------------------------------------------------------------------------------------------------------------- |
 | web         | <http://localhost:4200>                                                                                                 |
-| API         | <http://localhost:3000/api> — oRPC at `/api/rpc/…`, probes at `/health/live` and `/health/ready` (**not** under `/api`) |
+| API         | <http://localhost:3001/api> — oRPC at `/api/rpc/…`, probes at `/health/live` and `/health/ready` (**not** under `/api`) |
 | adminer     | <http://localhost:8081>                                                                                                 |
 | OIDC issuer | <http://localhost:8080/default>                                                                                         |
 

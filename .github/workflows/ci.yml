@@ -198,7 +198,7 @@ jobs:
     # that exist for the length of one job.
     env:
       NODE_ENV: development
-      PORT: '3000'
+      PORT: '3001'
       DATABASE_URL: postgresql://garage:garage_ci@localhost:5432/garage
       AUTH_OKTA_ISSUER: http://localhost:8080/default
       AUTH_OKTA_AUDIENCE: default
@@ -206,7 +206,7 @@ jobs:
       # `info` locally; `warn` here, because the API logs one line per request
       # and the browser suite makes several hundred.
       LOG_LEVEL: warn
-      NEXT_PUBLIC_API_URL: http://localhost:3000/api
+      NEXT_PUBLIC_API_URL: http://localhost:3001/api
       AUTH_SECRET: ci-e2e-secret-not-a-real-secret-0123456789
       AUTH_OKTA_CLIENT_ID: garage-web-dev
       AUTH_OKTA_CLIENT_SECRET: garage-web-dev-secret
@@ -254,7 +254,7 @@ jobs:
           exit 1
 
       # In this order, and in separate steps, because `api-e2e`'s teardown
-      # kills whatever holds port 3000 and `web-e2e` then has Nx start its own
+      # kills whatever holds port 3001 and `web-e2e` then has Nx start its own
       # API. Neither carries `continue-on-error`: a red journey here is a red
       # build, which is the whole point of the job.
       - run: pnpm nx run api-e2e:e2e

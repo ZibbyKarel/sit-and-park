@@ -31,7 +31,7 @@
 # Interpolation comes from `.env` by default and from `--env-file` when given
 # (`docker compose config` prints what it resolved). The two are different
 # files because they describe two different topologies: on the host the API is
-# at `localhost:3000` and Postgres at `localhost:5432`; inside the network they
+# at `localhost:3001` and Postgres at `localhost:5432`; inside the network they
 # are at `garage-api:3000` and `postgres:5432`. Copy `.env.docker.example`
 # to `.env.docker` — both are git-ignored where they hold real values, and no
 # secret is ever written into this file or into an image.
@@ -220,7 +220,7 @@ services:
       - SLACK_RETRY_ATTEMPTS
       - SLACK_RETRY_BASE_DELAY_MS
     ports:
-      - '3000:3000'
+      - '3001:3000'
     depends_on:
       postgres:
         condition: service_healthy

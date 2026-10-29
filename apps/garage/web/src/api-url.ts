@@ -2,7 +2,7 @@
  * The three URLs the browser and the server derive from one env variable.
  *
  * `NEXT_PUBLIC_API_URL` is the API's **base URL, global prefix included**
- * (`http://localhost:3000/api`, see `doc/environment.md`). It is not itself
+ * (`http://localhost:3001/api`, see `doc/environment.md`). It is not itself
  * any of the three endpoints the app talks to: the RPC transport sits one
  * segment below it, and the readiness probe and the websocket sit outside the
  * prefix entirely. All three are derived here rather than configured
