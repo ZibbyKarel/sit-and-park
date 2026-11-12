@@ -1,0 +1,122 @@
+.root {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs, 4px);
+}
+
+.viewport {
+  position: relative;
+  width: 100%;
+  max-height: 70vh;
+  overflow: hidden;
+  background-color: rgb(var(--background--neutral-low-default--light));
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-8);
+}
+
+.svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  /*
+   * One-finger drag pans the plan, so vertical page scroll cannot start on it
+   * (and the browser must not hijack pinch). The plan is a short, wide strip,
+   * so on a phone it covers little of the page; the rest of the page still scrolls.
+   */
+  touch-action: none;
+  cursor: grab;
+}
+.svg[data-dragging] {
+  cursor: grabbing;
+}
+
+.transformed {
+  transition: transform 120ms ease-out;
+}
+.svg[data-dragging] .transformed {
+  transition: none;
+}
+
+.shape {
+  cursor: pointer;
+  outline: none;
+}
+.shape rect {
+  stroke: rgb(var(--border--neutral-high-default--light, 100 100 100));
+  stroke-width: 1px;
+  vector-effect: non-scaling-stroke;
+  transition: opacity 120ms ease-out;
+}
+.shape[data-outlined] rect {
+  stroke-width: 2.5px;
+}
+.shape[aria-pressed='true'] rect {
+  stroke: rgb(var(--foreground--neutral-full-default--light));
+  stroke-width: 3.5px;
+}
+.shape:focus-visible rect {
+  stroke: rgb(var(--border--controls-medium-selected--light));
+  stroke-width: 4px;
+}
+.shape[aria-disabled='true'] {
+  cursor: default;
+}
+.shape[data-dimmed] rect,
+.shape[data-dimmed] text {
+  opacity: 0.2;
+}
+
+.label {
+  display: none;
+  fill: rgb(var(--foreground--neutral-full-default--light));
+  font-weight: 700;
+  text-anchor: middle;
+  dominant-baseline: central;
+  pointer-events: none;
+}
+/* Labels appear once a shape is big enough on screen to hold them. */
+.svg[data-labels] .label {
+  display: block;
+}
+
+.controls {
+  position: absolute;
+  top: var(--spacing-xs, 4px);
+  right: var(--spacing-xs, 4px);
+  display: flex;
+  gap: var(--spacing-xs, 4px);
+}
+
+.button {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 var(--spacing-md, 12px);
+  font: inherit;
+  font-weight: 700;
+  cursor: pointer;
+  color: rgb(var(--foreground--neutral-full-default--light));
+  background-color: rgb(var(--background--neutral-base-default--light));
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-8);
+}
+.button:hover {
+  border-color: rgb(var(--border--neutral-full-hovered--light));
+}
+.button:focus-visible {
+  outline: 2px solid rgb(var(--border--controls-medium-selected--light));
+  outline-offset: 2px;
+}
+
+.hint {
+  margin: 0;
+  font-size: 12px;
+  color: rgb(var(--foreground--neutral-high-default--light));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .transformed,
+  .shape rect {
+    transition: none;
+  }
+}
