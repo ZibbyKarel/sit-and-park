@@ -9,14 +9,22 @@ import { idSchema } from '../schemas/primitives';
 import { authed, contractErrors, noInputSchema } from './builder';
 
 /**
- * The caller's own record, `icsToken` included.
+ * The caller's own record, `icsToken` included, plus the three desk facts the
+ * shell needs before it renders anything (hive, permanent desk, hive owner).
  *
  * That is safe precisely because it is the caller's own — the settings screen
  * has to render the feed URL, and it builds it with `buildIcsFeedUrl` from
  * `./ics`. Other people's users are exposed through `userSummarySchema`
  * (three fields) or `adminUserSchema` (everything but the token).
  */
-export const myProfileSchema = userSchema;
+export const myProfileSchema = userSchema.extend({
+  /** The caller's hive; `null` = none. A user is in at most one. */
+  hiveId: idSchema.nullable(),
+  /** The desk the caller holds permanently; `null` = none. */
+  permanentDeskId: idSchema.nullable(),
+  /** Whether the caller owns at least one hive (decides its approval requests). */
+  ownsHive: z.boolean(),
+});
 export type MyProfile = z.infer<typeof myProfileSchema>;
 
 export const getMyProfileContract = authed.input(noInputSchema).output(myProfileSchema);

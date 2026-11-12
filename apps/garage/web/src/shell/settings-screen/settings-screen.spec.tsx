@@ -60,6 +60,13 @@ const PROFILE: MyProfile = {
   active: true,
   icsToken: 'ics-token-abc',
   preferredParkingSpotId: 'spot-1',
+  officeId: 'office-1',
+  hibobId: null,
+  manualAccount: false,
+  deactivatedAt: null,
+  hiveId: null,
+  permanentDeskId: null,
+  ownsHive: false,
   createdAt: '2026-08-28T09:15:00.000Z',
   updatedAt: '2026-08-28T09:15:00.000Z',
 };
@@ -71,6 +78,7 @@ const SPOT_A: ParkingSpot = {
   active: true,
   hidden: false,
   evCharger: false,
+  officeId: 'office-1',
   createdAt: '2026-08-28T09:15:00.000Z',
   updatedAt: '2026-08-28T09:15:00.000Z',
 };

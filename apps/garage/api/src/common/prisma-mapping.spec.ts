@@ -33,6 +33,10 @@ function userRow(overrides: Record<string, unknown> = {}) {
     active: true,
     icsToken: 'secret-token',
     preferredParkingSpotId: null,
+    officeId: 'office-1',
+    hibobId: null,
+    manualAccount: false,
+    deactivatedAt: null as Date | null,
     createdAt: EPOCH,
     updatedAt: EPOCH,
     ...overrides,
@@ -88,6 +92,7 @@ describe('entity mapping', () => {
         active: true,
         hidden: true,
         evCharger: true,
+        officeId: 'office-1',
         createdAt: EPOCH,
         updatedAt: EPOCH,
       })
@@ -98,6 +103,7 @@ describe('entity mapping', () => {
       active: true,
       hidden: true,
       evCharger: true,
+      officeId: 'office-1',
       createdAt: '2026-01-01T00:00:00.000Z',
       updatedAt: '2026-01-01T00:00:00.000Z',
     });
@@ -105,6 +111,16 @@ describe('entity mapping', () => {
 
   it('keeps the ICS token on the caller’s own profile', () => {
     expect(toContractUser(userRow())).toMatchObject({ icsToken: 'secret-token' });
+  });
+
+  it('carries the office and employee-sync columns, deactivatedAt as an ISO string', () => {
+    expect(toContractUser(userRow({ deactivatedAt: EPOCH, hibobId: 'hb-1' }))).toMatchObject({
+      officeId: 'office-1',
+      hibobId: 'hb-1',
+      manualAccount: false,
+      deactivatedAt: '2026-01-01T00:00:00.000Z',
+    });
+    expect(toContractUser(userRow()).deactivatedAt).toBeNull();
   });
 
   it('removes the ICS token from the admin projection, and nothing else', () => {

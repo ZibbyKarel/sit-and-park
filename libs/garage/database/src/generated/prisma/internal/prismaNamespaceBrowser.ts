@@ -58,7 +58,18 @@ export const ModelName = {
   WaitlistEntry: 'WaitlistEntry',
   AuditLog: 'AuditLog',
   ReservationWindowSettings: 'ReservationWindowSettings',
-  ReservationLimitSettings: 'ReservationLimitSettings'
+  ReservationLimitSettings: 'ReservationLimitSettings',
+  Office: 'Office',
+  Zone: 'Zone',
+  Hive: 'Hive',
+  HiveMembership: 'HiveMembership',
+  Desk: 'Desk',
+  DeskGrant: 'DeskGrant',
+  DeskReservation: 'DeskReservation',
+  DeskRelease: 'DeskRelease',
+  DeskApprovalRequest: 'DeskApprovalRequest',
+  EmployeeSyncRun: 'EmployeeSyncRun',
+  EmployeeSyncSettings: 'EmployeeSyncSettings'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -87,6 +98,10 @@ export const UserScalarFieldEnum = {
   active: 'active',
   icsToken: 'icsToken',
   preferredParkingSpotId: 'preferredParkingSpotId',
+  officeId: 'officeId',
+  hibobId: 'hibobId',
+  manualAccount: 'manualAccount',
+  deactivatedAt: 'deactivatedAt',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -101,6 +116,7 @@ export const ParkingSpotScalarFieldEnum = {
   active: 'active',
   hidden: 'hidden',
   evCharger: 'evCharger',
+  officeId: 'officeId',
   createdAt: 'createdAt',
   updatedAt: 'updatedAt'
 } as const
@@ -176,6 +192,139 @@ export const ReservationLimitSettingsScalarFieldEnum = {
 } as const
 
 export type ReservationLimitSettingsScalarFieldEnum = (typeof ReservationLimitSettingsScalarFieldEnum)[keyof typeof ReservationLimitSettingsScalarFieldEnum]
+
+
+export const OfficeScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  active: 'active',
+  floorPlan: 'floorPlan',
+  floorPlanWidth: 'floorPlanWidth',
+  floorPlanHeight: 'floorPlanHeight',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type OfficeScalarFieldEnum = (typeof OfficeScalarFieldEnum)[keyof typeof OfficeScalarFieldEnum]
+
+
+export const ZoneScalarFieldEnum = {
+  id: 'id',
+  officeId: 'officeId',
+  key: 'key',
+  name: 'name'
+} as const
+
+export type ZoneScalarFieldEnum = (typeof ZoneScalarFieldEnum)[keyof typeof ZoneScalarFieldEnum]
+
+
+export const HiveScalarFieldEnum = {
+  id: 'id',
+  name: 'name',
+  color: 'color',
+  ownerId: 'ownerId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type HiveScalarFieldEnum = (typeof HiveScalarFieldEnum)[keyof typeof HiveScalarFieldEnum]
+
+
+export const HiveMembershipScalarFieldEnum = {
+  id: 'id',
+  hiveId: 'hiveId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type HiveMembershipScalarFieldEnum = (typeof HiveMembershipScalarFieldEnum)[keyof typeof HiveMembershipScalarFieldEnum]
+
+
+export const DeskScalarFieldEnum = {
+  id: 'id',
+  officeId: 'officeId',
+  zoneId: 'zoneId',
+  code: 'code',
+  active: 'active',
+  hiveId: 'hiveId',
+  permanentAssigneeId: 'permanentAssigneeId',
+  x: 'x',
+  y: 'y',
+  width: 'width',
+  height: 'height',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type DeskScalarFieldEnum = (typeof DeskScalarFieldEnum)[keyof typeof DeskScalarFieldEnum]
+
+
+export const DeskGrantScalarFieldEnum = {
+  id: 'id',
+  deskId: 'deskId',
+  userId: 'userId',
+  createdAt: 'createdAt'
+} as const
+
+export type DeskGrantScalarFieldEnum = (typeof DeskGrantScalarFieldEnum)[keyof typeof DeskGrantScalarFieldEnum]
+
+
+export const DeskReservationScalarFieldEnum = {
+  id: 'id',
+  deskId: 'deskId',
+  userId: 'userId',
+  date: 'date',
+  createdAt: 'createdAt'
+} as const
+
+export type DeskReservationScalarFieldEnum = (typeof DeskReservationScalarFieldEnum)[keyof typeof DeskReservationScalarFieldEnum]
+
+
+export const DeskReleaseScalarFieldEnum = {
+  id: 'id',
+  deskId: 'deskId',
+  date: 'date',
+  releasedById: 'releasedById',
+  createdAt: 'createdAt'
+} as const
+
+export type DeskReleaseScalarFieldEnum = (typeof DeskReleaseScalarFieldEnum)[keyof typeof DeskReleaseScalarFieldEnum]
+
+
+export const DeskApprovalRequestScalarFieldEnum = {
+  id: 'id',
+  deskId: 'deskId',
+  userId: 'userId',
+  date: 'date',
+  status: 'status',
+  decidedById: 'decidedById',
+  decidedAt: 'decidedAt',
+  createdAt: 'createdAt'
+} as const
+
+export type DeskApprovalRequestScalarFieldEnum = (typeof DeskApprovalRequestScalarFieldEnum)[keyof typeof DeskApprovalRequestScalarFieldEnum]
+
+
+export const EmployeeSyncRunScalarFieldEnum = {
+  id: 'id',
+  createdAt: 'createdAt',
+  source: 'source',
+  mode: 'mode',
+  status: 'status',
+  reason: 'reason',
+  summary: 'summary'
+} as const
+
+export type EmployeeSyncRunScalarFieldEnum = (typeof EmployeeSyncRunScalarFieldEnum)[keyof typeof EmployeeSyncRunScalarFieldEnum]
+
+
+export const EmployeeSyncSettingsScalarFieldEnum = {
+  id: 'id',
+  liveMode: 'liveMode',
+  updatedAt: 'updatedAt'
+} as const
+
+export type EmployeeSyncSettingsScalarFieldEnum = (typeof EmployeeSyncSettingsScalarFieldEnum)[keyof typeof EmployeeSyncSettingsScalarFieldEnum]
 
 
 export const SortOrder = {

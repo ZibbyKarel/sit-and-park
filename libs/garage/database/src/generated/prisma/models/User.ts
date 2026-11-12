@@ -36,6 +36,10 @@ export type UserMinAggregateOutputType = {
   active: boolean | null
   icsToken: string | null
   preferredParkingSpotId: string | null
+  officeId: string | null
+  hibobId: string | null
+  manualAccount: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -50,6 +54,10 @@ export type UserMaxAggregateOutputType = {
   active: boolean | null
   icsToken: string | null
   preferredParkingSpotId: string | null
+  officeId: string | null
+  hibobId: string | null
+  manualAccount: boolean | null
+  deactivatedAt: Date | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -64,6 +72,10 @@ export type UserCountAggregateOutputType = {
   active: number
   icsToken: number
   preferredParkingSpotId: number
+  officeId: number
+  hibobId: number
+  manualAccount: number
+  deactivatedAt: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -80,6 +92,10 @@ export type UserMinAggregateInputType = {
   active?: true
   icsToken?: true
   preferredParkingSpotId?: true
+  officeId?: true
+  hibobId?: true
+  manualAccount?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -94,6 +110,10 @@ export type UserMaxAggregateInputType = {
   active?: true
   icsToken?: true
   preferredParkingSpotId?: true
+  officeId?: true
+  hibobId?: true
+  manualAccount?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -108,6 +128,10 @@ export type UserCountAggregateInputType = {
   active?: true
   icsToken?: true
   preferredParkingSpotId?: true
+  officeId?: true
+  hibobId?: true
+  manualAccount?: true
+  deactivatedAt?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -195,6 +219,10 @@ export type UserGroupByOutputType = {
   active: boolean
   icsToken: string
   preferredParkingSpotId: string | null
+  officeId: string | null
+  hibobId: string | null
+  manualAccount: boolean
+  deactivatedAt: Date | null
   createdAt: Date
   updatedAt: Date
   _count: UserCountAggregateOutputType | null
@@ -230,12 +258,25 @@ export type UserWhereInput = {
   active?: Prisma.BoolFilter<"User"> | boolean
   icsToken?: Prisma.StringFilter<"User"> | string
   preferredParkingSpotId?: Prisma.UuidNullableFilter<"User"> | string | null
+  officeId?: Prisma.UuidNullableFilter<"User"> | string | null
+  hibobId?: Prisma.StringNullableFilter<"User"> | string | null
+  manualAccount?: Prisma.BoolFilter<"User"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   preferredParkingSpot?: Prisma.XOR<Prisma.ParkingSpotNullableScalarRelationFilter, Prisma.ParkingSpotWhereInput> | null
+  office?: Prisma.XOR<Prisma.OfficeNullableScalarRelationFilter, Prisma.OfficeWhereInput> | null
   reservations?: Prisma.ReservationListRelationFilter
   waitlistEntries?: Prisma.WaitlistEntryListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
+  ownedHives?: Prisma.HiveListRelationFilter
+  hiveMembership?: Prisma.XOR<Prisma.HiveMembershipNullableScalarRelationFilter, Prisma.HiveMembershipWhereInput> | null
+  permanentDesk?: Prisma.XOR<Prisma.DeskNullableScalarRelationFilter, Prisma.DeskWhereInput> | null
+  deskGrants?: Prisma.DeskGrantListRelationFilter
+  deskReservations?: Prisma.DeskReservationListRelationFilter
+  deskReleases?: Prisma.DeskReleaseListRelationFilter
+  deskApprovalRequests?: Prisma.DeskApprovalRequestListRelationFilter
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -248,12 +289,25 @@ export type UserOrderByWithRelationInput = {
   active?: Prisma.SortOrder
   icsToken?: Prisma.SortOrder
   preferredParkingSpotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  officeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  hibobId?: Prisma.SortOrderInput | Prisma.SortOrder
+  manualAccount?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   preferredParkingSpot?: Prisma.ParkingSpotOrderByWithRelationInput
+  office?: Prisma.OfficeOrderByWithRelationInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
   waitlistEntries?: Prisma.WaitlistEntryOrderByRelationAggregateInput
   auditLogs?: Prisma.AuditLogOrderByRelationAggregateInput
+  ownedHives?: Prisma.HiveOrderByRelationAggregateInput
+  hiveMembership?: Prisma.HiveMembershipOrderByWithRelationInput
+  permanentDesk?: Prisma.DeskOrderByWithRelationInput
+  deskGrants?: Prisma.DeskGrantOrderByRelationAggregateInput
+  deskReservations?: Prisma.DeskReservationOrderByRelationAggregateInput
+  deskReleases?: Prisma.DeskReleaseOrderByRelationAggregateInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestOrderByRelationAggregateInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -261,6 +315,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   email?: string
   oktaId?: string
   icsToken?: string
+  hibobId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -269,13 +324,25 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   role?: Prisma.EnumUserRoleFilter<"User"> | $Enums.UserRole
   active?: Prisma.BoolFilter<"User"> | boolean
   preferredParkingSpotId?: Prisma.UuidNullableFilter<"User"> | string | null
+  officeId?: Prisma.UuidNullableFilter<"User"> | string | null
+  manualAccount?: Prisma.BoolFilter<"User"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
   preferredParkingSpot?: Prisma.XOR<Prisma.ParkingSpotNullableScalarRelationFilter, Prisma.ParkingSpotWhereInput> | null
+  office?: Prisma.XOR<Prisma.OfficeNullableScalarRelationFilter, Prisma.OfficeWhereInput> | null
   reservations?: Prisma.ReservationListRelationFilter
   waitlistEntries?: Prisma.WaitlistEntryListRelationFilter
   auditLogs?: Prisma.AuditLogListRelationFilter
-}, "id" | "email" | "oktaId" | "icsToken">
+  ownedHives?: Prisma.HiveListRelationFilter
+  hiveMembership?: Prisma.XOR<Prisma.HiveMembershipNullableScalarRelationFilter, Prisma.HiveMembershipWhereInput> | null
+  permanentDesk?: Prisma.XOR<Prisma.DeskNullableScalarRelationFilter, Prisma.DeskWhereInput> | null
+  deskGrants?: Prisma.DeskGrantListRelationFilter
+  deskReservations?: Prisma.DeskReservationListRelationFilter
+  deskReleases?: Prisma.DeskReleaseListRelationFilter
+  deskApprovalRequests?: Prisma.DeskApprovalRequestListRelationFilter
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestListRelationFilter
+}, "id" | "email" | "oktaId" | "icsToken" | "hibobId">
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -287,6 +354,10 @@ export type UserOrderByWithAggregationInput = {
   active?: Prisma.SortOrder
   icsToken?: Prisma.SortOrder
   preferredParkingSpotId?: Prisma.SortOrderInput | Prisma.SortOrder
+  officeId?: Prisma.SortOrderInput | Prisma.SortOrder
+  hibobId?: Prisma.SortOrderInput | Prisma.SortOrder
+  manualAccount?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrderInput | Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
@@ -307,6 +378,10 @@ export type UserScalarWhereWithAggregatesInput = {
   active?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
   icsToken?: Prisma.StringWithAggregatesFilter<"User"> | string
   preferredParkingSpotId?: Prisma.UuidNullableWithAggregatesFilter<"User"> | string | null
+  officeId?: Prisma.UuidNullableWithAggregatesFilter<"User"> | string | null
+  hibobId?: Prisma.StringNullableWithAggregatesFilter<"User"> | string | null
+  manualAccount?: Prisma.BoolWithAggregatesFilter<"User"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableWithAggregatesFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
 }
@@ -320,12 +395,24 @@ export type UserCreateInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -338,11 +425,23 @@ export type UserUncheckedCreateInput = {
   active?: boolean
   icsToken: string
   preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUpdateInput = {
@@ -354,12 +453,24 @@ export type UserUpdateInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -372,11 +483,23 @@ export type UserUncheckedUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
   preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -389,6 +512,10 @@ export type UserCreateManyInput = {
   active?: boolean
   icsToken: string
   preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -402,6 +529,9 @@ export type UserUpdateManyMutationInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -416,6 +546,10 @@ export type UserUncheckedUpdateManyInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
   preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -430,6 +564,10 @@ export type UserCountOrderByAggregateInput = {
   active?: Prisma.SortOrder
   icsToken?: Prisma.SortOrder
   preferredParkingSpotId?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
+  hibobId?: Prisma.SortOrder
+  manualAccount?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -444,6 +582,10 @@ export type UserMaxOrderByAggregateInput = {
   active?: Prisma.SortOrder
   icsToken?: Prisma.SortOrder
   preferredParkingSpotId?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
+  hibobId?: Prisma.SortOrder
+  manualAccount?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -458,6 +600,10 @@ export type UserMinOrderByAggregateInput = {
   active?: Prisma.SortOrder
   icsToken?: Prisma.SortOrder
   preferredParkingSpotId?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
+  hibobId?: Prisma.SortOrder
+  manualAccount?: Prisma.SortOrder
+  deactivatedAt?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -496,6 +642,10 @@ export type EnumUserRoleFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type NullableDateTimeFieldUpdateOperationsInput = {
+  set?: Date | string | null
 }
 
 export type DateTimeFieldUpdateOperationsInput = {
@@ -588,6 +738,164 @@ export type UserUpdateOneRequiredWithoutAuditLogsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutAuditLogsInput, Prisma.UserUpdateWithoutAuditLogsInput>, Prisma.UserUncheckedUpdateWithoutAuditLogsInput>
 }
 
+export type UserCreateNestedManyWithoutOfficeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput> | Prisma.UserCreateWithoutOfficeInput[] | Prisma.UserUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficeInput | Prisma.UserCreateOrConnectWithoutOfficeInput[]
+  createMany?: Prisma.UserCreateManyOfficeInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUncheckedCreateNestedManyWithoutOfficeInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput> | Prisma.UserCreateWithoutOfficeInput[] | Prisma.UserUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficeInput | Prisma.UserCreateOrConnectWithoutOfficeInput[]
+  createMany?: Prisma.UserCreateManyOfficeInputEnvelope
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+}
+
+export type UserUpdateManyWithoutOfficeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput> | Prisma.UserCreateWithoutOfficeInput[] | Prisma.UserUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficeInput | Prisma.UserCreateOrConnectWithoutOfficeInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutOfficeInput | Prisma.UserUpsertWithWhereUniqueWithoutOfficeInput[]
+  createMany?: Prisma.UserCreateManyOfficeInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutOfficeInput | Prisma.UserUpdateWithWhereUniqueWithoutOfficeInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutOfficeInput | Prisma.UserUpdateManyWithWhereWithoutOfficeInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserUncheckedUpdateManyWithoutOfficeNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput> | Prisma.UserCreateWithoutOfficeInput[] | Prisma.UserUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOfficeInput | Prisma.UserCreateOrConnectWithoutOfficeInput[]
+  upsert?: Prisma.UserUpsertWithWhereUniqueWithoutOfficeInput | Prisma.UserUpsertWithWhereUniqueWithoutOfficeInput[]
+  createMany?: Prisma.UserCreateManyOfficeInputEnvelope
+  set?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  disconnect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  delete?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  connect?: Prisma.UserWhereUniqueInput | Prisma.UserWhereUniqueInput[]
+  update?: Prisma.UserUpdateWithWhereUniqueWithoutOfficeInput | Prisma.UserUpdateWithWhereUniqueWithoutOfficeInput[]
+  updateMany?: Prisma.UserUpdateManyWithWhereWithoutOfficeInput | Prisma.UserUpdateManyWithWhereWithoutOfficeInput[]
+  deleteMany?: Prisma.UserScalarWhereInput | Prisma.UserScalarWhereInput[]
+}
+
+export type UserCreateNestedOneWithoutOwnedHivesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOwnedHivesInput, Prisma.UserUncheckedCreateWithoutOwnedHivesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOwnedHivesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutOwnedHivesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutOwnedHivesInput, Prisma.UserUncheckedCreateWithoutOwnedHivesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutOwnedHivesInput
+  upsert?: Prisma.UserUpsertWithoutOwnedHivesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutOwnedHivesInput, Prisma.UserUpdateWithoutOwnedHivesInput>, Prisma.UserUncheckedUpdateWithoutOwnedHivesInput>
+}
+
+export type UserCreateNestedOneWithoutHiveMembershipInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutHiveMembershipInput, Prisma.UserUncheckedCreateWithoutHiveMembershipInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutHiveMembershipInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutHiveMembershipNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutHiveMembershipInput, Prisma.UserUncheckedCreateWithoutHiveMembershipInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutHiveMembershipInput
+  upsert?: Prisma.UserUpsertWithoutHiveMembershipInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutHiveMembershipInput, Prisma.UserUpdateWithoutHiveMembershipInput>, Prisma.UserUncheckedUpdateWithoutHiveMembershipInput>
+}
+
+export type UserCreateNestedOneWithoutPermanentDeskInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermanentDeskInput, Prisma.UserUncheckedCreateWithoutPermanentDeskInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermanentDeskInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutPermanentDeskNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutPermanentDeskInput, Prisma.UserUncheckedCreateWithoutPermanentDeskInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutPermanentDeskInput
+  upsert?: Prisma.UserUpsertWithoutPermanentDeskInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutPermanentDeskInput, Prisma.UserUpdateWithoutPermanentDeskInput>, Prisma.UserUncheckedUpdateWithoutPermanentDeskInput>
+}
+
+export type UserCreateNestedOneWithoutDeskGrantsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskGrantsInput, Prisma.UserUncheckedCreateWithoutDeskGrantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskGrantsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDeskGrantsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskGrantsInput, Prisma.UserUncheckedCreateWithoutDeskGrantsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskGrantsInput
+  upsert?: Prisma.UserUpsertWithoutDeskGrantsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeskGrantsInput, Prisma.UserUpdateWithoutDeskGrantsInput>, Prisma.UserUncheckedUpdateWithoutDeskGrantsInput>
+}
+
+export type UserCreateNestedOneWithoutDeskReservationsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskReservationsInput, Prisma.UserUncheckedCreateWithoutDeskReservationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskReservationsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDeskReservationsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskReservationsInput, Prisma.UserUncheckedCreateWithoutDeskReservationsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskReservationsInput
+  upsert?: Prisma.UserUpsertWithoutDeskReservationsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeskReservationsInput, Prisma.UserUpdateWithoutDeskReservationsInput>, Prisma.UserUncheckedUpdateWithoutDeskReservationsInput>
+}
+
+export type UserCreateNestedOneWithoutDeskReleasesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskReleasesInput, Prisma.UserUncheckedCreateWithoutDeskReleasesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskReleasesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDeskReleasesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskReleasesInput, Prisma.UserUncheckedCreateWithoutDeskReleasesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskReleasesInput
+  upsert?: Prisma.UserUpsertWithoutDeskReleasesInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeskReleasesInput, Prisma.UserUpdateWithoutDeskReleasesInput>, Prisma.UserUncheckedUpdateWithoutDeskReleasesInput>
+}
+
+export type UserCreateNestedOneWithoutDeskApprovalRequestsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedCreateWithoutDeskApprovalRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskApprovalRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserCreateNestedOneWithoutDecidedDeskApprovalsInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedCreateWithoutDecidedDeskApprovalsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDecidedDeskApprovalsInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneRequiredWithoutDeskApprovalRequestsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedCreateWithoutDeskApprovalRequestsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDeskApprovalRequestsInput
+  upsert?: Prisma.UserUpsertWithoutDeskApprovalRequestsInput
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDeskApprovalRequestsInput, Prisma.UserUpdateWithoutDeskApprovalRequestsInput>, Prisma.UserUncheckedUpdateWithoutDeskApprovalRequestsInput>
+}
+
+export type UserUpdateOneWithoutDecidedDeskApprovalsNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedCreateWithoutDecidedDeskApprovalsInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutDecidedDeskApprovalsInput
+  upsert?: Prisma.UserUpsertWithoutDecidedDeskApprovalsInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutDecidedDeskApprovalsInput, Prisma.UserUpdateWithoutDecidedDeskApprovalsInput>, Prisma.UserUncheckedUpdateWithoutDecidedDeskApprovalsInput>
+}
+
 export type UserCreateWithoutPreferredParkingSpotInput = {
   id?: string
   email: string
@@ -597,11 +905,23 @@ export type UserCreateWithoutPreferredParkingSpotInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutPreferredParkingSpotInput = {
@@ -613,11 +933,23 @@ export type UserUncheckedCreateWithoutPreferredParkingSpotInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutPreferredParkingSpotInput = {
@@ -659,6 +991,10 @@ export type UserScalarWhereInput = {
   active?: Prisma.BoolFilter<"User"> | boolean
   icsToken?: Prisma.StringFilter<"User"> | string
   preferredParkingSpotId?: Prisma.UuidNullableFilter<"User"> | string | null
+  officeId?: Prisma.UuidNullableFilter<"User"> | string | null
+  hibobId?: Prisma.StringNullableFilter<"User"> | string | null
+  manualAccount?: Prisma.BoolFilter<"User"> | boolean
+  deactivatedAt?: Prisma.DateTimeNullableFilter<"User"> | Date | string | null
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
 }
@@ -672,11 +1008,23 @@ export type UserCreateWithoutReservationsInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutReservationsInput = {
@@ -689,10 +1037,22 @@ export type UserUncheckedCreateWithoutReservationsInput = {
   active?: boolean
   icsToken: string
   preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutReservationsInput = {
@@ -720,11 +1080,23 @@ export type UserUpdateWithoutReservationsInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutReservationsInput = {
@@ -737,10 +1109,22 @@ export type UserUncheckedUpdateWithoutReservationsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
   preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutWaitlistEntriesInput = {
@@ -752,11 +1136,23 @@ export type UserCreateWithoutWaitlistEntriesInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutWaitlistEntriesInput = {
@@ -769,10 +1165,22 @@ export type UserUncheckedCreateWithoutWaitlistEntriesInput = {
   active?: boolean
   icsToken: string
   preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
   auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutWaitlistEntriesInput = {
@@ -800,11 +1208,23 @@ export type UserUpdateWithoutWaitlistEntriesInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWaitlistEntriesInput = {
@@ -817,10 +1237,22 @@ export type UserUncheckedUpdateWithoutWaitlistEntriesInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
   preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserCreateWithoutAuditLogsInput = {
@@ -832,11 +1264,23 @@ export type UserCreateWithoutAuditLogsInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserUncheckedCreateWithoutAuditLogsInput = {
@@ -849,10 +1293,22 @@ export type UserUncheckedCreateWithoutAuditLogsInput = {
   active?: boolean
   icsToken: string
   preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
 }
 
 export type UserCreateOrConnectWithoutAuditLogsInput = {
@@ -880,11 +1336,23 @@ export type UserUpdateWithoutAuditLogsInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutAuditLogsInput = {
@@ -897,10 +1365,1128 @@ export type UserUncheckedUpdateWithoutAuditLogsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
   preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutOfficeInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutOfficeInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutOfficeInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput>
+}
+
+export type UserCreateManyOfficeInputEnvelope = {
+  data: Prisma.UserCreateManyOfficeInput | Prisma.UserCreateManyOfficeInput[]
+  skipDuplicates?: boolean
+}
+
+export type UserUpsertWithWhereUniqueWithoutOfficeInput = {
+  where: Prisma.UserWhereUniqueInput
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOfficeInput, Prisma.UserUncheckedUpdateWithoutOfficeInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOfficeInput, Prisma.UserUncheckedCreateWithoutOfficeInput>
+}
+
+export type UserUpdateWithWhereUniqueWithoutOfficeInput = {
+  where: Prisma.UserWhereUniqueInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOfficeInput, Prisma.UserUncheckedUpdateWithoutOfficeInput>
+}
+
+export type UserUpdateManyWithWhereWithoutOfficeInput = {
+  where: Prisma.UserScalarWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateManyMutationInput, Prisma.UserUncheckedUpdateManyWithoutOfficeInput>
+}
+
+export type UserCreateWithoutOwnedHivesInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutOwnedHivesInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutOwnedHivesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutOwnedHivesInput, Prisma.UserUncheckedCreateWithoutOwnedHivesInput>
+}
+
+export type UserUpsertWithoutOwnedHivesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutOwnedHivesInput, Prisma.UserUncheckedUpdateWithoutOwnedHivesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutOwnedHivesInput, Prisma.UserUncheckedCreateWithoutOwnedHivesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutOwnedHivesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutOwnedHivesInput, Prisma.UserUncheckedUpdateWithoutOwnedHivesInput>
+}
+
+export type UserUpdateWithoutOwnedHivesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOwnedHivesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutHiveMembershipInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutHiveMembershipInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutHiveMembershipInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutHiveMembershipInput, Prisma.UserUncheckedCreateWithoutHiveMembershipInput>
+}
+
+export type UserUpsertWithoutHiveMembershipInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutHiveMembershipInput, Prisma.UserUncheckedUpdateWithoutHiveMembershipInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutHiveMembershipInput, Prisma.UserUncheckedCreateWithoutHiveMembershipInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutHiveMembershipInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutHiveMembershipInput, Prisma.UserUncheckedUpdateWithoutHiveMembershipInput>
+}
+
+export type UserUpdateWithoutHiveMembershipInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutHiveMembershipInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutPermanentDeskInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutPermanentDeskInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutPermanentDeskInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermanentDeskInput, Prisma.UserUncheckedCreateWithoutPermanentDeskInput>
+}
+
+export type UserUpsertWithoutPermanentDeskInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutPermanentDeskInput, Prisma.UserUncheckedUpdateWithoutPermanentDeskInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutPermanentDeskInput, Prisma.UserUncheckedCreateWithoutPermanentDeskInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutPermanentDeskInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutPermanentDeskInput, Prisma.UserUncheckedUpdateWithoutPermanentDeskInput>
+}
+
+export type UserUpdateWithoutPermanentDeskInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutPermanentDeskInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutDeskGrantsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutDeskGrantsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutDeskGrantsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskGrantsInput, Prisma.UserUncheckedCreateWithoutDeskGrantsInput>
+}
+
+export type UserUpsertWithoutDeskGrantsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeskGrantsInput, Prisma.UserUncheckedUpdateWithoutDeskGrantsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskGrantsInput, Prisma.UserUncheckedCreateWithoutDeskGrantsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeskGrantsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeskGrantsInput, Prisma.UserUncheckedUpdateWithoutDeskGrantsInput>
+}
+
+export type UserUpdateWithoutDeskGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeskGrantsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutDeskReservationsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutDeskReservationsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutDeskReservationsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskReservationsInput, Prisma.UserUncheckedCreateWithoutDeskReservationsInput>
+}
+
+export type UserUpsertWithoutDeskReservationsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeskReservationsInput, Prisma.UserUncheckedUpdateWithoutDeskReservationsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskReservationsInput, Prisma.UserUncheckedCreateWithoutDeskReservationsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeskReservationsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeskReservationsInput, Prisma.UserUncheckedUpdateWithoutDeskReservationsInput>
+}
+
+export type UserUpdateWithoutDeskReservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeskReservationsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutDeskReleasesInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutDeskReleasesInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutDeskReleasesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskReleasesInput, Prisma.UserUncheckedCreateWithoutDeskReleasesInput>
+}
+
+export type UserUpsertWithoutDeskReleasesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeskReleasesInput, Prisma.UserUncheckedUpdateWithoutDeskReleasesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskReleasesInput, Prisma.UserUncheckedCreateWithoutDeskReleasesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeskReleasesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeskReleasesInput, Prisma.UserUncheckedUpdateWithoutDeskReleasesInput>
+}
+
+export type UserUpdateWithoutDeskReleasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeskReleasesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserCreateWithoutDeskApprovalRequestsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserUncheckedCreateWithoutDeskApprovalRequestsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDecidedByInput
+}
+
+export type UserCreateOrConnectWithoutDeskApprovalRequestsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedCreateWithoutDeskApprovalRequestsInput>
+}
+
+export type UserCreateWithoutDecidedDeskApprovalsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotCreateNestedOneWithoutPreferredByInput
+  office?: Prisma.OfficeCreateNestedOneWithoutUsersInput
+  reservations?: Prisma.ReservationCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutDecidedDeskApprovalsInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutUserInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutUserInput
+  auditLogs?: Prisma.AuditLogUncheckedCreateNestedManyWithoutActorInput
+  ownedHives?: Prisma.HiveUncheckedCreateNestedManyWithoutOwnerInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedCreateNestedOneWithoutUserInput
+  permanentDesk?: Prisma.DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput
+  deskGrants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutUserInput
+  deskReservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutUserInput
+  deskReleases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutReleasedByInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutDecidedDeskApprovalsInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedCreateWithoutDecidedDeskApprovalsInput>
+}
+
+export type UserUpsertWithoutDeskApprovalRequestsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedUpdateWithoutDeskApprovalRequestsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedCreateWithoutDeskApprovalRequestsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDeskApprovalRequestsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDeskApprovalRequestsInput, Prisma.UserUncheckedUpdateWithoutDeskApprovalRequestsInput>
+}
+
+export type UserUpdateWithoutDeskApprovalRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDeskApprovalRequestsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUpsertWithoutDecidedDeskApprovalsInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedUpdateWithoutDecidedDeskApprovalsInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedCreateWithoutDecidedDeskApprovalsInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutDecidedDeskApprovalsInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutDecidedDeskApprovalsInput, Prisma.UserUncheckedUpdateWithoutDecidedDeskApprovalsInput>
+}
+
+export type UserUpdateWithoutDecidedDeskApprovalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutDecidedDeskApprovalsInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyPreferredParkingSpotInput = {
@@ -912,6 +2498,10 @@ export type UserCreateManyPreferredParkingSpotInput = {
   oktaId: string
   active?: boolean
   icsToken: string
+  officeId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -925,11 +2515,23 @@ export type UserUpdateWithoutPreferredParkingSpotInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneWithoutUsersNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateWithoutPreferredParkingSpotInput = {
@@ -941,11 +2543,23 @@ export type UserUncheckedUpdateWithoutPreferredParkingSpotInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
   auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
 }
 
 export type UserUncheckedUpdateManyWithoutPreferredParkingSpotInput = {
@@ -957,6 +2571,100 @@ export type UserUncheckedUpdateManyWithoutPreferredParkingSpotInput = {
   oktaId?: Prisma.StringFieldUpdateOperationsInput | string
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  officeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+}
+
+export type UserCreateManyOfficeInput = {
+  id?: string
+  email: string
+  name: string
+  licensePlate?: string | null
+  role?: $Enums.UserRole
+  oktaId: string
+  active?: boolean
+  icsToken: string
+  preferredParkingSpotId?: string | null
+  hibobId?: string | null
+  manualAccount?: boolean
+  deactivatedAt?: Date | string | null
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type UserUpdateWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  preferredParkingSpot?: Prisma.ParkingSpotUpdateOneWithoutPreferredByNestedInput
+  reservations?: Prisma.ReservationUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutUserNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutUserNestedInput
+  auditLogs?: Prisma.AuditLogUncheckedUpdateManyWithoutActorNestedInput
+  ownedHives?: Prisma.HiveUncheckedUpdateManyWithoutOwnerNestedInput
+  hiveMembership?: Prisma.HiveMembershipUncheckedUpdateOneWithoutUserNestedInput
+  permanentDesk?: Prisma.DeskUncheckedUpdateOneWithoutPermanentAssigneeNestedInput
+  deskGrants?: Prisma.DeskGrantUncheckedUpdateManyWithoutUserNestedInput
+  deskReservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutUserNestedInput
+  deskReleases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutReleasedByNestedInput
+  deskApprovalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutUserNestedInput
+  decidedDeskApprovals?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDecidedByNestedInput
+}
+
+export type UserUncheckedUpdateManyWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  name?: Prisma.StringFieldUpdateOperationsInput | string
+  licensePlate?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  role?: Prisma.EnumUserRoleFieldUpdateOperationsInput | $Enums.UserRole
+  oktaId?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  icsToken?: Prisma.StringFieldUpdateOperationsInput | string
+  preferredParkingSpotId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  hibobId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  manualAccount?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  deactivatedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -970,12 +2678,24 @@ export type UserCountOutputType = {
   reservations: number
   waitlistEntries: number
   auditLogs: number
+  ownedHives: number
+  deskGrants: number
+  deskReservations: number
+  deskReleases: number
+  deskApprovalRequests: number
+  decidedDeskApprovals: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   reservations?: boolean | UserCountOutputTypeCountReservationsArgs
   waitlistEntries?: boolean | UserCountOutputTypeCountWaitlistEntriesArgs
   auditLogs?: boolean | UserCountOutputTypeCountAuditLogsArgs
+  ownedHives?: boolean | UserCountOutputTypeCountOwnedHivesArgs
+  deskGrants?: boolean | UserCountOutputTypeCountDeskGrantsArgs
+  deskReservations?: boolean | UserCountOutputTypeCountDeskReservationsArgs
+  deskReleases?: boolean | UserCountOutputTypeCountDeskReleasesArgs
+  deskApprovalRequests?: boolean | UserCountOutputTypeCountDeskApprovalRequestsArgs
+  decidedDeskApprovals?: boolean | UserCountOutputTypeCountDecidedDeskApprovalsArgs
 }
 
 /**
@@ -1009,6 +2729,48 @@ export type UserCountOutputTypeCountAuditLogsArgs<ExtArgs extends runtime.Types.
   where?: Prisma.AuditLogWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountOwnedHivesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.HiveWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeskGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeskGrantWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeskReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeskReservationWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeskReleasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeskReleaseWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDeskApprovalRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeskApprovalRequestWhereInput
+}
+
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountDecidedDeskApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.DeskApprovalRequestWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1020,12 +2782,25 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   active?: boolean
   icsToken?: boolean
   preferredParkingSpotId?: boolean
+  officeId?: boolean
+  hibobId?: boolean
+  manualAccount?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
   reservations?: boolean | Prisma.User$reservationsArgs<ExtArgs>
   waitlistEntries?: boolean | Prisma.User$waitlistEntriesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  ownedHives?: boolean | Prisma.User$ownedHivesArgs<ExtArgs>
+  hiveMembership?: boolean | Prisma.User$hiveMembershipArgs<ExtArgs>
+  permanentDesk?: boolean | Prisma.User$permanentDeskArgs<ExtArgs>
+  deskGrants?: boolean | Prisma.User$deskGrantsArgs<ExtArgs>
+  deskReservations?: boolean | Prisma.User$deskReservationsArgs<ExtArgs>
+  deskReleases?: boolean | Prisma.User$deskReleasesArgs<ExtArgs>
+  deskApprovalRequests?: boolean | Prisma.User$deskApprovalRequestsArgs<ExtArgs>
+  decidedDeskApprovals?: boolean | Prisma.User$decidedDeskApprovalsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1039,9 +2814,14 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   active?: boolean
   icsToken?: boolean
   preferredParkingSpotId?: boolean
+  officeId?: boolean
+  hibobId?: boolean
+  manualAccount?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -1054,9 +2834,14 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   active?: boolean
   icsToken?: boolean
   preferredParkingSpotId?: boolean
+  officeId?: boolean
+  hibobId?: boolean
+  manualAccount?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -1069,32 +2854,56 @@ export type UserSelectScalar = {
   active?: boolean
   icsToken?: boolean
   preferredParkingSpotId?: boolean
+  officeId?: boolean
+  hibobId?: boolean
+  manualAccount?: boolean
+  deactivatedAt?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "licensePlate" | "role" | "oktaId" | "active" | "icsToken" | "preferredParkingSpotId" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "email" | "name" | "licensePlate" | "role" | "oktaId" | "active" | "icsToken" | "preferredParkingSpotId" | "officeId" | "hibobId" | "manualAccount" | "deactivatedAt" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
   reservations?: boolean | Prisma.User$reservationsArgs<ExtArgs>
   waitlistEntries?: boolean | Prisma.User$waitlistEntriesArgs<ExtArgs>
   auditLogs?: boolean | Prisma.User$auditLogsArgs<ExtArgs>
+  ownedHives?: boolean | Prisma.User$ownedHivesArgs<ExtArgs>
+  hiveMembership?: boolean | Prisma.User$hiveMembershipArgs<ExtArgs>
+  permanentDesk?: boolean | Prisma.User$permanentDeskArgs<ExtArgs>
+  deskGrants?: boolean | Prisma.User$deskGrantsArgs<ExtArgs>
+  deskReservations?: boolean | Prisma.User$deskReservationsArgs<ExtArgs>
+  deskReleases?: boolean | Prisma.User$deskReleasesArgs<ExtArgs>
+  deskApprovalRequests?: boolean | Prisma.User$deskApprovalRequestsArgs<ExtArgs>
+  decidedDeskApprovals?: boolean | Prisma.User$decidedDeskApprovalsArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
 }
 export type UserIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   preferredParkingSpot?: boolean | Prisma.User$preferredParkingSpotArgs<ExtArgs>
+  office?: boolean | Prisma.User$officeArgs<ExtArgs>
 }
 
 export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "User"
   objects: {
     preferredParkingSpot: Prisma.$ParkingSpotPayload<ExtArgs> | null
+    office: Prisma.$OfficePayload<ExtArgs> | null
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
     waitlistEntries: Prisma.$WaitlistEntryPayload<ExtArgs>[]
     auditLogs: Prisma.$AuditLogPayload<ExtArgs>[]
+    ownedHives: Prisma.$HivePayload<ExtArgs>[]
+    hiveMembership: Prisma.$HiveMembershipPayload<ExtArgs> | null
+    permanentDesk: Prisma.$DeskPayload<ExtArgs> | null
+    deskGrants: Prisma.$DeskGrantPayload<ExtArgs>[]
+    deskReservations: Prisma.$DeskReservationPayload<ExtArgs>[]
+    deskReleases: Prisma.$DeskReleasePayload<ExtArgs>[]
+    deskApprovalRequests: Prisma.$DeskApprovalRequestPayload<ExtArgs>[]
+    decidedDeskApprovals: Prisma.$DeskApprovalRequestPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1119,6 +2928,25 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
      * Nullable FK: retiring a spot must not delete or block the user.
      */
     preferredParkingSpotId: string | null
+    /**
+     * Office the user works in; scopes which desks and spots they see. Nullable:
+     * a just-provisioned account has none until an admin or the sync sets it.
+     */
+    officeId: string | null
+    /**
+     * Employee id in HiBob; the key the employee sync matches on before e-mail.
+     */
+    hibobId: string | null
+    /**
+     * Never touched by the employee sync (decision 0329). Accounts outside the
+     * company domain are treated the same way whatever this says.
+     */
+    manualAccount: boolean
+    /**
+     * When the account was deactivated. `active` stays the switch the auth guard
+     * reads; this only records when it was flipped.
+     */
+    deactivatedAt: Date | null
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["user"]>
@@ -1516,9 +3344,18 @@ readonly fields: UserFieldRefs;
 export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
   preferredParkingSpot<T extends Prisma.User$preferredParkingSpotArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$preferredParkingSpotArgs<ExtArgs>>): Prisma.Prisma__ParkingSpotClient<runtime.Types.Result.GetResult<Prisma.$ParkingSpotPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  office<T extends Prisma.User$officeArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$officeArgs<ExtArgs>>): Prisma.Prisma__OfficeClient<runtime.Types.Result.GetResult<Prisma.$OfficePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   reservations<T extends Prisma.User$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   waitlistEntries<T extends Prisma.User$waitlistEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$waitlistEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   auditLogs<T extends Prisma.User$auditLogsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$auditLogsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$AuditLogPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  ownedHives<T extends Prisma.User$ownedHivesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$ownedHivesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$HivePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  hiveMembership<T extends Prisma.User$hiveMembershipArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$hiveMembershipArgs<ExtArgs>>): Prisma.Prisma__HiveMembershipClient<runtime.Types.Result.GetResult<Prisma.$HiveMembershipPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  permanentDesk<T extends Prisma.User$permanentDeskArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$permanentDeskArgs<ExtArgs>>): Prisma.Prisma__DeskClient<runtime.Types.Result.GetResult<Prisma.$DeskPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
+  deskGrants<T extends Prisma.User$deskGrantsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deskGrantsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskGrantPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deskReservations<T extends Prisma.User$deskReservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deskReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deskReleases<T extends Prisma.User$deskReleasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deskReleasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskReleasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  deskApprovalRequests<T extends Prisma.User$deskApprovalRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$deskApprovalRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  decidedDeskApprovals<T extends Prisma.User$decidedDeskApprovalsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$decidedDeskApprovalsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1557,6 +3394,10 @@ export interface UserFieldRefs {
   readonly active: Prisma.FieldRef<"User", 'Boolean'>
   readonly icsToken: Prisma.FieldRef<"User", 'String'>
   readonly preferredParkingSpotId: Prisma.FieldRef<"User", 'String'>
+  readonly officeId: Prisma.FieldRef<"User", 'String'>
+  readonly hibobId: Prisma.FieldRef<"User", 'String'>
+  readonly manualAccount: Prisma.FieldRef<"User", 'Boolean'>
+  readonly deactivatedAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
 }
@@ -1979,6 +3820,25 @@ export type User$preferredParkingSpotArgs<ExtArgs extends runtime.Types.Extensio
 }
 
 /**
+ * User.office
+ */
+export type User$officeArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Office
+   */
+  select?: Prisma.OfficeSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Office
+   */
+  omit?: Prisma.OfficeOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.OfficeInclude<ExtArgs> | null
+  where?: Prisma.OfficeWhereInput
+}
+
+/**
  * User.reservations
  */
 export type User$reservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -2048,6 +3908,188 @@ export type User$auditLogsArgs<ExtArgs extends runtime.Types.Extensions.Internal
   take?: number
   skip?: number
   distinct?: Prisma.AuditLogScalarFieldEnum | Prisma.AuditLogScalarFieldEnum[]
+}
+
+/**
+ * User.ownedHives
+ */
+export type User$ownedHivesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Hive
+   */
+  select?: Prisma.HiveSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Hive
+   */
+  omit?: Prisma.HiveOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HiveInclude<ExtArgs> | null
+  where?: Prisma.HiveWhereInput
+  orderBy?: Prisma.HiveOrderByWithRelationInput | Prisma.HiveOrderByWithRelationInput[]
+  cursor?: Prisma.HiveWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.HiveScalarFieldEnum | Prisma.HiveScalarFieldEnum[]
+}
+
+/**
+ * User.hiveMembership
+ */
+export type User$hiveMembershipArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the HiveMembership
+   */
+  select?: Prisma.HiveMembershipSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the HiveMembership
+   */
+  omit?: Prisma.HiveMembershipOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.HiveMembershipInclude<ExtArgs> | null
+  where?: Prisma.HiveMembershipWhereInput
+}
+
+/**
+ * User.permanentDesk
+ */
+export type User$permanentDeskArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Desk
+   */
+  select?: Prisma.DeskSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Desk
+   */
+  omit?: Prisma.DeskOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskInclude<ExtArgs> | null
+  where?: Prisma.DeskWhereInput
+}
+
+/**
+ * User.deskGrants
+ */
+export type User$deskGrantsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeskGrant
+   */
+  select?: Prisma.DeskGrantSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeskGrant
+   */
+  omit?: Prisma.DeskGrantOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskGrantInclude<ExtArgs> | null
+  where?: Prisma.DeskGrantWhereInput
+  orderBy?: Prisma.DeskGrantOrderByWithRelationInput | Prisma.DeskGrantOrderByWithRelationInput[]
+  cursor?: Prisma.DeskGrantWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeskGrantScalarFieldEnum | Prisma.DeskGrantScalarFieldEnum[]
+}
+
+/**
+ * User.deskReservations
+ */
+export type User$deskReservationsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeskReservation
+   */
+  select?: Prisma.DeskReservationSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeskReservation
+   */
+  omit?: Prisma.DeskReservationOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskReservationInclude<ExtArgs> | null
+  where?: Prisma.DeskReservationWhereInput
+  orderBy?: Prisma.DeskReservationOrderByWithRelationInput | Prisma.DeskReservationOrderByWithRelationInput[]
+  cursor?: Prisma.DeskReservationWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeskReservationScalarFieldEnum | Prisma.DeskReservationScalarFieldEnum[]
+}
+
+/**
+ * User.deskReleases
+ */
+export type User$deskReleasesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeskRelease
+   */
+  select?: Prisma.DeskReleaseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeskRelease
+   */
+  omit?: Prisma.DeskReleaseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskReleaseInclude<ExtArgs> | null
+  where?: Prisma.DeskReleaseWhereInput
+  orderBy?: Prisma.DeskReleaseOrderByWithRelationInput | Prisma.DeskReleaseOrderByWithRelationInput[]
+  cursor?: Prisma.DeskReleaseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeskReleaseScalarFieldEnum | Prisma.DeskReleaseScalarFieldEnum[]
+}
+
+/**
+ * User.deskApprovalRequests
+ */
+export type User$deskApprovalRequestsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeskApprovalRequest
+   */
+  select?: Prisma.DeskApprovalRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeskApprovalRequest
+   */
+  omit?: Prisma.DeskApprovalRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskApprovalRequestInclude<ExtArgs> | null
+  where?: Prisma.DeskApprovalRequestWhereInput
+  orderBy?: Prisma.DeskApprovalRequestOrderByWithRelationInput | Prisma.DeskApprovalRequestOrderByWithRelationInput[]
+  cursor?: Prisma.DeskApprovalRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeskApprovalRequestScalarFieldEnum | Prisma.DeskApprovalRequestScalarFieldEnum[]
+}
+
+/**
+ * User.decidedDeskApprovals
+ */
+export type User$decidedDeskApprovalsArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the DeskApprovalRequest
+   */
+  select?: Prisma.DeskApprovalRequestSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the DeskApprovalRequest
+   */
+  omit?: Prisma.DeskApprovalRequestOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.DeskApprovalRequestInclude<ExtArgs> | null
+  where?: Prisma.DeskApprovalRequestWhereInput
+  orderBy?: Prisma.DeskApprovalRequestOrderByWithRelationInput | Prisma.DeskApprovalRequestOrderByWithRelationInput[]
+  cursor?: Prisma.DeskApprovalRequestWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.DeskApprovalRequestScalarFieldEnum | Prisma.DeskApprovalRequestScalarFieldEnum[]
 }
 
 /**

@@ -1,26 +1,34 @@
-import { NOT_A_UUID, UUID_B, userFixture } from '../__fixtures__/fixtures';
+import { NOT_A_UUID, UUID_B, myProfileFixture } from '../__fixtures__/fixtures';
 import { buildIcsFeedUrl } from './ics';
 import { myProfileSchema, regenerateIcsTokenOutputSchema, updateMySettingsInputSchema } from './me';
 
 describe('myProfileSchema', () => {
   it('keeps the ICS token — it is the caller’s own record', () => {
-    const parsed = myProfileSchema.parse(userFixture);
-    expect(parsed.icsToken).toBe(userFixture.icsToken);
-    expect(parsed.preferredParkingSpotId).toBe(userFixture.preferredParkingSpotId);
+    const parsed = myProfileSchema.parse(myProfileFixture);
+    expect(parsed.icsToken).toBe(myProfileFixture.icsToken);
+    expect(parsed.preferredParkingSpotId).toBe(myProfileFixture.preferredParkingSpotId);
   });
 
   it('accepts a profile with neither licence plate nor preferred spot', () => {
     expect(
       myProfileSchema.safeParse({
-        ...userFixture,
+        ...myProfileFixture,
         licensePlate: null,
         preferredParkingSpotId: null,
       }).success
     ).toBe(true);
   });
 
+  it('requires the desk facts the shell renders from', () => {
+    for (const key of ['hiveId', 'permanentDeskId', 'ownsHive']) {
+      const without: Record<string, unknown> = { ...myProfileFixture };
+      delete without[key];
+      expect([key, myProfileSchema.safeParse(without).success]).toEqual([key, false]);
+    }
+  });
+
   it('rejects a profile missing the token', () => {
-    const withoutToken: Record<string, unknown> = { ...userFixture };
+    const withoutToken: Record<string, unknown> = { ...myProfileFixture };
     delete withoutToken['icsToken'];
     expect(myProfileSchema.safeParse(withoutToken).success).toBe(false);
   });

@@ -49,6 +49,7 @@ function spot(id: string, label: string, overrides: Partial<ParkingSpot> = {}): 
     active: true,
     hidden: false,
     evCharger: false,
+    officeId: 'office-1',
     createdAt: T0,
     updatedAt: T0,
     ...overrides,

@@ -162,6 +162,7 @@ export interface SpotSeed {
   active?: boolean;
   hidden?: boolean;
   evCharger?: boolean;
+  officeId?: string;
 }
 
 export interface UserSeed {
@@ -174,6 +175,7 @@ export interface UserSeed {
   licensePlate?: string | null;
   icsToken?: string;
   preferredParkingSpotId?: string | null;
+  officeId?: string | null;
 }
 
 export interface ReservationSeed {
@@ -209,6 +211,9 @@ export interface TimedReservationSeed {
 }
 
 const EPOCH = new Date('2026-01-01T00:00:00.000Z');
+
+/** The one office the double knows; see `officeDelegate`. */
+export const DEFAULT_OFFICE_ID = '0190a000-0000-7000-8000-000000000001';
 
 /**
  * The only id `ReservationWindowSettings` ever has — the table is a singleton,
@@ -290,6 +295,7 @@ export class PrismaDouble {
       active: seed.active ?? true,
       hidden: seed.hidden ?? false,
       evCharger: seed.evCharger ?? false,
+      officeId: seed.officeId ?? DEFAULT_OFFICE_ID,
       createdAt: EPOCH,
       updatedAt: EPOCH,
     };
@@ -309,6 +315,10 @@ export class PrismaDouble {
       active: seed.active ?? true,
       icsToken: seed.icsToken ?? `token-${id}`,
       preferredParkingSpotId: seed.preferredParkingSpotId ?? null,
+      officeId: seed.officeId === undefined ? DEFAULT_OFFICE_ID : seed.officeId,
+      hibobId: null,
+      manualAccount: false,
+      deactivatedAt: null,
       createdAt: EPOCH,
       updatedAt: EPOCH,
     };
@@ -387,6 +397,7 @@ export class PrismaDouble {
 
   private client() {
     return {
+      office: this.officeDelegate(),
       parkingSpot: this.parkingSpotDelegate(),
       user: this.userDelegate(),
       reservation: this.reservationDelegate(),
@@ -395,6 +406,17 @@ export class PrismaDouble {
       reservationWindowSettings: this.windowSettingsDelegate(),
       reservationLimitSettings: this.limitSettingsDelegate(),
       auditLog: this.auditLogDelegate(),
+    };
+  }
+
+  /**
+   * One office, always: the double has no office table. Every seeded spot and
+   * user is in it unless the seed says otherwise — the state the migration that
+   * introduced offices leaves a database in.
+   */
+  private officeDelegate() {
+    return {
+      findFirstOrThrow: async (_args?: unknown) => ({ id: DEFAULT_OFFICE_ID }),
     };
   }
 
@@ -435,7 +457,12 @@ export class PrismaDouble {
         return row === undefined ? null : copy(row);
       },
       create: async (args: {
-        data: { label: string; group: ParkingSpotRow['group']; evCharger?: boolean };
+        data: {
+          label: string;
+          group: ParkingSpotRow['group'];
+          evCharger?: boolean;
+          officeId: string;
+        };
       }) => {
         if (this.spots.some((row) => row.label === args.data.label)) {
           throw uniqueViolation('ParkingSpot', 'label');
@@ -444,6 +471,7 @@ export class PrismaDouble {
           this.seedSpot({
             label: args.data.label,
             group: args.data.group,
+            officeId: args.data.officeId,
             ...(args.data.evCharger === undefined ? {} : { evCharger: args.data.evCharger }),
           })
         );

@@ -114,8 +114,25 @@ export class SpotsService implements OnModuleInit {
    * `CONFLICT` through `toOrpcError`.
    */
   async create(input: CreateSpotInput, actorUserId: string): Promise<ParkingSpot> {
+    // `officeId` omitted = the default office, the oldest active one (Praha,
+    // the only one today). ponytail: Stage 6 (offices for parking) owns the
+    // office rules; this only keeps the required column filled.
+    const officeId =
+      input.officeId ??
+      (
+        await this.prisma.client.office.findFirstOrThrow({
+          where: { active: true },
+          orderBy: { createdAt: 'asc' },
+          select: { id: true },
+        })
+      ).id;
     const row = await this.prisma.client.parkingSpot.create({
-      data: { label: input.label, group: input.group, evCharger: input.evCharger ?? false },
+      data: {
+        label: input.label,
+        group: input.group,
+        evCharger: input.evCharger ?? false,
+        officeId,
+      },
     });
 
     // The `payload` shape is fixed per action by `../audit/audit-payloads.ts`.

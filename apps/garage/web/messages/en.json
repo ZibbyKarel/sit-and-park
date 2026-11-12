@@ -296,7 +296,18 @@
     "CANNOT_WAITLIST_OWN_SPOT": "You can’t join the queue for a spot you have reserved yourself.",
     "SPOT_NOT_OCCUPIED": "This spot is free — reserve it directly instead of waiting in the queue.",
     "VALIDATION_FAILED": "The request breaks a reservation rule (a weekend or a holiday, for example).",
-    "CONFLICT": "Somebody else made the same change in the meantime — please try again."
+    "CONFLICT": "Somebody else made the same change in the meantime — please try again.",
+    "DESK_ALREADY_RESERVED": "This desk is already taken for that day.",
+    "DESK_RESERVATION_LIMIT_REACHED": "You already have another desk reserved for this day — only one per day is allowed.",
+    "DESK_NOT_AVAILABLE": "This desk can’t be reserved right now — it is inactive, or permanently assigned and not released.",
+    "DESK_ACCESS_DENIED": "You don’t have direct access to this desk — request approval instead.",
+    "PERMANENT_DESK_HOLDER": "You have a permanent desk, so you can’t reserve another one.",
+    "NO_OFFICE_ASSIGNED": "You have no office assigned. Please contact an administrator.",
+    "NO_PERMANENT_DESK": "You don’t have a permanent desk.",
+    "DESK_RELEASE_ALREADY_RESERVED": "Somebody has already reserved the desk for this day, so the release can’t be withdrawn.",
+    "DESK_REQUEST_ALREADY_PENDING": "An identical request is already waiting for approval.",
+    "DESK_REQUEST_ALREADY_DECIDED": "This request has already been decided.",
+    "NO_FREE_DAY": "None of the selected days is free."
   },
   "bulk": {
     "title": "Bulk reservation",

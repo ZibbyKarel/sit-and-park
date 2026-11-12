@@ -16,6 +16,8 @@ import { parseAck, parseServerEvent } from './validation';
 const TIMESTAMP = '2026-09-15T08:00:00.000Z';
 const RESERVATION_ID = '44444444-4444-4444-8444-444444444444';
 const cellRef = { date: DATE, parkingSpotId: SPOT_ID };
+const DESK_ID = '66666666-6666-4666-8666-666666666666';
+const deskRef = { date: DATE, deskId: DESK_ID };
 
 const publicReservation = {
   id: RESERVATION_ID,
@@ -51,6 +53,13 @@ const validPayloads: Record<ServerToClientEventName, unknown> = {
     fromWaitlistEntryId: null,
   },
   'waitlist:updated': { ...cellRef, waitlistCount: 2 },
+  'desk:reserved': {
+    ...deskRef,
+    reservationId: RESERVATION_ID,
+    userId: USER_SUMMARY.id,
+    userName: USER_SUMMARY.name,
+  },
+  'desk:released': { ...deskRef, reservationId: RESERVATION_ID },
   'timed-reservations:updated': {
     ...cellRef,
     timedReservations: [
@@ -80,14 +89,16 @@ describe('parseServerEvent', () => {
   });
 
   it.each(eventNames)('rejects a %s payload with a broken cell reference', (event) => {
-    // Every server → client payload extends `cellRefSchema`, so this is the
-    // one field that must be checked on all of them.
-    const payload = { ...(validPayloads[event] as object), parkingSpotId: 'not-a-uuid' };
+    // Every server → client payload extends `cellRefSchema` (parking) or
+    // `deskDayRefSchema` (desks), so that id is the one field that must be
+    // checked on all of them.
+    const key = 'deskId' in (validPayloads[event] as object) ? 'deskId' : 'parkingSpotId';
+    const payload = { ...(validPayloads[event] as object), [key]: 'not-a-uuid' };
     const result = parseServerEvent(event, payload);
     expect(result.ok).toBe(false);
     if (!result.ok) {
       expect(result.report.event).toBe(event);
-      expect(result.report.issues).toEqual(['parkingSpotId: Invalid UUID']);
+      expect(result.report.issues).toEqual([`${key}: Invalid UUID`]);
     }
   });
 

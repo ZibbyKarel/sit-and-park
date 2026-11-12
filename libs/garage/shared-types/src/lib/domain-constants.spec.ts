@@ -5,7 +5,20 @@ import {
   DEFAULT_MONTHLY_RESERVATION_CAP,
   DEFAULT_OPEN_DAYS_BEFORE,
   DEFAULT_RESERVATION_LOCK_MODE,
+  DESK_ACCESS_LEVELS,
+  DESK_APPROVAL_STATUSES,
+  DESK_SKIP_REASONS,
+  DESK_STATUSES,
+  EMPLOYEE_SYNC_MODES,
+  EMPLOYEE_SYNC_RUN_HISTORY,
+  EMPLOYEE_SYNC_STATUSES,
+  EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT,
+  FLOOR_PLANS,
   MAX_BULK_BOOKING_DAYS,
+  MAX_DESK_BULK_IDS,
+  MAX_DESK_RELEASE_DATES,
+  MAX_DESK_SERIES_DATES,
+  MAX_DESK_SERIES_SPAN_DAYS,
   MAX_MONTHLY_RESERVATION_CAP,
   MAX_MONTH_WINDOW_SPAN,
   MAX_OPEN_DAYS_BEFORE,
@@ -127,5 +140,45 @@ describe('structural caps', () => {
     ]) {
       expect(Number.isInteger(cap) && cap > 0).toBe(true);
     }
+  });
+});
+
+describe('desk enumerations', () => {
+  it('lists the stored approval-request states, without a cancelled one', () => {
+    // A request its author withdraws is deleted, not given a status.
+    expect(DESK_APPROVAL_STATUSES).toEqual(['PENDING', 'APPROVED', 'REJECTED']);
+  });
+
+  it('lists the employee-sync modes and outcomes', () => {
+    expect(EMPLOYEE_SYNC_MODES).toEqual(['DRY', 'LIVE']);
+    expect(EMPLOYEE_SYNC_STATUSES).toEqual(['OK', 'REJECTED']);
+  });
+
+  it('lists desk statuses in first-match-wins order', () => {
+    expect(DESK_STATUSES).toEqual(['INACTIVE', 'ASSIGNED', 'RESERVED_BY_ME', 'RESERVED', 'FREE']);
+  });
+
+  it('lists the access levels and the per-day skip reasons', () => {
+    expect(DESK_ACCESS_LEVELS).toEqual(['DIRECT', 'APPROVAL', 'NONE']);
+    expect(DESK_SKIP_REASONS).toEqual([
+      'PAST_DATE',
+      'DESK_ASSIGNED',
+      'ALREADY_RESERVED_THIS_DESK',
+      'ALREADY_RESERVED_OTHER_DESK',
+      'DESK_TAKEN',
+    ]);
+  });
+
+  it('names exactly the bundled floor plans', () => {
+    expect(FLOOR_PLANS).toEqual(['praha']);
+  });
+
+  it('carries the source app’s desk limits', () => {
+    expect(MAX_DESK_SERIES_DATES).toBe(20);
+    expect(MAX_DESK_SERIES_SPAN_DAYS).toBe(34);
+    expect(MAX_DESK_RELEASE_DATES).toBe(60);
+    expect(MAX_DESK_BULK_IDS).toBe(500);
+    expect(EMPLOYEE_SYNC_RUN_HISTORY).toBe(12);
+    expect(EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT).toBe(500);
   });
 });

@@ -12,8 +12,50 @@
  */
 
 import type { ContractRouterClient } from '@orpc/contract';
+import {
+  adminBulkUpdateDesksContract,
+  adminDeskGrantsContract,
+  adminDeskListContract,
+  adminDeskStatsContract,
+  adminSetDeskGrantContract,
+  adminSetPermanentAssigneeContract,
+  adminUpdateDeskContract,
+} from './admin-desks';
 import { confirmBulkContract, previewBulkContract } from './bulk';
+import {
+  cancelDeskRequestContract,
+  decideDeskRequestContract,
+  myDeskRequestsContract,
+  pendingDeskRequestsContract,
+  requestDeskApprovalContract,
+} from './desk-requests';
+import {
+  cancelDeskReleaseContract,
+  cancelDeskReservationContract,
+  deskDirectoryContract,
+  myDeskReleasesContract,
+  myDeskReservationsContract,
+  previewDeskSeriesContract,
+  releaseDeskContract,
+  reserveDeskContract,
+} from './desks';
+import { adminEmployeeSyncContract, adminSetEmployeeSyncLiveModeContract } from './employee-sync';
+import {
+  adminCreateHiveContract,
+  adminDeleteHiveContract,
+  adminHiveListContract,
+  adminSetHiveMembershipContract,
+  adminUpdateHiveContract,
+} from './hives';
 import { getMyProfileContract, regenerateIcsTokenContract, updateMySettingsContract } from './me';
+import {
+  adminCreateOfficeContract,
+  adminCreateZoneContract,
+  adminOfficeListContract,
+  adminUpdateOfficeContract,
+  adminUpdateZoneContract,
+  adminZoneListContract,
+} from './offices';
 import { getDayOverviewContract } from './overview';
 import {
   getReservationLimitSettingsContract,
@@ -67,12 +109,58 @@ export const contract = {
     /** Active spots, for the preferred-spot picker. Any user. */
     list: listSpotsContract,
   },
+  desk: {
+    directory: deskDirectoryContract,
+    previewSeries: previewDeskSeriesContract,
+    reserve: reserveDeskContract,
+    cancel: cancelDeskReservationContract,
+    myReservations: myDeskReservationsContract,
+    requestApproval: requestDeskApprovalContract,
+    cancelRequest: cancelDeskRequestContract,
+    myRequests: myDeskRequestsContract,
+    /** The hive owner's / admin's inbox. Not under `admin`: owners are not admins. */
+    pendingRequests: pendingDeskRequestsContract,
+    decideRequest: decideDeskRequestContract,
+    myReleases: myDeskReleasesContract,
+    release: releaseDeskContract,
+    cancelRelease: cancelDeskReleaseContract,
+  },
   me: {
     get: getMyProfileContract,
     updateSettings: updateMySettingsContract,
     regenerateIcsToken: regenerateIcsTokenContract,
   },
   admin: {
+    desk: {
+      list: adminDeskListContract,
+      update: adminUpdateDeskContract,
+      bulkUpdate: adminBulkUpdateDesksContract,
+      setPermanentAssignee: adminSetPermanentAssigneeContract,
+      grants: adminDeskGrantsContract,
+      setGrant: adminSetDeskGrantContract,
+      stats: adminDeskStatsContract,
+    },
+    hive: {
+      list: adminHiveListContract,
+      create: adminCreateHiveContract,
+      update: adminUpdateHiveContract,
+      delete: adminDeleteHiveContract,
+      setMembership: adminSetHiveMembershipContract,
+    },
+    office: {
+      list: adminOfficeListContract,
+      create: adminCreateOfficeContract,
+      update: adminUpdateOfficeContract,
+    },
+    zone: {
+      list: adminZoneListContract,
+      create: adminCreateZoneContract,
+      update: adminUpdateZoneContract,
+    },
+    employeeSync: {
+      get: adminEmployeeSyncContract,
+      setLiveMode: adminSetEmployeeSyncLiveModeContract,
+    },
     reservation: {
       /**
        * One named user's reserved dates and count for one calendar month.

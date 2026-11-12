@@ -1,18 +1,38 @@
 import {
+  DESK_ACCESS_LEVELS,
+  DESK_APPROVAL_STATUSES,
+  DESK_SKIP_REASONS,
+  DESK_STATUSES,
+  EMPLOYEE_SYNC_MODES,
+  EMPLOYEE_SYNC_STATUSES,
+  FLOOR_PLANS,
   MONTH_LOCK_STATES,
   PARKING_GROUPS,
   RESERVATION_LOCK_MODES,
   USER_ROLES,
+  type DeskApprovalStatus as SharedDeskApprovalStatus,
+  type DeskSkipReason as SharedDeskSkipReason,
+  type DeskStatus as SharedDeskStatus,
   type MonthLockState as SharedMonthLockState,
   type ParkingGroup as SharedParkingGroup,
   type ReservationLockMode as SharedReservationLockMode,
   type UserRole as SharedUserRole,
 } from '@garage/shared-types';
 import {
+  deskAccessSchema,
+  deskApprovalStatusSchema,
+  deskSkipReasonSchema,
+  deskStatusSchema,
+  employeeSyncModeSchema,
+  employeeSyncStatusSchema,
+  floorPlanSchema,
   monthLockStateSchema,
   parkingGroupSchema,
   reservationLockModeSchema,
   userRoleSchema,
+  type DeskApprovalStatus,
+  type DeskSkipReason,
+  type DeskStatus,
   type MonthLockState,
   type ParkingGroup,
   type ReservationLockMode,
@@ -31,6 +51,13 @@ describe('enum schemas mirror the shared-types tuples', () => {
     ['userRoleSchema', userRoleSchema, USER_ROLES],
     ['reservationLockModeSchema', reservationLockModeSchema, RESERVATION_LOCK_MODES],
     ['monthLockStateSchema', monthLockStateSchema, MONTH_LOCK_STATES],
+    ['deskApprovalStatusSchema', deskApprovalStatusSchema, DESK_APPROVAL_STATUSES],
+    ['employeeSyncModeSchema', employeeSyncModeSchema, EMPLOYEE_SYNC_MODES],
+    ['employeeSyncStatusSchema', employeeSyncStatusSchema, EMPLOYEE_SYNC_STATUSES],
+    ['deskStatusSchema', deskStatusSchema, DESK_STATUSES],
+    ['deskAccessSchema', deskAccessSchema, DESK_ACCESS_LEVELS],
+    ['deskSkipReasonSchema', deskSkipReasonSchema, DESK_SKIP_REASONS],
+    ['floorPlanSchema', floorPlanSchema, FLOOR_PLANS],
   ] as const)('%s accepts exactly its tuple', (_name, schema, values) => {
     for (const value of values) {
       expect(schema.safeParse(value).success).toBe(true);
@@ -52,6 +79,9 @@ describe('enum schemas mirror the shared-types tuples', () => {
     expectSameType<Equals<UserRole, SharedUserRole>>();
     expectSameType<Equals<ReservationLockMode, SharedReservationLockMode>>();
     expectSameType<Equals<MonthLockState, SharedMonthLockState>>();
+    expectSameType<Equals<DeskApprovalStatus, SharedDeskApprovalStatus>>();
+    expectSameType<Equals<DeskStatus, SharedDeskStatus>>();
+    expectSameType<Equals<DeskSkipReason, SharedDeskSkipReason>>();
     expect(true).toBe(true);
   });
 });

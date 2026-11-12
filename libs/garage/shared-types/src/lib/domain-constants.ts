@@ -165,3 +165,112 @@ export type ReservationReassignCause = (typeof RESERVATION_REASSIGN_CAUSES)[numb
  */
 export const CELL_LOCK_RESULTS = ['ACQUIRED', 'HELD_BY_OTHER'] as const;
 export type CellLockResult = (typeof CELL_LOCK_RESULTS)[number];
+
+/**
+ * Status of a desk approval request (`DeskApprovalRequest.status`), stored as
+ * the Prisma enum `DeskApprovalStatus`.
+ *
+ * A request its author withdraws is **deleted**, not given a status, so there
+ * is no `CANCELLED` member: the three below are the only states a stored row
+ * can be in (`doc/desk-merge-plan.md` §"Data model").
+ */
+export const DESK_APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const;
+export type DeskApprovalStatus = (typeof DESK_APPROVAL_STATUSES)[number];
+
+/**
+ * Whether an employee-sync run wrote anything (`EmployeeSyncRun.mode`).
+ *
+ * - `DRY`  — the whole algorithm ran and was logged, nothing was written.
+ * - `LIVE` — the changes were applied.
+ */
+export const EMPLOYEE_SYNC_MODES = ['DRY', 'LIVE'] as const;
+export type EmployeeSyncMode = (typeof EMPLOYEE_SYNC_MODES)[number];
+
+/**
+ * Outcome of an employee-sync run (`EmployeeSyncRun.status`). `REJECTED`
+ * means the list as a whole was refused (bad rows, empty, shrank too much)
+ * and nothing changed, in either mode.
+ */
+export const EMPLOYEE_SYNC_STATUSES = ['OK', 'REJECTED'] as const;
+export type EmployeeSyncStatus = (typeof EMPLOYEE_SYNC_STATUSES)[number];
+
+/**
+ * Status of one desk on one day, as the desk directory reports it. Not
+ * stored: it is computed per (desk, viewer, day), first match wins, in this
+ * order:
+ *
+ * - `INACTIVE`       — the desk is switched off.
+ * - `ASSIGNED`       — it has a permanent holder who did not release that day.
+ *   Masks any reservation on the desk.
+ * - `RESERVED_BY_ME` — the viewer holds that day's reservation.
+ * - `RESERVED`       — somebody else does.
+ * - `FREE`           — nobody does.
+ *
+ * The admin list never reports `RESERVED_BY_ME`: it is viewer-relative.
+ */
+export const DESK_STATUSES = [
+  'INACTIVE',
+  'ASSIGNED',
+  'RESERVED_BY_ME',
+  'RESERVED',
+  'FREE',
+] as const;
+export type DeskStatus = (typeof DESK_STATUSES)[number];
+
+/**
+ * How the viewer may book a desk. Not stored.
+ *
+ * - `DIRECT`   — desk in the viewer's office AND (no hive, OR the viewer is an
+ *   admin, a member of its hive, or holds a direct grant).
+ * - `APPROVAL` — a hive desk of the viewer's office without direct access; it
+ *   can be requested for one date.
+ * - `NONE`     — neither.
+ */
+export const DESK_ACCESS_LEVELS = ['DIRECT', 'APPROVAL', 'NONE'] as const;
+export type DeskAccess = (typeof DESK_ACCESS_LEVELS)[number];
+
+/**
+ * Why one day of a desk series was not (or would not be) booked. Per-day
+ * facts inside a successful answer, never errors, checked in this order:
+ *
+ * - `PAST_DATE`                   — the day is before today (Europe/Prague).
+ * - `DESK_ASSIGNED`               — the permanent holder did not release it.
+ * - `ALREADY_RESERVED_THIS_DESK`  — the viewer already holds this desk that day.
+ * - `ALREADY_RESERVED_OTHER_DESK` — the viewer holds another desk that day.
+ * - `DESK_TAKEN`                  — somebody else holds it.
+ */
+export const DESK_SKIP_REASONS = [
+  'PAST_DATE',
+  'DESK_ASSIGNED',
+  'ALREADY_RESERVED_THIS_DESK',
+  'ALREADY_RESERVED_OTHER_DESK',
+  'DESK_TAKEN',
+] as const;
+export type DeskSkipReason = (typeof DESK_SKIP_REASONS)[number];
+
+/**
+ * Keys of the floor plans bundled with the web app
+ * (`apps/garage/web/public/floorplans/<key>.svg`). `Office.floorPlan` stores
+ * one of them, or `null`. A second office needs a new asset, a member here
+ * and a migration; there is no upload.
+ */
+export const FLOOR_PLANS = ['praha'] as const;
+export type FloorPlan = (typeof FLOOR_PLANS)[number];
+
+/** A desk series carries 1 to this many distinct dates. */
+export const MAX_DESK_SERIES_DATES = 20;
+
+/** The last date of a desk series lies at most this many days after the first. */
+export const MAX_DESK_SERIES_SPAN_DAYS = 34;
+
+/** A permanent holder releases 1 to this many dates in one call. */
+export const MAX_DESK_RELEASE_DATES = 60;
+
+/** Upper bound on the desks one admin bulk edit or grant call may touch. */
+export const MAX_DESK_BULK_IDS = 500;
+
+/** How many of the latest employee-sync runs the admin log shows. */
+export const EMPLOYEE_SYNC_RUN_HISTORY = 12;
+
+/** Each list inside an employee-sync run summary is capped at this length. */
+export const EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT = 500;

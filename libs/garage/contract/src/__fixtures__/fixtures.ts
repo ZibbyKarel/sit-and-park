@@ -40,6 +40,7 @@ export const parkingSpotFixture = {
   active: true,
   hidden: false,
   evCharger: false,
+  officeId: UUID_C,
   createdAt: TIMESTAMP,
   updatedAt: TIMESTAMP,
 };
@@ -52,6 +53,18 @@ export const userFixture = {
   active: true,
   icsToken: 'ics-token-abc',
   preferredParkingSpotId: UUID_B,
+  officeId: UUID_C,
+  hibobId: null,
+  manualAccount: false,
+  deactivatedAt: null,
   createdAt: TIMESTAMP,
   updatedAt: TIMESTAMP,
+};
+
+/** `me.get`'s answer: the caller's user row plus the desk facts. */
+export const myProfileFixture = {
+  ...userFixture,
+  hiveId: null,
+  permanentDeskId: null,
+  ownsHive: false,
 };

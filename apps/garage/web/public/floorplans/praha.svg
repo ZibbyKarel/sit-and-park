@@ -1,0 +1,1044 @@
+<svg width="22473" height="5835" viewBox="0 0 22473 5835" fill="none" overflow="visible" xmlns="http://www.w3.org/2000/svg">
+<path id="wall" d="M22470.5 4986V2092L15228 2087V2.5H11160V2118.5H4160.5V7.5H2.5V2118.5H1367.5V2684.5H1060.5V3573.5H219.5V4552H1309V5779.5L19275.5 5832.5V4986H22470.5Z" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+<g id="Vector 3">
+<path d="M5112 4715V3715.5H7727V4085.5V4715H5112Z" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+<path d="M10050.5 4546V3721.5V3639H10777.5V4546H10050.5Z" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+</g>
+<path id="Vector 1" d="M21712.5 4677.5C21712.5 4653.1 21712.5 4350 21712.5 4201.5M21712.5 3614V3867.5M19350 4437.5H17327V3509H18078H18760.5H19350V4437.5ZM15119 3573.5H14238V2678H14556.5V2041H12103.5V3625H11234.5V4537.5H12353V4365H13787V4572H15105V4670H15462.5V4101.5H16174.5V3785" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+<path id="Vector 2" d="M1364.09 2079H2846.65V2694.14H3164.3V3567.86H3987.89C3999.97 3893.42 4017.39 4549 3988.39 4549C3959.4 4549 3133.76 4544.52 2724.82 4544.52V4345.61H1309.22V4544.52" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+<g id="zone-data">
+<rect width="678" height="1304" transform="translate(21735.5 3616)" fill="#4E79A7" fill-opacity="0.18"/>
+<g id="Desk_207">
+<rect id="desk_body_207" x="21758" y="4472.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-207" x="21882.5" y="4542" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">207</text>
+</g>
+<g id="Desk_206">
+<rect id="desk_body_206" x="21758" y="4299.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-206" x="21882.5" y="4369" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">206</text>
+</g>
+<g id="Desk_210">
+<rect id="desk_body_210" x="21768" y="3637.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-210" x="21892.5" y="3707" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">210</text>
+</g>
+<g id="Desk_209">
+<rect id="desk_body_209" x="22040" y="4472.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-209" x="22164.5" y="4542" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">209</text>
+</g>
+<g id="Desk_208">
+<rect id="desk_body_208" x="22040" y="4299.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-208" x="22164.5" y="4369" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">208</text>
+</g>
+<g id="Desk_211">
+<rect id="desk_body_211" x="22040" y="3637.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-211" x="22164.5" y="3707" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">211</text>
+</g>
+</g>
+<g id="zone-finance_ops">
+<rect width="2291" height="908" transform="translate(19389.5 4012)" fill="#F28E2B" fill-opacity="0.18"/>
+<g id="Desk_205">
+<rect id="desk_body_205" x="21260" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 21260 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-205" x="21329.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">205</text>
+</g>
+<g id="Desk_221">
+<rect id="desk_body_221" x="21260" y="4541.5" width="249" height="139" rx="6.5" transform="rotate(-90 21260 4541.5)" fill="#767676" stroke="black"/>
+<text id="D-221" x="21329.5" y="4417" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">221</text>
+</g>
+<g id="Desk_220">
+<rect id="desk_body_220" x="21089" y="4541.5" width="249" height="139" rx="6.5" transform="rotate(-90 21089 4541.5)" fill="#767676" stroke="black"/>
+<text id="D-220" x="21158.5" y="4417" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">220</text>
+</g>
+<g id="Desk_204">
+<rect id="desk_body_204" x="21089" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 21089 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-204" x="21158.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">204</text>
+</g>
+<g id="Desk_203">
+<rect id="desk_body_203" x="20590" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 20590 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-203" x="20659.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">203</text>
+</g>
+<g id="Desk_201">
+<rect id="desk_body_201" x="20590" y="4541.5" width="249" height="139" rx="6.5" transform="rotate(-90 20590 4541.5)" fill="#767676" stroke="black"/>
+<text id="D-201" x="20659.5" y="4417" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">201</text>
+</g>
+<g id="Desk_200">
+<rect id="desk_body_200" x="20419" y="4541.5" width="249" height="139" rx="6.5" transform="rotate(-90 20419 4541.5)" fill="#767676" stroke="black"/>
+<text id="D-200" x="20488.5" y="4417" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">200</text>
+</g>
+<g id="Desk_196">
+<rect id="desk_body_196" x="19763" y="4556.5" width="249" height="139" rx="6.5" transform="rotate(-90 19763 4556.5)" fill="#767676" stroke="black"/>
+<text id="D-196" x="19832.5" y="4432" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">196</text>
+</g>
+<g id="Desk_198">
+<rect id="desk_body_198" x="19763" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 19763 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-198" x="19832.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">198</text>
+</g>
+<g id="Desk_202">
+<rect id="desk_body_202" x="20418" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 20418 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-202" x="20487.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">202</text>
+</g>
+<g id="Desk_197">
+<rect id="desk_body_197" x="19923" y="4556.5" width="249" height="139" rx="6.5" transform="rotate(-90 19923 4556.5)" fill="#767676" stroke="black"/>
+<text id="D-197" x="19992.5" y="4432" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">197</text>
+</g>
+<g id="Desk_199">
+<rect id="desk_body_199" x="19923" y="4834.5" width="249" height="139" rx="6.5" transform="rotate(-90 19923 4834.5)" fill="#767676" stroke="black"/>
+<text id="D-199" x="19992.5" y="4710" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">199</text>
+</g>
+</g>
+<g id="zone-marketing">
+<rect width="2719" height="1027" transform="translate(18713.5 2118)" fill="#E15759" fill-opacity="0.18"/>
+<g id="Desk_94">
+<rect id="desk_body_94" x="19595" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 19595 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-94" x="19664.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">94</text>
+</g>
+<g id="Desk_98">
+<rect id="desk_body_98" x="20264" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 20264 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-98" x="20333.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">98</text>
+</g>
+<g id="Desk_102">
+<rect id="desk_body_102" x="20933" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 20933 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-102" x="21002.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">102</text>
+</g>
+<g id="Desk_96">
+<rect id="desk_body_96" x="19595" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 19595 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-96" x="19664.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">96</text>
+</g>
+<g id="Desk_100">
+<rect id="desk_body_100" x="20264" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 20264 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-100" x="20333.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">100</text>
+</g>
+<g id="Desk_104">
+<rect id="desk_body_104" x="20933" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 20933 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-104" x="21002.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">104</text>
+</g>
+<g id="Desk_214">
+<rect id="desk_body_214" x="19595" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 19595 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-214" x="19664.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">214</text>
+</g>
+<g id="Desk_216">
+<rect id="desk_body_216" x="20264" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 20264 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-216" x="20333.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">216</text>
+</g>
+<g id="Desk_218">
+<rect id="desk_body_218" x="20933" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 20933 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-218" x="21002.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">218</text>
+</g>
+<g id="Desk_95">
+<rect id="desk_body_95" x="19755" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 19755 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-95" x="19824.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">95</text>
+</g>
+<g id="Desk_99">
+<rect id="desk_body_99" x="20424" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 20424 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-99" x="20493.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">99</text>
+</g>
+<g id="Desk_103">
+<rect id="desk_body_103" x="21093" y="2427.5" width="249" height="139" rx="6.5" transform="rotate(-90 21093 2427.5)" fill="#767676" stroke="black"/>
+<text id="D-103" x="21162.5" y="2303" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">103</text>
+</g>
+<g id="Desk_97">
+<rect id="desk_body_97" x="19755" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 19755 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-97" x="19824.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">97</text>
+</g>
+<g id="Desk_101">
+<rect id="desk_body_101" x="20424" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 20424 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-101" x="20493.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">101</text>
+</g>
+<g id="Desk_105">
+<rect id="desk_body_105" x="21093" y="2705.5" width="249" height="139" rx="6.5" transform="rotate(-90 21093 2705.5)" fill="#767676" stroke="black"/>
+<text id="D-105" x="21162.5" y="2581" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">105</text>
+</g>
+<g id="Desk_215">
+<rect id="desk_body_215" x="19755" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 19755 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-215" x="19824.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">215</text>
+</g>
+<g id="Desk_217">
+<rect id="desk_body_217" x="20424" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 20424 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-217" x="20493.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">217</text>
+</g>
+<g id="Desk_219">
+<rect id="desk_body_219" x="21093" y="2983.5" width="249" height="139" rx="6.5" transform="rotate(-90 21093 2983.5)" fill="#767676" stroke="black"/>
+<text id="D-219" x="21162.5" y="2859" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">219</text>
+</g>
+<g id="Desk_92">
+<rect id="desk_body_92" x="18926" y="2445.5" width="249" height="139" rx="6.5" transform="rotate(-90 18926 2445.5)" fill="#767676" stroke="black"/>
+<text id="D-92" x="18995.5" y="2321" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">92</text>
+</g>
+<g id="Desk_212">
+<rect id="desk_body_212" x="18926" y="2723.5" width="249" height="139" rx="6.5" transform="rotate(-90 18926 2723.5)" fill="#767676" stroke="black"/>
+<text id="D-212" x="18995.5" y="2599" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">212</text>
+</g>
+<g id="Desk_93">
+<rect id="desk_body_93" x="19086" y="2445.5" width="249" height="139" rx="6.5" transform="rotate(-90 19086 2445.5)" fill="#767676" stroke="black"/>
+<text id="D-93" x="19155.5" y="2321" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">93</text>
+</g>
+<g id="Desk_213">
+<rect id="desk_body_213" x="19086" y="2723.5" width="249" height="139" rx="6.5" transform="rotate(-90 19086 2723.5)" fill="#767676" stroke="black"/>
+<text id="D-213" x="19155.5" y="2599" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">213</text>
+</g>
+</g>
+<g id="zone-hr">
+<rect width="2003" height="1027" transform="translate(16041.5 2118)" fill="#76B7B2" fill-opacity="0.18"/>
+<g id="Desk_82">
+<rect id="desk_body_82" x="16533" y="2507.5" width="249" height="139" rx="6.5" transform="rotate(-90 16533 2507.5)" fill="#767676" stroke="black"/>
+<text id="D-82" x="16602.5" y="2383" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">82</text>
+</g>
+<g id="Desk_86">
+<rect id="desk_body_86" x="17201" y="2497.5" width="249" height="139" rx="6.5" transform="rotate(-90 17201 2497.5)" fill="#767676" stroke="black"/>
+<text id="D-86" x="17270.5" y="2373" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">86</text>
+</g>
+<g id="Desk_84">
+<rect id="desk_body_84" x="16533" y="2785.5" width="249" height="139" rx="6.5" transform="rotate(-90 16533 2785.5)" fill="#767676" stroke="black"/>
+<text id="D-84" x="16602.5" y="2661" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">84</text>
+</g>
+<g id="Desk_88">
+<rect id="desk_body_88" x="17201" y="2775.5" width="249" height="139" rx="6.5" transform="rotate(-90 17201 2775.5)" fill="#767676" stroke="black"/>
+<text id="D-88" x="17270.5" y="2651" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">88</text>
+</g>
+<g id="Desk_83">
+<rect id="desk_body_83" x="16693" y="2507.5" width="249" height="139" rx="6.5" transform="rotate(-90 16693 2507.5)" fill="#767676" stroke="black"/>
+<text id="D-83" x="16762.5" y="2383" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">83</text>
+</g>
+<g id="Desk_87">
+<rect id="desk_body_87" x="17361" y="2497.5" width="249" height="139" rx="6.5" transform="rotate(-90 17361 2497.5)" fill="#767676" stroke="black"/>
+<text id="D-87" x="17430.5" y="2373" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">87</text>
+</g>
+<g id="Desk_90">
+<rect id="desk_body_90" x="17879" y="2497.5" width="249" height="139" rx="6.5" transform="rotate(-90 17879 2497.5)" fill="#767676" stroke="black"/>
+<text id="D-90" x="17948.5" y="2373" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">90</text>
+</g>
+<g id="Desk_85">
+<rect id="desk_body_85" x="16693" y="2785.5" width="249" height="139" rx="6.5" transform="rotate(-90 16693 2785.5)" fill="#767676" stroke="black"/>
+<text id="D-85" x="16762.5" y="2661" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">85</text>
+</g>
+<g id="Desk_89">
+<rect id="desk_body_89" x="17361" y="2775.5" width="249" height="139" rx="6.5" transform="rotate(-90 17361 2775.5)" fill="#767676" stroke="black"/>
+<text id="D-89" x="17430.5" y="2651" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">89</text>
+</g>
+<g id="Desk_91">
+<rect id="desk_body_91" x="17879" y="2775.5" width="249" height="139" rx="6.5" transform="rotate(-90 17879 2775.5)" fill="#767676" stroke="black"/>
+<text id="D-91" x="17948.5" y="2651" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">91</text>
+</g>
+</g>
+<g id="meeting_room-palacky">
+<rect id="meeting_room" x="15234.5" y="2118" width="753" height="1027" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-palacky" x="15611" y="2631.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Palacký</text>
+</g>
+<g id="meeting_room-forman">
+<rect id="meeting_room_2" x="10311" y="2157" width="849" height="976" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-forman" x="10735.5" y="2645" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Forman</text>
+</g>
+<g id="event_space">
+<rect id="meeting_room_3" x="11192.5" y="34" width="4012" height="1905" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-event_space" x="13198.5" y="986.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Event space</text>
+</g>
+<g id="meeting_room-hrabal">
+<rect id="meeting_room_4" x="9170.5" y="3600" width="856" height="1115" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-hrabal" x="9598.5" y="4157.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Hrabal</text>
+</g>
+<g id="meeting_room-mucha">
+<rect id="meeting_room_5" x="4379.5" y="3716" width="720" height="446" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-mucha" x="4739.5" y="3939" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Mucha</text>
+</g>
+<g id="meeting_room-kafka">
+<rect id="meeting_room_6" x="4379.5" y="4177" width="694" height="538" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-kafka" x="4726.5" y="4446" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Kafka</text>
+</g>
+<g id="meeting_room-bata">
+<rect id="meeting_room_7" x="3446.5" y="5037" width="694" height="677" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-bata" x="3793.5" y="5375.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Baťa</text>
+</g>
+<g id="meeting_room-toyen">
+<rect id="meeting_room_8" x="15492.5" y="4122" width="678" height="544" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-toyen" x="15831.5" y="4394" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Toyen</text>
+</g>
+<g id="meeting_room-capek">
+<rect id="meeting_room_9" x="16216.5" y="5066" width="866" height="641" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-capek" x="16649.5" y="5386.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Čapek</text>
+</g>
+<g id="meeting_room-krizik">
+<rect id="meeting_room_10" x="18081.5" y="2118" width="578" height="1027" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-krizik" x="18370.5" y="2631.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Křižík</text>
+</g>
+<g id="zone-risk_ops">
+<rect width="2081" height="1270" transform="translate(17146.5 4466)" fill="#59A14F" fill-opacity="0.18"/>
+<g id="Desk_192">
+<rect id="desk_body_192" x="18696" y="5334.5" width="249" height="139" rx="6.5" transform="rotate(-90 18696 5334.5)" fill="#767676" stroke="black"/>
+<text id="D-192" x="18765.5" y="5210" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">192</text>
+</g>
+<g id="Desk_188">
+<rect id="desk_body_188" x="18037" y="5320.5" width="249" height="139" rx="6.5" transform="rotate(-90 18037 5320.5)" fill="#767676" stroke="black"/>
+<text id="D-188" x="18106.5" y="5196" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">188</text>
+</g>
+<g id="Desk_184">
+<rect id="desk_body_184" x="17378" y="5306.5" width="249" height="139" rx="6.5" transform="rotate(-90 17378 5306.5)" fill="#767676" stroke="black"/>
+<text id="D-184" x="17447.5" y="5182" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">184</text>
+</g>
+<g id="Desk_194">
+<rect id="desk_body_194" x="18696" y="5612.5" width="249" height="139" rx="6.5" transform="rotate(-90 18696 5612.5)" fill="#767676" stroke="black"/>
+<text id="D-194" x="18765.5" y="5488" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">194</text>
+</g>
+<g id="Desk_190">
+<rect id="desk_body_190" x="18037" y="5598.5" width="249" height="139" rx="6.5" transform="rotate(-90 18037 5598.5)" fill="#767676" stroke="black"/>
+<text id="D-190" x="18106.5" y="5474" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">190</text>
+</g>
+<g id="Desk_186">
+<rect id="desk_body_186" x="17378" y="5584.5" width="249" height="139" rx="6.5" transform="rotate(-90 17378 5584.5)" fill="#767676" stroke="black"/>
+<text id="D-186" x="17447.5" y="5460" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">186</text>
+</g>
+<g id="Desk_193">
+<rect id="desk_body_193" x="18856" y="5334.5" width="249" height="139" rx="6.5" transform="rotate(-90 18856 5334.5)" fill="#767676" stroke="black"/>
+<text id="D-193" x="18925.5" y="5210" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">193</text>
+</g>
+<g id="Desk_189">
+<rect id="desk_body_189" x="18197" y="5320.5" width="249" height="139" rx="6.5" transform="rotate(-90 18197 5320.5)" fill="#767676" stroke="black"/>
+<text id="D-189" x="18266.5" y="5196" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">189</text>
+</g>
+<g id="Desk_185">
+<rect id="desk_body_185" x="17538" y="5306.5" width="249" height="139" rx="6.5" transform="rotate(-90 17538 5306.5)" fill="#767676" stroke="black"/>
+<text id="D-185" x="17607.5" y="5182" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">185</text>
+</g>
+<g id="Desk_195">
+<rect id="desk_body_195" x="18856" y="5612.5" width="249" height="139" rx="6.5" transform="rotate(-90 18856 5612.5)" fill="#767676" stroke="black"/>
+<text id="D-195" x="18925.5" y="5488" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">195</text>
+</g>
+<g id="Desk_191">
+<rect id="desk_body_191" x="18197" y="5598.5" width="249" height="139" rx="6.5" transform="rotate(-90 18197 5598.5)" fill="#767676" stroke="black"/>
+<text id="D-191" x="18266.5" y="5474" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">191</text>
+</g>
+<g id="Desk_187">
+<rect id="desk_body_187" x="17538" y="5584.5" width="249" height="139" rx="6.5" transform="rotate(-90 17538 5584.5)" fill="#767676" stroke="black"/>
+<text id="D-187" x="17607.5" y="5460" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">187</text>
+</g>
+</g>
+<g id="zone-cs" clip-path="url(#clip0_0_1)">
+<rect width="1075" height="1058" transform="matrix(-1 0 0 1 16170.5 4678)" fill="#EDC948" fill-opacity="0.18"/>
+<g id="Desk_180">
+<rect id="desk_body_180" x="15643" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 15643 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-180" x="15712.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">180</text>
+</g>
+<g id="Desk_182">
+<rect id="desk_body_182" x="15643" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 15643 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-182" x="15712.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">182</text>
+</g>
+<g id="Desk_181">
+<rect id="desk_body_181" x="15803" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 15803 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-181" x="15872.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">181</text>
+</g>
+<g id="Desk_183">
+<rect id="desk_body_183" x="15803" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 15803 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-183" x="15872.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">183</text>
+</g>
+<g id="Desk_178">
+<rect id="desk_body_178" x="15180" y="5335.5" width="249" height="139" rx="6.5" transform="rotate(-90 15180 5335.5)" fill="#767676" stroke="black"/>
+<text id="D-178" x="15249.5" y="5211" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">178</text>
+</g>
+<g id="Desk_179">
+<rect id="desk_body_179" x="15180" y="5613.5" width="249" height="139" rx="6.5" transform="rotate(-90 15180 5613.5)" fill="#767676" stroke="black"/>
+<text id="D-179" x="15249.5" y="5489" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">179</text>
+</g>
+</g>
+<g id="zone-cc">
+<rect width="4396" height="1146" transform="translate(10653.5 4590)" fill="#B07AA1" fill-opacity="0.18"/>
+<g id="Desk_174">
+<rect id="desk_body_174" x="14528" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 14528 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-174" x="14597.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">174</text>
+</g>
+<g id="Desk_170">
+<rect id="desk_body_170" x="13868" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 13868 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-170" x="13937.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">170</text>
+</g>
+<g id="Desk_166">
+<rect id="desk_body_166" x="13208" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 13208 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-166" x="13277.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">166</text>
+</g>
+<g id="Desk_158">
+<rect id="desk_body_158" x="11836" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 11836 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-158" x="11905.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">158</text>
+</g>
+<g id="Desk_154">
+<rect id="desk_body_154" x="11036" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 11036 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-154" x="11105.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">154</text>
+</g>
+<g id="Desk_176">
+<rect id="desk_body_176" x="14528" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 14528 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-176" x="14597.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">176</text>
+</g>
+<g id="Desk_172">
+<rect id="desk_body_172" x="13868" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 13868 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-172" x="13937.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">172</text>
+</g>
+<g id="Desk_168">
+<rect id="desk_body_168" x="13208" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 13208 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-168" x="13277.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">168</text>
+</g>
+<g id="Desk_160">
+<rect id="desk_body_160" x="11836" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 11836 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-160" x="11905.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">160</text>
+</g>
+<g id="Desk_156">
+<rect id="desk_body_156" x="11036" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 11036 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-156" x="11105.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">156</text>
+</g>
+<g id="Desk_175">
+<rect id="desk_body_175" x="14688" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 14688 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-175" x="14757.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">175</text>
+</g>
+<g id="Desk_171">
+<rect id="desk_body_171" x="14028" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 14028 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-171" x="14097.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">171</text>
+</g>
+<g id="Desk_167">
+<rect id="desk_body_167" x="13368" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 13368 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-167" x="13437.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">167</text>
+</g>
+<g id="Desk_159">
+<rect id="desk_body_159" x="11996" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 11996 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-159" x="12065.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">159</text>
+</g>
+<g id="Desk_155">
+<rect id="desk_body_155" x="11196" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 11196 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-155" x="11265.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">155</text>
+</g>
+<g id="Desk_177">
+<rect id="desk_body_177" x="14688" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 14688 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-177" x="14757.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">177</text>
+</g>
+<g id="Desk_173">
+<rect id="desk_body_173" x="14028" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 14028 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-173" x="14097.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">173</text>
+</g>
+<g id="Desk_169">
+<rect id="desk_body_169" x="13368" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 13368 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-169" x="13437.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">169</text>
+</g>
+<g id="Desk_161">
+<rect id="desk_body_161" x="11996" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 11996 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-161" x="12065.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">161</text>
+</g>
+<g id="Desk_162">
+<rect id="desk_body_162" x="12522" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 12522 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-162" x="12591.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">162</text>
+</g>
+<g id="Desk_163">
+<rect id="desk_body_163" x="12722" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 12722 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-163" x="12791.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">163</text>
+</g>
+<g id="Desk_164">
+<rect id="desk_body_164" x="12522" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 12522 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-164" x="12591.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">164</text>
+</g>
+<g id="Desk_165">
+<rect id="desk_body_165" x="12722" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 12722 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-165" x="12791.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">165</text>
+</g>
+<g id="Desk_157">
+<rect id="desk_body_157" x="11196" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 11196 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-157" x="11265.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">157</text>
+</g>
+</g>
+<g id="zone-engineering1">
+<rect width="5405" height="1164" transform="translate(4949.5 2157)" fill="#FF9DA7" fill-opacity="0.18"/>
+<g id="Desk_40">
+<rect id="desk_body_40" x="5471" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 5471 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-40" x="5540.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">40</text>
+</g>
+<g id="Desk_37">
+<rect id="desk_body_37" x="4960" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 4960 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-37" x="5029.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">37</text>
+</g>
+<g id="Desk_46">
+<rect id="desk_body_46" x="6125" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 6125 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-46" x="6194.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">46</text>
+</g>
+<g id="Desk_52">
+<rect id="desk_body_52" x="6989" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 6989 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-52" x="7058.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">52</text>
+</g>
+<g id="Desk_58">
+<rect id="desk_body_58" x="7643" y="2555.5" width="249" height="139" rx="6.5" transform="rotate(-90 7643 2555.5)" fill="#767676" stroke="black"/>
+<text id="D-58" x="7712.5" y="2431" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">58</text>
+</g>
+<g id="Desk_64">
+<rect id="desk_body_64" x="8463" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 8463 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-64" x="8532.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">64</text>
+</g>
+<g id="Desk_70">
+<rect id="desk_body_70" x="9130" y="2535.5" width="249" height="139" rx="6.5" transform="rotate(-90 9130 2535.5)" fill="#767676" stroke="black"/>
+<text id="D-70" x="9199.5" y="2411" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">70</text>
+</g>
+<g id="Desk_76">
+<rect id="desk_body_76" x="9792" y="2525.5" width="249" height="139" rx="6.5" transform="rotate(-90 9792 2525.5)" fill="#767676" stroke="black"/>
+<text id="D-76" x="9861.5" y="2401" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">76</text>
+</g>
+<g id="Desk_42">
+<rect id="desk_body_42" x="5471" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 5471 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-42" x="5540.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">42</text>
+</g>
+<g id="Desk_38">
+<rect id="desk_body_38" x="4960" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 4960 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-38" x="5029.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">38</text>
+</g>
+<g id="Desk_48">
+<rect id="desk_body_48" x="6125" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 6125 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-48" x="6194.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">48</text>
+</g>
+<g id="Desk_54">
+<rect id="desk_body_54" x="6989" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 6989 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-54" x="7058.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">54</text>
+</g>
+<g id="Desk_60">
+<rect id="desk_body_60" x="7643" y="2833.5" width="249" height="139" rx="6.5" transform="rotate(-90 7643 2833.5)" fill="#767676" stroke="black"/>
+<text id="D-60" x="7712.5" y="2709" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">60</text>
+</g>
+<g id="Desk_66">
+<rect id="desk_body_66" x="8463" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 8463 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-66" x="8532.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">66</text>
+</g>
+<g id="Desk_72">
+<rect id="desk_body_72" x="9130" y="2813.5" width="249" height="139" rx="6.5" transform="rotate(-90 9130 2813.5)" fill="#767676" stroke="black"/>
+<text id="D-72" x="9199.5" y="2689" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">72</text>
+</g>
+<g id="Desk_78">
+<rect id="desk_body_78" x="9792" y="2803.5" width="249" height="139" rx="6.5" transform="rotate(-90 9792 2803.5)" fill="#767676" stroke="black"/>
+<text id="D-78" x="9861.5" y="2679" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">78</text>
+</g>
+<g id="Desk_44">
+<rect id="desk_body_44" x="5471" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 5471 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-44" x="5540.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">44</text>
+</g>
+<g id="Desk_39">
+<rect id="desk_body_39" x="4960" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 4960 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-39" x="5029.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">39</text>
+</g>
+<g id="Desk_50">
+<rect id="desk_body_50" x="6125" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 6125 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-50" x="6194.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">50</text>
+</g>
+<g id="Desk_56">
+<rect id="desk_body_56" x="6989" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 6989 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-56" x="7058.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">56</text>
+</g>
+<g id="Desk_62">
+<rect id="desk_body_62" x="7643" y="3111.5" width="249" height="139" rx="6.5" transform="rotate(-90 7643 3111.5)" fill="#767676" stroke="black"/>
+<text id="D-62" x="7712.5" y="2987" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">62</text>
+</g>
+<g id="Desk_68">
+<rect id="desk_body_68" x="8463" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 8463 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-68" x="8532.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">68</text>
+</g>
+<g id="Desk_74">
+<rect id="desk_body_74" x="9130" y="3091.5" width="249" height="139" rx="6.5" transform="rotate(-90 9130 3091.5)" fill="#767676" stroke="black"/>
+<text id="D-74" x="9199.5" y="2967" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">74</text>
+</g>
+<g id="Desk_80">
+<rect id="desk_body_80" x="9792" y="3081.5" width="249" height="139" rx="6.5" transform="rotate(-90 9792 3081.5)" fill="#767676" stroke="black"/>
+<text id="D-80" x="9861.5" y="2957" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">80</text>
+</g>
+<g id="Desk_41">
+<rect id="desk_body_41" x="5631" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 5631 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-41" x="5700.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">41</text>
+</g>
+<g id="Desk_47">
+<rect id="desk_body_47" x="6285" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 6285 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-47" x="6354.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">47</text>
+</g>
+<g id="Desk_53">
+<rect id="desk_body_53" x="7149" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 7149 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-53" x="7218.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">53</text>
+</g>
+<g id="Desk_59">
+<rect id="desk_body_59" x="7803" y="2555.5" width="249" height="139" rx="6.5" transform="rotate(-90 7803 2555.5)" fill="#767676" stroke="black"/>
+<text id="D-59" x="7872.5" y="2431" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">59</text>
+</g>
+<g id="Desk_65">
+<rect id="desk_body_65" x="8623" y="2545.5" width="249" height="139" rx="6.5" transform="rotate(-90 8623 2545.5)" fill="#767676" stroke="black"/>
+<text id="D-65" x="8692.5" y="2421" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">65</text>
+</g>
+<g id="Desk_71">
+<rect id="desk_body_71" x="9290" y="2535.5" width="249" height="139" rx="6.5" transform="rotate(-90 9290 2535.5)" fill="#767676" stroke="black"/>
+<text id="D-71" x="9359.5" y="2411" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">71</text>
+</g>
+<g id="Desk_77">
+<rect id="desk_body_77" x="9952" y="2525.5" width="249" height="139" rx="6.5" transform="rotate(-90 9952 2525.5)" fill="#767676" stroke="black"/>
+<text id="D-77" x="10021.5" y="2401" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">77</text>
+</g>
+<g id="Desk_43">
+<rect id="desk_body_43" x="5631" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 5631 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-43" x="5700.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">43</text>
+</g>
+<g id="Desk_49">
+<rect id="desk_body_49" x="6285" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 6285 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-49" x="6354.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">49</text>
+</g>
+<g id="Desk_55">
+<rect id="desk_body_55" x="7149" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 7149 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-55" x="7218.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">55</text>
+</g>
+<g id="Desk_61">
+<rect id="desk_body_61" x="7803" y="2833.5" width="249" height="139" rx="6.5" transform="rotate(-90 7803 2833.5)" fill="#767676" stroke="black"/>
+<text id="D-61" x="7872.5" y="2709" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">61</text>
+</g>
+<g id="Desk_67">
+<rect id="desk_body_67" x="8623" y="2823.5" width="249" height="139" rx="6.5" transform="rotate(-90 8623 2823.5)" fill="#767676" stroke="black"/>
+<text id="D-67" x="8692.5" y="2699" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">67</text>
+</g>
+<g id="Desk_73">
+<rect id="desk_body_73" x="9290" y="2813.5" width="249" height="139" rx="6.5" transform="rotate(-90 9290 2813.5)" fill="#767676" stroke="black"/>
+<text id="D-73" x="9359.5" y="2689" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">73</text>
+</g>
+<g id="Desk_79">
+<rect id="desk_body_79" x="9952" y="2803.5" width="249" height="139" rx="6.5" transform="rotate(-90 9952 2803.5)" fill="#767676" stroke="black"/>
+<text id="D-79" x="10021.5" y="2679" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">79</text>
+</g>
+<g id="Desk_45">
+<rect id="desk_body_45" x="5631" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 5631 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-45" x="5700.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">45</text>
+</g>
+<g id="Desk_51">
+<rect id="desk_body_51" x="6285" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 6285 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-51" x="6354.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">51</text>
+</g>
+<g id="Desk_57">
+<rect id="desk_body_57" x="7149" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 7149 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-57" x="7218.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">57</text>
+</g>
+<g id="Desk_63">
+<rect id="desk_body_63" x="7803" y="3111.5" width="249" height="139" rx="6.5" transform="rotate(-90 7803 3111.5)" fill="#767676" stroke="black"/>
+<text id="D-63" x="7872.5" y="2987" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">63</text>
+</g>
+<g id="Desk_69">
+<rect id="desk_body_69" x="8623" y="3101.5" width="249" height="139" rx="6.5" transform="rotate(-90 8623 3101.5)" fill="#767676" stroke="black"/>
+<text id="D-69" x="8692.5" y="2977" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">69</text>
+</g>
+<g id="Desk_75">
+<rect id="desk_body_75" x="9290" y="3091.5" width="249" height="139" rx="6.5" transform="rotate(-90 9290 3091.5)" fill="#767676" stroke="black"/>
+<text id="D-75" x="9359.5" y="2967" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">75</text>
+</g>
+<g id="Desk_81">
+<rect id="desk_body_81" x="9952" y="3081.5" width="249" height="139" rx="6.5" transform="rotate(-90 9952 3081.5)" fill="#767676" stroke="black"/>
+<text id="D-81" x="10021.5" y="2957" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">81</text>
+</g>
+</g>
+<g id="meeting_room-destinova">
+<rect id="meeting_room_11" x="4165.5" y="2132" width="753" height="1027" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-destinova" x="4542" y="2645.5" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Destinová</text>
+</g>
+<g id="zone-engineering2">
+<rect width="6359" height="887" transform="translate(4201.5 4849)" fill="#9C755F" fill-opacity="0.18"/>
+<g id="Desk_146">
+<rect id="desk_body_146" x="9677" y="5332.5" width="249" height="139" rx="6.5" transform="rotate(-90 9677 5332.5)" fill="#767676" stroke="black"/>
+<text id="D-146" x="9746.5" y="5208" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">146</text>
+</g>
+<g id="Desk_142">
+<rect id="desk_body_142" x="8888" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 8888 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-142" x="8957.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">142</text>
+</g>
+<g id="Desk_138">
+<rect id="desk_body_138" x="8202" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 8202 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-138" x="8271.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">138</text>
+</g>
+<g id="Desk_134">
+<rect id="desk_body_134" x="7516" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 7516 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-134" x="7585.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">134</text>
+</g>
+<g id="Desk_130">
+<rect id="desk_body_130" x="6534" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 6534 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-130" x="6603.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">130</text>
+</g>
+<g id="Desk_126">
+<rect id="desk_body_126" x="5761" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 5761 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-126" x="5830.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">126</text>
+</g>
+<g id="Desk_122">
+<rect id="desk_body_122" x="5080" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 5080 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-122" x="5149.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">122</text>
+</g>
+<g id="Desk_118">
+<rect id="desk_body_118" x="4399" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 4399 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-118" x="4468.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">118</text>
+</g>
+<g id="Desk_148">
+<rect id="desk_body_148" x="9677" y="5610.5" width="249" height="139" rx="6.5" transform="rotate(-90 9677 5610.5)" fill="#767676" stroke="black"/>
+<text id="D-148" x="9746.5" y="5486" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">148</text>
+</g>
+<g id="Desk_144">
+<rect id="desk_body_144" x="8888" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 8888 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-144" x="8957.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">144</text>
+</g>
+<g id="Desk_140">
+<rect id="desk_body_140" x="8202" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 8202 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-140" x="8271.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">140</text>
+</g>
+<g id="Desk_136">
+<rect id="desk_body_136" x="7516" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 7516 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-136" x="7585.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">136</text>
+</g>
+<g id="Desk_132">
+<rect id="desk_body_132" x="6534" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 6534 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-132" x="6603.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">132</text>
+</g>
+<g id="Desk_128">
+<rect id="desk_body_128" x="5761" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 5761 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-128" x="5830.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">128</text>
+</g>
+<g id="Desk_124">
+<rect id="desk_body_124" x="5080" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 5080 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-124" x="5149.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">124</text>
+</g>
+<g id="Desk_120">
+<rect id="desk_body_120" x="4399" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 4399 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-120" x="4468.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">120</text>
+</g>
+<g id="Desk_147">
+<rect id="desk_body_147" x="9837" y="5332.5" width="249" height="139" rx="6.5" transform="rotate(-90 9837 5332.5)" fill="#767676" stroke="black"/>
+<text id="D-147" x="9906.5" y="5208" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">147</text>
+</g>
+<g id="Desk_143">
+<rect id="desk_body_143" x="9048" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 9048 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-143" x="9117.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">143</text>
+</g>
+<g id="Desk_139">
+<rect id="desk_body_139" x="8362" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 8362 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-139" x="8431.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">139</text>
+</g>
+<g id="Desk_135">
+<rect id="desk_body_135" x="7676" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 7676 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-135" x="7745.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">135</text>
+</g>
+<g id="Desk_131">
+<rect id="desk_body_131" x="6694" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 6694 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-131" x="6763.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">131</text>
+</g>
+<g id="Desk_127">
+<rect id="desk_body_127" x="5921" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 5921 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-127" x="5990.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">127</text>
+</g>
+<g id="Desk_123">
+<rect id="desk_body_123" x="5240" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 5240 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-123" x="5309.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">123</text>
+</g>
+<g id="Desk_119">
+<rect id="desk_body_119" x="4559" y="5342.5" width="249" height="139" rx="6.5" transform="rotate(-90 4559 5342.5)" fill="#767676" stroke="black"/>
+<text id="D-119" x="4628.5" y="5218" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">119</text>
+</g>
+<g id="Desk_149">
+<rect id="desk_body_149" x="9837" y="5610.5" width="249" height="139" rx="6.5" transform="rotate(-90 9837 5610.5)" fill="#767676" stroke="black"/>
+<text id="D-149" x="9906.5" y="5486" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">149</text>
+</g>
+<g id="Desk_150">
+<rect id="desk_body_150" x="10357" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 10357 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-150" x="10426.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">150</text>
+</g>
+<g id="Desk_151">
+<rect id="desk_body_151" x="10517" y="5339.5" width="249" height="139" rx="6.5" transform="rotate(-90 10517 5339.5)" fill="#767676" stroke="black"/>
+<text id="D-151" x="10586.5" y="5215" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">151</text>
+</g>
+<g id="Desk_152">
+<rect id="desk_body_152" x="10357" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 10357 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-152" x="10426.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">152</text>
+</g>
+<g id="Desk_153">
+<rect id="desk_body_153" x="10517" y="5617.5" width="249" height="139" rx="6.5" transform="rotate(-90 10517 5617.5)" fill="#767676" stroke="black"/>
+<text id="D-153" x="10586.5" y="5493" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">153</text>
+</g>
+<g id="Desk_145">
+<rect id="desk_body_145" x="9048" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 9048 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-145" x="9117.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">145</text>
+</g>
+<g id="Desk_141">
+<rect id="desk_body_141" x="8362" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 8362 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-141" x="8431.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">141</text>
+</g>
+<g id="Desk_137">
+<rect id="desk_body_137" x="7676" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 7676 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-137" x="7745.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">137</text>
+</g>
+<g id="Desk_133">
+<rect id="desk_body_133" x="6694" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 6694 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-133" x="6763.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">133</text>
+</g>
+<g id="Desk_129">
+<rect id="desk_body_129" x="5921" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 5921 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-129" x="5990.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">129</text>
+</g>
+<g id="Desk_125">
+<rect id="desk_body_125" x="5240" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 5240 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-125" x="5309.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">125</text>
+</g>
+<g id="Desk_121">
+<rect id="desk_body_121" x="4559" y="5620.5" width="249" height="139" rx="6.5" transform="rotate(-90 4559 5620.5)" fill="#767676" stroke="black"/>
+<text id="D-121" x="4628.5" y="5496" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">121</text>
+</g>
+</g>
+<g id="zone-strategic">
+<rect width="2059" height="887" transform="translate(1327.5 4849)" fill="#BAB0AC" fill-opacity="0.18"/>
+<g id="Desk_114">
+<rect id="desk_body_114" x="2903" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 2903 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-114" x="2972.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">114</text>
+</g>
+<g id="Desk_110">
+<rect id="desk_body_110" x="2244" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 2244 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-110" x="2313.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">110</text>
+</g>
+<g id="Desk_106">
+<rect id="desk_body_106" x="1545" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 1545 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-106" x="1614.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">106</text>
+</g>
+<g id="Desk_116">
+<rect id="desk_body_116" x="2903" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 2903 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-116" x="2972.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">116</text>
+</g>
+<g id="Desk_112">
+<rect id="desk_body_112" x="2244" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 2244 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-112" x="2313.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">112</text>
+</g>
+<g id="Desk_108">
+<rect id="desk_body_108" x="1545" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 1545 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-108" x="1614.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">108</text>
+</g>
+<g id="Desk_115">
+<rect id="desk_body_115" x="3063" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 3063 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-115" x="3132.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">115</text>
+</g>
+<g id="Desk_111">
+<rect id="desk_body_111" x="2404" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 2404 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-111" x="2473.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">111</text>
+</g>
+<g id="Desk_107">
+<rect id="desk_body_107" x="1705" y="5333.5" width="249" height="139" rx="6.5" transform="rotate(-90 1705 5333.5)" fill="#767676" stroke="black"/>
+<text id="D-107" x="1774.5" y="5209" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">107</text>
+</g>
+<g id="Desk_117">
+<rect id="desk_body_117" x="3063" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 3063 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-117" x="3132.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">117</text>
+</g>
+<g id="Desk_113">
+<rect id="desk_body_113" x="2404" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 2404 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-113" x="2473.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">113</text>
+</g>
+<g id="Desk_109">
+<rect id="desk_body_109" x="1705" y="5611.5" width="249" height="139" rx="6.5" transform="rotate(-90 1705 5611.5)" fill="#767676" stroke="black"/>
+<text id="D-109" x="1774.5" y="5487" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">109</text>
+</g>
+</g>
+<g id="zone-sales1">
+<rect width="2768" height="1319" transform="translate(1281.5 68)" fill="#86BCB6" fill-opacity="0.18"/>
+<g id="Desk_31">
+<rect id="desk_body_31" x="3186" y="857.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-31" x="3310.5" y="927" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">31</text>
+</g>
+<g id="Desk_32">
+<rect id="desk_body_32" x="3479" y="857.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-32" x="3603.5" y="927" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">32</text>
+</g>
+<g id="Desk_34">
+<rect id="desk_body_34" x="3186" y="1017.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-34" x="3310.5" y="1087" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">34</text>
+</g>
+<g id="Desk_35">
+<rect id="desk_body_35" x="3479" y="1017.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-35" x="3603.5" y="1087" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">35</text>
+</g>
+<g id="Desk_36">
+<rect id="desk_body_36" x="3757" y="1017.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-36" x="3881.5" y="1087" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">36</text>
+</g>
+<g id="Desk_33">
+<rect id="desk_body_33" x="3757" y="857.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-33" x="3881.5" y="927" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">33</text>
+</g>
+<g id="Desk_30">
+<rect id="desk_body_30" x="3757" y="379.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-30" x="3881.5" y="449" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">30</text>
+</g>
+<g id="Desk_29">
+<rect id="desk_body_29" x="3479" y="379.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-29" x="3603.5" y="449" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">29</text>
+</g>
+<g id="Desk_28">
+<rect id="desk_body_28" x="3186" y="379.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-28" x="3310.5" y="449" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">28</text>
+</g>
+<g id="Desk_25">
+<rect id="desk_body_25" x="3186" y="219.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-25" x="3310.5" y="289" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">25</text>
+</g>
+<g id="Desk_26">
+<rect id="desk_body_26" x="3479" y="218.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-26" x="3603.5" y="288" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">26</text>
+</g>
+<g id="Desk_27">
+<rect id="desk_body_27" x="3757" y="218.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-27" x="3881.5" y="288" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">27</text>
+</g>
+<g id="Desk_19">
+<rect id="desk_body_19" x="2274" y="434.5" width="249" height="139" rx="6.5" transform="rotate(-90 2274 434.5)" fill="#767676" stroke="black"/>
+<text id="D-19" x="2343.5" y="310" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">19</text>
+</g>
+<g id="Desk_13">
+<rect id="desk_body_13" x="1653" y="434.5" width="249" height="139" rx="6.5" transform="rotate(-90 1653 434.5)" fill="#767676" stroke="black"/>
+<text id="D-13" x="1722.5" y="310" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">13</text>
+</g>
+<g id="Desk_21">
+<rect id="desk_body_21" x="2274" y="712.5" width="249" height="139" rx="6.5" transform="rotate(-90 2274 712.5)" fill="#767676" stroke="black"/>
+<text id="D-21" x="2343.5" y="588" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">21</text>
+</g>
+<g id="Desk_23">
+<rect id="desk_body_23" x="2274" y="990.5" width="249" height="139" rx="6.5" transform="rotate(-90 2274 990.5)" fill="#767676" stroke="black"/>
+<text id="D-23" x="2343.5" y="866" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">23</text>
+</g>
+<g id="Desk_17">
+<rect id="desk_body_17" x="1653" y="990.5" width="249" height="139" rx="6.5" transform="rotate(-90 1653 990.5)" fill="#767676" stroke="black"/>
+<text id="D-17" x="1722.5" y="866" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">17</text>
+</g>
+<g id="Desk_15">
+<rect id="desk_body_15" x="1653" y="712.5" width="249" height="139" rx="6.5" transform="rotate(-90 1653 712.5)" fill="#767676" stroke="black"/>
+<text id="D-15" x="1722.5" y="588" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">15</text>
+</g>
+<g id="Desk_20">
+<rect id="desk_body_20" x="2434" y="434.5" width="249" height="139" rx="6.5" transform="rotate(-90 2434 434.5)" fill="#767676" stroke="black"/>
+<text id="D-20" x="2503.5" y="310" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">20</text>
+</g>
+<g id="Desk_14">
+<rect id="desk_body_14" x="1813" y="434.5" width="249" height="139" rx="6.5" transform="rotate(-90 1813 434.5)" fill="#767676" stroke="black"/>
+<text id="D-14" x="1882.5" y="310" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">14</text>
+</g>
+<g id="Desk_22">
+<rect id="desk_body_22" x="2434" y="712.5" width="249" height="139" rx="6.5" transform="rotate(-90 2434 712.5)" fill="#767676" stroke="black"/>
+<text id="D-22" x="2503.5" y="588" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">22</text>
+</g>
+<g id="Desk_24">
+<rect id="desk_body_24" x="2434" y="990.5" width="249" height="139" rx="6.5" transform="rotate(-90 2434 990.5)" fill="#767676" stroke="black"/>
+<text id="D-24" x="2503.5" y="866" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">24</text>
+</g>
+<g id="Desk_18">
+<rect id="desk_body_18" x="1813" y="990.5" width="249" height="139" rx="6.5" transform="rotate(-90 1813 990.5)" fill="#767676" stroke="black"/>
+<text id="D-18" x="1882.5" y="866" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">18</text>
+</g>
+<g id="Desk_16">
+<rect id="desk_body_16" x="1813" y="712.5" width="249" height="139" rx="6.5" transform="rotate(-90 1813 712.5)" fill="#767676" stroke="black"/>
+<text id="D-16" x="1882.5" y="588" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">16</text>
+</g>
+</g>
+<g id="zone-sales2">
+<rect width="1045" height="1960" transform="translate(137.5 68)" fill="#D4A6C8" fill-opacity="0.18"/>
+<g id="Desk_11">
+<rect id="desk_body_11" x="195" y="1703.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-11" x="319.5" y="1773" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">11</text>
+</g>
+<g id="Desk_10">
+<rect id="desk_body_10" x="493" y="1523.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-10" x="617.5" y="1593" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">10</text>
+</g>
+<g id="Desk_12">
+<rect id="desk_body_12" x="493" y="1703.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-12" x="617.5" y="1773" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">12</text>
+</g>
+<g id="Desk_9">
+<rect id="desk_body_9" x="195" y="1533.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-9" x="319.5" y="1603" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">9</text>
+</g>
+<g id="Desk_7">
+<rect id="desk_body_7" x="195" y="1083.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-7" x="319.5" y="1153" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">7</text>
+</g>
+<g id="Desk_8">
+<rect id="desk_body_8" x="483" y="1083.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-8" x="607.5" y="1153" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">8</text>
+</g>
+<g id="Desk_5">
+<rect id="desk_body_5" x="195" y="898.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-5" x="319.5" y="968" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">5</text>
+</g>
+<g id="Desk_3">
+<rect id="desk_body_3" x="195" y="448.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-3" x="319.5" y="518" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">3</text>
+</g>
+<g id="Desk_1">
+<rect id="desk_body_1" x="195" y="288.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-1" x="319.5" y="358" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">1</text>
+</g>
+<g id="Desk_2">
+<rect id="desk_body_2" x="483" y="280.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-2" x="607.5" y="350" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">2</text>
+</g>
+<g id="Desk_4">
+<rect id="desk_body_4" x="483" y="448.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-4" x="607.5" y="518" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">4</text>
+</g>
+<g id="Desk_6">
+<rect id="desk_body_6" x="483" y="902.5" width="249" height="139" rx="6.5" fill="#767676" stroke="black"/>
+<text id="D-6" x="607.5" y="972" fill="white" font-family="Arial, sans-serif" font-size="72" font-weight="bold" text-anchor="middle" dominant-baseline="central">6</text>
+</g>
+</g>
+<g id="meeting_room-skoda">
+<g clip-path="url(#clip1_0_1)">
+<g id="Property 1=Default">
+<rect id="meeting_room_12" x="21470.5" y="2138" width="982" height="1456" fill="#C225D0" fill-opacity="0.22" stroke="#8A38F5" stroke-width="10"/>
+<text id="room_label-skoda" x="21961.5" y="2866" fill="#6B1F75" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Škoda</text>
+</g>
+</g>
+<rect x="21451" y="2118.5" width="1019" height="1458" rx="4.5" stroke="#8A38F5" stroke-dasharray="10 5"/>
+</g>
+<defs>
+<clipPath id="clip0_0_1">
+<rect width="1075" height="1058" fill="white" transform="matrix(-1 0 0 1 16170.5 4678)"/>
+</clipPath>
+<clipPath id="clip1_0_1">
+<rect x="21450.5" y="2118" width="1020" height="1459" rx="5" fill="white"/>
+</clipPath>
+</defs>
+<!-- Doplněné zdi v E3 a místnosti WC / výtah v E2 a E3 -->
+<g id="walls-added" pointer-events="none">
+<path d="M12691.5 4365V5813.1M15105 4670V5820.2M16174.5 4101.5V5823.4M15105 3573.5V3799H16174.5M15105 3799V4572" stroke="#222" stroke-width="28" stroke-linejoin="round"/>
+</g>
+<g id="wc_men-e3" pointer-events="none">
+<rect id="wc_men-e3_area" x="11234.5" y="3625" width="1118.5" height="912.5" fill="#0EA5E9" fill-opacity="0.22" stroke="#0EA5E9" stroke-width="10" opacity="0.15"/>
+<text id="wc_men-e3_label" x="11793.75" y="4081.25" fill="#0369A1" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">WC muži</text>
+</g>
+<g id="wc_women-e3" pointer-events="none">
+<rect id="wc_women-e3_area" x="13787" y="3573.5" width="1318" height="998.5" fill="#0EA5E9" fill-opacity="0.22" stroke="#0EA5E9" stroke-width="10" opacity="0.15"/>
+<text id="wc_women-e3_label" x="14446" y="4072.75" fill="#0369A1" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">WC ženy</text>
+</g>
+<g id="elevator-e3" pointer-events="none">
+<rect id="elevator-e3_area" x="12545" y="2041" width="1420" height="634" fill="#F97316" fill-opacity="0.22" stroke="#F97316" stroke-width="10" opacity="0.15"/>
+<text id="elevator-e3_label" x="13255" y="2358" fill="#C2410C" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Výtah</text>
+</g>
+<g id="wc_men-e2" pointer-events="none">
+<rect id="wc_men-e2_area" x="219.5" y="3573.5" width="1089.72" height="978.5" fill="#0EA5E9" fill-opacity="0.22" stroke="#0EA5E9" stroke-width="10" opacity="0.15"/>
+<text id="wc_men-e2_label" x="764.36" y="4062.75" fill="#0369A1" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">WC muži</text>
+</g>
+<g id="wc_women-e2" pointer-events="none">
+<rect id="wc_women-e2_area" x="2724.82" y="3567.86" width="1263.18" height="981.14" fill="#0EA5E9" fill-opacity="0.22" stroke="#0EA5E9" stroke-width="10" opacity="0.15"/>
+<text id="wc_women-e2_label" x="3356.41" y="4058.43" fill="#0369A1" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">WC ženy</text>
+</g>
+<g id="elevator-e2" pointer-events="none">
+<rect id="elevator-e2_area" x="1367.5" y="2079" width="1479.15" height="615.14" fill="#F97316" fill-opacity="0.22" stroke="#F97316" stroke-width="10" opacity="0.15"/>
+<text id="elevator-e2_label" x="2107.07" y="2386.57" fill="#C2410C" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Výtah</text>
+</g>
+<g id="kitchen-e3-top" pointer-events="none">
+<rect id="kitchen-e3-top_area" x="12700" y="1700" width="1580" height="341" fill="#22C55E" fill-opacity="0.22" stroke="#22C55E" stroke-width="10" opacity="0.15"/>
+<text id="kitchen-e3-top_label" x="13490" y="1870.5" fill="#15803D" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Kuchyňka</text>
+</g>
+<g id="kitchen-e3-toyen" pointer-events="none">
+<rect id="kitchen-e3-toyen_area" x="15105" y="3573.5" width="1069.5" height="225.5" fill="#22C55E" fill-opacity="0.22" stroke="#22C55E" stroke-width="10" opacity="0.15"/>
+<text id="kitchen-e3-toyen_label" x="15639.75" y="3686.25" fill="#15803D" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Kuchyňka</text>
+</g>
+<g id="kitchen-e2" pointer-events="none">
+<rect id="kitchen-e2_area" x="3317" y="3323" width="671" height="244.86" fill="#22C55E" fill-opacity="0.22" stroke="#22C55E" stroke-width="10" opacity="0.15"/>
+<text id="kitchen-e2_label" x="3652.5" y="3445.43" fill="#15803D" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Kuchyňka</text>
+</g>
+<g id="orientation" pointer-events="none">
+<text id="orientation_label-river" x="11236" y="-450" fill="#64748B" font-family="Arial, sans-serif" font-size="300" font-weight="bold" text-anchor="middle" dominant-baseline="central">Řeka</text>
+<text id="orientation_label-station" x="11236" y="6285" fill="#64748B" font-family="Arial, sans-serif" font-size="300" font-weight="bold" text-anchor="middle" dominant-baseline="central">Nádraží</text>
+</g>
+<g id="reception" pointer-events="none">
+<rect id="reception_area" x="11192.5" y="1975" width="270" height="1158" fill="#0F766E" fill-opacity="0.22" stroke="#0F766E" stroke-width="10" opacity="0.15"/>
+<text id="reception_label" x="11327.5" y="2554" transform="rotate(-90 11327.5 2554)" fill="#0F766E" font-family="Arial, sans-serif" font-size="120" font-weight="bold" text-anchor="middle" dominant-baseline="central">Recepce</text>
+</g>
+<g id="entrance-e3" pointer-events="none">
+<text id="entrance_label-e3" x="13170" y="3300" fill="#0F766E" font-family="system-ui, Arial, sans-serif" font-size="255" font-weight="bold" text-anchor="middle" dominant-baseline="central">E3</text>
+</g>
+<g id="entrance-e2" pointer-events="none">
+<text id="entrance_label-e2" x="2110" y="3130" fill="#0F766E" font-family="system-ui, Arial, sans-serif" font-size="255" font-weight="bold" text-anchor="middle" dominant-baseline="central">E2</text>
+</g>
+</svg>

@@ -32,6 +32,7 @@ export type ParkingSpotMinAggregateOutputType = {
   active: boolean | null
   hidden: boolean | null
   evCharger: boolean | null
+  officeId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -43,6 +44,7 @@ export type ParkingSpotMaxAggregateOutputType = {
   active: boolean | null
   hidden: boolean | null
   evCharger: boolean | null
+  officeId: string | null
   createdAt: Date | null
   updatedAt: Date | null
 }
@@ -54,6 +56,7 @@ export type ParkingSpotCountAggregateOutputType = {
   active: number
   hidden: number
   evCharger: number
+  officeId: number
   createdAt: number
   updatedAt: number
   _all: number
@@ -67,6 +70,7 @@ export type ParkingSpotMinAggregateInputType = {
   active?: true
   hidden?: true
   evCharger?: true
+  officeId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -78,6 +82,7 @@ export type ParkingSpotMaxAggregateInputType = {
   active?: true
   hidden?: true
   evCharger?: true
+  officeId?: true
   createdAt?: true
   updatedAt?: true
 }
@@ -89,6 +94,7 @@ export type ParkingSpotCountAggregateInputType = {
   active?: true
   hidden?: true
   evCharger?: true
+  officeId?: true
   createdAt?: true
   updatedAt?: true
   _all?: true
@@ -173,6 +179,7 @@ export type ParkingSpotGroupByOutputType = {
   active: boolean
   hidden: boolean
   evCharger: boolean
+  officeId: string
   createdAt: Date
   updatedAt: Date
   _count: ParkingSpotCountAggregateOutputType | null
@@ -205,8 +212,10 @@ export type ParkingSpotWhereInput = {
   active?: Prisma.BoolFilter<"ParkingSpot"> | boolean
   hidden?: Prisma.BoolFilter<"ParkingSpot"> | boolean
   evCharger?: Prisma.BoolFilter<"ParkingSpot"> | boolean
+  officeId?: Prisma.UuidFilter<"ParkingSpot"> | string
   createdAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
+  office?: Prisma.XOR<Prisma.OfficeScalarRelationFilter, Prisma.OfficeWhereInput>
   reservations?: Prisma.ReservationListRelationFilter
   waitlistEntries?: Prisma.WaitlistEntryListRelationFilter
   timedReservations?: Prisma.TimedReservationListRelationFilter
@@ -220,8 +229,10 @@ export type ParkingSpotOrderByWithRelationInput = {
   active?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   evCharger?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+  office?: Prisma.OfficeOrderByWithRelationInput
   reservations?: Prisma.ReservationOrderByRelationAggregateInput
   waitlistEntries?: Prisma.WaitlistEntryOrderByRelationAggregateInput
   timedReservations?: Prisma.TimedReservationOrderByRelationAggregateInput
@@ -238,8 +249,10 @@ export type ParkingSpotWhereUniqueInput = Prisma.AtLeast<{
   active?: Prisma.BoolFilter<"ParkingSpot"> | boolean
   hidden?: Prisma.BoolFilter<"ParkingSpot"> | boolean
   evCharger?: Prisma.BoolFilter<"ParkingSpot"> | boolean
+  officeId?: Prisma.UuidFilter<"ParkingSpot"> | string
   createdAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
+  office?: Prisma.XOR<Prisma.OfficeScalarRelationFilter, Prisma.OfficeWhereInput>
   reservations?: Prisma.ReservationListRelationFilter
   waitlistEntries?: Prisma.WaitlistEntryListRelationFilter
   timedReservations?: Prisma.TimedReservationListRelationFilter
@@ -253,6 +266,7 @@ export type ParkingSpotOrderByWithAggregationInput = {
   active?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   evCharger?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
   _count?: Prisma.ParkingSpotCountOrderByAggregateInput
@@ -270,6 +284,7 @@ export type ParkingSpotScalarWhereWithAggregatesInput = {
   active?: Prisma.BoolWithAggregatesFilter<"ParkingSpot"> | boolean
   hidden?: Prisma.BoolWithAggregatesFilter<"ParkingSpot"> | boolean
   evCharger?: Prisma.BoolWithAggregatesFilter<"ParkingSpot"> | boolean
+  officeId?: Prisma.UuidWithAggregatesFilter<"ParkingSpot"> | string
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"ParkingSpot"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"ParkingSpot"> | Date | string
 }
@@ -283,6 +298,7 @@ export type ParkingSpotCreateInput = {
   evCharger?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutParkingSpotsInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutParkingSpotInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutParkingSpotInput
   timedReservations?: Prisma.TimedReservationCreateNestedManyWithoutParkingSpotInput
@@ -296,6 +312,7 @@ export type ParkingSpotUncheckedCreateInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutParkingSpotInput
@@ -313,6 +330,7 @@ export type ParkingSpotUpdateInput = {
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutParkingSpotsNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutParkingSpotNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutParkingSpotNestedInput
   timedReservations?: Prisma.TimedReservationUpdateManyWithoutParkingSpotNestedInput
@@ -326,6 +344,7 @@ export type ParkingSpotUncheckedUpdateInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
@@ -341,6 +360,7 @@ export type ParkingSpotCreateManyInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
 }
@@ -363,6 +383,7 @@ export type ParkingSpotUncheckedUpdateManyInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
@@ -379,6 +400,7 @@ export type ParkingSpotCountOrderByAggregateInput = {
   active?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   evCharger?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -390,6 +412,7 @@ export type ParkingSpotMaxOrderByAggregateInput = {
   active?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   evCharger?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -401,6 +424,7 @@ export type ParkingSpotMinOrderByAggregateInput = {
   active?: Prisma.SortOrder
   hidden?: Prisma.SortOrder
   evCharger?: Prisma.SortOrder
+  officeId?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
 }
@@ -408,6 +432,16 @@ export type ParkingSpotMinOrderByAggregateInput = {
 export type ParkingSpotScalarRelationFilter = {
   is?: Prisma.ParkingSpotWhereInput
   isNot?: Prisma.ParkingSpotWhereInput
+}
+
+export type ParkingSpotListRelationFilter = {
+  every?: Prisma.ParkingSpotWhereInput
+  some?: Prisma.ParkingSpotWhereInput
+  none?: Prisma.ParkingSpotWhereInput
+}
+
+export type ParkingSpotOrderByRelationAggregateInput = {
+  _count?: Prisma.SortOrder
 }
 
 export type ParkingSpotCreateNestedOneWithoutPreferredByInput = {
@@ -472,6 +506,48 @@ export type ParkingSpotUpdateOneRequiredWithoutWaitlistEntriesNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ParkingSpotUpdateToOneWithWhereWithoutWaitlistEntriesInput, Prisma.ParkingSpotUpdateWithoutWaitlistEntriesInput>, Prisma.ParkingSpotUncheckedUpdateWithoutWaitlistEntriesInput>
 }
 
+export type ParkingSpotCreateNestedManyWithoutOfficeInput = {
+  create?: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput> | Prisma.ParkingSpotCreateWithoutOfficeInput[] | Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput | Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput[]
+  createMany?: Prisma.ParkingSpotCreateManyOfficeInputEnvelope
+  connect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+}
+
+export type ParkingSpotUncheckedCreateNestedManyWithoutOfficeInput = {
+  create?: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput> | Prisma.ParkingSpotCreateWithoutOfficeInput[] | Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput | Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput[]
+  createMany?: Prisma.ParkingSpotCreateManyOfficeInputEnvelope
+  connect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+}
+
+export type ParkingSpotUpdateManyWithoutOfficeNestedInput = {
+  create?: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput> | Prisma.ParkingSpotCreateWithoutOfficeInput[] | Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput | Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput[]
+  upsert?: Prisma.ParkingSpotUpsertWithWhereUniqueWithoutOfficeInput | Prisma.ParkingSpotUpsertWithWhereUniqueWithoutOfficeInput[]
+  createMany?: Prisma.ParkingSpotCreateManyOfficeInputEnvelope
+  set?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  disconnect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  delete?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  connect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  update?: Prisma.ParkingSpotUpdateWithWhereUniqueWithoutOfficeInput | Prisma.ParkingSpotUpdateWithWhereUniqueWithoutOfficeInput[]
+  updateMany?: Prisma.ParkingSpotUpdateManyWithWhereWithoutOfficeInput | Prisma.ParkingSpotUpdateManyWithWhereWithoutOfficeInput[]
+  deleteMany?: Prisma.ParkingSpotScalarWhereInput | Prisma.ParkingSpotScalarWhereInput[]
+}
+
+export type ParkingSpotUncheckedUpdateManyWithoutOfficeNestedInput = {
+  create?: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput> | Prisma.ParkingSpotCreateWithoutOfficeInput[] | Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput[]
+  connectOrCreate?: Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput | Prisma.ParkingSpotCreateOrConnectWithoutOfficeInput[]
+  upsert?: Prisma.ParkingSpotUpsertWithWhereUniqueWithoutOfficeInput | Prisma.ParkingSpotUpsertWithWhereUniqueWithoutOfficeInput[]
+  createMany?: Prisma.ParkingSpotCreateManyOfficeInputEnvelope
+  set?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  disconnect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  delete?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  connect?: Prisma.ParkingSpotWhereUniqueInput | Prisma.ParkingSpotWhereUniqueInput[]
+  update?: Prisma.ParkingSpotUpdateWithWhereUniqueWithoutOfficeInput | Prisma.ParkingSpotUpdateWithWhereUniqueWithoutOfficeInput[]
+  updateMany?: Prisma.ParkingSpotUpdateManyWithWhereWithoutOfficeInput | Prisma.ParkingSpotUpdateManyWithWhereWithoutOfficeInput[]
+  deleteMany?: Prisma.ParkingSpotScalarWhereInput | Prisma.ParkingSpotScalarWhereInput[]
+}
+
 export type ParkingSpotCreateWithoutPreferredByInput = {
   id?: string
   label: string
@@ -481,6 +557,7 @@ export type ParkingSpotCreateWithoutPreferredByInput = {
   evCharger?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutParkingSpotsInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutParkingSpotInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutParkingSpotInput
   timedReservations?: Prisma.TimedReservationCreateNestedManyWithoutParkingSpotInput
@@ -493,6 +570,7 @@ export type ParkingSpotUncheckedCreateWithoutPreferredByInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutParkingSpotInput
@@ -525,6 +603,7 @@ export type ParkingSpotUpdateWithoutPreferredByInput = {
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutParkingSpotsNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutParkingSpotNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutParkingSpotNestedInput
   timedReservations?: Prisma.TimedReservationUpdateManyWithoutParkingSpotNestedInput
@@ -537,6 +616,7 @@ export type ParkingSpotUncheckedUpdateWithoutPreferredByInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
@@ -553,6 +633,7 @@ export type ParkingSpotCreateWithoutReservationsInput = {
   evCharger?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutParkingSpotsInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutParkingSpotInput
   timedReservations?: Prisma.TimedReservationCreateNestedManyWithoutParkingSpotInput
   preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredParkingSpotInput
@@ -565,6 +646,7 @@ export type ParkingSpotUncheckedCreateWithoutReservationsInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutParkingSpotInput
@@ -597,6 +679,7 @@ export type ParkingSpotUpdateWithoutReservationsInput = {
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutParkingSpotsNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutParkingSpotNestedInput
   timedReservations?: Prisma.TimedReservationUpdateManyWithoutParkingSpotNestedInput
   preferredBy?: Prisma.UserUpdateManyWithoutPreferredParkingSpotNestedInput
@@ -609,6 +692,7 @@ export type ParkingSpotUncheckedUpdateWithoutReservationsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutParkingSpotNestedInput
@@ -625,6 +709,7 @@ export type ParkingSpotCreateWithoutTimedReservationsInput = {
   evCharger?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutParkingSpotsInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutParkingSpotInput
   waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutParkingSpotInput
   preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredParkingSpotInput
@@ -637,6 +722,7 @@ export type ParkingSpotUncheckedCreateWithoutTimedReservationsInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutParkingSpotInput
@@ -669,6 +755,7 @@ export type ParkingSpotUpdateWithoutTimedReservationsInput = {
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutParkingSpotsNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutParkingSpotNestedInput
   waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutParkingSpotNestedInput
   preferredBy?: Prisma.UserUpdateManyWithoutPreferredParkingSpotNestedInput
@@ -681,6 +768,7 @@ export type ParkingSpotUncheckedUpdateWithoutTimedReservationsInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
@@ -697,6 +785,7 @@ export type ParkingSpotCreateWithoutWaitlistEntriesInput = {
   evCharger?: boolean
   createdAt?: Date | string
   updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutParkingSpotsInput
   reservations?: Prisma.ReservationCreateNestedManyWithoutParkingSpotInput
   timedReservations?: Prisma.TimedReservationCreateNestedManyWithoutParkingSpotInput
   preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredParkingSpotInput
@@ -709,6 +798,7 @@ export type ParkingSpotUncheckedCreateWithoutWaitlistEntriesInput = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId: string
   createdAt?: Date | string
   updatedAt?: Date | string
   reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutParkingSpotInput
@@ -741,6 +831,7 @@ export type ParkingSpotUpdateWithoutWaitlistEntriesInput = {
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutParkingSpotsNestedInput
   reservations?: Prisma.ReservationUpdateManyWithoutParkingSpotNestedInput
   timedReservations?: Prisma.TimedReservationUpdateManyWithoutParkingSpotNestedInput
   preferredBy?: Prisma.UserUpdateManyWithoutPreferredParkingSpotNestedInput
@@ -753,11 +844,135 @@ export type ParkingSpotUncheckedUpdateWithoutWaitlistEntriesInput = {
   active?: Prisma.BoolFieldUpdateOperationsInput | boolean
   hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
   evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   reservations?: Prisma.ReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
   timedReservations?: Prisma.TimedReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
   preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredParkingSpotNestedInput
+}
+
+export type ParkingSpotCreateWithoutOfficeInput = {
+  id?: string
+  label: string
+  group: $Enums.ParkingGroup
+  active?: boolean
+  hidden?: boolean
+  evCharger?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationCreateNestedManyWithoutParkingSpotInput
+  waitlistEntries?: Prisma.WaitlistEntryCreateNestedManyWithoutParkingSpotInput
+  timedReservations?: Prisma.TimedReservationCreateNestedManyWithoutParkingSpotInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredParkingSpotInput
+}
+
+export type ParkingSpotUncheckedCreateWithoutOfficeInput = {
+  id?: string
+  label: string
+  group: $Enums.ParkingGroup
+  active?: boolean
+  hidden?: boolean
+  evCharger?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  reservations?: Prisma.ReservationUncheckedCreateNestedManyWithoutParkingSpotInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedCreateNestedManyWithoutParkingSpotInput
+  timedReservations?: Prisma.TimedReservationUncheckedCreateNestedManyWithoutParkingSpotInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredParkingSpotInput
+}
+
+export type ParkingSpotCreateOrConnectWithoutOfficeInput = {
+  where: Prisma.ParkingSpotWhereUniqueInput
+  create: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput>
+}
+
+export type ParkingSpotCreateManyOfficeInputEnvelope = {
+  data: Prisma.ParkingSpotCreateManyOfficeInput | Prisma.ParkingSpotCreateManyOfficeInput[]
+  skipDuplicates?: boolean
+}
+
+export type ParkingSpotUpsertWithWhereUniqueWithoutOfficeInput = {
+  where: Prisma.ParkingSpotWhereUniqueInput
+  update: Prisma.XOR<Prisma.ParkingSpotUpdateWithoutOfficeInput, Prisma.ParkingSpotUncheckedUpdateWithoutOfficeInput>
+  create: Prisma.XOR<Prisma.ParkingSpotCreateWithoutOfficeInput, Prisma.ParkingSpotUncheckedCreateWithoutOfficeInput>
+}
+
+export type ParkingSpotUpdateWithWhereUniqueWithoutOfficeInput = {
+  where: Prisma.ParkingSpotWhereUniqueInput
+  data: Prisma.XOR<Prisma.ParkingSpotUpdateWithoutOfficeInput, Prisma.ParkingSpotUncheckedUpdateWithoutOfficeInput>
+}
+
+export type ParkingSpotUpdateManyWithWhereWithoutOfficeInput = {
+  where: Prisma.ParkingSpotScalarWhereInput
+  data: Prisma.XOR<Prisma.ParkingSpotUpdateManyMutationInput, Prisma.ParkingSpotUncheckedUpdateManyWithoutOfficeInput>
+}
+
+export type ParkingSpotScalarWhereInput = {
+  AND?: Prisma.ParkingSpotScalarWhereInput | Prisma.ParkingSpotScalarWhereInput[]
+  OR?: Prisma.ParkingSpotScalarWhereInput[]
+  NOT?: Prisma.ParkingSpotScalarWhereInput | Prisma.ParkingSpotScalarWhereInput[]
+  id?: Prisma.UuidFilter<"ParkingSpot"> | string
+  label?: Prisma.StringFilter<"ParkingSpot"> | string
+  group?: Prisma.EnumParkingGroupFilter<"ParkingSpot"> | $Enums.ParkingGroup
+  active?: Prisma.BoolFilter<"ParkingSpot"> | boolean
+  hidden?: Prisma.BoolFilter<"ParkingSpot"> | boolean
+  evCharger?: Prisma.BoolFilter<"ParkingSpot"> | boolean
+  officeId?: Prisma.UuidFilter<"ParkingSpot"> | string
+  createdAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
+  updatedAt?: Prisma.DateTimeFilter<"ParkingSpot"> | Date | string
+}
+
+export type ParkingSpotCreateManyOfficeInput = {
+  id?: string
+  label: string
+  group: $Enums.ParkingGroup
+  active?: boolean
+  hidden?: boolean
+  evCharger?: boolean
+  createdAt?: Date | string
+  updatedAt?: Date | string
+}
+
+export type ParkingSpotUpdateWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  group?: Prisma.EnumParkingGroupFieldUpdateOperationsInput | $Enums.ParkingGroup
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUpdateManyWithoutParkingSpotNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUpdateManyWithoutParkingSpotNestedInput
+  timedReservations?: Prisma.TimedReservationUpdateManyWithoutParkingSpotNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredParkingSpotNestedInput
+}
+
+export type ParkingSpotUncheckedUpdateWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  group?: Prisma.EnumParkingGroupFieldUpdateOperationsInput | $Enums.ParkingGroup
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  reservations?: Prisma.ReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
+  waitlistEntries?: Prisma.WaitlistEntryUncheckedUpdateManyWithoutParkingSpotNestedInput
+  timedReservations?: Prisma.TimedReservationUncheckedUpdateManyWithoutParkingSpotNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredParkingSpotNestedInput
+}
+
+export type ParkingSpotUncheckedUpdateManyWithoutOfficeInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  label?: Prisma.StringFieldUpdateOperationsInput | string
+  group?: Prisma.EnumParkingGroupFieldUpdateOperationsInput | $Enums.ParkingGroup
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hidden?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  evCharger?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
 }
 
 
@@ -825,8 +1040,10 @@ export type ParkingSpotSelect<ExtArgs extends runtime.Types.Extensions.InternalA
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
   reservations?: boolean | Prisma.ParkingSpot$reservationsArgs<ExtArgs>
   waitlistEntries?: boolean | Prisma.ParkingSpot$waitlistEntriesArgs<ExtArgs>
   timedReservations?: boolean | Prisma.ParkingSpot$timedReservationsArgs<ExtArgs>
@@ -841,8 +1058,10 @@ export type ParkingSpotSelectCreateManyAndReturn<ExtArgs extends runtime.Types.E
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["parkingSpot"]>
 
 export type ParkingSpotSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -852,8 +1071,10 @@ export type ParkingSpotSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.E
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["parkingSpot"]>
 
 export type ParkingSpotSelectScalar = {
@@ -863,24 +1084,31 @@ export type ParkingSpotSelectScalar = {
   active?: boolean
   hidden?: boolean
   evCharger?: boolean
+  officeId?: boolean
   createdAt?: boolean
   updatedAt?: boolean
 }
 
-export type ParkingSpotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "group" | "active" | "hidden" | "evCharger" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingSpot"]>
+export type ParkingSpotOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "label" | "group" | "active" | "hidden" | "evCharger" | "officeId" | "createdAt" | "updatedAt", ExtArgs["result"]["parkingSpot"]>
 export type ParkingSpotInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
   reservations?: boolean | Prisma.ParkingSpot$reservationsArgs<ExtArgs>
   waitlistEntries?: boolean | Prisma.ParkingSpot$waitlistEntriesArgs<ExtArgs>
   timedReservations?: boolean | Prisma.ParkingSpot$timedReservationsArgs<ExtArgs>
   preferredBy?: boolean | Prisma.ParkingSpot$preferredByArgs<ExtArgs>
   _count?: boolean | Prisma.ParkingSpotCountOutputTypeDefaultArgs<ExtArgs>
 }
-export type ParkingSpotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
-export type ParkingSpotIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
+export type ParkingSpotIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
+}
+export type ParkingSpotIncludeUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  office?: boolean | Prisma.OfficeDefaultArgs<ExtArgs>
+}
 
 export type $ParkingSpotPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   name: "ParkingSpot"
   objects: {
+    office: Prisma.$OfficePayload<ExtArgs>
     reservations: Prisma.$ReservationPayload<ExtArgs>[]
     waitlistEntries: Prisma.$WaitlistEntryPayload<ExtArgs>[]
     timedReservations: Prisma.$TimedReservationPayload<ExtArgs>[]
@@ -904,6 +1132,11 @@ export type $ParkingSpotPayload<ExtArgs extends runtime.Types.Extensions.Interna
      * (`doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`).
      */
     evCharger: boolean
+    /**
+     * Office whose users see and book this spot. Every existing spot was
+     * backfilled to Praha by the migration that introduced offices.
+     */
+    officeId: string
     createdAt: Date
     updatedAt: Date
   }, ExtArgs["result"]["parkingSpot"]>
@@ -1300,6 +1533,7 @@ readonly fields: ParkingSpotFieldRefs;
  */
 export interface Prisma__ParkingSpotClient<T, Null = never, ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs, GlobalOmitOptions = {}> extends Prisma.PrismaPromise<T> {
   readonly [Symbol.toStringTag]: "PrismaPromise"
+  office<T extends Prisma.OfficeDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.OfficeDefaultArgs<ExtArgs>>): Prisma.Prisma__OfficeClient<runtime.Types.Result.GetResult<Prisma.$OfficePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   reservations<T extends Prisma.ParkingSpot$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ParkingSpot$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   waitlistEntries<T extends Prisma.ParkingSpot$waitlistEntriesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ParkingSpot$waitlistEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WaitlistEntryPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   timedReservations<T extends Prisma.ParkingSpot$timedReservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ParkingSpot$timedReservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TimedReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
@@ -1339,6 +1573,7 @@ export interface ParkingSpotFieldRefs {
   readonly active: Prisma.FieldRef<"ParkingSpot", 'Boolean'>
   readonly hidden: Prisma.FieldRef<"ParkingSpot", 'Boolean'>
   readonly evCharger: Prisma.FieldRef<"ParkingSpot", 'Boolean'>
+  readonly officeId: Prisma.FieldRef<"ParkingSpot", 'String'>
   readonly createdAt: Prisma.FieldRef<"ParkingSpot", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"ParkingSpot", 'DateTime'>
 }
@@ -1595,6 +1830,10 @@ export type ParkingSpotCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    */
   data: Prisma.ParkingSpotCreateManyInput | Prisma.ParkingSpotCreateManyInput[]
   skipDuplicates?: boolean
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ParkingSpotIncludeCreateManyAndReturn<ExtArgs> | null
 }
 
 /**
@@ -1665,6 +1904,10 @@ export type ParkingSpotUpdateManyAndReturnArgs<ExtArgs extends runtime.Types.Ext
    * Limit how many ParkingSpots to update.
    */
   limit?: number
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ParkingSpotIncludeUpdateManyAndReturn<ExtArgs> | null
 }
 
 /**

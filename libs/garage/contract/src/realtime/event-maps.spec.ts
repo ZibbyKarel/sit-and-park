@@ -11,13 +11,15 @@ import type { CellLockedEvent, ReservationReassignedEvent } from './events';
 import { roomForDate } from './rooms';
 
 /**
- * The seven broadcasts and four commands the product needs, written out by
+ * The nine broadcasts and four commands the product needs, written out by
  * hand so that adding, renaming or losing one has to be a deliberate edit
  * here.
  */
 const EXPECTED_SERVER_TO_CLIENT = [
   'cell:locked',
   'cell:unlocked',
+  'desk:released',
+  'desk:reserved',
   'reservation:cancelled',
   'reservation:created',
   'reservation:reassigned',
@@ -97,6 +99,8 @@ describe('derived event maps', () => {
       'timed-reservations:updated': (payload) =>
         emitted.push(String(payload.timedReservations.length)),
       'waitlist:updated': (payload) => emitted.push(String(payload.waitlistCount)),
+      'desk:reserved': (payload) => emitted.push(payload.userName),
+      'desk:released': (payload) => emitted.push(payload.reservationId),
     };
 
     handlers['cell:locked']({
@@ -139,6 +143,7 @@ describe('derived event maps', () => {
   it('parses a payload the emit signature accepts, and vice versa', () => {
     // The registry is used twice — once to derive the handler type and once to
     // validate at runtime. This pins the two to the same schema.
+    // Desk events are keyed by `deskId`, so a bare cell reference never satisfies one.
     for (const [name, schema] of Object.entries(SERVER_TO_CLIENT_EVENT_SCHEMAS)) {
       expect([name, schema.safeParse({ date: DATE_A, parkingSpotId: UUID_B }).success]).toEqual([
         name,

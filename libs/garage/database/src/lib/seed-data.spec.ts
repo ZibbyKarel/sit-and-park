@@ -17,8 +17,12 @@ import {
 } from '@garage/shared-types';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseFloorPlan } from './floor-plan';
 import {
+  SEED_DESK_GRANTS,
+  SEED_HIVES,
   SEED_PARKING_SPOTS,
+  SEED_PERMANENT_DESKS,
   SEED_RESERVATION_LIMIT_SETTINGS,
   SEED_RESERVATION_WINDOW_SETTINGS,
   SEED_USERS,
@@ -180,5 +184,80 @@ describe('seeded reservation limit settings', () => {
     expect(SEED_RESERVATION_LIMIT_SETTINGS.monthlyReservationCap).toBeLessThanOrEqual(
       MAX_MONTHLY_RESERVATION_CAP
     );
+  });
+});
+
+describe('seeded hives, permanent desks and grants', () => {
+  const plan = parseFloorPlan(
+    readFileSync(
+      join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        'apps',
+        'garage',
+        'web',
+        'public',
+        'floorplans',
+        'praha.svg'
+      ),
+      'utf8'
+    )
+  );
+  const zoneOf = new Map(plan.desks.map((desk) => [desk.code, desk.zoneKey]));
+  const emails = new Set(SEED_USERS.map((user) => user.email));
+  /** `apps/garage/web-e2e/src/support/personas.ts`. */
+  const E2E_PERSONA_EMAILS = ['admin@example.com', 'user@example.com', 'user2@example.com'];
+
+  it('every hive desk exists and lies in the zone the hive names', () => {
+    for (const hive of SEED_HIVES) {
+      for (const code of hive.deskCodes) {
+        expect([code, zoneOf.get(code)]).toEqual([code, hive.zoneKey]);
+      }
+    }
+  });
+
+  it('no desk is in two hives', () => {
+    const codes = SEED_HIVES.flatMap((hive) => hive.deskCodes);
+    expect(new Set(codes).size).toBe(codes.length);
+  });
+
+  it('a user is in at most one hive, as HiveMembership_userId_key requires', () => {
+    const members = SEED_HIVES.flatMap((hive) => hive.memberEmails);
+    expect(new Set(members).size).toBe(members.length);
+  });
+
+  it('every owner, member, holder and grantee is a seeded user', () => {
+    const referenced = [
+      ...SEED_HIVES.flatMap((hive) => [hive.ownerEmail, ...hive.memberEmails]),
+      ...SEED_PERMANENT_DESKS.map((desk) => desk.userEmail),
+      ...SEED_DESK_GRANTS.map((grant) => grant.userEmail),
+    ];
+    for (const email of referenced) {
+      expect(emails).toContain(email);
+    }
+  });
+
+  it('colours are #RRGGBB, as Hive_color_check requires', () => {
+    for (const hive of SEED_HIVES) {
+      expect(hive.color).toMatch(/^#[0-9A-Fa-f]{6}$/);
+    }
+  });
+
+  it('no e2e persona holds a permanent desk — it could book no other desk', () => {
+    for (const { userEmail } of SEED_PERMANENT_DESKS) {
+      expect(E2E_PERSONA_EMAILS).not.toContain(userEmail);
+    }
+    const holders = SEED_PERMANENT_DESKS.map((desk) => desk.userEmail);
+    expect(new Set(holders).size).toBe(holders.length);
+  });
+
+  it('every permanent and granted desk exists on the plan', () => {
+    for (const { deskCode } of [...SEED_PERMANENT_DESKS, ...SEED_DESK_GRANTS]) {
+      expect(zoneOf.has(deskCode)).toBe(true);
+    }
   });
 });

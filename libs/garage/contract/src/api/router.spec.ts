@@ -55,9 +55,42 @@ const EXPECTED_PROCEDURES = [
   'waitlist.join',
   'waitlist.leave',
   'spot.list',
+  'desk.directory',
+  'desk.previewSeries',
+  'desk.reserve',
+  'desk.cancel',
+  'desk.myReservations',
+  'desk.requestApproval',
+  'desk.cancelRequest',
+  'desk.myRequests',
+  'desk.pendingRequests',
+  'desk.decideRequest',
+  'desk.myReleases',
+  'desk.release',
+  'desk.cancelRelease',
   'me.get',
   'me.updateSettings',
   'me.regenerateIcsToken',
+  'admin.desk.list',
+  'admin.desk.update',
+  'admin.desk.bulkUpdate',
+  'admin.desk.setPermanentAssignee',
+  'admin.desk.grants',
+  'admin.desk.setGrant',
+  'admin.desk.stats',
+  'admin.hive.list',
+  'admin.hive.create',
+  'admin.hive.update',
+  'admin.hive.delete',
+  'admin.hive.setMembership',
+  'admin.office.list',
+  'admin.office.create',
+  'admin.office.update',
+  'admin.zone.list',
+  'admin.zone.create',
+  'admin.zone.update',
+  'admin.employeeSync.get',
+  'admin.employeeSync.setLiveMode',
   'admin.reservation.month',
   'admin.reservationLimits.get',
   'admin.reservationLimits.update',
@@ -142,6 +175,79 @@ const EXPECTED_ERROR_CODES: Record<string, readonly string[]> = {
   // old rule made leaving impossible for the whole month a queue is live in.
   'waitlist.leave': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
   'spot.list': ['FORBIDDEN'],
+  'desk.directory': ['FORBIDDEN', 'NO_OFFICE_ASSIGNED'],
+  'desk.previewSeries': [
+    'FORBIDDEN',
+    'NOT_FOUND',
+    'NO_OFFICE_ASSIGNED',
+    'PERMANENT_DESK_HOLDER',
+    'DESK_NOT_AVAILABLE',
+    'DESK_ACCESS_DENIED',
+  ],
+  'desk.reserve': [
+    'FORBIDDEN',
+    'NOT_FOUND',
+    'NO_OFFICE_ASSIGNED',
+    'PERMANENT_DESK_HOLDER',
+    'DESK_NOT_AVAILABLE',
+    'DESK_ACCESS_DENIED',
+    'NO_FREE_DAY',
+    'DESK_ALREADY_RESERVED',
+    'DESK_RESERVATION_LIMIT_REACHED',
+    'CONFLICT',
+  ],
+  'desk.cancel': ['FORBIDDEN', 'NOT_FOUND', 'PAST_DATE'],
+  'desk.myReservations': ['FORBIDDEN'],
+  'desk.requestApproval': [
+    'FORBIDDEN',
+    'NOT_FOUND',
+    'PAST_DATE',
+    'NO_OFFICE_ASSIGNED',
+    'PERMANENT_DESK_HOLDER',
+    'DESK_NOT_AVAILABLE',
+    'DESK_RESERVATION_LIMIT_REACHED',
+    'DESK_ALREADY_RESERVED',
+    'DESK_REQUEST_ALREADY_PENDING',
+    'VALIDATION_FAILED',
+  ],
+  'desk.cancelRequest': ['FORBIDDEN', 'NOT_FOUND', 'DESK_REQUEST_ALREADY_DECIDED'],
+  'desk.myRequests': ['FORBIDDEN'],
+  'desk.pendingRequests': ['FORBIDDEN'],
+  'desk.decideRequest': [
+    'FORBIDDEN',
+    'NOT_FOUND',
+    'DESK_REQUEST_ALREADY_DECIDED',
+    'PAST_DATE',
+    'PERMANENT_DESK_HOLDER',
+    'DESK_NOT_AVAILABLE',
+    'DESK_RESERVATION_LIMIT_REACHED',
+    'DESK_ALREADY_RESERVED',
+    'VALIDATION_FAILED',
+    'CONFLICT',
+  ],
+  'desk.myReleases': ['FORBIDDEN'],
+  'desk.release': ['FORBIDDEN', 'NO_PERMANENT_DESK', 'PAST_DATE'],
+  'desk.cancelRelease': ['FORBIDDEN', 'NOT_FOUND', 'DESK_RELEASE_ALREADY_RESERVED'],
+  'admin.desk.list': ['FORBIDDEN'],
+  'admin.desk.update': ['FORBIDDEN', 'NOT_FOUND', 'VALIDATION_FAILED', 'CONFLICT'],
+  'admin.desk.bulkUpdate': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
+  'admin.desk.setPermanentAssignee': ['FORBIDDEN', 'NOT_FOUND', 'VALIDATION_FAILED', 'CONFLICT'],
+  'admin.desk.grants': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.desk.setGrant': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.desk.stats': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.hive.list': ['FORBIDDEN'],
+  'admin.hive.create': ['FORBIDDEN', 'NOT_FOUND', 'VALIDATION_FAILED', 'CONFLICT'],
+  'admin.hive.update': ['FORBIDDEN', 'NOT_FOUND', 'VALIDATION_FAILED', 'CONFLICT'],
+  'admin.hive.delete': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.hive.setMembership': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.office.list': ['FORBIDDEN'],
+  'admin.office.create': ['FORBIDDEN', 'CONFLICT'],
+  'admin.office.update': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
+  'admin.zone.list': ['FORBIDDEN'],
+  'admin.zone.create': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
+  'admin.zone.update': ['FORBIDDEN', 'NOT_FOUND'],
+  'admin.employeeSync.get': ['FORBIDDEN'],
+  'admin.employeeSync.setLiveMode': ['FORBIDDEN'],
   'me.get': ['FORBIDDEN'],
   'me.updateSettings': ['FORBIDDEN', 'NOT_FOUND', 'VALIDATION_FAILED'],
   'me.regenerateIcsToken': ['FORBIDDEN'],
@@ -149,7 +255,7 @@ const EXPECTED_ERROR_CODES: Record<string, readonly string[]> = {
   'admin.reservationLimits.get': ['FORBIDDEN'],
   'admin.reservationLimits.update': ['FORBIDDEN', 'VALIDATION_FAILED', 'CONFLICT'],
   'admin.spot.list': ['FORBIDDEN'],
-  'admin.spot.create': ['FORBIDDEN', 'CONFLICT', 'VALIDATION_FAILED'],
+  'admin.spot.create': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT', 'VALIDATION_FAILED'],
   'admin.spot.update': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT', 'VALIDATION_FAILED'],
   'admin.spot.deactivate': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
   'admin.timedReservation.create': [
@@ -190,7 +296,19 @@ describe('contract router', () => {
   });
 
   it('uses the shared no-input schema on the argument-less procedures', () => {
-    for (const path of ['admin.window.get', 'me.get', 'me.regenerateIcsToken', 'spot.list']) {
+    for (const path of [
+      'admin.window.get',
+      'me.get',
+      'me.regenerateIcsToken',
+      'spot.list',
+      'desk.myReservations',
+      'desk.myRequests',
+      'desk.pendingRequests',
+      'desk.myReleases',
+      'admin.hive.list',
+      'admin.office.list',
+      'admin.employeeSync.get',
+    ]) {
       const procedure = procedures.find(([candidate]) => candidate === path)?.[1];
       expect([path, procedure?.['~orpc'].inputSchema]).toEqual([path, noInputSchema]);
     }
@@ -332,6 +450,26 @@ describe('contract router', () => {
     // Grouping is the authorization boundary Task 12 implements against.
     expect(procedurePaths.filter((path) => path.startsWith('admin.')).sort()).toEqual(
       [
+        'admin.desk.list',
+        'admin.desk.update',
+        'admin.desk.bulkUpdate',
+        'admin.desk.setPermanentAssignee',
+        'admin.desk.grants',
+        'admin.desk.setGrant',
+        'admin.desk.stats',
+        'admin.hive.list',
+        'admin.hive.create',
+        'admin.hive.update',
+        'admin.hive.delete',
+        'admin.hive.setMembership',
+        'admin.office.list',
+        'admin.office.create',
+        'admin.office.update',
+        'admin.zone.list',
+        'admin.zone.create',
+        'admin.zone.update',
+        'admin.employeeSync.get',
+        'admin.employeeSync.setLiveMode',
         'admin.reservation.month',
         'admin.reservationLimits.get',
         'admin.reservationLimits.update',
@@ -348,6 +486,17 @@ describe('contract router', () => {
         'admin.window.update',
       ].sort()
     );
+  });
+
+  it('describes every desk-merge procedure for MCP-style consumers', () => {
+    // `doc/desk-merge-plan.md` Stage 3: every new procedure carries a human
+    // description through `.route()`, so a tool listing can be generated from
+    // the contract alone.
+    for (const [path, procedure] of procedures) {
+      if (!/^(desk|admin\.(desk|hive|office|zone|employeeSync))\./.test(path)) continue;
+      const description = procedure['~orpc'].route.description ?? '';
+      expect([path, description.length > 20]).toEqual([path, true]);
+    }
   });
 
   it('exposes the admin reservation-limit settings at admin.reservationLimits', () => {

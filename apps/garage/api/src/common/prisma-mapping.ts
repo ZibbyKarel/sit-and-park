@@ -92,6 +92,7 @@ export function toContractSpot(row: ParkingSpotRow): ParkingSpot {
     active: row.active,
     hidden: row.hidden,
     evCharger: row.evCharger,
+    officeId: row.officeId,
     createdAt: toTimestamp(row.createdAt),
     updatedAt: toTimestamp(row.updatedAt),
   };
@@ -109,6 +110,10 @@ export function toContractUser(row: UserRow): User {
     active: row.active,
     icsToken: row.icsToken,
     preferredParkingSpotId: row.preferredParkingSpotId,
+    officeId: row.officeId,
+    hibobId: row.hibobId,
+    manualAccount: row.manualAccount,
+    deactivatedAt: row.deactivatedAt === null ? null : toTimestamp(row.deactivatedAt),
     createdAt: toTimestamp(row.createdAt),
     updatedAt: toTimestamp(row.updatedAt),
   };

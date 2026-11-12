@@ -15,6 +15,16 @@ export type { CreatePrismaClientOptions } from './lib/create-prisma-client';
 export { Prisma, PrismaClient } from './generated/prisma/client';
 export type {
   AuditLog,
+  Desk,
+  DeskApprovalRequest,
+  DeskGrant,
+  DeskRelease,
+  DeskReservation,
+  EmployeeSyncRun,
+  EmployeeSyncSettings,
+  Hive,
+  HiveMembership,
+  Office,
   ParkingSpot,
   Reservation,
   ReservationLimitSettings,
@@ -22,13 +32,21 @@ export type {
   TimedReservation,
   User,
   WaitlistEntry,
+  Zone,
 } from './generated/prisma/client';
 
 export {
   AuditLogAction,
+  DeskApprovalStatus,
+  EmployeeSyncMode,
+  EmployeeSyncStatus,
   ParkingGroup,
   ReservationLockMode,
   UserRole,
 } from './generated/prisma/enums';
 
-export { RESERVATION_LIMIT_SETTINGS_ID, RESERVATION_WINDOW_SETTINGS_ID } from './lib/seed-data';
+export {
+  EMPLOYEE_SYNC_SETTINGS_ID,
+  RESERVATION_LIMIT_SETTINGS_ID,
+  RESERVATION_WINDOW_SETTINGS_ID,
+} from './lib/seed-data';

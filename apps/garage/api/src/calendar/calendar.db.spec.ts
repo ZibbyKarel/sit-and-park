@@ -26,7 +26,7 @@ import { Prisma } from '@garage/database';
 import type { PrismaClient } from '@garage/database';
 import { createPrismaClient } from '@garage/database';
 import { toDateColumn, toDateOnly } from '../common/prisma-mapping';
-import { requireDatabaseUrl, unique } from '../testing/database/test-database';
+import { IN_PRAHA, requireDatabaseUrl, unique } from '../testing/database/test-database';
 import { CalendarService } from './calendar.service';
 import type { PrismaService } from '../database/prisma.service';
 
@@ -125,10 +125,10 @@ describe('the ICS feed against a real PostgreSQL', () => {
         const token = unique('ics');
         const user = await seedUser(tx, token);
         const spotA = await tx.parkingSpot.create({
-          data: { label: unique('A'), group: 'IT' },
+          data: { label: unique('A'), group: 'IT', ...IN_PRAHA },
         });
         const spotB = await tx.parkingSpot.create({
-          data: { label: unique('B'), group: 'SHARED' },
+          data: { label: unique('B'), group: 'SHARED', ...IN_PRAHA },
         });
         // Inserted out of order, and one below the bound.
         await tx.reservation.create({
@@ -162,7 +162,9 @@ describe('the ICS feed against a real PostgreSQL', () => {
       const rows = await inRolledBackTransaction(prisma, async (tx) => {
         const mine = await seedUser(tx, unique('ics'));
         const theirs = await seedUser(tx, unique('ics'));
-        const spot = await tx.parkingSpot.create({ data: { label: unique('S'), group: 'IT' } });
+        const spot = await tx.parkingSpot.create({
+          data: { label: unique('S'), group: 'IT', ...IN_PRAHA },
+        });
         await tx.reservation.create({
           data: { parkingSpotId: spot.id, userId: theirs.id, date: toDateColumn('2099-04-01') },
         });
@@ -194,7 +196,9 @@ describe('the ICS feed against a real PostgreSQL', () => {
     ])('round-trips %s through a @db.Date column (%s)', async (date) => {
       const stored = await inRolledBackTransaction(prisma, async (tx) => {
         const user = await seedUser(tx, unique('ics'));
-        const spot = await tx.parkingSpot.create({ data: { label: unique('S'), group: 'IT' } });
+        const spot = await tx.parkingSpot.create({
+          data: { label: unique('S'), group: 'IT', ...IN_PRAHA },
+        });
         const created = await tx.reservation.create({
           data: { parkingSpotId: spot.id, userId: user.id, date: toDateColumn(date) },
         });
@@ -222,8 +226,12 @@ describe('the ICS feed against a real PostgreSQL', () => {
         const token = unique('ics');
         const user = await seedUser(tx, token);
         const [mine, theirs] = [
-          await tx.parkingSpot.create({ data: { label: unique('SPOT'), group: 'SHARED' } }),
-          await tx.parkingSpot.create({ data: { label: unique('SPOT'), group: 'SHARED' } }),
+          await tx.parkingSpot.create({
+            data: { label: unique('SPOT'), group: 'SHARED', ...IN_PRAHA },
+          }),
+          await tx.parkingSpot.create({
+            data: { label: unique('SPOT'), group: 'SHARED', ...IN_PRAHA },
+          }),
         ];
         const day = toDateColumn('2099-01-05');
 

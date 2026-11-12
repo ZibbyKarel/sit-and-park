@@ -156,3 +156,39 @@ export const timedReservationsUpdatedEventSchema = cellRefSchema.extend({
   timedReservations: z.array(publicTimedReservationSchema),
 });
 export type TimedReservationsUpdatedEvent = z.infer<typeof timedReservationsUpdatedEventSchema>;
+
+/**
+ * The pair that identifies one desk on one day — the desk counterpart of
+ * {@link cellRefSchema}. Desk events go to the same per-day rooms.
+ */
+export const deskDayRefSchema = z.object({
+  date: dateOnlySchema,
+  deskId: idSchema,
+});
+export type DeskDayRef = z.infer<typeof deskDayRefSchema>;
+
+/**
+ * `desk:reserved` — a desk is now taken for the day, by a user or an approved
+ * request alike. The holder's name travels because the directory shows it to
+ * everybody in the office; nothing else about them does.
+ */
+export const deskReservedEventSchema = deskDayRefSchema.extend({
+  reservationId: idSchema,
+  userId: idSchema,
+  userName: userSummarySchema.shape.name,
+});
+export type DeskReservedEvent = z.infer<typeof deskReservedEventSchema>;
+
+/**
+ * `desk:released` — a desk reservation for the day is gone (cancelled by its
+ * holder, an admin, a desk change or a deactivation), so the desk is free
+ * again unless something else (inactive, permanent holder) blocks it.
+ *
+ * Not to be confused with a `DeskRelease` (a permanent holder freeing their
+ * desk for a day): that changes no reservation and broadcasts nothing; a
+ * client refetches the directory.
+ */
+export const deskReleasedEventSchema = deskDayRefSchema.extend({
+  reservationId: idSchema,
+});
+export type DeskReleasedEvent = z.infer<typeof deskReleasedEventSchema>;

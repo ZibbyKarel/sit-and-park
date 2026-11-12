@@ -131,3 +131,75 @@ export type ReservationWindowSettings = Prisma.ReservationWindowSettingsModel
  * CHECK. See `doc/database.md` and `doc/decision/0026-*`.
  */
 export type ReservationLimitSettings = Prisma.ReservationLimitSettingsModel
+/**
+ * Model Office
+ * A branch office. Scopes desks, zones, parking spots and users
+ * (decision 0323). Deactivated rather than deleted, like users and spots.
+ */
+export type Office = Prisma.OfficeModel
+/**
+ * Model Zone
+ * A named area of one office's plan (decision 0324). Independent of hives.
+ */
+export type Zone = Prisma.ZoneModel
+/**
+ * Model Hive
+ * A team owning a set of desks (decision 0322). Global, not office-scoped.
+ * The owner decides approval requests for the hive's desks; that is the
+ * owner's only power. `color` is `#RRGGBB`, enforced by a hand-written CHECK.
+ */
+export type Hive = Prisma.HiveModel
+/**
+ * Model HiveMembership
+ * A user's membership of a hive. `userId` is unique: a user is in at most one
+ * hive, and adding them to another moves them.
+ */
+export type HiveMembership = Prisma.HiveMembershipModel
+/**
+ * Model Desk
+ * One bookable desk. Geometry is in floor-plan units: the axis-aligned box of
+ * the desk's rectangle after every SVG transform is applied, generated once by
+ * `src/scripts/generate-floor-plan-sql.ts` (decision 0325).
+ */
+export type Desk = Prisma.DeskModel
+/**
+ * Model DeskGrant
+ * Direct permission for one user to book one hive desk without approval.
+ */
+export type DeskGrant = Prisma.DeskGrantModel
+/**
+ * Model DeskReservation
+ * One desk booked for one day by one user. The two uniques are the booking
+ * guarantee (decision 0326); cancelling is a hard delete plus an audit entry,
+ * as for parking.
+ */
+export type DeskReservation = Prisma.DeskReservationModel
+/**
+ * Model DeskRelease
+ * A day on which a permanent desk's holder has freed it; on that day the desk
+ * is booked under the ordinary hive rules.
+ */
+export type DeskRelease = Prisma.DeskReleaseModel
+/**
+ * Model DeskApprovalRequest
+ * A request to book a hive desk for one day without direct access, decided by
+ * the hive owner or an admin (decision 0332). At most one `PENDING` request per
+ * (desk, user, date): a partial unique index, hand-written in the migration,
+ * because Prisma's schema language cannot express its `WHERE`.
+ */
+export type DeskApprovalRequest = Prisma.DeskApprovalRequestModel
+/**
+ * Model EmployeeSyncRun
+ * Log of every call of the employee sync, dry or live, accepted or rejected
+ * (decision 0330). `summary` is JSONB; its shape is the contract's.
+ */
+export type EmployeeSyncRun = Prisma.EmployeeSyncRunModel
+/**
+ * Model EmployeeSyncSettings
+ * Singleton settings row of the employee sync. The same arrangement as
+ * `ReservationWindowSettings`: `id` is a fixed `Int` that never leaves the
+ * database, the single row is a hand-written `CHECK ("id" = 1)`, and the
+ * migration inserts it. The sync key is not stored here: only its SHA-256, in
+ * the environment (decision 0330).
+ */
+export type EmployeeSyncSettings = Prisma.EmployeeSyncSettingsModel

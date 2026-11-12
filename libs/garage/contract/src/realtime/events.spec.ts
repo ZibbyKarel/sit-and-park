@@ -13,6 +13,8 @@ import {
   cellLockedEventSchema,
   cellRefSchema,
   cellUnlockedEventSchema,
+  deskReleasedEventSchema,
+  deskReservedEventSchema,
   reservationCancelledEventSchema,
   reservationCreatedEventSchema,
   reservationReassignedEventSchema,
@@ -262,5 +264,38 @@ describe('every event payload', () => {
     ]) {
       expect(schema.safeParse({ parkingSpotId: UUID_B }).success).toBe(false);
     }
+  });
+});
+
+describe('desk events', () => {
+  const ref = { date: DATE_A, deskId: UUID_B };
+
+  it('announces a reservation with the holder’s id and name only', () => {
+    const parsed = deskReservedEventSchema.parse({
+      ...ref,
+      reservationId: UUID_C,
+      userId: userFixture.id,
+      userName: userFixture.name,
+      email: userFixture.email,
+      icsToken: userFixture.icsToken,
+    });
+    expect(Object.keys(parsed).sort()).toEqual(
+      ['date', 'deskId', 'reservationId', 'userId', 'userName'].sort()
+    );
+  });
+
+  it('announces a freed desk by reservation id', () => {
+    expect(deskReleasedEventSchema.parse({ ...ref, reservationId: UUID_A })).toEqual({
+      ...ref,
+      reservationId: UUID_A,
+    });
+  });
+
+  it.each([
+    ['a calendar-invalid date', { ...ref, date: INVALID_DATE, reservationId: UUID_A }],
+    ['a non-uuid desk', { ...ref, deskId: NOT_A_UUID, reservationId: UUID_A }],
+    ['a missing reservation', ref],
+  ])('rejects %s', (_case, value) => {
+    expect(deskReleasedEventSchema.safeParse(value).success).toBe(false);
   });
 });

@@ -291,6 +291,54 @@ describe('timed-reservation migration — column types', () => {
   });
 });
 
+describe('desks migration — hand-written constraints', () => {
+  const desksSql = readMigration('20261112120100_desks').replace(/\s+/g, ' ');
+
+  it('allows one PENDING approval request per desk, user and day — and only PENDING', () => {
+    expect(desksSql).toContain(
+      `CREATE UNIQUE INDEX "DeskApprovalRequest_pending_key" ON "DeskApprovalRequest" ("deskId", "userId", "date") WHERE "status" = 'PENDING'`
+    );
+  });
+
+  it('holds a hive colour to #RRGGBB', () => {
+    expect(desksSql).toContain(
+      `ADD CONSTRAINT "Hive_color_check" CHECK ("color" ~ '^#[0-9A-Fa-f]{6}$')`
+    );
+  });
+
+  it('enforces and seeds the EmployeeSyncSettings singleton, like the other settings', () => {
+    expect(desksSql).toContain(
+      'ADD CONSTRAINT "EmployeeSyncSettings_singleton_check" CHECK ("id" = 1)'
+    );
+    expect(desksSql).toContain('INSERT INTO "EmployeeSyncSettings"');
+    expect(desksSql).toContain('ON CONFLICT ("id") DO NOTHING');
+  });
+
+  it.each(['DeskReservation', 'DeskRelease', 'DeskApprovalRequest'])(
+    '%s.date is DATE, not a timestamp',
+    (table) => {
+      const createTable = desksSql.match(new RegExp(`CREATE TABLE "${table}" \\((.*?)\\);`))?.[1];
+      expect(createTable).toContain('"date" DATE NOT NULL');
+    }
+  );
+
+  it.each([
+    'DeskReservation_deskId_date_key',
+    'DeskReservation_userId_date_key',
+    'DeskRelease_deskId_date_key',
+    'HiveMembership_userId_key',
+    'Desk_permanentAssigneeId_key',
+  ])('%s is a unique index (decision 0326)', (indexName) => {
+    expect(desksSql).toContain(`CREATE UNIQUE INDEX "${indexName}"`);
+  });
+
+  it('uses no new audit action in the migration that is not the one adding it', () => {
+    expect(desksSql).not.toMatch(
+      /'DESK_|'HIVE_|'OFFICE_|'ZONE_|'EMPLOYEE_SYNC_|'USER_DEACTIVATED'/
+    );
+  });
+});
+
 describe('migration_lock.toml', () => {
   it('pins the provider to postgresql', () => {
     const lock = readFileSync(join(MIGRATIONS_DIR, 'migration_lock.toml'), 'utf8');

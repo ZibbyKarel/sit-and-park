@@ -21,6 +21,7 @@ function aSpot(overrides: Partial<ParkingSpot> & { id: string; label: string }):
     active: true,
     hidden: false,
     evCharger: false,
+    officeId: 'office-1',
     createdAt: TIMESTAMP,
     updatedAt: TIMESTAMP,
     ...overrides,

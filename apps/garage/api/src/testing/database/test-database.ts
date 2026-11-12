@@ -98,6 +98,12 @@ export function unique(prefix: string): string {
   return `${prefix}-${RUN_ID}-${uniqueCounter}`;
 }
 
+/**
+ * Spread into a `parkingSpot.create`'s `data`: every spot needs an office, and
+ * the migrations create Praha (`20261112120200_praha_office`), the only one.
+ */
+export const IN_PRAHA = { office: { connect: { name: 'Praha' } } };
+
 /** The same URL, pointing at a different database on the same server. */
 export function withDatabase(url: string, database: string): string {
   const parsed = new URL(url);

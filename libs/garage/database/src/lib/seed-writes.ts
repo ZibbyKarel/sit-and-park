@@ -26,6 +26,7 @@ export interface SeedUserUpdate {
   readonly oktaId: string;
   readonly active: boolean;
   readonly preferredParkingSpotId: string | null;
+  readonly officeId: string;
 }
 
 /** The update columns plus the one that is only ever written at creation. */
@@ -55,7 +56,8 @@ export interface SeedUserUpsertArgs {
  */
 export function seedUserUpsertArgs(
   user: SeedUser,
-  preferredParkingSpotId: string | null
+  preferredParkingSpotId: string | null,
+  officeId: string
 ): SeedUserUpsertArgs {
   const update: SeedUserUpdate = {
     name: user.name,
@@ -64,6 +66,7 @@ export function seedUserUpsertArgs(
     oktaId: user.oktaId,
     active: user.active,
     preferredParkingSpotId,
+    officeId,
   };
 
   return {

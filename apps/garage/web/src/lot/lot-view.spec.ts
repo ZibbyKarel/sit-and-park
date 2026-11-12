@@ -31,6 +31,7 @@ function spotRow(overrides: Partial<DaySpotOverview> = {}): DaySpotOverview {
       active: true,
       hidden: false,
       evCharger: false,
+      officeId: 'office-1',
       createdAt: '2026-08-01T00:00:00.000Z',
       updatedAt: '2026-08-01T00:00:00.000Z',
     },
@@ -419,6 +420,10 @@ describe('toHolderOptions', () => {
       oktaId: 'okta-1',
       active: true,
       preferredParkingSpotId: null,
+      officeId: 'office-1',
+      hibobId: null,
+      manualAccount: false,
+      deactivatedAt: null,
       createdAt: '2024-01-01T00:00:00.000Z',
       updatedAt: '2024-01-01T00:00:00.000Z',
     };

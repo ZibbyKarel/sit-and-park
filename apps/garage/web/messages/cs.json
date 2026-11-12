@@ -296,7 +296,18 @@
     "CANNOT_WAITLIST_OWN_SPOT": "Na vlastní rezervované místo se nelze zařadit do fronty.",
     "SPOT_NOT_OCCUPIED": "Toto místo je volné — místo čekání ve frontě si ho rovnou rezervujte.",
     "VALIDATION_FAILED": "Požadavek porušuje pravidlo rezervací (např. víkend nebo svátek).",
-    "CONFLICT": "Někdo jiný mezitím provedl stejnou změnu — zkuste to prosím znovu."
+    "CONFLICT": "Někdo jiný mezitím provedl stejnou změnu — zkuste to prosím znovu.",
+    "DESK_ALREADY_RESERVED": "Tento stůl je na daný den už obsazený.",
+    "DESK_RESERVATION_LIMIT_REACHED": "Na tento den už máte rezervovaný jiný stůl — na den je povolený jen jeden.",
+    "DESK_NOT_AVAILABLE": "Tento stůl teď nelze rezervovat — je neaktivní, nebo trvale přiřazený a držitel ho neuvolnil.",
+    "DESK_ACCESS_DENIED": "K tomuto stolu nemáte přímý přístup — požádejte o schválení.",
+    "PERMANENT_DESK_HOLDER": "Máte trvale přiřazený stůl, jiný si rezervovat nemůžete.",
+    "NO_OFFICE_ASSIGNED": "Nemáte přiřazenou kancelář. Obraťte se na administrátora.",
+    "NO_PERMANENT_DESK": "Nemáte trvale přiřazený stůl.",
+    "DESK_RELEASE_ALREADY_RESERVED": "Na tento den si stůl už někdo zarezervoval, uvolnění nelze zrušit.",
+    "DESK_REQUEST_ALREADY_PENDING": "Stejná žádost už čeká na schválení.",
+    "DESK_REQUEST_ALREADY_DECIDED": "O této žádosti už bylo rozhodnuto.",
+    "NO_FREE_DAY": "Žádný z vybraných dní není volný."
   },
   "bulk": {
     "title": "Hromadná rezervace",

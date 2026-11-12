@@ -31,7 +31,7 @@ import { WaitlistPromotionService } from '../../reservations/waitlist-promotion.
 import { WaitlistService } from '../../reservations/waitlist.service';
 import { ReservationLimitsService } from '../../reservation-limits/reservation-limits.service';
 import { ReservationWindowService } from '../../reservation-window/reservation-window.service';
-import { requireDatabaseUrl, unique } from './test-database';
+import { IN_PRAHA, requireDatabaseUrl, unique } from './test-database';
 
 /**
  * A publisher that remembers what it was handed, and optionally runs a probe at
@@ -155,6 +155,7 @@ export async function seedSpot(
       label: unique(overrides.labelPrefix ?? 'SPOT'),
       group: overrides.group ?? 'SHARED',
       hidden: overrides.hidden ?? false,
+      ...IN_PRAHA,
     },
   });
 }
