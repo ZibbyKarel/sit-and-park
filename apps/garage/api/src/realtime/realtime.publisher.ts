@@ -42,6 +42,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
+import type { DeskReleasedEvent, DeskReservedEvent } from '@garage/contract/realtime';
 import type { DomainEvent } from '../reservations/reservation-events';
 import { DomainEventPublisher } from '../reservations/reservation-events';
 import { RealtimeGateway } from './realtime.gateway';
@@ -66,6 +67,14 @@ export class RealtimeDomainEventPublisher extends DomainEventPublisher {
         );
       }
     }
+  }
+
+  deskReserved(payload: DeskReservedEvent): void {
+    this.publish([{ name: 'desk:reserved', payload }]);
+  }
+
+  deskReleased(payload: DeskReleasedEvent): void {
+    this.publish([{ name: 'desk:released', payload }]);
   }
 
   /**

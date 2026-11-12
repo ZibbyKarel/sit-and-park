@@ -420,7 +420,10 @@ export class RealtimeGateway
    */
   private emitToDay(
     event: ServerToClientEventName,
-    payload: { readonly date: string; readonly parkingSpotId: string },
+    payload: { readonly date: string } & (
+      | { readonly parkingSpotId: string }
+      | { readonly deskId: string }
+    ),
     except?: RealtimeServerSocket
   ): void {
     const schema: z.ZodType = SERVER_TO_CLIENT_EVENT_SCHEMAS[event];
@@ -440,7 +443,8 @@ export class RealtimeGateway
     }
 
     const room = roomForDate(payload.date);
-    if (this.spots.isHidden(payload.parkingSpotId)) {
+    // Desk events have no hidden concept: the directory shows every desk.
+    if ('parkingSpotId' in payload && this.spots.isHidden(payload.parkingSpotId)) {
       this.emitToAdminsIn(room, event, parsed.data, except);
       return;
     }

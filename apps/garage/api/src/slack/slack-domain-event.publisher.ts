@@ -102,6 +102,15 @@ export class SlackDomainEventPublisher extends DomainEventPublisher {
     }
   }
 
+  /** Desk traffic is realtime-only; Slack has nothing to say about it. */
+  deskReserved(): void {
+    // Intentionally empty.
+  }
+
+  deskReleased(): void {
+    // Intentionally empty.
+  }
+
   notifyPromotions(notices: readonly WaitlistPromotionNotice[]): void {
     for (const notice of notices) {
       this.detach('waitlist-promoted', () => this.notifications.notifyWaitlistPromotion(notice));

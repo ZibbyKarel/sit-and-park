@@ -61,10 +61,45 @@ import { RPC_ROUTE_PREFIX } from './rpc-route';
  * happen together.
  *
  * Task 13 removed the four single-day procedures; Task 30 removed the bulk pair.
- * The list is empty, and that is a state the assertions have to keep working in
- * — "every procedure has exactly one route" is now the whole claim.
+ * The desk merge added 33 procedures (`desk.*`, `admin.desk|hive|office|zone|employeeSync.*`);
+ * the stage that implements each removes its entries. An empty list is a state the
+ * assertions have to keep working in — "every procedure has exactly one route".
  */
-const NOT_YET_IMPLEMENTED: string[] = [];
+const NOT_YET_IMPLEMENTED: string[] = [
+  'admin.desk.bulkUpdate',
+  'admin.desk.grants',
+  'admin.desk.list',
+  'admin.desk.setGrant',
+  'admin.desk.setPermanentAssignee',
+  'admin.desk.stats',
+  'admin.desk.update',
+  'admin.employeeSync.get',
+  'admin.employeeSync.setLiveMode',
+  'admin.hive.create',
+  'admin.hive.delete',
+  'admin.hive.list',
+  'admin.hive.setMembership',
+  'admin.hive.update',
+  'admin.office.create',
+  'admin.office.list',
+  'admin.office.update',
+  'admin.zone.create',
+  'admin.zone.list',
+  'admin.zone.update',
+  'desk.cancel',
+  'desk.cancelRelease',
+  'desk.cancelRequest',
+  'desk.decideRequest',
+  'desk.directory',
+  'desk.myReleases',
+  'desk.myRequests',
+  'desk.myReservations',
+  'desk.pendingRequests',
+  'desk.previewSeries',
+  'desk.release',
+  'desk.requestApproval',
+  'desk.reserve',
+];
 
 const CONTROLLERS = [
   SpotsController,
@@ -358,7 +393,9 @@ describe('the RPC routing table', () => {
 
     it('registers no HTTP route the contract does not declare, bar a named allow-list', () => {
       const expected = [
-        ...procedures.map((name) => `${RPC_ROUTE_PREFIX}/${name.split('.').join('/')}`),
+        ...procedures
+          .filter((name) => !NOT_YET_IMPLEMENTED.includes(name))
+          .map((name) => `${RPC_ROUTE_PREFIX}/${name.split('.').join('/')}`),
         ...NON_CONTRACT_ROUTES,
       ].sort();
 

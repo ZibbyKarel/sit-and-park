@@ -899,6 +899,8 @@ describe('the contract registries', () => {
     expect(Object.keys(SERVER_TO_CLIENT_EVENT_SCHEMAS).sort()).toEqual([
       'cell:locked',
       'cell:unlocked',
+      'desk:released',
+      'desk:reserved',
       'reservation:cancelled',
       'reservation:created',
       'reservation:reassigned',

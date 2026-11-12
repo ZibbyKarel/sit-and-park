@@ -38,7 +38,22 @@ export class MeService {
   ) {}
 
   async getProfile(userId: string): Promise<MyProfile> {
-    return toContractUser(await this.requireUser(userId));
+    return this.toProfile(await this.requireUser(userId));
+  }
+
+  /** The user row plus the three desk-side fields `MyProfile` adds (hive, permanent desk, ownership). */
+  private async toProfile(row: UserRow): Promise<MyProfile> {
+    const [membership, permanentDesk, ownedHive] = await Promise.all([
+      this.prisma.client.hiveMembership.findUnique({ where: { userId: row.id } }),
+      this.prisma.client.desk.findUnique({ where: { permanentAssigneeId: row.id } }),
+      this.prisma.client.hive.findFirst({ where: { ownerId: row.id }, select: { id: true } }),
+    ]);
+    return {
+      ...toContractUser(row),
+      hiveId: membership?.hiveId ?? null,
+      permanentDeskId: permanentDesk?.id ?? null,
+      ownsHive: ownedHive !== null,
+    };
   }
 
   /**
@@ -89,7 +104,7 @@ export class MeService {
       },
     });
 
-    return toContractUser(row);
+    return this.toProfile(row);
   }
 
   /**

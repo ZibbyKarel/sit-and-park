@@ -98,6 +98,42 @@ type SpotUpdatedPayload =
     }>)
   | { readonly change: 'deactivated'; readonly label: string };
 
+type DeskCell = {
+  readonly deskId: string;
+  readonly deskCode: string;
+  readonly date: DateOnly;
+};
+
+type DeskCancelReason =
+  | 'USER'
+  | 'ADMIN'
+  | 'DESK_DEACTIVATED'
+  | 'DESK_OFFICE_CHANGED'
+  | 'PERMANENT_ASSIGNMENT'
+  | 'USER_DEACTIVATED';
+
+type DeskApprovalDecidedReason =
+  | 'DECIDED'
+  | 'DESK_DEACTIVATED'
+  | 'DESK_HIVE_CHANGED'
+  | 'DESK_OFFICE_CHANGED'
+  | 'HIVE_DELETED'
+  | 'USER_DEACTIVATED';
+
+/**
+ * Admin-managed catalogue entities (desk, hive, office, zone): `before` null
+ * means created, `after` null means deleted.
+ */
+type CatalogChange<TFields> = {
+  readonly before: TFields | null;
+  readonly after: TFields | null;
+};
+
+type DeskCancelPayload = DeskCell & {
+  readonly userId: string;
+  readonly reason: DeskCancelReason;
+};
+
 /**
  * Identity, but with the key set checked: a member added to `AUDIT_LOG_ACTIONS`
  * and not to the map below stops compiling here rather than silently getting an
@@ -145,5 +181,47 @@ export type AuditPayloads = PayloadMap<{
     readonly startTime: TimeOfDay;
     readonly endTime: TimeOfDay;
     readonly guestName: string;
+  };
+  DESK_RESERVATION_CREATED: DeskCell & { readonly userId: string };
+  DESK_RESERVATION_CANCELLED: DeskCancelPayload;
+  DESK_RESERVATION_CANCELLED_BY_ADMIN: DeskCancelPayload;
+  DESK_RELEASED: DeskCell;
+  DESK_RELEASE_CANCELLED: DeskCell;
+  DESK_APPROVAL_REQUESTED: DeskCell & { readonly userId: string };
+  DESK_APPROVAL_DECIDED: DeskCell & {
+    readonly userId: string;
+    readonly status: 'APPROVED' | 'REJECTED';
+    readonly reason: DeskApprovalDecidedReason;
+  };
+  DESK_UPDATED: CatalogChange<{
+    readonly code: string;
+    readonly officeId: string;
+    readonly zoneId: string;
+    readonly hiveId: string | null;
+    readonly active: boolean;
+    readonly permanentAssigneeId: string | null;
+  }>;
+  HIVE_UPDATED: CatalogChange<{
+    readonly name: string;
+    readonly color: string;
+    readonly ownerId: string;
+  }>;
+  OFFICE_UPDATED: CatalogChange<{ readonly name: string }>;
+  ZONE_UPDATED: CatalogChange<{
+    readonly key: string;
+    readonly name: string;
+    readonly officeId: string;
+  }>;
+  EMPLOYEE_SYNC_APPLIED: {
+    readonly mode: 'DRY' | 'LIVE';
+    readonly created: number;
+    readonly updated: number;
+    readonly deactivated: number;
+  };
+  EMPLOYEE_SYNC_SETTINGS_UPDATED: Change<{ readonly liveMode: boolean }>;
+  USER_DEACTIVATED: {
+    readonly source: 'EMPLOYEE_SYNC' | 'ADMIN';
+    readonly freedReservations: number;
+    readonly freedDeskReservations: number;
   };
 }>;

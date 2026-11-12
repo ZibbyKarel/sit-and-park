@@ -18,6 +18,29 @@ describe('MeService', () => {
 
       await expect(me.getProfile(user.id)).resolves.toMatchObject({ icsToken: 'secret-token' });
     });
+
+    it('reports no hive, no permanent desk and no ownership for a plain user', async () => {
+      const user = double.seedUser({});
+
+      await expect(me.getProfile(user.id)).resolves.toMatchObject({
+        hiveId: null,
+        permanentDeskId: null,
+        ownsHive: false,
+      });
+    });
+
+    it('derives hiveId, permanentDeskId and ownsHive from the desk tables', async () => {
+      const user = double.seedUser({});
+      double.hiveMemberships.push({ userId: user.id, hiveId: 'hive-1' });
+      double.desks.push({ id: 'desk-1', permanentAssigneeId: user.id });
+      double.hives.push({ id: 'hive-1', ownerId: user.id });
+
+      await expect(me.getProfile(user.id)).resolves.toMatchObject({
+        hiveId: 'hive-1',
+        permanentDeskId: 'desk-1',
+        ownsHive: true,
+      });
+    });
   });
 
   describe('updateSettings — the three-valued convention', () => {

@@ -97,6 +97,7 @@
  * no JWT can appear in that line, because none of the fields is one.
  */
 
+import type { DeskReleasedEvent, DeskReservedEvent } from '@garage/contract/realtime';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import type { DomainEvent, WaitlistPromotionNotice } from './reservation-events';
@@ -156,6 +157,18 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
     }
   }
 
+  deskReserved(payload: DeskReservedEvent): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskReserved', 'desk:reserved', () => delegate.deskReserved(payload));
+    }
+  }
+
+  deskReleased(payload: DeskReleasedEvent): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskReleased', 'desk:released', () => delegate.deskReleased(payload));
+    }
+  }
+
   /**
    * One forward, one failure domain. Never rethrows and never blocks: see the
    * class comment for why a broadcast failure must not reach the user who
@@ -170,7 +183,7 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
    */
   private forward(
     delegate: DomainEventPublisher,
-    method: 'publish' | 'notifyPromotions',
+    method: 'publish' | 'notifyPromotions' | 'deskReserved' | 'deskReleased',
     subject: string,
     call: () => unknown
   ): void {
@@ -189,7 +202,7 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
   /** The one log line a delegate failure produces, sync or async. */
   private log(
     delegate: DomainEventPublisher,
-    method: 'publish' | 'notifyPromotions',
+    method: 'publish' | 'notifyPromotions' | 'deskReserved' | 'deskReleased',
     subject: string,
     error: unknown
   ): void {

@@ -20,6 +20,7 @@ import type { PrismaClient, User as UserRow, ParkingSpot as SpotRow } from '@gar
 import { Prisma, createPrismaClient } from '@garage/database';
 import { DomainError } from '../../common/errors/domain-error';
 import { mapPrismaErrorCode } from '../../common/errors/prisma-error-mapping';
+import type { DeskReleasedEvent, DeskReservedEvent } from '@garage/contract/realtime';
 import type { DateOnly } from '@garage/shared-types';
 import type { PrismaService } from '../../database/prisma.service';
 import type { DomainEvent, WaitlistPromotionNotice } from '../../reservations/reservation-events';
@@ -57,6 +58,14 @@ export class RecordingPublisher extends DomainEventPublisher {
 
   notifyPromotions(notices: readonly WaitlistPromotionNotice[]): void {
     this.notices.push(...notices);
+  }
+
+  deskReserved(payload: DeskReservedEvent): void {
+    this.publish([{ name: 'desk:reserved', payload }]);
+  }
+
+  deskReleased(payload: DeskReleasedEvent): void {
+    this.publish([{ name: 'desk:released', payload }]);
   }
 
   /** Every recorded event of one kind, narrowed. */

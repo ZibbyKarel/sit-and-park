@@ -54,9 +54,18 @@ interface RpcResponse {
  * quietly stop covering a procedure that was added later. Same walker as
  * `orpc-route-parity.spec.ts`, restricted to the admin branch.
  */
+/**
+ * Desk-merge admin namespaces whose controllers do not exist yet
+ * (`NOT_YET_IMPLEMENTED` in `orpc-route-parity.spec.ts`). The stage that
+ * implements one removes it here and adds its procedures to `ADMIN_CALLS`.
+ */
+const PENDING_ADMIN_NAMESPACES = ['desk', 'hive', 'office', 'zone', 'employeeSync'];
+
 function adminProcedureNames(node: unknown, prefix: string[] = []): string[] {
   if (isContractProcedure(node)) {
-    return prefix[0] === 'admin' ? [prefix.join('.')] : [];
+    return prefix[0] === 'admin' && !PENDING_ADMIN_NAMESPACES.includes(prefix[1] ?? '')
+      ? [prefix.join('.')]
+      : [];
   }
   if (typeof node !== 'object' || node === null) {
     return [];

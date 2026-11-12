@@ -262,6 +262,11 @@ export class PrismaDouble {
    */
   icsTokenCollisions = 0;
 
+  /** Minimal desk-side rows, for the profile's three derived fields. */
+  readonly hiveMemberships: { userId: string; hiveId: string }[] = [];
+  readonly desks: { id: string; permanentAssigneeId: string | null }[] = [];
+  readonly hives: { id: string; ownerId: string }[] = [];
+
   /**
    * Empties every collection and counter the double owns, so one spec's rows
    * cannot reach the next test.
@@ -275,6 +280,9 @@ export class PrismaDouble {
   reset(): void {
     this.spots.length = 0;
     this.users.length = 0;
+    this.hiveMemberships.length = 0;
+    this.desks.length = 0;
+    this.hives.length = 0;
     this.reservations.length = 0;
     this.waitlist.length = 0;
     this.timedReservations.length = 0;
@@ -406,6 +414,19 @@ export class PrismaDouble {
       reservationWindowSettings: this.windowSettingsDelegate(),
       reservationLimitSettings: this.limitSettingsDelegate(),
       auditLog: this.auditLogDelegate(),
+      // Desk-side tables `MeService` reads for the profile; empty unless seeded.
+      hiveMembership: {
+        findUnique: async (args: { where: { userId: string } }) =>
+          this.hiveMemberships.find((m) => m.userId === args.where.userId) ?? null,
+      },
+      desk: {
+        findUnique: async (args: { where: { permanentAssigneeId: string } }) =>
+          this.desks.find((d) => d.permanentAssigneeId === args.where.permanentAssigneeId) ?? null,
+      },
+      hive: {
+        findFirst: async (args: { where: { ownerId: string } }) =>
+          this.hives.find((h) => h.ownerId === args.where.ownerId) ?? null,
+      },
     };
   }
 

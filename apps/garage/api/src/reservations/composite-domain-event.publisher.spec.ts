@@ -50,6 +50,20 @@ class RecordingPublisher extends DomainEventPublisher {
     }
     this.notified.push(...notices);
   }
+
+  readonly deskEvents: string[] = [];
+  deskThrows?: Error | undefined;
+
+  deskReserved(): void {
+    if (this.deskThrows !== undefined) {
+      throw this.deskThrows;
+    }
+    this.deskEvents.push('desk:reserved');
+  }
+
+  deskReleased(): void {
+    this.deskEvents.push('desk:released');
+  }
 }
 
 /**
@@ -82,6 +96,14 @@ class AsyncRejectingPublisher extends DomainEventPublisher {
   async notifyPromotions(): Promise<void> {
     this.calls += 1;
     throw new Error('async transport rejected');
+  }
+
+  deskReserved(): void {
+    // Not exercised by this suite.
+  }
+
+  deskReleased(): void {
+    // Not exercised by this suite.
   }
 }
 
@@ -160,6 +182,25 @@ describe('CompositeDomainEventPublisher', () => {
 
       expect(realtime.notified).toEqual([promotion()]);
       expect(slack.notified).toEqual([promotion()]);
+    });
+
+    it('forwards desk events to every delegate, and a throwing one does not silence the rest', () => {
+      realtime.deskThrows = new Error('socket write failed');
+      const payload = {
+        date: DATE,
+        deskId: SPOT,
+        reservationId: RESERVATION,
+        userId: USER,
+        userName: 'Ada',
+      };
+
+      publisher.deskReserved(payload);
+      publisher.deskReleased({ date: DATE, deskId: SPOT, reservationId: RESERVATION });
+
+      expect(realtime.deskEvents).toEqual(['desk:released']);
+      expect(slack.deskEvents).toEqual(['desk:reserved', 'desk:released']);
+      expect(errors).toHaveLength(1);
+      expect(errors[0]?.bindings).toMatchObject({ method: 'deskReserved', subject: 'desk:reserved' });
     });
 
     it('publishes nothing at all for an empty batch', () => {
@@ -242,6 +283,12 @@ describe('CompositeDomainEventPublisher', () => {
             }
             this.seen.push(event.name);
           }
+        }
+        deskReserved(): void {
+          // Not exercised by this test.
+        }
+        deskReleased(): void {
+          // Not exercised by this test.
         }
         notifyPromotions(): void {
           // Not exercised by this test.
@@ -345,6 +392,12 @@ describe('CompositeDomainEventPublisher', () => {
           return new Promise<void>((resolve) => {
             settle = resolve;
           }) as unknown as void;
+        }
+        deskReserved(): void {
+          // Not exercised by this test.
+        }
+        deskReleased(): void {
+          // Not exercised by this test.
         }
         notifyPromotions(): void {
           // Not exercised by this test.
