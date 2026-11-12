@@ -20,6 +20,9 @@
 /** The parking overview — the application's home screen (Task 24). */
 export const LOT_ROUTE = '/';
 
+/** Desk booking for one day: floor plan, list, booking dialog. */
+export const DESKS_ROUTE = '/desks';
+
 /** The signed-out screen with the single Okta button. */
 export const LOGIN_ROUTE = '/login';
 
@@ -28,6 +31,9 @@ export const SETTINGS_ROUTE = '/settings';
 
 /** Administration: users, spots, reservation window (Task 27). Admins only. */
 export const ADMIN_ROUTE = '/admin';
+
+/** The caller's own desk reservations, releases and approval requests. */
+export const MY_DESKS_ROUTE = '/desks/my';
 
 /** Auth.js's own endpoints. Never proxied, never protected. */
 export const AUTH_API_ROUTE_PREFIX = '/api/auth';

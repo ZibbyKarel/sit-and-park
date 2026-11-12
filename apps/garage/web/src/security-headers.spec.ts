@@ -54,6 +54,15 @@ describe('the web app’s security headers', () => {
     expect(nextConfig.poweredByHeader).toBe(false);
   });
 
+  it('restricts no image source, so the floor plan SVG loads into an <image>', async () => {
+    // `/floorplans/<key>.svg` is a same-origin image drawn by the desks screen.
+    // With neither `img-src` nor `default-src` there is nothing to allow it in;
+    // adding either must keep `'self'`.
+    const csp = await headerValue('Content-Security-Policy');
+    expect(csp).not.toContain('img-src');
+    expect(csp).not.toContain('default-src');
+  });
+
   it('ships no script or connect policy, because a wrong one would break the app silently', async () => {
     // Two failure modes this guards, both worse than the missing directive:
     //

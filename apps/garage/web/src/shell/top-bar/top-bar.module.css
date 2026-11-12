@@ -17,6 +17,33 @@
   text-decoration: none;
 }
 
+.nav {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  gap: var(--spacing-xs);
+  overflow-x: auto;
+}
+
+.navLink {
+  flex-shrink: 0;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-border-radius-8);
+  color: rgb(var(--foreground--neutral-medium-default--light));
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.navLink:hover {
+  background-color: rgb(var(--background--neutral-low-default--light));
+}
+
+.navLink[aria-current='page'] {
+  background-color: rgb(var(--background--neutral-low-default--light));
+  color: rgb(var(--foreground--neutral-full-default--light));
+}
+
 .adminBadge {
   text-transform: uppercase;
 }

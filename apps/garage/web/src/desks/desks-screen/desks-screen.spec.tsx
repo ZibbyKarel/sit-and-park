@@ -1,0 +1,308 @@
+import type { ReactNode } from 'react';
+import { render, screen, waitFor, within } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { LocalizationProvider } from '@shoptet/ui';
+import { createApiQueryUtils, type ApiQueryUtils } from '@garage/api-client';
+import { IntlProvider } from '@garage/i18n';
+import type { DirectoryDesk } from '@garage/contract';
+import cs from '../../../messages/cs.json';
+import { createQueryClient } from '../../shell/query/query-client';
+import { ToastProvider } from '../../shell/notifications/toast-provider';
+import {
+  contractErrorResponse,
+  rpcPayload,
+  stubApi,
+  type StubbedApi,
+  type StubbedResponse,
+} from '../../testing/stub-api';
+import { T0 } from '../../testing/fixtures';
+import { directory, directoryDesk } from '../desk.test-helpers';
+import { DesksScreen } from './desks-screen';
+
+/**
+ * The connected screen over a real `ApiClient` whose `fetch` is stubbed
+ * (`stubApi`), so what is asserted is what reached the wire. Doubled at the
+ * wrapper boundary only: the session, the socket, the router.
+ */
+
+const DATE = '2026-11-16'; // a Monday
+
+jest.mock('@garage/i18n', () => ({
+  ...jest.requireActual('@garage/i18n'),
+  todayInPrague: () => '2026-11-16',
+}));
+jest.mock('next/navigation', () => ({
+  useRouter: () => ({ replace: jest.fn() }),
+  useSearchParams: () => new URLSearchParams(''),
+}));
+jest.mock('@garage/auth/client', () => ({
+  useSession: () => ({ status: 'authenticated' }),
+}));
+jest.mock('@garage/realtime-client', () => ({
+  useDayRoom: jest.fn(),
+  useRealtimeEvent: jest.fn(),
+}));
+
+let mockApi: ApiQueryUtils;
+jest.mock('../../shell/api-provider/api-provider', () => ({ useApi: () => mockApi }));
+
+type Routes = Record<string, StubbedResponse>;
+
+/** Answers by procedure path (`desk/reserve`); an unrouted call fails the test loudly. */
+function serve(routes: Routes): StubbedApi {
+  const api: StubbedApi = stubApi((index) => {
+    const path = new URL(api.requests[index]?.url ?? '').pathname.replace(/^\/rpc\//, '');
+    const response = routes[path];
+    if (response === undefined) throw new Error(`unrouted call to ${path}`);
+    return response;
+  });
+  mockApi = createApiQueryUtils(api.client);
+  return api;
+}
+
+const ok = (value: unknown): StubbedResponse => ({ status: 200, body: rpcPayload(value) });
+
+async function bodiesOf(api: StubbedApi, path: string): Promise<unknown[]> {
+  const matching = api.requests.filter((request) => request.url.endsWith(`/rpc/${path}`));
+  return Promise.all(
+    matching.map(async (request) => ((await request.clone().json()) as { json: unknown }).json)
+  );
+}
+
+function Wrapper({ children }: { children: ReactNode }) {
+  return (
+    <QueryClientProvider client={createQueryClient()}>
+      <IntlProvider locale="cs" messages={cs}>
+        <LocalizationProvider locale="cs-CZ">
+          <ToastProvider>{children}</ToastProvider>
+        </LocalizationProvider>
+      </IntlProvider>
+    </QueryClientProvider>
+  );
+}
+
+function renderScreen() {
+  render(<DesksScreen />, { wrapper: Wrapper });
+  return userEvent.setup();
+}
+
+const FREE = directoryDesk({ id: 'desk-free', code: 'D-001' });
+const HIVE = directoryDesk({
+  id: 'desk-hive',
+  code: 'D-014',
+  hiveId: 'hive-1',
+  hiveName: 'Engineering',
+  hiveColor: '#3366FF',
+  access: 'APPROVAL',
+});
+
+function reservation(date: string, deskId = FREE.id) {
+  return { id: `res-${date}`, deskId, userId: 'user-viewer', date, createdAt: T0 };
+}
+
+async function openDesk(user: ReturnType<typeof userEvent.setup>, desk: DirectoryDesk) {
+  await user.click(
+    await screen.findByRole('button', {
+      name: new RegExp(`^deskAria(Hive)?: code=${desk.code},`),
+    })
+  );
+  return screen.findByRole('dialog');
+}
+
+describe('DesksScreen', () => {
+  it('draws one plan shape per desk with its Czech accessible name, and the same desks as a list', async () => {
+    const api = serve({ 'desk/directory': ok(directory([FREE, HIVE])) });
+    const user = renderScreen();
+
+    expect(
+      await screen.findByRole('button', { name: 'deskAria: code=D-001,status=statusFree' })
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole('button', {
+        name: 'deskAriaHive: code=D-014,status=statusFree,hive=Engineering',
+      })
+    ).toBeInTheDocument();
+    expect(screen.getByText('freeCount: free=2,total=2')).toBeInTheDocument();
+    expect(await bodiesOf(api, 'desk/directory')).toEqual([{ date: DATE }]);
+
+    await user.click(screen.getByRole('tab', { name: 'viewList' }));
+    expect(screen.getByRole('button', { name: 'listOpenDesk: code=D-001' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'listOpenDesk: code=D-014' })).toBeInTheDocument();
+  });
+
+  it('explains a missing office instead of drawing a plan', async () => {
+    serve({ 'desk/directory': contractErrorResponse('NO_OFFICE_ASSIGNED') });
+    renderScreen();
+
+    expect(await screen.findByText('noOfficeTitle')).toBeInTheDocument();
+    expect(screen.getByText('NO_OFFICE_ASSIGNED')).toBeInTheDocument();
+    expect(screen.queryByRole('tab')).not.toBeInTheDocument();
+  });
+
+  it('tells a permanent holder they cannot book and links to my desks', async () => {
+    serve({
+      'desk/directory': ok(
+        directory([
+          FREE,
+          directoryDesk({ id: 'mine', code: 'D-100', status: 'ASSIGNED', assignedToMe: true }),
+        ])
+      ),
+    });
+    renderScreen();
+
+    expect(await screen.findByText('bannerPermanent: code=D-100')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'bannerPermanentLink' })).toHaveAttribute(
+      'href',
+      '/desks/my'
+    );
+  });
+
+  it('names the desk the viewer has that day and cancels it from the banner', async () => {
+    const api = serve({
+      'desk/directory': ok(
+        directory([
+          FREE,
+          directoryDesk({
+            id: 'd2',
+            code: 'D-002',
+            status: 'RESERVED_BY_ME',
+            myReservationId: 'res-1',
+          }),
+        ])
+      ),
+      'desk/cancel': ok({ reservationId: 'res-1', date: DATE, deskId: 'd2' }),
+    });
+    const user = renderScreen();
+
+    expect(await screen.findByText('bannerToday: code=D-002')).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'bannerTodayCancel' }));
+
+    await waitFor(async () =>
+      expect(await bodiesOf(api, 'desk/cancel')).toEqual([{ reservationId: 'res-1' }])
+    );
+    await waitFor(async () => expect(await bodiesOf(api, 'desk/directory')).toHaveLength(2));
+  });
+
+  it('books a free desk for the day and shows the result', async () => {
+    const api = serve({
+      'desk/directory': ok(directory([FREE])),
+      'desk/reserve': ok({ reserved: [reservation(DATE)], skipped: [] }),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, FREE);
+    expect(within(dialog).getByText('dialogTitle: code=D-001')).toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'bookDay' }));
+
+    expect(await within(dialog).findByText('seriesResultReserved: count=1')).toBeInTheDocument();
+    expect(await bodiesOf(api, 'desk/reserve')).toEqual([{ deskId: 'desk-free', dates: [DATE] }]);
+  });
+
+  it('previews a series day by day, books it and summarises reserved and skipped days', async () => {
+    const api = serve({
+      'desk/directory': ok(directory([FREE])),
+      'desk/previewSeries': ok({
+        days: [
+          { date: '2026-11-16', ok: true, reason: null },
+          { date: '2026-11-17', ok: false, reason: 'DESK_TAKEN' },
+          { date: '2026-11-18', ok: true, reason: null },
+        ],
+      }),
+      'desk/reserve': ok({
+        reserved: [reservation('2026-11-16'), reservation('2026-11-18')],
+        skipped: [{ date: '2026-11-17', reason: 'DESK_TAKEN' }],
+      }),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, FREE);
+    await user.click(within(dialog).getByRole('button', { name: 'seriesOpen' }));
+    await user.click(within(dialog).getByRole('checkbox', { name: /úterý/i }));
+    await user.click(within(dialog).getByRole('checkbox', { name: /středa/i }));
+
+    expect(await within(dialog).findByText('skipDeskTaken')).toBeInTheDocument();
+    expect((await bodiesOf(api, 'desk/previewSeries')).at(-1)).toEqual({
+      deskId: 'desk-free',
+      dates: ['2026-11-16', '2026-11-17', '2026-11-18'],
+    });
+
+    await user.click(within(dialog).getByRole('button', { name: 'seriesSubmit: count=2' }));
+
+    expect(await within(dialog).findByText('seriesResultReserved: count=2')).toBeInTheDocument();
+    expect(within(dialog).getByText('seriesResultSkipped: count=1')).toBeInTheDocument();
+    expect(await bodiesOf(api, 'desk/reserve')).toEqual([
+      { deskId: 'desk-free', dates: ['2026-11-16', '2026-11-17', '2026-11-18'] },
+    ]);
+  });
+
+  it('requests approval for a free hive desk without direct access', async () => {
+    const api = serve({
+      'desk/directory': ok(directory([HIVE])),
+      'desk/requestApproval': ok({
+        id: 'req-1',
+        deskId: HIVE.id,
+        userId: 'user-viewer',
+        date: DATE,
+        status: 'PENDING',
+        decidedById: null,
+        decidedAt: null,
+        createdAt: T0,
+      }),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, HIVE);
+    expect(within(dialog).queryByRole('button', { name: 'bookDay' })).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'requestApproval' }));
+
+    expect(await within(dialog).findByText('requestSent')).toBeInTheDocument();
+    expect(await bodiesOf(api, 'desk/requestApproval')).toEqual([{ deskId: HIVE.id, date: DATE }]);
+  });
+
+  it('cancels the viewer’s own booking from the dialog', async () => {
+    const mine = directoryDesk({
+      id: 'd2',
+      code: 'D-002',
+      status: 'RESERVED_BY_ME',
+      myReservationId: 'res-1',
+    });
+    const api = serve({
+      'desk/directory': ok(directory([mine])),
+      'desk/cancel': ok({ reservationId: 'res-1', date: DATE, deskId: 'd2' }),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, mine);
+    await user.click(within(dialog).getByRole('button', { name: 'cancelReservation' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await bodiesOf(api, 'desk/cancel')).toEqual([{ reservationId: 'res-1' }]);
+  });
+
+  it('shows a contract error as copy, keeping the dialog open', async () => {
+    serve({
+      'desk/directory': ok(directory([FREE])),
+      'desk/reserve': contractErrorResponse('DESK_ALREADY_RESERVED'),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, FREE);
+    await user.click(within(dialog).getByRole('button', { name: 'bookDay' }));
+
+    expect(await within(dialog).findByText('DESK_ALREADY_RESERVED')).toBeInTheDocument();
+  });
+
+  it('words a refused approval request as this desk’s rule, not parking’s', async () => {
+    serve({
+      'desk/directory': ok(directory([HIVE])),
+      'desk/requestApproval': contractErrorResponse('VALIDATION_FAILED'),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, HIVE);
+    await user.click(within(dialog).getByRole('button', { name: 'requestApproval' }));
+
+    expect(await within(dialog).findByText('errRequestNotAllowed')).toBeInTheDocument();
+  });
+});
