@@ -105,7 +105,7 @@ export class CalendarController {
   ): Promise<string> {
     // Throws `NotFoundException` for an unknown token or a deactivated user,
     // before any header below is set.
-    const entries = await this.calendar.feedEntriesForToken(icsToken);
+    const feed = await this.calendar.feedForToken(icsToken);
 
     response.setHeader('Content-Type', CALENDAR_CONTENT_TYPE);
     response.setHeader('Cache-Control', CALENDAR_CACHE_CONTROL);
@@ -114,6 +114,6 @@ export class CalendarController {
     // ticket, a wiki, a shared document — this asks it not to publish it.
     response.setHeader('X-Robots-Tag', 'noindex, nofollow');
 
-    return buildReservationCalendar({ entries });
+    return buildReservationCalendar(feed);
   }
 }

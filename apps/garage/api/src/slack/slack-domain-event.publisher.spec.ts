@@ -6,7 +6,11 @@
  * `reservation-events.ts` gives the rest of the application.
  */
 
-import type { DomainEvent, WaitlistPromotionNotice } from '../reservations/reservation-events';
+import type {
+  DeskApprovalNotice,
+  DomainEvent,
+  WaitlistPromotionNotice,
+} from '../reservations/reservation-events';
 import type { ShutdownCloser } from '../shutdown/graceful-shutdown.service';
 import { GracefulShutdownService } from '../shutdown/graceful-shutdown.service';
 import { SlackDomainEventPublisher } from './slack-domain-event.publisher';
@@ -43,6 +47,8 @@ describe('SlackDomainEventPublisher', () => {
   let notifications: {
     notifySpotFreed: jest.Mock;
     notifyWaitlistPromotion: jest.Mock;
+    notifyDeskApprovalRequested: jest.Mock;
+    notifyDeskApprovalDecided: jest.Mock;
   };
   /** The closer the publisher registered, so shutdown can be driven for real. */
   let closers: Map<string, ShutdownCloser>;
@@ -53,6 +59,8 @@ describe('SlackDomainEventPublisher', () => {
     notifications = {
       notifySpotFreed: jest.fn().mockResolvedValue('delivered'),
       notifyWaitlistPromotion: jest.fn().mockResolvedValue('delivered'),
+      notifyDeskApprovalRequested: jest.fn().mockResolvedValue('delivered'),
+      notifyDeskApprovalDecided: jest.fn().mockResolvedValue('delivered'),
     };
     closers = new Map();
     const shutdown = {
@@ -197,6 +205,43 @@ describe('SlackDomainEventPublisher', () => {
       await flush();
 
       expect(notifications.notifyWaitlistPromotion).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('desk approvals', () => {
+    const notice: DeskApprovalNotice = {
+      requestId: 'q-1',
+      deskId: 'd-1',
+      deskCode: 'D-014',
+      date: DATE,
+      requesterId: 'u-1',
+      hiveOwnerId: 'u-2',
+      status: 'PENDING',
+    };
+
+    it('hands a filed request and a decision to the matching notification', async () => {
+      publisher.deskApprovalRequested(notice);
+      publisher.deskApprovalDecided({ ...notice, status: 'APPROVED' });
+      await flush();
+
+      expect(notifications.notifyDeskApprovalRequested).toHaveBeenCalledWith(notice);
+      expect(notifications.notifyDeskApprovalDecided).toHaveBeenCalledWith({
+        ...notice,
+        status: 'APPROVED',
+      });
+    });
+
+    it('swallows a failure instead of reaching the committed request', async () => {
+      notifications.notifyDeskApprovalRequested.mockRejectedValue(new Error('boom'));
+      notifications.notifyDeskApprovalDecided.mockRejectedValue(new Error('boom'));
+
+      expect(() => publisher.deskApprovalRequested(notice)).not.toThrow();
+      expect(() => publisher.deskApprovalDecided(notice)).not.toThrow();
+      await flush();
+
+      expect(
+        logs.lines().filter((l) => l['message'] === 'Slack notification threw unexpectedly')
+      ).toHaveLength(2);
     });
   });
 

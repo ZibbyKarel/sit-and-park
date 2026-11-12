@@ -42,6 +42,8 @@ import { contract } from '@garage/contract';
 import type { UserRole } from '@garage/contract';
 import { ROLES_KEY } from '../auth/roles.decorator';
 import { PrismaService } from '../database/prisma.service';
+import { DeskAdminController } from '../desk-admin/desk-admin.controller';
+import { DesksController } from '../desks/desks.controller';
 import { MeController } from '../me/me.controller';
 import { OverviewController } from '../overview/overview.controller';
 import { ReservationLimitsController } from '../reservation-limits/reservation-limits.controller';
@@ -52,6 +54,7 @@ import { WaitlistController } from '../reservations/waitlist.controller';
 import { SpotsController } from '../spots/spots.controller';
 import { TimedReservationsController } from '../timed-reservations/timed-reservations.controller';
 import { UsersController } from '../users/users.controller';
+import { EmployeeSyncAdminController } from '../employee-sync/employee-sync-admin.controller';
 import { RPC_ROUTE_PREFIX } from './rpc-route';
 
 /**
@@ -65,41 +68,7 @@ import { RPC_ROUTE_PREFIX } from './rpc-route';
  * the stage that implements each removes its entries. An empty list is a state the
  * assertions have to keep working in — "every procedure has exactly one route".
  */
-const NOT_YET_IMPLEMENTED: string[] = [
-  'admin.desk.bulkUpdate',
-  'admin.desk.grants',
-  'admin.desk.list',
-  'admin.desk.setGrant',
-  'admin.desk.setPermanentAssignee',
-  'admin.desk.stats',
-  'admin.desk.update',
-  'admin.employeeSync.get',
-  'admin.employeeSync.setLiveMode',
-  'admin.hive.create',
-  'admin.hive.delete',
-  'admin.hive.list',
-  'admin.hive.setMembership',
-  'admin.hive.update',
-  'admin.office.create',
-  'admin.office.list',
-  'admin.office.update',
-  'admin.zone.create',
-  'admin.zone.list',
-  'admin.zone.update',
-  'desk.cancel',
-  'desk.cancelRelease',
-  'desk.cancelRequest',
-  'desk.decideRequest',
-  'desk.directory',
-  'desk.myReleases',
-  'desk.myRequests',
-  'desk.myReservations',
-  'desk.pendingRequests',
-  'desk.previewSeries',
-  'desk.release',
-  'desk.requestApproval',
-  'desk.reserve',
-];
+const NOT_YET_IMPLEMENTED: string[] = [];
 
 const CONTROLLERS = [
   SpotsController,
@@ -112,6 +81,9 @@ const CONTROLLERS = [
   WaitlistController,
   BulkReservationController,
   TimedReservationsController,
+  DesksController,
+  EmployeeSyncAdminController,
+  DeskAdminController,
 ];
 
 interface RegisteredRoute {
@@ -312,7 +284,13 @@ describe('the RPC routing table', () => {
      * (`doc/decision/0080-*`); the two probes are excluded from the global
      * prefix so an orchestrator can reach them without knowing it.
      */
-    const NON_CONTRACT_ROUTES = ['calendar/:icsToken.ics', 'health/live', 'health/ready'];
+    const NON_CONTRACT_ROUTES = [
+      'calendar/:icsToken.ics',
+      // Keboola's employee-list push, bearer-key authenticated (`doc/decision/0330-*`).
+      'employee-sync',
+      'health/live',
+      'health/ready',
+    ];
 
     const ENV = {
       NODE_ENV: 'test',

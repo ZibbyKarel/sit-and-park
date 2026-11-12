@@ -158,6 +158,14 @@ describe('useAdminWriteError', () => {
         ['spotVisibility', declaredOn(contract.admin.spot.update)],
         ['spotEvCharger', declaredOn(contract.admin.spot.update)],
         ['windowUpdate', declaredOn(contract.admin.window.update)],
+        ['hiveCreate', declaredOn(contract.admin.hive.create)],
+        ['hiveUpdate', declaredOn(contract.admin.hive.update)],
+        ['hiveDelete', declaredOn(contract.admin.hive.delete)],
+        ['hiveMembership', declaredOn(contract.admin.hive.setMembership)],
+        ['officeCreate', declaredOn(contract.admin.office.create)],
+        ['officeUpdate', declaredOn(contract.admin.office.update)],
+        ['zoneCreate', declaredOn(contract.admin.zone.create)],
+        ['zoneUpdate', declaredOn(contract.admin.zone.update)],
       ];
 
       /**
@@ -166,9 +174,6 @@ describe('useAdminWriteError', () => {
        * exemption that has to be written down is one somebody can argue with.
        */
       const unmapped: Partial<Record<AdminWrite, readonly ErrorCode[]>> = {
-        // `NOT_FOUND` is an unknown `officeId`, and the create form sends none
-        // yet (the office picker arrives with the desk merge's Stage 6).
-        spotCreate: ['NOT_FOUND'],
         // Switching a spot back on collides with nothing (`SpotsService.update`
         // only checks reservations on the way off) and sends neither a label
         // nor a group, so neither code has a cause to name.

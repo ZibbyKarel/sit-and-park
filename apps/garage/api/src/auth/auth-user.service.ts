@@ -40,6 +40,7 @@ import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import type { User } from '@garage/database';
 import { DomainError } from '../common/errors/domain-error';
 import { isUniqueConstraintViolation } from '../common/errors/prisma-error-mapping';
+import { defaultOfficeId } from '../common/office-scope';
 import { PrismaService } from '../database/prisma.service';
 import type { AuthenticatedUser } from './authenticated-user';
 import type { AuthTokenClaims } from './token-claims';
@@ -189,6 +190,9 @@ export class AuthUserService {
         // than an empty string, which `userSchema` forbids anyway.
         name: claims.name ?? email,
         icsToken: generateIcsToken(),
+        // The oldest active office (desk merge, stage 6); `null` when there is
+        // none, which still leaves parking usable (`../common/office-scope.ts`).
+        officeId: await defaultOfficeId(this.prisma.client),
       },
     });
     this.logger.info({ userId: created.id }, 'Provisioned a new user from a verified token');

@@ -39,6 +39,11 @@ export interface AdminPanels {
   readonly spots: ReactNode;
   readonly window: ReactNode;
   readonly limits: ReactNode;
+  readonly hives: ReactNode;
+  readonly offices: ReactNode;
+  readonly sync: ReactNode;
+  readonly desks: ReactNode;
+  readonly deskStats: ReactNode;
 }
 
 export interface AdminScreenProps {
@@ -98,6 +103,11 @@ export function AdminScreen({
           { id: 'spots', title: t('tabSpots'), content: panels.spots },
           { id: 'window', title: t('tabWindow'), content: panels.window },
           { id: 'limits', title: t('tabLimits'), content: panels.limits },
+          { id: 'hives', title: t('tabHives'), content: panels.hives },
+          { id: 'offices', title: t('tabOffices'), content: panels.offices },
+          { id: 'sync', title: t('tabSync'), content: panels.sync },
+          { id: 'desks', title: t('tabDesks'), content: panels.desks },
+          { id: 'deskStats', title: t('tabDeskStats'), content: panels.deskStats },
         ]}
         activeTabId={activeTab}
         onTabChange={setActiveTab}

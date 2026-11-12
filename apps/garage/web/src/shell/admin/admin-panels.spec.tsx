@@ -71,6 +71,7 @@ interface FakeApi {
   readonly overview: { readonly key: () => string[]; readonly day: FakeProcedure };
   readonly reservation: { readonly key: () => string[] };
   readonly admin: {
+    readonly office: { readonly key: () => string[]; readonly list: FakeProcedure };
     readonly user: {
       readonly key: () => string[];
       readonly list: FakeProcedure;
@@ -113,8 +114,15 @@ interface FakeProcedure {
  * keys its queries are stored under — which is what makes "did it invalidate
  * the right thing" observable as a refetch rather than as a spy call.
  */
-function makeApi(responders: Record<string, Responder>) {
+function makeApi(stubbed: Record<string, Responder>) {
   const calls: ApiCall[] = [];
+  // The users and spots panels both read the office list for their pickers.
+  // The spot form needs one office to submit, so there is one unless a test
+  // says otherwise.
+  const responders: Record<string, Responder> = {
+    'admin.office.list': () => ({ offices: [{ id: 'office-1', name: 'Praha' }] }),
+    ...stubbed,
+  };
 
   function respond(procedure: string, input: unknown): Promise<unknown> {
     calls.push({ procedure, input });
@@ -141,6 +149,7 @@ function makeApi(responders: Record<string, Responder>) {
     overview: { key: () => ['overview'], day: procedure('overview.day') },
     reservation: { key: () => ['reservation'] },
     admin: {
+      office: { key: () => ['admin', 'office'], list: procedure('admin.office.list') },
       user: {
         key: () => ['admin', 'user'],
         list: procedure('admin.user.list'),
@@ -409,6 +418,37 @@ describe('AdminUsersPanel', () => {
     );
 
     expect(await screen.findByText('errUserConflict')).toBeInTheDocument();
+  });
+
+  it('writes the chosen office, and null when it is cleared', async () => {
+    const fake = makeApi({
+      'admin.user.list': listing,
+      'me.get': () => mockViewer,
+      'admin.office.list': () => ({
+        offices: [{ id: 'office-2', name: 'Brno' }],
+      }),
+      'admin.user.update': () => OTHER_USER,
+    });
+    mockApi = fake.api;
+
+    const user = renderPanel(<AdminUsersPanel />);
+    await screen.findByText(OTHER_USER.email);
+    const label = new RegExp(`usersOfficeSelectLabel: name=${OTHER_USER.name}$`, 'u');
+
+    await selectOption(user, label, 'Brno');
+    await waitFor(() =>
+      expect(fake.inputsTo('admin.user.update')).toEqual([
+        { id: OTHER_USER.id, officeId: 'office-2' },
+      ])
+    );
+
+    await selectOption(user, label, 'usersNoOffice');
+    await waitFor(() =>
+      expect(fake.inputsTo('admin.user.update')).toEqual([
+        { id: OTHER_USER.id, officeId: 'office-2' },
+        { id: OTHER_USER.id, officeId: null },
+      ])
+    );
   });
 });
 

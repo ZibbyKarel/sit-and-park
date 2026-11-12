@@ -55,6 +55,7 @@ import { DomainEventPublisher } from './reservation-events';
 import { ReservationPolicy } from './reservation-policy';
 import { RESERVATION_TRANSACTION_OPTIONS } from './transaction-options';
 import { WAITLIST_ORDER } from './waitlist-order';
+import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 
 /** What one waitlist mutation produced, before anything is broadcast. */
 interface WaitlistOutcome<TResult> {
@@ -130,11 +131,18 @@ export class WaitlistService {
   ): Promise<WaitlistOutcome<JoinWaitlistOutput>> {
     const spot = await tx.parkingSpot.findUnique({
       where: { id: input.parkingSpotId },
-      select: { id: true, active: true, hidden: true },
+      select: { id: true, active: true, hidden: true, officeId: true },
     });
     // Same rule as `ReservationsService.create`: a hidden spot's queue is
     // reachable only through an admin (`doc/decision/0316-*`).
-    if (spot === null || !spot.active || (spot.hidden && actor.role !== 'ADMIN')) {
+    // A spot of another office is likewise not there for a non-admin
+    // (`../common/office-scope.ts`); an admin books across offices.
+    if (
+      spot === null ||
+      !spot.active ||
+      (actor.role !== 'ADMIN' &&
+        (spot.hidden || !seesParkingOffice(await parkingOfficeOf(tx, actor.id), spot.officeId)))
+    ) {
       throw new DomainError('NOT_FOUND', { message: 'No such active parking spot.' });
     }
 

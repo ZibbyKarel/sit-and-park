@@ -64,6 +64,12 @@ class RecordingPublisher extends DomainEventPublisher {
   deskReleased(): void {
     this.deskEvents.push('desk:released');
   }
+  deskApprovalRequested(): void {
+    // Not exercised by this test.
+  }
+  deskApprovalDecided(): void {
+    // Not exercised by this test.
+  }
 }
 
 /**
@@ -104,6 +110,12 @@ class AsyncRejectingPublisher extends DomainEventPublisher {
 
   deskReleased(): void {
     // Not exercised by this suite.
+  }
+  deskApprovalRequested(): void {
+    // Not exercised by this test.
+  }
+  deskApprovalDecided(): void {
+    // Not exercised by this test.
   }
 }
 
@@ -200,7 +212,10 @@ describe('CompositeDomainEventPublisher', () => {
       expect(realtime.deskEvents).toEqual(['desk:released']);
       expect(slack.deskEvents).toEqual(['desk:reserved', 'desk:released']);
       expect(errors).toHaveLength(1);
-      expect(errors[0]?.bindings).toMatchObject({ method: 'deskReserved', subject: 'desk:reserved' });
+      expect(errors[0]?.bindings).toMatchObject({
+        method: 'deskReserved',
+        subject: 'desk:reserved',
+      });
     });
 
     it('publishes nothing at all for an empty batch', () => {
@@ -288,6 +303,12 @@ describe('CompositeDomainEventPublisher', () => {
           // Not exercised by this test.
         }
         deskReleased(): void {
+          // Not exercised by this test.
+        }
+        deskApprovalRequested(): void {
+          // Not exercised by this test.
+        }
+        deskApprovalDecided(): void {
           // Not exercised by this test.
         }
         notifyPromotions(): void {
@@ -397,6 +418,12 @@ describe('CompositeDomainEventPublisher', () => {
           // Not exercised by this test.
         }
         deskReleased(): void {
+          // Not exercised by this test.
+        }
+        deskApprovalRequested(): void {
+          // Not exercised by this test.
+        }
+        deskApprovalDecided(): void {
           // Not exercised by this test.
         }
         notifyPromotions(): void {

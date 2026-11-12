@@ -33,7 +33,7 @@
  */
 
 import icalGenerator, { ICalCalendarMethod } from 'ical-generator';
-import type { IcsCalendarEntry, IcsFeed } from '@garage/contract';
+import type { IcsCalendarEntry, IcsDeskCalendarEntry, IcsFeed } from '@garage/contract';
 import { addDays, toUtcMidnight } from '@garage/shared-types';
 
 /**
@@ -97,6 +97,14 @@ export function icsEventUid(reservationId: string): string {
 }
 
 /**
+ * The `UID` of a desk event. Prefixed by kind so it cannot collide with a
+ * parking `UID` even if the two tables ever produced the same id.
+ */
+export function icsDeskEventUid(deskReservationId: string): string {
+  return `desk-${deskReservationId}@${ICS_UID_DOMAIN}`;
+}
+
+/**
  * Renders one user's reservations as an RFC 5545 `VCALENDAR` document.
  *
  * Every event is all-day: a reservation is a calendar day, not an interval, and
@@ -125,6 +133,9 @@ export function buildReservationCalendar(feed: IcsFeed): string {
   for (const entry of feed.entries) {
     addEvent(calendar, entry);
   }
+  for (const entry of feed.deskEntries ?? []) {
+    addDeskEvent(calendar, entry);
+  }
 
   return calendar.toString();
 }
@@ -146,6 +157,22 @@ function addEvent(calendar: ReturnType<typeof icalGenerator>, entry: IcsCalendar
     location: entry.spotLabel,
     // `DTSTAMP` is the reservation's own creation time, never `new Date()`.
     // That is what keeps the whole document a pure function of the data.
+    stamp: new Date(entry.createdAt),
+  });
+}
+
+function addDeskEvent(
+  calendar: ReturnType<typeof icalGenerator>,
+  entry: IcsDeskCalendarEntry
+): void {
+  calendar.createEvent({
+    id: icsDeskEventUid(entry.deskReservationId),
+    start: toUtcMidnight(entry.date),
+    end: toUtcMidnight(addDays(entry.date, 1)),
+    allDay: true,
+    summary: `Stůl ${entry.deskCode}`,
+    description: `Rezervovaný stůl ${entry.deskCode} (${entry.zoneName}).`,
+    location: entry.zoneName,
     stamp: new Date(entry.createdAt),
   });
 }

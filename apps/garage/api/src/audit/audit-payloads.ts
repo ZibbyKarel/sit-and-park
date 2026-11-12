@@ -78,6 +78,8 @@ type UserUpdatedPayload =
   | ({ readonly change: 'admin-updated' } & Change<{
       readonly role: UserRole;
       readonly active: boolean;
+      readonly officeId: string | null;
+      readonly manualAccount: boolean;
     }>)
   | { readonly change: 'ics-token-regenerated'; readonly attempt: number };
 
@@ -95,6 +97,7 @@ type SpotUpdatedPayload =
       readonly active: boolean;
       readonly hidden: boolean;
       readonly evCharger: boolean;
+      readonly officeId: string;
     }>)
   | { readonly change: 'deactivated'; readonly label: string };
 
@@ -206,7 +209,7 @@ export type AuditPayloads = PayloadMap<{
     readonly color: string;
     readonly ownerId: string;
   }>;
-  OFFICE_UPDATED: CatalogChange<{ readonly name: string }>;
+  OFFICE_UPDATED: CatalogChange<{ readonly name: string; readonly active: boolean }>;
   ZONE_UPDATED: CatalogChange<{
     readonly key: string;
     readonly name: string;
@@ -223,5 +226,7 @@ export type AuditPayloads = PayloadMap<{
     readonly source: 'EMPLOYEE_SYNC' | 'ADMIN';
     readonly freedReservations: number;
     readonly freedDeskReservations: number;
+    readonly removedWaitlistEntries: number;
+    readonly rejectedRequests: number;
   };
 }>;

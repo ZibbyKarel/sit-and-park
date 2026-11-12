@@ -50,6 +50,11 @@ export function AdminSpotsPanel() {
     enabled,
   });
 
+  const officesQuery = useQuery({
+    ...api.admin.office.list.queryOptions({ input: {} }),
+    enabled,
+  });
+
   const dayQuery = useQuery({
     ...api.overview.day.queryOptions({ input: { date: todayInPrague() } }),
     enabled,
@@ -65,6 +70,8 @@ export function AdminSpotsPanel() {
     queryClient.invalidateQueries({ queryKey: api.admin.spot.key() });
     queryClient.invalidateQueries({ queryKey: api.spot.key() });
     queryClient.invalidateQueries({ queryKey: api.overview.key() });
+    // Office spot counts.
+    queryClient.invalidateQueries({ queryKey: api.admin.office.key() });
   }
 
   const settled = () => {
@@ -155,6 +162,7 @@ export function AdminSpotsPanel() {
       onRetry={() => void spotsQuery.refetch()}
       spots={screenDataOf(spotsQuery)}
       todayBySpotId={todayBySpotId}
+      offices={officesQuery.data?.offices ?? []}
       onCreate={async (input: CreateSpotInput) => {
         startWrite('spotCreate', null);
         await createSpot.mutateAsync(input);

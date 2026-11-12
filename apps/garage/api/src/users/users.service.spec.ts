@@ -1,16 +1,20 @@
 import { AuditLogService } from '../audit/audit-log.service';
-import { PrismaDouble } from '../testing/prisma-double';
+import { DEFAULT_OFFICE_ID, PrismaDouble } from '../testing/prisma-double';
+import type { UserDeactivationService } from '../employee-sync/user-deactivation.service';
 import { UsersService } from './users.service';
 
 describe('UsersService', () => {
   let double: PrismaDouble;
   let users: UsersService;
+  let deactivate: jest.Mock;
 
   beforeEach(() => {
     double = new PrismaDouble();
+    deactivate = jest.fn().mockResolvedValue(undefined);
     users = new UsersService(
       double.asPrismaService(),
-      new AuditLogService(double.asPrismaService())
+      new AuditLogService(double.asPrismaService()),
+      { deactivate } as unknown as UserDeactivationService
     );
   });
 
@@ -140,8 +144,18 @@ describe('UsersService', () => {
           entityId: target.id,
           payload: {
             change: 'admin-updated',
-            before: { role: 'USER', active: true },
-            after: { role: 'ADMIN', active: true },
+            before: {
+              role: 'USER',
+              active: true,
+              officeId: DEFAULT_OFFICE_ID,
+              manualAccount: false,
+            },
+            after: {
+              role: 'ADMIN',
+              active: true,
+              officeId: DEFAULT_OFFICE_ID,
+              manualAccount: false,
+            },
           },
         }),
       ]);
@@ -157,12 +171,77 @@ describe('UsersService', () => {
       expect(double.users.find((row) => row.id === target.id)?.active).toBe(false);
     });
 
+    it('runs the shared deactivation clean-up, once, only when the user was active', async () => {
+      const admin = double.seedUser({ role: 'ADMIN' });
+      const target = double.seedUser();
+      const inactive = double.seedUser({ active: false });
+
+      await users.adminUpdate({ id: target.id, active: false }, admin);
+      await users.adminUpdate({ id: inactive.id, active: false }, admin);
+
+      expect(deactivate).toHaveBeenCalledTimes(1);
+      expect(deactivate).toHaveBeenCalledWith(target.id, 'ADMIN', admin.id);
+      expect(double.users.find((row) => row.id === target.id)?.deactivatedAt).toBeInstanceOf(Date);
+    });
+
+    it('clears deactivatedAt on reactivation', async () => {
+      const admin = double.seedUser({ role: 'ADMIN' });
+      const target = double.seedUser({ active: false });
+      const row = double.users.find((candidate) => candidate.id === target.id);
+      if (row !== undefined) {
+        row.deactivatedAt = new Date();
+      }
+
+      await users.adminUpdate({ id: target.id, active: true }, admin);
+
+      expect(double.users.find((row) => row.id === target.id)?.deactivatedAt).toBeNull();
+      expect(deactivate).not.toHaveBeenCalled();
+    });
+
     it('rejects an unknown user with NOT_FOUND', async () => {
       const admin = double.seedUser({ role: 'ADMIN' });
 
       await expect(
         users.adminUpdate({ id: '11111111-1111-4111-8111-111111111111', active: false }, admin)
       ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    });
+
+    describe('office and manual account', () => {
+      const OTHER_OFFICE = '0190a000-0000-7000-8000-0000000000ff';
+
+      it('moves a user to another office and flags a manual account', async () => {
+        const admin = double.seedUser({ role: 'ADMIN' });
+        const target = double.seedUser();
+        double.otherOfficeIds.push(OTHER_OFFICE);
+
+        await expect(
+          users.adminUpdate({ id: target.id, officeId: OTHER_OFFICE, manualAccount: true }, admin)
+        ).resolves.toMatchObject({ officeId: OTHER_OFFICE, manualAccount: true });
+        expect(double.auditLogs[0]?.payload).toMatchObject({
+          before: { officeId: DEFAULT_OFFICE_ID, manualAccount: false },
+          after: { officeId: OTHER_OFFICE, manualAccount: true },
+        });
+      });
+
+      it('clears the office with null', async () => {
+        const admin = double.seedUser({ role: 'ADMIN' });
+        const target = double.seedUser();
+
+        await expect(
+          users.adminUpdate({ id: target.id, officeId: null }, admin)
+        ).resolves.toMatchObject({ officeId: null });
+      });
+
+      it('refuses an unknown office with NOT_FOUND and changes nothing', async () => {
+        const admin = double.seedUser({ role: 'ADMIN' });
+        const target = double.seedUser();
+
+        await expect(
+          users.adminUpdate({ id: target.id, officeId: OTHER_OFFICE }, admin)
+        ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+        expect(double.users.find((row) => row.id === target.id)?.officeId).toBe(DEFAULT_OFFICE_ID);
+        expect(double.auditLogs).toHaveLength(0);
+      });
     });
 
     describe('the two ways an admin could lock everybody out', () => {

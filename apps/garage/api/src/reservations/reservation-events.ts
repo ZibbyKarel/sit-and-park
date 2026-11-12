@@ -105,4 +105,23 @@ export abstract class DomainEventPublisher {
 
   /** A desk reservation is gone (`desk:released`). Never called inside a transaction. */
   abstract deskReleased(payload: DeskReleasedEvent): void;
+
+  /** A desk approval request was filed. Out of band only (stage 8: Slack DM to the owner). */
+  abstract deskApprovalRequested(notice: DeskApprovalNotice): void;
+
+  /** A desk approval request was decided. Out of band only (stage 8: Slack DM to the requester). */
+  abstract deskApprovalDecided(notice: DeskApprovalNotice): void;
+}
+
+/** One filed or decided desk approval request, for out-of-band notification. */
+export interface DeskApprovalNotice {
+  requestId: string;
+  deskId: string;
+  deskCode: string;
+  /** The requested day, `YYYY-MM-DD` in Europe/Prague. */
+  date: string;
+  requesterId: string;
+  /** Owner of the desk's hive; `null` once the desk left its hive. */
+  hiveOwnerId: string | null;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }

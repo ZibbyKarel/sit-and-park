@@ -16,6 +16,7 @@ import { DomainError } from '../common/errors/domain-error';
 import { isUniqueConstraintViolation } from '../common/errors/prisma-error-mapping';
 import { toContractUser } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
+import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 
 /**
  * How many times a fresh `icsToken` is retried after a unique-constraint
@@ -68,7 +69,7 @@ export class MeService {
     const existing = await this.requireUser(userId);
 
     if (input.preferredParkingSpotId !== undefined && input.preferredParkingSpotId !== null) {
-      await this.requireSelectableSpot(input.preferredParkingSpotId);
+      await this.requireSelectableSpot(input.preferredParkingSpotId, userId);
     }
 
     const data: Prisma.UserUpdateInput = {
@@ -172,10 +173,16 @@ export class MeService {
    * hidden spot answers as a missing one: bulk booking never assigns it, and
    * to a normal user it does not exist (`doc/decision/0316-*`).
    */
-  private async requireSelectableSpot(spotId: string): Promise<void> {
+  private async requireSelectableSpot(spotId: string, userId: string): Promise<void> {
     const spot = await this.prisma.client.parkingSpot.findUnique({ where: { id: spotId } });
 
-    if (spot === null || spot.hidden) {
+    // A spot of another office is one the user cannot see either
+    // (`../common/office-scope.ts`).
+    if (
+      spot === null ||
+      spot.hidden ||
+      !seesParkingOffice(await parkingOfficeOf(this.prisma.client, userId), spot.officeId)
+    ) {
       throw new DomainError('NOT_FOUND', { message: 'No such parking spot.' });
     }
     if (!spot.active) {

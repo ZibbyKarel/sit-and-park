@@ -118,6 +118,17 @@ Four things that are easy to miss:
   weekday-only cron expression would have covered Saturday and Sunday but not
   28 September.
 
+#### Employee sync (desk merge)
+
+Optional. Full behaviour is in `doc/employee-sync.md`.
+
+| variable | shape | default | what it's for |
+| --- | --- | --- | --- |
+| `EMPLOYEE_SYNC_KEY_SHA256` | 64 hex characters | – | SHA-256 of the employee-sync bearer key (`doc/employee-sync.md`); unset = `POST /api/employee-sync` answers 503 |
+
+Only the hash is configured; the key itself lives in Keboola. A malformed value
+refuses to boot, without echoing it.
+
 ### `apps/garage/web` (`apps/garage/web/src/env.ts`)
 
 | variable | shape | what it's for |

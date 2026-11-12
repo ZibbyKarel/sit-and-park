@@ -77,6 +77,15 @@ export class RealtimeDomainEventPublisher extends DomainEventPublisher {
     this.publish([{ name: 'desk:released', payload }]);
   }
 
+  /** Approval requests are not part of the realtime contract. */
+  deskApprovalRequested(): void {
+    // Intentionally empty.
+  }
+
+  deskApprovalDecided(): void {
+    // Intentionally empty.
+  }
+
   /**
    * Out-of-band notification of a promoted user — **Task 16's job, not this
    * class's**, and it stays that way now that Task 16 has landed.

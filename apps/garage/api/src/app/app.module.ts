@@ -10,6 +10,9 @@ import { RolesGuard } from '../auth/roles.guard';
 import { ContractExceptionFilter } from '../common/filters/contract-exception.filter';
 import { globalThrottlerOptions } from '../common/throttling/throttle-tiers';
 import { DatabaseModule } from '../database/database.module';
+import { DeskAdminModule } from '../desk-admin/desk-admin.module';
+import { DesksModule } from '../desks/desks.module';
+import { EmployeeSyncModule } from '../employee-sync/employee-sync.module';
 import type { ApiEnv } from '../env';
 import { validateApiEnv } from '../env';
 import { HealthModule } from '../health/health.module';
@@ -83,6 +86,14 @@ import { UsersModule } from '../users/users.module';
     // because it reuses that module's exported `ReservationPolicy` and
     // `DomainEventPublisher` rather than standing up its own.
     TimedReservationsModule,
+    // Desk booking for the caller (`desk.*`). Reuses `ReservationsModule`'s
+    // after-commit publisher.
+    DesksModule,
+    // `admin.desk.*`, `admin.hive.*`, `admin.office.*`, `admin.zone.*`.
+    DeskAdminModule,
+    // `POST /api/employee-sync` (outside oRPC, bearer key) and
+    // `admin.employeeSync.*`; also the user deactivation `UsersModule` reuses.
+    EmployeeSyncModule,
     // The ICS feed (Task 14). The one controller outside the oRPC contract —
     // see its class comment and `doc/decision/0080-*`.
     CalendarModule,

@@ -41,9 +41,9 @@
  */
 
 import { useMemo, useState } from 'react';
-import type { AdminListUsersOutput, AdminUser } from '@garage/contract';
-import { Avatar, SearchInput, Stack, Switch, Text } from '@shoptet/ui';
-import { useTranslations } from '@garage/i18n';
+import type { AdminListUsersOutput, AdminOffice, AdminUser } from '@garage/contract';
+import { Avatar, SearchInput, SingleSelect, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { useFormatter, useTranslations } from '@garage/i18n';
 import { ConfirmDialog } from '../../../ui/confirm-dialog/confirm-dialog';
 import { DataTable } from '../../../ui/data-table/data-table';
 import type { DataTableColumn } from '../../../ui/data-table/data-table';
@@ -56,7 +56,7 @@ import styles from './admin-users-screen.module.css';
 /** One field of one row is being written. `null` when nothing is in flight. */
 export interface PendingUserChange {
   readonly id: string;
-  readonly field: 'role' | 'active';
+  readonly field: 'role' | 'active' | 'office' | 'manualAccount';
 }
 
 export interface AdminUsersScreenProps {
@@ -67,6 +67,11 @@ export interface AdminUsersScreenProps {
   readonly viewerId: string | undefined;
   readonly onRoleChange: (id: string, isAdmin: boolean) => void;
   readonly onActiveChange: (id: string, active: boolean) => void;
+  /** Offices for the picker; `null` clears the user's office. */
+  readonly offices: readonly Pick<AdminOffice, 'id' | 'name'>[];
+  readonly onOfficeChange: (id: string, officeId: string | null) => void;
+  /** Manual accounts are never deactivated by the employee sync. */
+  readonly onManualAccountChange: (id: string, manualAccount: boolean) => void;
   /** Which row and field is being written, if any. */
   readonly pendingChange: PendingUserChange | null;
   /** Whatever the failing `admin.user.update` call threw. */
@@ -99,10 +104,16 @@ export function AdminUsersScreen({
   viewerId,
   onRoleChange,
   onActiveChange,
+  offices,
+  onOfficeChange,
+  onManualAccountChange,
   pendingChange,
   updateError,
 }: AdminUsersScreenProps) {
   const t = useTranslations('admin');
+  const format = useFormatter();
+  // `''` stands for "no office": the picker needs a real option to show it.
+  const officeOptions = [{ id: '', name: t('usersNoOffice') }, ...offices];
   const describeWriteError = useAdminWriteError();
   const [search, setSearch] = useState('');
   // `true` while the viewer's own step-down is waiting to be confirmed. A
@@ -137,13 +148,45 @@ export function AdminUsersScreen({
       id: 'name',
       header: t('usersColumnName'),
       sortValue: (user) => user.name.toLocaleLowerCase('cs-CZ'),
-      cell: (user) => <Avatar name={user.name} variant="image+text" />,
+      cell: (user) => (
+        <Stack orientation="horizontal" align="center" gap="sm">
+          <Avatar name={user.name} variant="image+text" />
+          {user.active || user.deactivatedAt === null ? null : (
+            <Tag level="default">
+              {t('usersDeactivatedOn', {
+                date: format.dateTime(new Date(user.deactivatedAt), {
+                  dateStyle: 'medium',
+                  timeZone: 'Europe/Prague',
+                }),
+              })}
+            </Tag>
+          )}
+        </Stack>
+      ),
     },
     {
       id: 'email',
       header: t('usersColumnEmail'),
       sortValue: (user) => user.email.toLocaleLowerCase('cs-CZ'),
       cell: (user) => <Text variant="secondary">{user.email}</Text>,
+    },
+    {
+      id: 'office',
+      header: t('usersColumnOffice'),
+      width: '200px',
+      cell: (user) => (
+        <SingleSelect
+          label={t('usersOfficeSelectLabel', { name: user.name })}
+          options={officeOptions}
+          getOptionValue={(option) => option.id}
+          getOptionLabel={(option) => option.name}
+          value={user.officeId ?? ''}
+          disabled={isRowBusy(pendingChange, user.id)}
+          onChange={(officeId) => {
+            if (officeId !== null) onOfficeChange(user.id, officeId === '' ? null : officeId);
+          }}
+        />
+      ),
     },
     {
       id: 'role',
@@ -211,6 +254,22 @@ export function AdminUsersScreen({
         );
       },
     },
+    {
+      id: 'manualAccount',
+      header: t('usersColumnManual'),
+      align: 'end',
+      width: '120px',
+      cell: (user) => (
+        <div className={styles.switchCell} title={t('usersManualHint')}>
+          <Switch
+            checked={user.manualAccount}
+            label={t('usersManualToggleLabel', { name: user.name })}
+            disabled={isRowBusy(pendingChange, user.id)}
+            onChange={(next) => onManualAccountChange(user.id, next)}
+          />
+        </div>
+      ),
+    },
   ];
 
   return (
@@ -236,7 +295,7 @@ export function AdminUsersScreen({
               />
             }
             defaultSort={{ columnId: 'name', direction: 'asc' }}
-            minWidth="720px"
+            minWidth="1000px"
             emptyTitle={search.trim() === '' ? t('usersEmpty') : t('usersEmptySearch')}
             emptyDescription={search.trim() === '' ? undefined : t('usersEmptySearchDescription')}
           />

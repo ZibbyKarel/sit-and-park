@@ -18,5 +18,6 @@
 export {
   ICS_CALENDAR_NAME,
   buildReservationCalendar,
+  icsDeskEventUid,
   icsEventUid,
 } from './lib/reservation-calendar';

@@ -1,7 +1,7 @@
 import { Prisma } from '@garage/database';
 import { AuditLogService } from '../audit/audit-log.service';
 import { DomainError } from '../common/errors/domain-error';
-import { PrismaDouble } from '../testing/prisma-double';
+import { DEFAULT_OFFICE_ID, PrismaDouble } from '../testing/prisma-double';
 import { SpotsService } from './spots.service';
 
 const TODAY = '2026-09-02';
@@ -63,10 +63,74 @@ describe('SpotsService', () => {
     it('leaves hidden spots out of the plain listing, and keeps them in the other two', async () => {
       double.seedSpot({ label: 'SEEN' });
       double.seedSpot({ label: 'SECRET', hidden: true });
+      const viewer = double.seedUser();
 
-      await expect(spots.listVisible()).resolves.toMatchObject([{ label: 'SEEN' }]);
+      await expect(spots.listVisible(viewer.id)).resolves.toMatchObject([{ label: 'SEEN' }]);
       await expect(spots.listActive()).resolves.toHaveLength(2);
       await expect(spots.adminList({ includeInactive: false })).resolves.toHaveLength(2);
+    });
+  });
+
+  describe('offices', () => {
+    const OTHER_OFFICE = '0190a000-0000-7000-8000-0000000000ff';
+
+    it('offers the picker only the viewer’s office', async () => {
+      double.seedSpot({ label: 'HERE' });
+      double.seedSpot({ label: 'THERE', officeId: OTHER_OFFICE });
+      const viewer = double.seedUser();
+
+      await expect(spots.listVisible(viewer.id)).resolves.toMatchObject([{ label: 'HERE' }]);
+    });
+
+    it('offers a user without an office every office’s spots', async () => {
+      double.seedSpot({ label: 'HERE' });
+      double.seedSpot({ label: 'THERE', officeId: OTHER_OFFICE });
+      const viewer = double.seedUser({ officeId: null });
+
+      await expect(spots.listVisible(viewer.id)).resolves.toHaveLength(2);
+    });
+
+    it('puts a new spot in the default office when none is named', async () => {
+      const created = await spots.create({ label: 'E2.92', group: 'IT' }, 'admin-1');
+
+      expect(created.officeId).toBe(DEFAULT_OFFICE_ID);
+    });
+
+    it('puts a new spot in the named office', async () => {
+      double.otherOfficeIds.push(OTHER_OFFICE);
+
+      const created = await spots.create(
+        { label: 'E2.92', group: 'IT', officeId: OTHER_OFFICE },
+        'admin-1'
+      );
+
+      expect(created.officeId).toBe(OTHER_OFFICE);
+    });
+
+    it('refuses an unknown office on create and on update', async () => {
+      const spot = double.seedSpot({ label: 'A1' });
+
+      await expect(
+        spots.create({ label: 'E2.92', group: 'IT', officeId: OTHER_OFFICE }, 'admin-1')
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      await expect(
+        spots.update({ id: spot.id, officeId: OTHER_OFFICE }, 'admin-1')
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+      expect(double.spots).toHaveLength(1);
+      expect(double.spots[0]?.officeId).toBe(DEFAULT_OFFICE_ID);
+    });
+
+    it('moves a spot to another office and audits it', async () => {
+      double.otherOfficeIds.push(OTHER_OFFICE);
+      const spot = double.seedSpot({ label: 'A1' });
+
+      const updated = await spots.update({ id: spot.id, officeId: OTHER_OFFICE }, 'admin-1');
+
+      expect(updated.officeId).toBe(OTHER_OFFICE);
+      expect(double.auditLogs[0]?.payload).toMatchObject({
+        before: { officeId: DEFAULT_OFFICE_ID },
+        after: { officeId: OTHER_OFFICE },
+      });
     });
   });
 
@@ -138,8 +202,22 @@ describe('SpotsService', () => {
 
       expect(double.auditLogs[0]?.payload).toEqual({
         change: 'updated',
-        before: { label: 'A1', group: 'SHARED', active: true, hidden: false, evCharger: false },
-        after: { label: 'A1', group: 'IT', active: true, hidden: false, evCharger: false },
+        before: {
+          label: 'A1',
+          group: 'SHARED',
+          active: true,
+          hidden: false,
+          evCharger: false,
+          officeId: DEFAULT_OFFICE_ID,
+        },
+        after: {
+          label: 'A1',
+          group: 'IT',
+          active: true,
+          hidden: false,
+          evCharger: false,
+          officeId: DEFAULT_OFFICE_ID,
+        },
       });
     });
 

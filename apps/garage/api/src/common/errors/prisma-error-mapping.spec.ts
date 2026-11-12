@@ -89,6 +89,12 @@ describe('mapUniqueConstraintViolation', () => {
     ['ParkingSpot_label_key', 'CONFLICT'],
     ['TimedReservation_spot_day_conflict', 'SPOT_ALREADY_RESERVED'],
     ['Reservation_timed_reservation_conflict', 'SPOT_ALREADY_RESERVED'],
+    // Desk booking: matched by index name only, since their column sets equal
+    // parking's (`deskId|userId, date` vs `parkingSpotId|userId, date`).
+    ['DeskReservation_deskId_date_key', 'DESK_ALREADY_RESERVED'],
+    ['DeskReservation_userId_date_key', 'DESK_RESERVATION_LIMIT_REACHED'],
+    ['DeskApprovalRequest_pending_key', 'DESK_REQUEST_ALREADY_PENDING'],
+    ['DeskRelease_deskId_date_key', 'CONFLICT'],
   ])('maps the driver adapter’s constraint index %s to %s', (index, expected) => {
     expect(mapUniqueConstraintViolation(driverAdapterMeta(index))).toBe(expected);
   });

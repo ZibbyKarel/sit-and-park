@@ -23,7 +23,11 @@ import { mapPrismaErrorCode } from '../../common/errors/prisma-error-mapping';
 import type { DeskReleasedEvent, DeskReservedEvent } from '@garage/contract/realtime';
 import type { DateOnly } from '@garage/shared-types';
 import type { PrismaService } from '../../database/prisma.service';
-import type { DomainEvent, WaitlistPromotionNotice } from '../../reservations/reservation-events';
+import type {
+  DeskApprovalNotice,
+  DomainEvent,
+  WaitlistPromotionNotice,
+} from '../../reservations/reservation-events';
 import { BulkReservationService } from '../../reservations/bulk-reservation.service';
 import { DomainEventPublisher } from '../../reservations/reservation-events';
 import { ReservationPolicy } from '../../reservations/reservation-policy';
@@ -68,6 +72,16 @@ export class RecordingPublisher extends DomainEventPublisher {
     this.publish([{ name: 'desk:released', payload }]);
   }
 
+  readonly approvalNotices: DeskApprovalNotice[] = [];
+
+  deskApprovalRequested(notice: DeskApprovalNotice): void {
+    this.approvalNotices.push(notice);
+  }
+
+  deskApprovalDecided(notice: DeskApprovalNotice): void {
+    this.approvalNotices.push(notice);
+  }
+
   /** Every recorded event of one kind, narrowed. */
   ofKind<K extends DomainEvent['name']>(name: K): Extract<DomainEvent, { name: K }>[] {
     return this.events.filter(
@@ -78,6 +92,7 @@ export class RecordingPublisher extends DomainEventPublisher {
   reset(): void {
     this.events.length = 0;
     this.notices.length = 0;
+    this.approvalNotices.length = 0;
     this.onPublish = undefined;
   }
 }

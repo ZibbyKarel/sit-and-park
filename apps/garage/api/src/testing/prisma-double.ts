@@ -266,6 +266,8 @@ export class PrismaDouble {
   readonly hiveMemberships: { userId: string; hiveId: string }[] = [];
   readonly desks: { id: string; permanentAssigneeId: string | null }[] = [];
   readonly hives: { id: string; ownerId: string }[] = [];
+  /** Offices besides {@link DEFAULT_OFFICE_ID} that exist; never the default. */
+  readonly otherOfficeIds: string[] = [];
 
   /**
    * Empties every collection and counter the double owns, so one spec's rows
@@ -283,6 +285,7 @@ export class PrismaDouble {
     this.hiveMemberships.length = 0;
     this.desks.length = 0;
     this.hives.length = 0;
+    this.otherOfficeIds.length = 0;
     this.reservations.length = 0;
     this.waitlist.length = 0;
     this.timedReservations.length = 0;
@@ -415,6 +418,8 @@ export class PrismaDouble {
       reservationLimitSettings: this.limitSettingsDelegate(),
       auditLog: this.auditLogDelegate(),
       // Desk-side tables `MeService` reads for the profile; empty unless seeded.
+      // The ICS feed reads desk reservations; the double holds none.
+      deskReservation: { findMany: async () => [] },
       hiveMembership: {
         findUnique: async (args: { where: { userId: string } }) =>
           this.hiveMemberships.find((m) => m.userId === args.where.userId) ?? null,
@@ -431,13 +436,18 @@ export class PrismaDouble {
   }
 
   /**
-   * One office, always: the double has no office table. Every seeded spot and
-   * user is in it unless the seed says otherwise — the state the migration that
-   * introduced offices leaves a database in.
+   * One office by default: the double has no office table. Every seeded spot
+   * and user is in it unless the seed says otherwise — the state the migration
+   * that introduced offices leaves a database in. {@link otherOfficeIds} adds
+   * offices that exist (for `findUnique`) but are never the default.
    */
   private officeDelegate() {
+    const exists = (id: string) => id === DEFAULT_OFFICE_ID || this.otherOfficeIds.includes(id);
     return {
       findFirstOrThrow: async (_args?: unknown) => ({ id: DEFAULT_OFFICE_ID }),
+      findFirst: async (_args?: unknown) => ({ id: DEFAULT_OFFICE_ID }),
+      findUnique: async (args: { where: { id: string } }) =>
+        exists(args.where.id) ? { id: args.where.id } : null,
     };
   }
 
@@ -499,7 +509,9 @@ export class PrismaDouble {
       },
       update: async (args: {
         where: { id: string };
-        data: Partial<Pick<ParkingSpotRow, 'label' | 'group' | 'active' | 'hidden' | 'evCharger'>>;
+        data: Partial<
+          Pick<ParkingSpotRow, 'label' | 'group' | 'active' | 'hidden' | 'evCharger' | 'officeId'>
+        >;
       }) => {
         const row = this.spots.find((candidate) => candidate.id === args.where.id);
         if (row === undefined) {
@@ -561,7 +573,13 @@ export class PrismaDouble {
       // subject the database has never seen; the oRPC pipeline test goes through
       // the real guard, so it goes through this.
       create: async (args: {
-        data: { oktaId: string; email: string; name: string; icsToken: string };
+        data: {
+          oktaId: string;
+          email: string;
+          name: string;
+          icsToken: string;
+          officeId?: string | null;
+        };
       }) => {
         for (const [column, value] of [
           ['oktaId', args.data.oktaId],
@@ -578,6 +596,7 @@ export class PrismaDouble {
             email: args.data.email,
             name: args.data.name,
             icsToken: args.data.icsToken,
+            ...(args.data.officeId === undefined ? {} : { officeId: args.data.officeId }),
           })
         );
       },
@@ -877,7 +896,17 @@ interface UserWhere {
 }
 
 type UserUpdateData = Partial<
-  Pick<UserRow, 'role' | 'active' | 'licensePlate' | 'icsToken' | 'name' | 'oktaId'>
+  Pick<
+    UserRow,
+    | 'role'
+    | 'active'
+    | 'licensePlate'
+    | 'icsToken'
+    | 'name'
+    | 'oktaId'
+    | 'officeId'
+    | 'manualAccount'
+  >
 > & {
   preferredParkingSpot?: { disconnect: true } | { connect: { id: string } };
 };

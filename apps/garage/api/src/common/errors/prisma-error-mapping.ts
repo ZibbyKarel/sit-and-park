@@ -265,6 +265,17 @@ function isTimedConflictTarget(target: string[]): boolean {
   );
 }
 
+/**
+ * Desk booking's unique indexes (lower-cased index name → code).
+ * `DeskApprovalRequest_pending_key` is the hand-written partial index on
+ * (`deskId`, `userId`, `date`) `WHERE status = 'PENDING'`.
+ */
+const DESK_UNIQUE_INDEXES: Readonly<Record<string, ErrorCode>> = {
+  deskreservation_deskid_date_key: 'DESK_ALREADY_RESERVED',
+  deskreservation_userid_date_key: 'DESK_RESERVATION_LIMIT_REACHED',
+  deskapprovalrequest_pending_key: 'DESK_REQUEST_ALREADY_PENDING',
+};
+
 /** True for a P2002 raised by the full-day/blocks triggers. Used by `confirmBulk`'s retry. */
 export function isTimedReservationConflict(error: unknown): boolean {
   return (
@@ -285,6 +296,15 @@ export function isTimedReservationConflict(error: unknown): boolean {
  */
 export function mapUniqueConstraintViolation(meta: Record<string, unknown> | undefined): ErrorCode {
   const target = uniqueConstraintTarget(meta);
+
+  // Desk constraints first and by index name only: their column sets
+  // (`deskId, date`, `userId, date`) would otherwise be indistinguishable from
+  // parking's in the `{ fields }` form, which carries no table. PostgreSQL —
+  // the only database here — always reports the index.
+  const desk = DESK_UNIQUE_INDEXES[target.length === 1 ? (target[0]?.toLowerCase() ?? '') : ''];
+  if (desk !== undefined) {
+    return desk;
+  }
 
   // Each entry names its table, so these are exact identifications rather than
   // an ordered sequence of increasingly loose guesses. They must stay in step

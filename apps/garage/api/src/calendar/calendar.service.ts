@@ -7,7 +7,7 @@
  */
 
 import { Injectable, NotFoundException } from '@nestjs/common';
-import type { IcsCalendarEntry } from '@garage/contract';
+import type { IcsCalendarEntry, IcsDeskCalendarEntry, IcsFeed } from '@garage/contract';
 import { addDays, todayInPrague } from '@garage/shared-types';
 import { toDateColumn, toDateOnly } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
@@ -68,6 +68,25 @@ export class CalendarService {
    * asserts it, so it cannot be lost to a later `where` clause.
    */
   async feedEntriesForToken(icsToken: string, now: Date = new Date()): Promise<IcsCalendarEntry[]> {
+    const userId = await this.activeUserId(icsToken);
+    return this.parkingEntries(userId, now);
+  }
+
+  /**
+   * The whole feed: parking entries plus the user's desk reservations, same
+   * token resolution and same history window. An inactive user is a 404 here
+   * too, before either list is read.
+   */
+  async feedForToken(icsToken: string, now: Date = new Date()): Promise<IcsFeed> {
+    const userId = await this.activeUserId(icsToken);
+    const [entries, deskEntries] = await Promise.all([
+      this.parkingEntries(userId, now),
+      this.deskEntries(userId, now),
+    ]);
+    return { entries, deskEntries };
+  }
+
+  private async activeUserId(icsToken: string): Promise<string> {
     // `findFirst` rather than `findUnique`: `icsToken` is unique, so this is
     // still an index lookup, but `findUnique` refuses a non-unique field in the
     // filter and `active` is not part of the key.
@@ -79,10 +98,29 @@ export class CalendarService {
     if (user === null) {
       throw new NotFoundException();
     }
+    return user.id;
+  }
 
+  private async deskEntries(userId: string, now: Date): Promise<IcsDeskCalendarEntry[]> {
+    const from = addDays(todayInPrague(now), -ICS_FEED_PAST_DAYS);
+    const rows = await this.prisma.client.deskReservation.findMany({
+      where: { userId, date: { gte: toDateColumn(from) } },
+      include: { desk: { select: { code: true, zone: { select: { name: true } } } } },
+      orderBy: [{ date: 'asc' }, { id: 'asc' }],
+    });
+    return rows.map((row) => ({
+      deskReservationId: row.id,
+      date: toDateOnly(row.date),
+      createdAt: row.createdAt.toISOString(),
+      deskCode: row.desk.code,
+      zoneName: row.desk.zone.name,
+    }));
+  }
+
+  private async parkingEntries(userId: string, now: Date): Promise<IcsCalendarEntry[]> {
     const from = addDays(todayInPrague(now), -ICS_FEED_PAST_DAYS);
     const reservations = await this.prisma.client.reservation.findMany({
-      where: { userId: user.id, date: { gte: toDateColumn(from) } },
+      where: { userId, date: { gte: toDateColumn(from) } },
       // The label is the only thing about the spot that reaches the calendar.
       include: { parkingSpot: { select: { label: true } } },
       // Chronological, because that is how a calendar file is read when a human

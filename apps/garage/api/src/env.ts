@@ -205,6 +205,19 @@ const apiEnvObjectSchema = z.object({
 
   /** When the daily summary is posted, as `HH:MM` **in Europe/Prague**. */
   SLACK_DAILY_SUMMARY_AT: timeOfDaySchema.default(ENV_DEFAULTS.SLACK_DAILY_SUMMARY_AT),
+
+  // --- Employee sync (desk merge, stage 5) --------------------------------
+
+  /**
+   * SHA-256 (hex) of the bearer key Keboola sends to `POST /api/employee-sync`.
+   * The key itself never reaches the server. Unset = the endpoint answers 503.
+   * See `doc/employee-sync.md` and `doc/decision/0330-*`.
+   */
+  EMPLOYEE_SYNC_KEY_SHA256: z
+    .string()
+    .regex(/^[0-9a-fA-F]{64}$/, 'must be a SHA-256 in hex (64 characters)')
+    .transform((hash) => hash.toLowerCase())
+    .optional(),
 });
 
 /**

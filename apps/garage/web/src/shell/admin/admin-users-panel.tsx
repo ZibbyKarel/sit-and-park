@@ -33,6 +33,11 @@ export function AdminUsersPanel() {
     enabled: status === 'authenticated',
   });
 
+  const officesQuery = useQuery({
+    ...api.admin.office.list.queryOptions({ input: {} }),
+    enabled: status === 'authenticated',
+  });
+
   const updateUser = useMutation({
     ...api.admin.user.update.mutationOptions(),
     onSettled: () => {
@@ -41,6 +46,8 @@ export function AdminUsersPanel() {
       // change actually did (it can refuse the last-admin cases), so the row
       // must come back from it and not from an optimistic guess here.
       queryClient.invalidateQueries({ queryKey: api.admin.user.key() });
+      // Office user counts.
+      queryClient.invalidateQueries({ queryKey: api.admin.office.key() });
     },
   });
 
@@ -61,6 +68,17 @@ export function AdminUsersPanel() {
         updateUser.reset();
         setPendingChange({ id, field: 'active' });
         updateUser.mutate({ id, active });
+      }}
+      offices={officesQuery.data?.offices ?? []}
+      onOfficeChange={(id, officeId) => {
+        updateUser.reset();
+        setPendingChange({ id, field: 'office' });
+        updateUser.mutate({ id, officeId });
+      }}
+      onManualAccountChange={(id, manualAccount) => {
+        updateUser.reset();
+        setPendingChange({ id, field: 'manualAccount' });
+        updateUser.mutate({ id, manualAccount });
       }}
       pendingChange={pendingChange}
       updateError={updateUser.error}

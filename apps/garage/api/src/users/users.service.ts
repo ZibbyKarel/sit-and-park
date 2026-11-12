@@ -31,12 +31,14 @@ import { AuditLogService } from '../audit/audit-log.service';
 import { DomainError } from '../common/errors/domain-error';
 import { toAdminUser, toDateColumn } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
+import { UserDeactivationService } from '../employee-sync/user-deactivation.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
-    private readonly audit: AuditLogService
+    private readonly audit: AuditLogService,
+    private readonly deactivation: UserDeactivationService
   ) {}
 
   /**
@@ -110,7 +112,7 @@ export class UsersService {
     return excluded;
   }
 
-  /** Changes a user's role and/or activity. See the two rules above. */
+  /** Changes a user's role, activity, office and/or manual-account flag. See the two rules above. */
   async adminUpdate(input: AdminUpdateUserInput, actor: { id: string }): Promise<AdminUser> {
     const { id, ...changes } = input;
 
@@ -134,9 +136,27 @@ export class UsersService {
       await this.requireAnotherActiveAdmin(id);
     }
 
-    const data: Prisma.UserUpdateInput = {
+    // Changing the office touches no existing reservation, parking or desk:
+    // they were valid bookings when made. It only decides what the user sees
+    // and books from now on (`../common/office-scope.ts`).
+    if (changes.officeId !== undefined && changes.officeId !== null) {
+      const office = await this.prisma.client.office.findUnique({
+        where: { id: changes.officeId },
+        select: { id: true },
+      });
+      if (office === null) {
+        throw new DomainError('NOT_FOUND', { message: 'No such office.' });
+      }
+    }
+
+    const data: Prisma.UserUncheckedUpdateInput = {
       ...(changes.role === undefined ? {} : { role: changes.role }),
       ...(changes.active === undefined ? {} : { active: changes.active }),
+      ...(changes.active === undefined || changes.active === existing.active
+        ? {}
+        : { deactivatedAt: changes.active ? null : new Date() }),
+      ...(changes.officeId === undefined ? {} : { officeId: changes.officeId }),
+      ...(changes.manualAccount === undefined ? {} : { manualAccount: changes.manualAccount }),
     };
     const row = await this.prisma.client.user.update({ where: { id }, data });
 
@@ -148,10 +168,27 @@ export class UsersService {
       entityId: row.id,
       payload: {
         change: 'admin-updated',
-        before: { role: existing.role, active: existing.active },
-        after: { role: row.role, active: row.active },
+        before: {
+          role: existing.role,
+          active: existing.active,
+          officeId: existing.officeId,
+          manualAccount: existing.manualAccount,
+        },
+        after: {
+          role: row.role,
+          active: row.active,
+          officeId: row.officeId,
+          manualAccount: row.manualAccount,
+        },
       },
     });
+
+    // Offboarding has side effects beyond the flag (decision 0329): future
+    // desk and parking reservations, waitlist entries and pending requests.
+    // The same path the employee sync uses.
+    if (changes.active === false && existing.active) {
+      await this.deactivation.deactivate(id, 'ADMIN', actor.id);
+    }
 
     return toAdminUser(row);
   }

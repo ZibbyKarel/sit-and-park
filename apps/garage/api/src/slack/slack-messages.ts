@@ -95,6 +95,29 @@ export function waitlistPromotedMessage(spotLabel: string, date: DateOnly): stri
   return `Máte parkovací místo ${escapeSlackText(spotLabel)} na ${formatCzechFullDate(date)}. Uvolnilo se a byli jste první ve frontě.`;
 }
 
+/**
+ * A colleague asks for a desk in the recipient's hive. No link: no existing
+ * message links into the app and there is no public base-URL setting, so the
+ * text names the screen instead (`/desks/my`, "Moje stoly").
+ */
+export function deskApprovalRequestedMessage(
+  requesterName: string,
+  deskCode: string,
+  hiveName: string,
+  date: DateOnly
+): string {
+  return `${escapeSlackText(requesterName)} žádá o stůl ${escapeSlackText(deskCode)} (${escapeSlackText(hiveName)}) na ${formatCzechFullDate(date)}. Žádost vyřídíte v aplikaci v části Moje stoly.`;
+}
+
+/** The requester learns how their desk request was decided. */
+export function deskApprovalDecidedMessage(
+  deskCode: string,
+  date: DateOnly,
+  approved: boolean
+): string {
+  return `Vaše žádost o stůl ${escapeSlackText(deskCode)} na ${formatCzechFullDate(date)} byla ${approved ? 'schválena' : 'zamítnuta'}.`;
+}
+
 /** What the daily summary reports. Counts, plus the labels of what is free. */
 export interface DailySummary {
   readonly date: DateOnly;

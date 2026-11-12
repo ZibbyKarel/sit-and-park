@@ -1,0 +1,31 @@
+.runs {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.run {
+  border-top: 1px solid rgb(var(--border--neutral-low-default--light));
+}
+
+.run:first-child {
+  border-top: 0;
+}
+
+.summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  align-items: center;
+  padding: var(--spacing-lg) var(--spacing-xl);
+  cursor: pointer;
+}
+
+.body {
+  padding: 0 var(--spacing-xl) var(--spacing-lg);
+}
+
+.list {
+  margin: 0;
+  padding-left: var(--spacing-xl);
+}

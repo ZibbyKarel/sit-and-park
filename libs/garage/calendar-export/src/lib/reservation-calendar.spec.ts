@@ -20,6 +20,7 @@ import {
   ICS_CALENDAR_NAME,
   ICS_REFRESH_INTERVAL_SECONDS,
   buildReservationCalendar,
+  icsDeskEventUid,
   icsEventDescription,
   icsEventSummary,
   icsEventUid,
@@ -369,5 +370,43 @@ describe('buildReservationCalendar', () => {
     }
     // And it still unfolds back to the original.
     expect(onlyEvent(ics).location).toBe(label);
+  });
+});
+
+describe('a feed with parking and desk reservations', () => {
+  const DESK_RESERVATION = '0199c0f0-3a1a-7000-8000-0000000000d1';
+  const deskEntry = {
+    deskReservationId: DESK_RESERVATION,
+    date: '2026-10-16',
+    createdAt: '2026-09-02T08:30:00.000Z',
+    deskCode: 'D-014',
+    zoneName: 'Engineering 1',
+  };
+
+  it('renders one all-day event per desk reservation beside the parking events', () => {
+    const events = eventsOf(
+      buildReservationCalendar({ entries: [entry()], deskEntries: [deskEntry] })
+    ).map((component) => new ICAL.Event(component));
+
+    expect(events.map((event) => event.uid)).toEqual([
+      icsEventUid(RESERVATION_A),
+      icsDeskEventUid(DESK_RESERVATION),
+    ]);
+    const desk = events[1] as InstanceType<typeof ICAL.Event>;
+    expect(desk.summary).toBe('Stůl D-014');
+    expect(desk.description).toBe('Rezervovaný stůl D-014 (Engineering 1).');
+    expect(desk.location).toBe('Engineering 1');
+    expect(desk.startDate.isDate).toBe(true);
+    expect(desk.startDate.toString()).toBe('2026-10-16');
+    expect(desk.endDate.toString()).toBe('2026-10-17');
+  });
+
+  it('keeps desk UIDs from colliding with parking UIDs, even for the same id', () => {
+    expect(icsDeskEventUid(RESERVATION_A)).not.toBe(icsEventUid(RESERVATION_A));
+  });
+
+  it('is byte-identical for a user with no desk reservations', () => {
+    const parkingOnly = buildReservationCalendar({ entries: [entry()] });
+    expect(buildReservationCalendar({ entries: [entry()], deskEntries: [] })).toBe(parkingOnly);
   });
 });

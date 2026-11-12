@@ -118,6 +118,13 @@ drops yesterday the moment midnight passes looks, to the person subscribed, like
 their history is being deleted — and a client that syncs the entry away cannot
 get it back.
 
+**Desk reservations** are in the same feed under the same window and ordering
+(`CalendarService.feedForToken`): one all-day event each, summary `Stůl D-014`,
+description `Rezervovaný stůl D-014 (<zone name>).`, location the zone name, `UID`
+`desk-<id>@garage` (kind-prefixed, so it cannot collide with a parking `UID`). The
+calendar name stays `Parkování`. A feed without desk reservations is byte-identical
+to the parking-only one; an inactive user is still a 404.
+
 A user with no reservations gets a **valid, event-free** calendar, not a 404. A
 client that receives a parse error unsubscribes.
 

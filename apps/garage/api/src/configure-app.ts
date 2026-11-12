@@ -18,6 +18,7 @@
 import type { INestApplication } from '@nestjs/common';
 import { json, urlencoded } from 'express';
 import helmet from 'helmet';
+import { EMPLOYEE_SYNC_BODY_LIMIT, EMPLOYEE_SYNC_PATH } from '@garage/contract';
 import type { ApiEnv } from './env';
 import { HEALTH_ROUTE_PREFIX } from './health/health.controller';
 import { configureRealtime } from './realtime/realtime-io.adapter';
@@ -64,6 +65,12 @@ export function configureApp(app: INestApplication, config: HttpConfig): void {
   // any handler runs; the parser raises `http-errors`' `PayloadTooLargeError`,
   // which `ContractExceptionFilter` turns into a 413 (it is not an
   // `HttpException`, so the filter has to recognise it explicitly).
+  //
+  // One exception, registered first: the employee sync carries the whole
+  // company's employee list. Its parser runs before the global one, and
+  // body-parser skips a request whose body is already parsed, so the larger
+  // limit applies to that one path and nothing else.
+  app.use(EMPLOYEE_SYNC_PATH, json({ limit: EMPLOYEE_SYNC_BODY_LIMIT }));
   app.use(json({ limit: config.BODY_LIMIT }));
   app.use(urlencoded({ extended: true, limit: config.BODY_LIMIT }));
 

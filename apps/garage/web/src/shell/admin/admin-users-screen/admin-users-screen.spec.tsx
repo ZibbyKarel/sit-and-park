@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type { AdminUser } from '@garage/contract';
 import { IntlProvider } from '@garage/i18n';
 import cs from '../../../../messages/cs.json';
+import { selectOption } from '../../../test-utils/select-option';
 import { failureWithCode } from '../../../testing/contract-failure';
 import { ToastProvider } from '../../notifications/toast-provider';
 import { AdminUsersScreen, matchesUserSearch } from './admin-users-screen';
@@ -46,6 +47,8 @@ function renderScreen(overrides: Partial<AdminUsersScreenProps> = {}) {
   const onRetry = jest.fn();
   const onRoleChange = jest.fn();
   const onActiveChange = jest.fn();
+  const onOfficeChange = jest.fn();
+  const onManualAccountChange = jest.fn();
 
   const props: AdminUsersScreenProps = {
     users: { kind: 'ready', data: { users: [ADELA, KAREL, PETR] } },
@@ -53,6 +56,12 @@ function renderScreen(overrides: Partial<AdminUsersScreenProps> = {}) {
     viewerId: KAREL.id,
     onRoleChange,
     onActiveChange,
+    offices: [
+      { id: 'office-1', name: 'Praha' },
+      { id: 'office-2', name: 'Brno' },
+    ],
+    onOfficeChange,
+    onManualAccountChange,
     pendingChange: null,
     updateError: null,
     ...overrides,
@@ -66,7 +75,14 @@ function renderScreen(overrides: Partial<AdminUsersScreenProps> = {}) {
     </IntlProvider>
   );
 
-  return { onRetry, onRoleChange, onActiveChange, user: userEvent.setup() };
+  return {
+    onRetry,
+    onRoleChange,
+    onActiveChange,
+    onOfficeChange,
+    onManualAccountChange,
+    user: userEvent.setup(),
+  };
 }
 
 /** The `<tr>` for one user, found by the `data-row-id` `DataTable` writes. */
@@ -206,6 +222,60 @@ describe('AdminUsersScreen', () => {
       within(rowOf(PETR)).getByRole('switch', { name: 'usersActiveToggleLabel: name=Petr Novák' })
     );
     expect(onActiveChange).toHaveBeenLastCalledWith(PETR.id, true);
+  });
+
+  describe('the office and the manual-account flag', () => {
+    it('shows the user’s office and offers every office plus none', async () => {
+      const { user } = renderScreen();
+
+      const picker = within(rowOf(ADELA)).getByLabelText(
+        /usersOfficeSelectLabel: name=Adéla Horáková$/u
+      );
+      expect(picker).toHaveTextContent('Praha');
+
+      await user.click(picker);
+      expect(
+        within(await screen.findByRole('listbox'))
+          .getAllByRole('option')
+          .map((o) => o.textContent)
+      ).toEqual(['usersNoOffice', 'Praha', 'Brno']);
+    });
+
+    it('reports the chosen office, and null for none', async () => {
+      const { onOfficeChange, user } = renderScreen();
+
+      await selectOption(user, /usersOfficeSelectLabel: name=Adéla Horáková$/u, 'Brno');
+      expect(onOfficeChange).toHaveBeenLastCalledWith(ADELA.id, 'office-2');
+
+      await selectOption(user, /usersOfficeSelectLabel: name=Adéla Horáková$/u, 'usersNoOffice');
+      expect(onOfficeChange).toHaveBeenLastCalledWith(ADELA.id, null);
+    });
+
+    it('toggles the manual-account flag', async () => {
+      const { onManualAccountChange, user } = renderScreen();
+
+      await user.click(
+        within(rowOf(ADELA)).getByRole('switch', {
+          name: 'usersManualToggleLabel: name=Adéla Horáková',
+        })
+      );
+
+      expect(onManualAccountChange).toHaveBeenLastCalledWith(ADELA.id, true);
+    });
+
+    it('says when an inactive user was deactivated, and only then', () => {
+      renderScreen({
+        users: {
+          kind: 'ready',
+          data: {
+            users: [ADELA, { ...PETR, deactivatedAt: '2026-09-30T10:00:00.000Z' }],
+          },
+        },
+      });
+
+      expect(within(rowOf(PETR)).getByText(/^usersDeactivatedOn: date=/u)).toBeInTheDocument();
+      expect(within(rowOf(ADELA)).queryByText(/usersDeactivatedOn/u)).not.toBeInTheDocument();
+    });
   });
 
   describe('an admin cannot switch off their own account', () => {

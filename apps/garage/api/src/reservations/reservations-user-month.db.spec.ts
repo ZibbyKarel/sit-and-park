@@ -36,6 +36,8 @@ const noopPublisher: DomainEventPublisher = {
   notifyPromotions: jest.fn(),
   deskReserved: jest.fn(),
   deskReleased: jest.fn(),
+  deskApprovalRequested: jest.fn(),
+  deskApprovalDecided: jest.fn(),
 };
 
 describe('ReservationsService.userMonth against a real PostgreSQL', () => {

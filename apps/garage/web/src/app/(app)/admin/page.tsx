@@ -18,6 +18,11 @@ import { AdminSpotsPanel } from '../../../shell/admin/admin-spots-panel';
 import { AdminUsersPanel } from '../../../shell/admin/admin-users-panel';
 import { AdminWindowPanel } from '../../../shell/admin/admin-window-panel';
 import { AdminLimitsPanel } from '../../../shell/admin/admin-limits-panel';
+import { AdminHivesScreen } from '../../../shell/admin/admin-hives-screen/admin-hives-screen';
+import { AdminOfficesScreen } from '../../../shell/admin/admin-offices-screen/admin-offices-screen';
+import { AdminSyncScreen } from '../../../shell/admin/admin-sync-screen/admin-sync-screen';
+import { AdminDesksScreen } from '../../../shell/admin/admin-desks-screen/admin-desks-screen';
+import { AdminDeskStatsScreen } from '../../../shell/admin/admin-desk-stats-screen/admin-desk-stats-screen';
 import { useCurrentUser } from '../../../shell/use-current-user';
 
 export default function AdminPage() {
@@ -36,6 +41,11 @@ export default function AdminPage() {
         spots: <AdminSpotsPanel />,
         window: <AdminWindowPanel />,
         limits: <AdminLimitsPanel />,
+        hives: <AdminHivesScreen />,
+        offices: <AdminOfficesScreen />,
+        sync: <AdminSyncScreen />,
+        desks: <AdminDesksScreen />,
+        deskStats: <AdminDeskStatsScreen />,
       }}
     />
   );

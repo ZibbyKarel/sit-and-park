@@ -251,4 +251,53 @@ describe('the ICS feed against a real PostgreSQL', () => {
       expect(entries[0]?.spotLabel).toBe(mineLabel);
     });
   });
+
+  describe('desk reservations', () => {
+    it('are in the owner’s feed with desk code and zone, and nobody else’s', async () => {
+      const { feed, code, zoneName, inactiveFeed } = await inRolledBackTransaction(
+        prisma,
+        async (tx) => {
+          const token = unique('ics');
+          const mine = await seedUser(tx, token);
+          const other = await seedUser(tx, unique('ics'));
+          const gone = await seedUser(tx, unique('ics'), false);
+          const office = await tx.office.findUniqueOrThrow({
+            where: { name: 'Praha' },
+            include: { zones: { take: 1 } },
+          });
+          const zone = office.zones[0];
+          if (zone === undefined) {
+            throw new Error('The migrations created no zone for Praha.');
+          }
+          const newDesk = (n: number) =>
+            tx.desk.create({
+              data: {
+                officeId: office.id,
+                zoneId: zone.id,
+                code: unique('D'),
+                x: n * 20,
+                y: 0,
+                width: 10,
+                height: 10,
+              },
+            });
+          const a = await newDesk(0);
+          const b = await newDesk(1);
+          const day = toDateColumn('2099-01-05');
+          await tx.deskReservation.create({ data: { deskId: a.id, userId: mine.id, date: day } });
+          await tx.deskReservation.create({ data: { deskId: b.id, userId: other.id, date: day } });
+
+          const service = new CalendarService({ client: tx } as unknown as PrismaService);
+          const found = await service.feedForToken(token, day);
+          const inactive = await service.feedForToken(gone.icsToken, day).catch((e: unknown) => e);
+          return { feed: found, code: a.code, zoneName: zone.name, inactiveFeed: inactive };
+        }
+      );
+
+      expect(feed.entries).toEqual([]);
+      expect(feed.deskEntries).toMatchObject([{ date: '2099-01-05', deskCode: code, zoneName }]);
+      expect(feed.deskEntries).toHaveLength(1);
+      expect(inactiveFeed).toBeInstanceOf(Error);
+    });
+  });
 });
