@@ -564,3 +564,30 @@ delegate used to sort by date **unconditionally**, so deleting `CalendarService`
 nothing and every test still passed. It now sorts only when an `orderBy` is passed, refuses any
 ordering it does not model, and otherwise returns insertion order — which is the closest honest
 stand-in for a Postgres that was given no `ORDER BY`.
+
+---
+
+## 13. Desks, desk administration, employee sync, office scope
+
+Full write-up in `doc/desks.md` and `doc/employee-sync.md`; what a reader of this file needs:
+
+- **`desks/`** — the caller's `desk.*` procedures (`DesksController`: directory, series preview and
+  booking, cancel, releases; `DeskRequestsService`: approval requests). No `@Roles()`: who may cancel,
+  decide or withdraw is a rule about a row and lives in the service. `desk-rules.ts` is the pure rule
+  set; `desk-db.ts` loads the caller's facts and owns the row locks (`lockDesk`, `lockDesks`,
+  `lockUser`; order desk then user); `desk-cleanup.service.ts` is the shared "cancel what this change
+  orphans" code the other modules call inside their own transaction.
+- **`desk-admin/`** — `admin.desk.*`, `admin.hive.*`, `admin.office.*`, `admin.zone.*`, all
+  `@Roles('ADMIN')`. Desk edits, bulk edits (one transaction, up to 500 desks), permanent holder,
+  grants, statistics (`computeDeskStats` in `desk-admin-rules.ts`), hive CRUD and membership,
+  offices and zones. Catalogue edits are audited with `before`/`after`; grants and memberships are not.
+- **`employee-sync/`** — `POST /api/employee-sync` (outside oRPC, `@Public()`, strict throttle,
+  bearer key checked against `EMPLOYEE_SYNC_KEY_SHA256`), `admin.employeeSync.get` / `setLiveMode`,
+  and `UserDeactivationService`, which `users/users.service.ts` also calls when an admin sets
+  `active: false`.
+- **`common/office-scope.ts`** — `parkingOfficeOf`, `seesParkingOffice`, `defaultOfficeId`: parking
+  spots are listed and booked within the user's office (`spots`, `reservations`, `me`); a user with no
+  office sees every office. `AuthUserService` gives a new user the oldest active office.
+- Slack DMs on a desk approval request and decision (`slack/`), and the desk entries of the ICS feed
+  (`calendar/`), are the only desk traffic outside the API proper.
+

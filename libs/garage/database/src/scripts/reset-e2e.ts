@@ -186,7 +186,9 @@ async function main(): Promise<void> {
     const seededMembers = SEED_HIVES.flatMap((hive) => hive.memberEmails);
     // Memberships cascade with their hive; desks of a deleted hive are set null.
     await prisma.hive.deleteMany({ where: { name: { notIn: seededHiveNames } } });
-    await prisma.hiveMembership.deleteMany({ where: { user: { email: { notIn: seededMembers } } } });
+    await prisma.hiveMembership.deleteMany({
+      where: { user: { email: { notIn: seededMembers } } },
+    });
     await prisma.desk.updateMany({
       where: { code: { notIn: seededHiveDesks }, hiveId: { not: null } },
       data: { hiveId: null },

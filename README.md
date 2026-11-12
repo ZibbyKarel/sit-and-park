@@ -20,7 +20,7 @@ cp .env.example .env                  # git-ignored; edit if you like
 cp .env.example apps/garage/web/.env         # Next.js reads env files from its own directory
 docker compose --profile dev up -d    # PostgreSQL 17, mock OIDC issuer, adminer
 pnpm exec prisma migrate deploy
-pnpm exec prisma db seed                    # development fixture: 9 spots, 4 users
+pnpm exec prisma db seed                    # development fixture: 9 spots, 5 users, 2 hives, 1 permanent desk
 pnpm dev:garage                 # api on :3000, web on :4200
 ```
 
@@ -52,9 +52,10 @@ does not recognise.
 | Dev Admin    | `dev-admin`    | `{"email":"admin@example.com","name":"Dev Admin"}`       | ADMIN |
 | Dev User     | `dev-user`     | `{"email":"user@example.com","name":"Dev User"}`         | USER  |
 | Dev User 2   | `dev-user2`    | `{"email":"user2@example.com","name":"Dev User Two"}`    | USER  |
+| Dev Desk Holder | `dev-desk-holder` | `{"email":"desk@example.com","name":"Dev Desk Holder"}` | USER |
 | Dev Inactive | `dev-inactive` | `{"email":"inactive@example.com","name":"Dev Inactive"}` | USER  |
 
-These four come from the seed fixture (`libs/garage/database/src/lib/seed-data.ts`)
+These come from the seed fixture (`libs/garage/database/src/lib/seed-data.ts`)
 and only exist after `pnpm exec prisma db seed`. Open a second browser (or a private
 window) as `dev-user2` to see the realtime cell-lock and booking broadcasts
 land in another tab.
@@ -157,10 +158,30 @@ Details and the "where storage differs from the contract" table are in
 pnpm exec prisma db seed
 ```
 
-A **development** fixture — 9 parking spots, 4 users, the reservation window
-settings — idempotent, and never run against production.
+A **development** fixture — 9 parking spots, 5 users, the reservation window
+settings, and desk data (two hives, Engineering owned by Dev Admin and Sales
+owned by Dev Desk Holder, who holds desk `D-013` permanently; Dev User has a
+grant on `D-042`; the employee sync in dry-run mode) — idempotent, and never run against production.
 `pnpm nx run web-e2e:e2e` leaves the reservation window at 31 days; re-running
 the seed puts it back to 7.
+
+## Desks and the employee sync
+
+The desk screens are `/desks` and `/desks/my`; their administration is in the
+`/admin` tabs `Hivy`, `Kanceláře`, `Synchronizace`, `Stoly` and `Statistiky stolů`.
+Domain and rules: `doc/desks.md`.
+
+- **Migrations create the data a fresh database needs**: the office `Praha`, its
+  12 zones and 221 desks with their floor-plan geometry, and `officeId` on every
+  existing user and parking spot. No seed is needed for production desks.
+  The floor plan itself ships with the web image
+  (`apps/garage/web/public/floorplans/praha.svg`).
+- **A user without an office cannot book desks** (`NO_OFFICE_ASSIGNED`); new
+  users get the oldest active office, an admin changes it in `Uživatelé`.
+- **`EMPLOYEE_SYNC_KEY_SHA256`** (SHA-256 hex of the bearer key) enables
+  `POST /api/employee-sync`; unset, the endpoint answers 503. The sync starts in
+  dry-run mode: an admin switches it live in `Synchronizace`. Key generation,
+  rotation and the endpoint contract: `doc/employee-sync.md`.
 
 ## Regenerating an ICS token
 

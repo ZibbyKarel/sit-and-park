@@ -15,7 +15,7 @@ something new:
 everything here. `doc/implementation-plan.md` is its breakdown into tasks.
 
 This index is generated from the filesystem and accounts for every file under
-`doc/`: 24 topic documents, 218 decision records, and `doc/design/`.
+`doc/`: 25 topic documents, 218 decision records, and `doc/design/`.
 
 ---
 
@@ -33,6 +33,7 @@ This index is generated from the filesystem and accounts for every file under
 | [`database.md`](database.md)                             | The PostgreSQL schema, Prisma 7 setup, migrations, the development seed, and backups.                                                                                                                                                         |
 | [`desk-merge-handoff.md`](desk-merge-handoff.md) | Live progress of the desk merge: which stage is done, what is in flight, what the next agent must know. |
 | [`desk-merge-plan.md`](desk-merge-plan.md) | The binding plan for merging the desk-booking app into garage: decisions, rules carried over, data model, floor plan and stages. |
+| [`desks.md`](desks.md) | The desk domain: offices, zones, hives, permanent desks, series booking, approval requests, what admin changes cascade into, the floor plan and the locks that keep it consistent. |
 | [`employee-sync.md`](employee-sync.md) | The HiBob/Keboola employee sync: `POST /api/employee-sync`, its key, the validation and shrink rules, dry/live mode and what deactivating a user does. |
 | [`environment.md`](environment.md)                       | Every environment variable the two apps need, how the local Docker stack is started, and how dev, e2e and production differ (values only, never code).                                                                                        |
 | [`frontend.md`](frontend.md)                             | `apps/garage/web`: the route tree, the single client boundary, provider order, the sign-in flow, the screen states and the `ScreenData<T>` union that selects one, and the `*-view.ts` split between what a screen decides and what it draws. |

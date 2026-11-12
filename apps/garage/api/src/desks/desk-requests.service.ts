@@ -368,6 +368,12 @@ export class DeskRequestsService {
             'DESK_TAKEN',
             caller.id
           );
+          await this.cleanup.rejectPendingRequests(
+            tx,
+            { userId: requester.id, date: request.date, id: { not: request.id } },
+            'REQUESTER_HAS_DESK',
+            caller.id
+          );
         }
 
         const status = input.approve ? 'APPROVED' : 'REJECTED';

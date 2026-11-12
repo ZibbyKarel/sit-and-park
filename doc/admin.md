@@ -73,6 +73,16 @@ fetches nothing.
 
 ## The five tabs
 
+The five tabs below are the parking ones. The strip has five more, added by the desk
+merge: `Hivy`, `Kanceláře`, `Synchronizace`, `Stoly` and `Statistiky stolů`
+(`shell/admin/admin-{hives,offices,sync,desks,desk-stats}-screen/`), described in
+`doc/desks.md` §Web and `doc/employee-sync.md`. They follow the same screen/panel split.
+Two changes to the parking tabs: `Uživatelé` also edits a user's **office** (a picker;
+empty clears it) and a **manual account** flag (exempt from the employee sync), and
+`Parkovací místa` shows and edits a spot's office. Setting a user inactive no longer only
+flips the flag: it runs `UserDeactivationService` (future desk and parking reservations
+cancelled, queue entries removed, pending requests rejected; `doc/employee-sync.md`).
+
 ### Přehled parkoviště
 
 `overview.day` for today in Europe/Prague: the date, the free/taken counts, the

@@ -123,6 +123,8 @@ type DeskApprovalDecidedReason =
   /** Another request for the same desk and day was approved. */
   | 'DESK_TAKEN'
   | 'HIVE_DELETED'
+  /** The requester got a desk for that day, so the request can never be approved. */
+  | 'REQUESTER_HAS_DESK'
   | 'USER_DEACTIVATED';
 
 /**

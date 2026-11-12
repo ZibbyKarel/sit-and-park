@@ -42,7 +42,8 @@ export class DeskCleanupService {
   /**
    * Deletes the desk reservations matching `where` dated **today or later**
    * (history is never touched, whatever `where` says), audits each as
-   * `DESK_RESERVATION_CANCELLED_BY_ADMIN` with `reason`, and returns the
+   * `DESK_RESERVATION_CANCELLED_BY_ADMIN` (`DESK_RESERVATION_CANCELLED` when
+   * the actor is the holder) with `reason`, and returns the
    * `desk:released` events to publish after commit. `actorUserId` must be a
    * real user (the audit log's FK).
    */
@@ -70,7 +71,11 @@ export class DeskCleanupService {
     await this.audit.recordMany(
       rows.map((row) => ({
         actorUserId,
-        action: 'DESK_RESERVATION_CANCELLED_BY_ADMIN' as const,
+        // The employee sync deactivates a user as themself: that is not an admin's doing.
+        action:
+          row.userId === actorUserId
+            ? ('DESK_RESERVATION_CANCELLED' as const)
+            : ('DESK_RESERVATION_CANCELLED_BY_ADMIN' as const),
         entityType: 'DeskReservation' as const,
         entityId: row.id,
         payload: {

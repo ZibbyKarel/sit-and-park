@@ -18,8 +18,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project state
 
-**This workspace is built to host more than one application**, though the
-parking app is currently the only one (a `wishlist` scaffold was removed). `apps/` and `libs/` are
+**This workspace is built to host more than one application**, though one
+application, `garage`, is all there is (parking **and desks**; a `wishlist` scaffold was removed). `apps/` and `libs/` are
 namespaced by owner: `apps/garage/*` and `libs/garage/*` belong to the
 parking app, `libs/shared/*` holds the three libs a second application also
 consumes (`form`, `i18n`, `api-client`). A lib's namespace
@@ -43,7 +43,8 @@ survives the rename; a list of project names does not. In `package.json`,
 an unsuffixed script is workspace-wide and a `:<app>` suffix scopes it
 (`pnpm dev:garage`).
 
-The parking app is scaffolded and all of Fáze 0–7 is written:
+The garage app is scaffolded and all of Fáze 0–7 (parking) is written, plus the desk
+feature merged in from a colleague's app (`doc/desks.md`, `doc/desk-merge-plan.md`):
 `apps/garage/api` (NestJS 11), `apps/garage/web` (Next.js 16),
 `apps/garage/api-e2e`, `apps/garage/web-e2e`, and ten libs.
 `pnpm install` first — several agents have skipped it in a fresh worktree and spent
@@ -56,7 +57,7 @@ somewhere far away — that is how `prisma.config.ts`, the database suites'
 migrations directory and the e2e build-identity guard each broke once.
 
 **The documentation map is `doc/README.md`**; it indexes every topic document
-and all 205 decision records. `README.md` is the operational runbook.
+and all 218 decision records. `README.md` is the operational runbook.
 
 Before reading a specific topic document or decision record, check its
 index first — `doc/README.md` for topic documents, `doc/decision/README.md`
@@ -101,7 +102,7 @@ Layers that need infrastructure — see `doc/testing.md` for what each covers:
 docker compose --profile dev up -d       # PostgreSQL 17, mock OIDC issuer, adminer
 pnpm exec prisma migrate deploy
 pnpm exec prisma db seed
-pnpm nx run api:test-db                   # the eight *.db.spec.ts suites (needs DATABASE_URL)
+pnpm nx run api:test-db                   # the sixteen *.db.spec.ts suites (needs DATABASE_URL)
 pnpm nx run api-e2e:e2e
 pnpm nx run web-e2e:e2e                   # documented in doc/testing.md, not re-measured here
 ```
@@ -110,7 +111,7 @@ pnpm nx run web-e2e:e2e                   # documented in doc/testing.md, not re
 root Nx supplies it from `.env`. In a **worktree** it does not — `.env` is
 git-ignored and does not travel — so the target fails before it reaches a test:
 `DATABASE_URL is not set. … It does not skip itself, on purpose.` (measured from
-a stripped shell: exit 1 without it, exit 0 and **8 suites / 94 tests** with it).
+a stripped shell: exit 1 without it, exit 0 and **16 suites / 233 tests** with it (the exit-1 half was measured before the desk merge)).
 Either copy `.env` in, or pass it for the one command:
 
 ```bash
@@ -170,6 +171,15 @@ run that target.
 - **The oRPC transport is at `/api/rpc/…`**, not `/api/…`. Measured:
   `POST /api/rpc/me/get` → 401 (the route exists and the guard ran),
   `POST /api/me/get` → 404.
+- **The floor plan is a static image and desks are drawn from database geometry.**
+  `apps/garage/web/public/floorplans/praha.svg` is shown as an SVG `<image>` and
+  desks are React `<rect>`s from `Desk.x/y/width/height`, which a generated
+  migration put there. Never fetch, parse or inject the SVG as markup: the source
+  app did and it was a stored-XSS hole (`doc/decision/0325-*`, `doc/desks.md`).
+- **Desks deliberately do not use parking's reservation window, monthly cap or
+  waitlist.** They follow the source app's rules (series of up to 20 dates over at
+  most 34 days, conflicts always skipped and reported). Do not "align" them with
+  parking (`doc/decision/0321-*`).
 - **`.env` is git-ignored and does not travel with a worktree.** Copy it in.
   `P1000` from anything Prisma means `DATABASE_URL` is missing or wrong.
 - **`prisma migrate reset` destroys the database** and is not part of any

@@ -118,5 +118,7 @@ itself happens inside the deactivation transaction, so a failed attempt leaves
 the user active. Only the call that flips the account audits
 `USER_DEACTIVATED`, so the record of who deactivated someone survives a
 sweep. Desk reservations cancelled this way are audited as
-`DESK_RESERVATION_CANCELLED_BY_ADMIN` with reason `USER_DEACTIVATED`. A deactivated user gets 403
+`DESK_RESERVATION_CANCELLED` when the sync did it (the actor is the holder) and
+`DESK_RESERVATION_CANCELLED_BY_ADMIN` when an admin did, both with reason
+`USER_DEACTIVATED`. A deactivated user gets 403
 from the API and 404 from the ICS feed.

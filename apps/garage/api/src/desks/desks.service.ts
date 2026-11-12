@@ -44,6 +44,7 @@ import { toDateColumn, toDateOnly } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
 import { DomainEventPublisher } from '../reservations/reservation-events';
 import { RESERVATION_TRANSACTION_OPTIONS } from '../reservations/transaction-options';
+import { DeskCleanupService } from './desk-cleanup.service';
 import type { DeskReader } from './desk-db';
 import {
   loadCaller,
@@ -83,7 +84,8 @@ export class DesksService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditLogService,
-    private readonly publisher: DomainEventPublisher
+    private readonly publisher: DomainEventPublisher,
+    private readonly cleanup: DeskCleanupService
   ) {}
 
   /** Every desk of the caller's office for one day. A fixed set of queries, no N+1. */
@@ -222,6 +224,21 @@ export class DesksService {
             },
           })),
           tx
+        );
+        // Pending requests that can no longer be approved: other people's for
+        // this desk, and the caller's own for any desk, on the booked days.
+        const date = { in: rows.map((row) => row.date) };
+        await this.cleanup.rejectPendingRequests(
+          tx,
+          { deskId: desk.id, date, userId: { not: actor.id } },
+          'DESK_TAKEN',
+          actor.id
+        );
+        await this.cleanup.rejectPendingRequests(
+          tx,
+          { userId: actor.id, date },
+          'REQUESTER_HAS_DESK',
+          actor.id
         );
         return { rows, days, callerName };
       }, RESERVATION_TRANSACTION_OPTIONS)

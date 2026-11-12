@@ -49,7 +49,7 @@ describe('desk booking against a real PostgreSQL', () => {
     const audit = new AuditLogService(prisma);
     const cleanup = new DeskCleanupService(audit, recorder);
     return {
-      desks: new DesksService(prisma, audit, recorder),
+      desks: new DesksService(prisma, audit, recorder, cleanup),
       requests: new DeskRequestsService(prisma, audit, recorder, cleanup),
       cleanup,
     };
@@ -702,6 +702,86 @@ describe('desk booking against a real PostgreSQL', () => {
       expect(publisher.approvalNotices.map((notice) => notice.requestId)).toEqual([approved.id]);
     });
 
+    it('a direct booking rejects other users’ pending requests for that desk and day, and its own for any desk', async () => {
+      const { owner, requester, target, hiveId } = await hiveDeskScene();
+      const [rival, otherOwner] = [await user(), await user()];
+      await client.hiveMembership.create({ data: { hiveId, userId: owner.id } });
+      const otherHiveDesk = await desk({ hiveId: await hive(otherOwner.id) });
+      const ask = (who: UserRow, deskId: string, date: DateOnly) =>
+        requests.requestApproval({ deskId, date }, actorFor(who), TODAY);
+      const taken = await ask(rival, target.id, D1);
+      const otherDay = await ask(rival, target.id, D2);
+      const mine = await ask(owner, otherHiveDesk.id, D1);
+      const mineOtherDay = await ask(owner, otherHiveDesk.id, D2);
+      const untouched = await ask(requester, otherHiveDesk.id, D1);
+      publisher.reset();
+
+      await desks.reserve({ deskId: target.id, dates: [D1] }, actorFor(owner), TODAY);
+
+      const rows = await client.deskApprovalRequest.findMany({
+        where: { id: { in: [taken.id, otherDay.id, mine.id, mineOtherDay.id, untouched.id] } },
+      });
+      expect(new Map(rows.map((row) => [row.id, row.status]))).toEqual(
+        new Map([
+          [taken.id, 'REJECTED'],
+          [otherDay.id, 'PENDING'],
+          [mine.id, 'REJECTED'],
+          [mineOtherDay.id, 'PENDING'],
+          [untouched.id, 'PENDING'],
+        ])
+      );
+      const reasons = await client.auditLog.findMany({
+        where: { action: 'DESK_APPROVAL_DECIDED', entityId: { in: [taken.id, mine.id] } },
+      });
+      expect(new Map(reasons.map((row) => [row.entityId, row.payload]))).toEqual(
+        new Map([
+          [taken.id, expect.objectContaining({ reason: 'DESK_TAKEN' })],
+          [mine.id, expect.objectContaining({ reason: 'REQUESTER_HAS_DESK' })],
+        ])
+      );
+      expect(publisher.approvalNotices).toEqual([]);
+    });
+
+    it('an approval rejects the requester’s own other pending requests for that day', async () => {
+      const { owner, requester, target } = await hiveDeskScene();
+      const otherOwner = await user();
+      const otherHiveDesk = await desk({ hiveId: await hive(otherOwner.id) });
+      const win = await requests.requestApproval(
+        { deskId: target.id, date: D1 },
+        actorFor(requester),
+        TODAY
+      );
+      const lost = await requests.requestApproval(
+        { deskId: otherHiveDesk.id, date: D1 },
+        actorFor(requester),
+        TODAY
+      );
+      const otherDay = await requests.requestApproval(
+        { deskId: otherHiveDesk.id, date: D2 },
+        actorFor(requester),
+        TODAY
+      );
+
+      await requests.decideRequest({ requestId: win.id, approve: true }, actorFor(owner), TODAY);
+
+      const rows = await client.deskApprovalRequest.findMany({
+        where: { id: { in: [lost.id, otherDay.id] } },
+      });
+      expect(new Map(rows.map((row) => [row.id, row.status]))).toEqual(
+        new Map([
+          [lost.id, 'REJECTED'],
+          [otherDay.id, 'PENDING'],
+        ])
+      );
+      expect(
+        (
+          await client.auditLog.findFirstOrThrow({
+            where: { action: 'DESK_APPROVAL_DECIDED', entityId: lost.id },
+          })
+        ).payload
+      ).toMatchObject({ reason: 'REQUESTER_HAS_DESK' });
+    });
+
     it('approval after the desk got taken is DESK_ALREADY_RESERVED; rejection still works', async () => {
       const { owner, requester, target } = await hiveDeskScene();
       const member = await user();
@@ -854,6 +934,28 @@ describe('desk booking against a real PostgreSQL', () => {
       ).toBe(1);
       cleanup.publish(events);
       expect(publisher.ofKind('desk:released')).toHaveLength(1);
+    });
+
+    it('audits a cancellation as DESK_RESERVATION_CANCELLED when the actor is the holder', async () => {
+      const [me, admin] = [await user(), await user({ role: 'ADMIN' })];
+      const target = await desk();
+      const mine = await book(me, target.id, D1);
+      const theirs = await book(admin, target.id, D2);
+
+      await client.$transaction(async (tx) => {
+        await cleanup.cancelReservations(tx, { id: mine }, 'USER_DEACTIVATED', me.id, TODAY);
+        await cleanup.cancelReservations(tx, { id: theirs }, 'USER_DEACTIVATED', me.id, TODAY);
+      });
+
+      const actions = await client.auditLog.findMany({
+        where: { entityId: { in: [mine, theirs] } },
+      });
+      expect(new Map(actions.map((row) => [row.entityId, row.action]))).toEqual(
+        new Map([
+          [mine, 'DESK_RESERVATION_CANCELLED'],
+          [theirs, 'DESK_RESERVATION_CANCELLED_BY_ADMIN'],
+        ])
+      );
     });
 
     it('rejects pending requests with a reason', async () => {

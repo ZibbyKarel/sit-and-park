@@ -50,16 +50,18 @@ src/app/
     layout.tsx                  <AppTopBar> + centred <main>
     loading.tsx                 route-level <ScreenLoading>
     page.tsx                    /          parking overview
+    desks/page.tsx              /desks     desks for a day (floor plan + list)
+    desks/my/page.tsx           /desks/my  my desk reservations, releases, requests
     settings/page.tsx           /settings  settings
     admin/page.tsx              /admin     administration (admin only)
 ```
 
 `shell/admin/` holds the administration section's own components — one
-screen/panel pair per tab, plus the shared failure-copy table, the window
+screen/panel pair per tab (ten tabs, five of them for desks and sync: `doc/desks.md`), plus the shared failure-copy table, the window
 banner and the lock-mode control. See `doc/admin.md`.
 
 Every route is declared once, in
-`src/routes.ts` — `LOT_ROUTE`, `LOGIN_ROUTE`, `SETTINGS_ROUTE`, `ADMIN_ROUTE`,
+`src/routes.ts` — `LOT_ROUTE`, `DESKS_ROUTE`, `MY_DESKS_ROUTE`, `LOGIN_ROUTE`, `SETTINGS_ROUTE`, `ADMIN_ROUTE`,
 `AUTH_API_ROUTE_PREFIX`, `HEALTH_ROUTE`. `auth.ts` and `proxy.ts` both read
 `LOGIN_ROUTE` from there, which is what makes a redirect loop unconstructible:
 the path Auth.js redirects _to_ and the path the proxy exempts cannot drift
@@ -174,11 +176,24 @@ which would publish it to every visitor.
 - The mock server's access token carries `aud: "default"`. The API's
   `AUTH_OKTA_AUDIENCE` has to match it, or every request is a plain 401.
 
+## Desks (`/desks`, `/desks/my`)
+
+`src/desks/`: `desks-screen/` (the day in the URL, `desk.directory`, floor plan or list,
+filters, kept live by `use-desk-realtime.ts`, which refetches on `desk:reserved` /
+`desk:released` for the open day), `desk-dialog/` (book a series with a `previewSeries`
+preview, request approval, withdraw, cancel) and `my-desks/` (reservations, releases,
+my requests, the owner's inbox). Rules are pure functions in `desk-view.ts` and
+`my-desks/my-desks-view.ts`. The plan itself is `src/ui/floor-plan/`, a domain-free
+component: it draws an `<image>` background and shapes it is given (pan, wheel zoom
+only with Ctrl/Cmd, pinch, keyboard-reachable shapes); the desk geometry comes from
+the API, never from parsing the SVG. Domain: `doc/desks.md`.
+
 ## The top bar
 
 `shell/top-bar/top-bar.tsx` is **presentational** — props in, callbacks out, no data
 fetching — and `shell/app-top-bar.tsx` is the connected wrapper. Left: the
-brand, wrapped in a link to `/`. Right: an `Admin` badge for administrators,
+brand, wrapped in a link to `/`, then the primary navigation (`Parkování`, `Stoly`,
+`Moje stoly`; `nav` keys in `top-bar.tsx`). Right: an `Admin` badge for administrators,
 then the avatar with the user's initials, their name, and a dropdown holding
 their name and email, `Nastavení (SPZ auta)`, `Správa` (administrators only)
 and `Odhlásit se`.
