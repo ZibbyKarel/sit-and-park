@@ -33,8 +33,18 @@ export function useDeskWriteError(): (error: unknown, write: DeskWrite) => strin
     if (code === 'PAST_DATE' && write === 'release') {
       return t('errReleasePast');
     }
-    if (code === 'VALIDATION_FAILED' && write === 'decide') {
-      return t('errDecideInvalid');
+    if (write === 'decide') {
+      // `decideRequest` re-checks the requester: the catalogue speaks to the requester ("you").
+      const decide: Partial<Record<string, Parameters<typeof t>[0]>> = {
+        VALIDATION_FAILED: 'errDecideInvalid',
+        PERMANENT_DESK_HOLDER: 'errDecidePermanentHolder',
+        DESK_RESERVATION_LIMIT_REACHED: 'errDecideLimitReached',
+        PAST_DATE: 'errDecidePast',
+      };
+      const key = decide[code];
+      if (key !== undefined) {
+        return t(key);
+      }
     }
     return errors(code);
   };

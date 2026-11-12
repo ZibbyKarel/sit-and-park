@@ -471,7 +471,10 @@
     "rejectLabel": "Zamítnout žádost na stůl {code} pro {requester}",
     "approved": "Žádost byla schválena a stůl rezervován.",
     "rejected": "Žádost byla zamítnuta.",
-    "errDecideInvalid": "Žadatel už podmínky nesplňuje (není aktivní nebo je v jiné kanceláři) nebo stůl už není v hivu."
+    "errDecideInvalid": "Žadatel už podmínky nesplňuje (není aktivní nebo je v jiné kanceláři) nebo stůl už není v hivu.",
+    "errDecidePermanentHolder": "Žadatel má trvale přiřazený stůl, jiný si rezervovat nemůže.",
+    "errDecideLimitReached": "Žadatel má na tento den už jiný stůl rezervovaný — na den je povolený jen jeden.",
+    "errDecidePast": "Den žádosti je už v minulosti, žádost nelze schválit."
   },
   "desks": {
     "title": "Rezervace stolů",
@@ -536,6 +539,7 @@
     "cancelReservation": "Zrušit moji rezervaci",
     "requestApproval": "Požádat o schválení",
     "requestSent": "Žádost odeslána. Čeká na schválení, stav uvidíte v sekci Moje stoly.",
+    "notePast": "Na minulý den už nelze nic rezervovat ani žádat.",
     "notePendingRequest": "Vaše žádost o tento stůl na tento den čeká na schválení.",
     "cancelRequest": "Zrušit žádost",
     "errRequestNotAllowed": "O tento stůl nelze žádat: buď si ho můžete rezervovat přímo, nebo nepatří žádnému týmu.",
@@ -690,6 +694,9 @@
     "members": "Členové",
     "edit": "Upravit",
     "delete": "Smazat",
+    "membersFor": "Členové hivu {name}",
+    "editFor": "Upravit hive {name}",
+    "deleteFor": "Smazat hive {name}",
     "add": "Přidat hive",
     "empty": "Zatím žádné hivy",
     "emptyDescription": "Hive sdružuje stoly a lidi, kteří je smějí rezervovat bez schvalování.",

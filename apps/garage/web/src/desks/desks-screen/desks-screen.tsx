@@ -12,6 +12,7 @@ import NextLink from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, CheckboxField, SingleSelectField, SystemMessage, Tabs } from '@shoptet/ui';
 import {
+  compareDateOnly,
   nextWeekday,
   parseDateOnly,
   previousWeekday,
@@ -23,6 +24,7 @@ import { useSession } from '@garage/auth/client';
 import { toContractError } from '@garage/api-client';
 import type { DirectoryDesk } from '@garage/contract';
 import { useApi } from '../../shell/api-provider/api-provider';
+import { useCurrentUser } from '../../shell/use-current-user';
 import { EmptyState, ScreenError, ScreenLoading } from '../../shell/screen-state/screen-state';
 import { useDateInUrl } from '../../lot/lot-screen/use-date-in-url';
 import { DatePickerDialog } from '../../lot/date-picker-dialog/date-picker-dialog';
@@ -61,11 +63,13 @@ interface Option {
 export function DesksScreen() {
   const t = useTranslations('desks');
   const errors = useTranslations('errors');
+  const mine = useTranslations('myDesks');
   const f = useDateFormatters();
   const errorCopy = useErrorCopy();
   const api = useApi();
   const queryClient = useQueryClient();
   const { status: sessionStatus } = useSession();
+  const isAdmin = useCurrentUser().data?.role === 'ADMIN';
 
   const [date, setDate] = useDateInUrl();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
@@ -107,6 +111,7 @@ export function DesksScreen() {
   );
   const banner = useMemo(() => toDeskBannerView(desks), [desks]);
   const selectedIds = useMemo(() => (openDeskId === null ? [] : [openDeskId]), [openDeskId]);
+  const isPast = compareDateOnly(date, todayInPrague()) < 0;
   const openDesk = desks.find((desk) => desk.id === openDeskId) ?? null;
 
   if (directoryQuery.isPending) return <ScreenLoading />;
@@ -260,14 +265,16 @@ export function DesksScreen() {
               level="success"
               description={t('bannerToday', { code: banner.code })}
               controls={
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  isLoading={cancelToday.isPending}
-                  onClick={() => cancelToday.mutate({ reservationId: banner.reservationId })}
-                >
-                  {t('bannerTodayCancel')}
-                </Button>
+                isPast && !isAdmin ? undefined : (
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    isLoading={cancelToday.isPending}
+                    onClick={() => cancelToday.mutate({ reservationId: banner.reservationId })}
+                  >
+                    {t('bannerTodayCancel')}
+                  </Button>
+                )
               }
             />
           )}
@@ -275,7 +282,10 @@ export function DesksScreen() {
       )}
       {cancelToday.error === null ? null : (
         <div className={styles.notice}>
-          <SystemMessage level="alert" description={errorCopy(cancelToday.error)} />
+          <SystemMessage
+            level="alert"
+            description={errorCopy(cancelToday.error, { PAST_DATE: mine('errCancelPast') })}
+          />
         </div>
       )}
 
@@ -380,6 +390,8 @@ export function DesksScreen() {
             holdsPermanentDesk: banner.kind === 'permanent',
             myDeskToday:
               banner.kind === 'today' && banner.code !== openDesk.code ? banner.code : null,
+            isPast,
+            isAdmin,
           }}
           onClose={() => setOpenDeskId(null)}
           onChanged={refresh}

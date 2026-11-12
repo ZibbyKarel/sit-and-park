@@ -179,7 +179,7 @@ export function useLotRealtime({ date, viewerUserId }: LotRealtimeOptions): void
  * finishing its handshake is a real gap, the same gap as any later one, and
  * this is the only thing that closes it.
  */
-function useReconnectReconciliation(queryKey: readonly unknown[] | null): void {
+export function useReconnectReconciliation(queryKey: readonly unknown[] | null): void {
   const queryClient = useQueryClient();
   const { status } = useRealtime();
   const missedBroadcasts = useRef(false);

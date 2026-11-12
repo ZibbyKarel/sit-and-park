@@ -142,7 +142,7 @@ export function toDeskPatch(desk: AdminDesk, draft: DeskDraft): DeskPatch {
 export function patchImpact(patch: DeskPatch): DeskImpact | null {
   const office = patch.officeId !== undefined;
   const cancelsReservations = patch.active === false || office;
-  const rejectsRequests = patch.active !== undefined || patch.hiveId !== undefined || office;
+  const rejectsRequests = patch.active === false || patch.hiveId !== undefined || office;
   return cancelsReservations || rejectsRequests ? { cancelsReservations, rejectsRequests } : null;
 }
 
@@ -154,7 +154,7 @@ export function bulkImpact(
   const { active, hiveId } = change;
   const cancelsReservations = active === false && desks.some((desk) => desk.active);
   const rejectsRequests =
-    (active !== undefined && desks.some((desk) => desk.active !== active)) ||
+    (active === false && desks.some((desk) => desk.active)) ||
     (hiveId !== undefined && desks.some((desk) => desk.hiveId !== hiveId));
   return cancelsReservations || rejectsRequests ? { cancelsReservations, rejectsRequests } : null;
 }

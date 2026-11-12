@@ -33,14 +33,31 @@ Read this first; it is updated after every stage.
 | 6 Offices for parking | done (`common/office-scope.ts`) | b1488a6 | `parking-offices.db.spec.ts` |
 | 7 Web | done against the contract: nav, `/desks`, `/desks/my`, admin tabs (desks, stats, hives, offices, sync) | ee8a34f, b1488a6 | web unit tests only; first live run is stage 9a |
 | 8 Notifications and calendar | done (Slack DMs for approval, desk events in ICS) | b1488a6 | unit + db |
-| 9 E2E and docs | in progress: 9a = live smoke + Playwright specs (running); two read-only reviews of the API running | | |
+| 9 E2E and docs | done: five desk Playwright specs, desk cleanup in `reset-e2e.ts`, docs, a web review and its fixes | b594bb7 and the commit after it | see below |
 
-## Next step
+## Final verification (2026-11-13, about 01:00)
 
-1. Apply the findings of the two reviews (API correctness; sync/deactivation/office-scope security) and of the 9a live run.
-2. Small contract gap from 7b: `desk.directory` desks lack `myPendingRequestId`, so the dialog offers "request approval" twice (server refuses the duplicate).
-3. Stage 9b docs: `doc/desks.md`, `README.md`, `CLAUDE.md` counts (decision records, db suites, e2e counts), `doc/frontend.md`/`api-modules.md` rows, `graphify update .` (the worktree has no graph; run in the main checkout after merge).
-4. Final full verification, final handoff, report to the user.
+`pnpm lint`, `typecheck`, `test`, `build` and `nx format:check --all` exit 0.
+`api:test-db` 16 suites / 233 tests. `api-e2e:e2e` 2 suites / 11 tests.
+`CI=true web-e2e:e2e` 61 passed (52.4 s). Ports 3000 and 4200 free afterwards.
+
+## What is left
+
+Nothing in the plan is unimplemented. Known gaps, none of them blocking:
+
+- `graphify update .` has not run (the worktree has no graph); run it in the
+  main checkout after the merge.
+- `@shoptet/ui`'s `useScreenHasMinWidth` reads `window` at module load, so the
+  web server logs `ReferenceError: window is not defined` during SSR (React
+  #419 in the browser). It predates this branch (parking pages do it too).
+- Floor plan: the default view now covers the viewport's shorter axis, so on a
+  desktop about half of the plan is visible and the rest is panned to. On a
+  phone the top navigation wraps into a column.
+- The modal close button of `@shoptet/ui` has no accessible name; the stats
+  progress bar shows a full grey track at 0 %.
+- Review leftovers recorded in `doc/open-items.md`: realtime desk events are
+  not office-scoped, a deactivated user's open socket is not dropped, the sync
+  endpoint parses up to 2 MB before checking the bearer key.
 
 ## Open product questions (for the user)
 
@@ -55,5 +72,4 @@ Read this first; it is updated after every stage.
 - Agents get a shared brief: `SCRATCH/agent-brief.md`; they never commit, the orchestrator does.
 - The Prisma client is committed (`libs/garage/database/src/generated`); regenerate after schema changes.
 - A JIT-provisioned user has `officeId = null` until stage 5/6 assigns the default office.
-- `reset-e2e.ts` does not clean desk tables yet (stage 9).
 - Seed: `desk@example.com` holds permanent desk D-013; hives Engineering (D-037..042, owner admin) and Sales (D-013..018).

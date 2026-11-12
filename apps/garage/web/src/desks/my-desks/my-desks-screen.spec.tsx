@@ -298,4 +298,17 @@ describe('MyDesksScreen requests', () => {
     await user.click(await screen.findByRole('button', { name: /^approveLabel/ }));
     expect(await screen.findByText('DESK_ALREADY_RESERVED')).toBeInTheDocument();
   });
+
+  it.each([
+    ['PERMANENT_DESK_HOLDER', 'errDecidePermanentHolder'],
+    ['DESK_RESERVATION_LIMIT_REACHED', 'errDecideLimitReached'],
+    ['PAST_DATE', 'errDecidePast'],
+  ])('words %s from the decider’s point of view', async (code, copy) => {
+    const { user } = setup({
+      pending: [pending],
+      override: { 'desk/decideRequest': () => contractErrorResponse(code as never) },
+    });
+    await user.click(await screen.findByRole('button', { name: /^approveLabel/ }));
+    expect(await screen.findByText(copy)).toBeInTheDocument();
+  });
 });

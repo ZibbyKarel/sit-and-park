@@ -71,7 +71,10 @@ export function AdminDesksScreen() {
   const office =
     officeChoice === ALL
       ? null
-      : (offices.find((o) => o.id === officeChoice) ?? offices[0] ?? null);
+      : (offices.find((o) => o.id === officeChoice) ??
+        offices.find((o) => o.active) ??
+        offices[0] ??
+        null);
 
   const desksQuery = useQuery({
     ...api.admin.desk.list.queryOptions({

@@ -131,7 +131,9 @@ describe('AdminHivesScreen', () => {
     const u = renderScreen();
 
     await screen.findByText('Engineering');
-    await u.click(within(rowOf(ENGINEERING)).getByRole('button', { name: 'members' }));
+    await u.click(
+      within(rowOf(ENGINEERING)).getByRole('button', { name: 'membersFor: name=Engineering' })
+    );
     await selectOption(u, 'memberAddField', 'memberOption: name=Čeněk Svoboda,hive=Support');
     await u.click(screen.getByRole('button', { name: 'memberAdd' }));
 
@@ -154,7 +156,9 @@ describe('AdminHivesScreen', () => {
     const u = renderScreen();
 
     await screen.findByText('Engineering');
-    await u.click(within(rowOf(ENGINEERING)).getByRole('button', { name: 'members' }));
+    await u.click(
+      within(rowOf(ENGINEERING)).getByRole('button', { name: 'membersFor: name=Engineering' })
+    );
     await selectOption(u, 'memberAddField', 'Dana Krátká');
     await u.click(screen.getByRole('button', { name: 'memberAdd' }));
 
@@ -171,7 +175,9 @@ describe('AdminHivesScreen', () => {
     const u = renderScreen();
 
     await screen.findByText('Engineering');
-    await u.click(within(rowOf(ENGINEERING)).getByRole('button', { name: 'members' }));
+    await u.click(
+      within(rowOf(ENGINEERING)).getByRole('button', { name: 'membersFor: name=Engineering' })
+    );
     await u.click(await screen.findByRole('button', { name: 'memberRemove: name=Bára Nová' }));
 
     await waitFor(async () =>
@@ -186,7 +192,7 @@ describe('AdminHivesScreen', () => {
     const u = renderScreen();
 
     await screen.findByText('Support');
-    await u.click(within(rowOf(SUPPORT)).getByRole('button', { name: 'delete' }));
+    await u.click(within(rowOf(SUPPORT)).getByRole('button', { name: 'deleteFor: name=Support' }));
 
     expect(await screen.findByText('deleteDescription')).toBeInTheDocument();
     expect(await bodiesOf(api, 'admin/hive/delete')).toEqual([]);

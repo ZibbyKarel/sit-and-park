@@ -27,7 +27,8 @@ export interface SpotFormDialogProps {
    */
   readonly spot: Pick<ParkingSpot, 'label' | 'group' | 'evCharger' | 'officeId'> | null;
   /** The offices a spot can be in. */
-  readonly offices: readonly Pick<AdminOffice, 'id' | 'name'>[];
+  readonly offices: readonly (Pick<AdminOffice, 'id' | 'name'> &
+    Partial<Pick<AdminOffice, 'active'>>)[];
   readonly errorMessage: string | null;
   readonly saving: boolean;
   readonly onCancel: () => void;
@@ -51,7 +52,8 @@ export function SpotFormDialog({
       label: spot?.label ?? '',
       group: spot?.group ?? PARKING_GROUPS[0],
       evCharger: spot?.evCharger ?? false,
-      officeId: spot?.officeId ?? offices[0]?.id ?? '',
+      // The first active office; an inactive one cannot take a booking.
+      officeId: spot?.officeId ?? (offices.find((o) => o.active !== false) ?? offices[0])?.id ?? '',
     },
   });
 

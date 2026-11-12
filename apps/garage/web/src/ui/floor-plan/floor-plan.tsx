@@ -150,16 +150,16 @@ export function FloorPlan({
   const shapesById = useRef(new Map<string, FloorPlanShape>());
   shapesById.current = useMemo(() => new Map(shapes.map((s) => [s.id, s])), [shapes]);
 
-  /** Screen pixels -> viewBox units, accounting for letterboxing from max-height. */
+  /**
+   * Screen pixels -> viewBox units. The SVG covers its box (`slice`, pinned top-left), so the
+   * default view fits the shorter axis; `vw`/`vh` are the visible window in plan units.
+   */
   const metrics = () => {
     const r = svgRef.current?.getBoundingClientRect();
-    if (!r || r.width === 0 || r.height === 0) return { k: 1, left: 0, top: 0 };
-    const k = Math.min(r.width / width, r.height / height);
-    return {
-      k,
-      left: r.left + (r.width - width * k) / 2,
-      top: r.top + (r.height - height * k) / 2,
-    };
+    if (!r || r.width === 0 || r.height === 0)
+      return { k: 1, left: 0, top: 0, vw: width, vh: height };
+    const k = Math.max(r.width / width, r.height / height);
+    return { k, left: r.left, top: r.top, vw: r.width / k, vh: r.height / k };
   };
 
   // Wheel needs a non-passive listener to be able to preventDefault; only Ctrl/Cmd zooms,
@@ -173,7 +173,16 @@ export function FloorPlan({
       const m = metrics();
       const factor = e.deltaY < 0 ? WHEEL_FACTOR : 1 / WHEEL_FACTOR;
       setView((v) =>
-        zoomAt(v, factor, (e.clientX - m.left) / m.k, (e.clientY - m.top) / m.k, width, height)
+        zoomAt(
+          v,
+          factor,
+          (e.clientX - m.left) / m.k,
+          (e.clientY - m.top) / m.k,
+          m.vw,
+          m.vh,
+          width,
+          height
+        )
       );
     };
     svg.addEventListener('wheel', onWheel, { passive: false });
@@ -210,7 +219,7 @@ export function FloorPlan({
       if (before === 0 || after === 0) return;
       const cx = ((a.x + b.x) / 2 - m.left) / m.k;
       const cy = ((a.y + b.y) / 2 - m.top) / m.k;
-      setView((v) => zoomAt(v, after / before, cx, cy, width, height));
+      setView((v) => zoomAt(v, after / before, cx, cy, m.vw, m.vh, width, height));
       return;
     }
     if (!moved.current) {
@@ -222,7 +231,9 @@ export function FloorPlan({
       setDragging(true);
     }
     pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    setView((v) => panBy(v, (e.clientX - prev.x) / m.k, (e.clientY - prev.y) / m.k, width, height));
+    setView((v) =>
+      panBy(v, (e.clientX - prev.x) / m.k, (e.clientY - prev.y) / m.k, m.vw, m.vh, width, height)
+    );
   }
 
   function onPointerEnd(e: PointerEvent<SVGSVGElement>) {
@@ -230,8 +241,10 @@ export function FloorPlan({
     if (pointers.current.size === 0) setDragging(false);
   }
 
-  const zoomCentre = (factor: number) =>
-    setView((v) => zoomAt(v, factor, width / 2, height / 2, width, height));
+  const zoomCentre = (factor: number) => {
+    const m = metrics();
+    setView((v) => zoomAt(v, factor, m.vw / 2, m.vh / 2, m.vw, m.vh, width, height));
+  };
 
   return (
     <div className={styles.root}>
@@ -240,6 +253,7 @@ export function FloorPlan({
           ref={svgRef}
           className={styles.svg}
           viewBox={`0 0 ${width} ${height}`}
+          preserveAspectRatio="xMinYMin slice"
           data-dragging={dragging ? '' : undefined}
           data-labels={view.scale >= LABEL_SCALE ? '' : undefined}
           onPointerDown={onPointerDown}
@@ -255,27 +269,27 @@ export function FloorPlan({
             <ShapeLayer shapes={shapes} tones={tones} selected={selected} activate={activate} />
           </g>
         </svg>
-        <div className={styles.controls}>
-          <button
-            type="button"
-            className={styles.button}
-            aria-label={labels.zoomIn}
-            onClick={() => zoomCentre(BUTTON_FACTOR)}
-          >
-            +
-          </button>
-          <button
-            type="button"
-            className={styles.button}
-            aria-label={labels.zoomOut}
-            onClick={() => zoomCentre(1 / BUTTON_FACTOR)}
-          >
-            −
-          </button>
-          <button type="button" className={styles.button} onClick={() => setView(IDENTITY_VIEW)}>
-            {labels.reset}
-          </button>
-        </div>
+      </div>
+      <div className={styles.controls}>
+        <button
+          type="button"
+          className={styles.button}
+          aria-label={labels.zoomIn}
+          onClick={() => zoomCentre(BUTTON_FACTOR)}
+        >
+          +
+        </button>
+        <button
+          type="button"
+          className={styles.button}
+          aria-label={labels.zoomOut}
+          onClick={() => zoomCentre(1 / BUTTON_FACTOR)}
+        >
+          −
+        </button>
+        <button type="button" className={styles.button} onClick={() => setView(IDENTITY_VIEW)}>
+          {labels.reset}
+        </button>
       </div>
       <p className={styles.hint}>{labels.hint}</p>
     </div>

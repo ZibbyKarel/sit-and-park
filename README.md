@@ -47,13 +47,13 @@ enter a subject and put the JSON below in its _Optional claims JSON_ box
 Leaving the claims box empty signs you in without an `email`, which the API
 does not recognise.
 
-| Persona      | Subject        | Optional claims JSON                                     | Role  |
-| ------------ | -------------- | -------------------------------------------------------- | ----- |
-| Dev Admin    | `dev-admin`    | `{"email":"admin@example.com","name":"Dev Admin"}`       | ADMIN |
-| Dev User     | `dev-user`     | `{"email":"user@example.com","name":"Dev User"}`         | USER  |
-| Dev User 2   | `dev-user2`    | `{"email":"user2@example.com","name":"Dev User Two"}`    | USER  |
-| Dev Desk Holder | `dev-desk-holder` | `{"email":"desk@example.com","name":"Dev Desk Holder"}` | USER |
-| Dev Inactive | `dev-inactive` | `{"email":"inactive@example.com","name":"Dev Inactive"}` | USER  |
+| Persona         | Subject           | Optional claims JSON                                     | Role  |
+| --------------- | ----------------- | -------------------------------------------------------- | ----- |
+| Dev Admin       | `dev-admin`       | `{"email":"admin@example.com","name":"Dev Admin"}`       | ADMIN |
+| Dev User        | `dev-user`        | `{"email":"user@example.com","name":"Dev User"}`         | USER  |
+| Dev User 2      | `dev-user2`       | `{"email":"user2@example.com","name":"Dev User Two"}`    | USER  |
+| Dev Desk Holder | `dev-desk-holder` | `{"email":"desk@example.com","name":"Dev Desk Holder"}`  | USER  |
+| Dev Inactive    | `dev-inactive`    | `{"email":"inactive@example.com","name":"Dev Inactive"}` | USER  |
 
 These come from the seed fixture (`libs/garage/database/src/lib/seed-data.ts`)
 and only exist after `pnpm exec prisma db seed`. Open a second browser (or a private

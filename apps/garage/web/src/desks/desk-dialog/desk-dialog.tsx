@@ -38,6 +38,7 @@ export interface DeskDialogProps {
 
 export function DeskDialog({ desk, date, context, onClose, onChanged }: DeskDialogProps) {
   const t = useTranslations('desks');
+  const mine = useTranslations('myDesks');
   const f = useDateFormatters();
   const api = useApi();
   const errorCopy = useErrorCopy();
@@ -176,6 +177,8 @@ export function DeskDialog({ desk, date, context, onClose, onChanged }: DeskDial
                 // `requestApproval`'s VALIDATION_FAILED is "this desk cannot be
                 // requested"; the catalogue sentence is parking's.
                 ...(request.error === null ? {} : { VALIDATION_FAILED: t('errRequestNotAllowed') }),
+                // `cancel`'s PAST_DATE is "only an admin may cancel a past reservation".
+                ...(cancel.error === null ? {} : { PAST_DATE: mine('errCancelPast') }),
               })}
             />
           </div>

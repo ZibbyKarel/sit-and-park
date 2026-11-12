@@ -417,6 +417,23 @@ describe('AdminSpotsScreen', () => {
       );
     });
 
+    it('defaults a new spot to the first active office, not an inactive one', async () => {
+      const { onCreate, user } = renderScreen({
+        offices: [
+          { id: 'office-0', name: 'Archiv', active: false },
+          { id: 'office-1', name: 'Praha', active: true },
+        ],
+      });
+
+      await user.click(screen.getByRole('button', { name: 'spotsAdd' }));
+      await user.type(inDialog().getByLabelText('spotsLabelField'), 'B1.02');
+      await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
+
+      await waitFor(() =>
+        expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ officeId: 'office-1' }))
+      );
+    });
+
     it('sends the office that was picked', async () => {
       const { onCreate, user } = renderScreen();
 

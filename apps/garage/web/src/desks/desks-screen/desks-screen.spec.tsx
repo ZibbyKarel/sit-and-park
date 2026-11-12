@@ -16,7 +16,7 @@ import {
   type StubbedApi,
   type StubbedResponse,
 } from '../../testing/stub-api';
-import { T0 } from '../../testing/fixtures';
+import { T0, profile } from '../../testing/fixtures';
 import { directory, directoryDesk } from '../desk.test-helpers';
 import { DesksScreen } from './desks-screen';
 
@@ -34,18 +34,23 @@ jest.mock('@garage/i18n', () => ({
 }));
 jest.mock('next/navigation', () => ({
   useRouter: () => ({ replace: jest.fn() }),
-  useSearchParams: () => new URLSearchParams(''),
+  useSearchParams: () => new URLSearchParams(mockSearch),
 }));
 jest.mock('@garage/auth/client', () => ({
   useSession: () => ({ status: 'authenticated' }),
 }));
+let mockSearch = '';
+let mockRealtimeStatus = 'connected';
 jest.mock('@garage/realtime-client', () => ({
   useDayRoom: jest.fn(),
+  useRealtime: () => ({ status: mockRealtimeStatus, reconnect: jest.fn() }),
   useRealtimeEvent: jest.fn(),
 }));
 
 let mockApi: ApiQueryUtils;
 jest.mock('../../shell/api-provider/api-provider', () => ({ useApi: () => mockApi }));
+
+const ok = (value: unknown): StubbedResponse => ({ status: 200, body: rpcPayload(value) });
 
 type Routes = Record<string, StubbedResponse>;
 
@@ -53,15 +58,13 @@ type Routes = Record<string, StubbedResponse>;
 function serve(routes: Routes): StubbedApi {
   const api: StubbedApi = stubApi((index) => {
     const path = new URL(api.requests[index]?.url ?? '').pathname.replace(/^\/rpc\//, '');
-    const response = routes[path];
+    const response = routes[path] ?? (path === 'me/get' ? ok(profile()) : undefined);
     if (response === undefined) throw new Error(`unrouted call to ${path}`);
     return response;
   });
   mockApi = createApiQueryUtils(api.client);
   return api;
 }
-
-const ok = (value: unknown): StubbedResponse => ({ status: 200, body: rpcPayload(value) });
 
 async function bodiesOf(api: StubbedApi, path: string): Promise<unknown[]> {
   const matching = api.requests.filter((request) => request.url.endsWith(`/rpc/${path}`));
@@ -323,5 +326,48 @@ describe('DesksScreen', () => {
     await user.click(within(dialog).getByRole('button', { name: 'requestApproval' }));
 
     expect(await within(dialog).findByText('errRequestNotAllowed')).toBeInTheDocument();
+  });
+
+  it('offers a plain viewer neither booking nor cancelling on a past day', async () => {
+    mockSearch = 'date=2026-11-09';
+    const mine = directoryDesk({
+      id: 'd2',
+      code: 'D-002',
+      status: 'RESERVED_BY_ME',
+      myReservationId: 'res-1',
+    });
+    serve({ 'desk/directory': ok(directory([FREE, mine])) });
+    const user = renderScreen();
+
+    expect(await screen.findByRole('status')).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'bannerTodayCancel' })).not.toBeInTheDocument();
+    const dialog = await openDesk(user, mine);
+    expect(within(dialog).getByText('notePast')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('button', { name: 'cancelReservation' })).toBeNull();
+    mockSearch = '';
+  });
+
+  it('refetches the directory when the socket comes back', async () => {
+    mockRealtimeStatus = 'disconnected';
+    const api = serve({ 'desk/directory': ok(directory([FREE])) });
+    const client = createQueryClient();
+    const tree = () => (
+      <QueryClientProvider client={client}>
+        <IntlProvider locale="cs" messages={cs}>
+          <LocalizationProvider locale="cs-CZ">
+            <DesksScreen />
+          </LocalizationProvider>
+        </IntlProvider>
+      </QueryClientProvider>
+    );
+    const view = render(tree());
+    await screen.findByRole('button', { name: /^deskAria/ });
+    expect(await bodiesOf(api, 'desk/directory')).toHaveLength(1);
+
+    mockRealtimeStatus = 'connected';
+    view.rerender(tree());
+
+    await waitFor(async () => expect(await bodiesOf(api, 'desk/directory')).toHaveLength(2));
+    mockRealtimeStatus = 'connected';
   });
 });

@@ -11,17 +11,24 @@
  * state to recompute them from.
  */
 
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useDayRoom, useRealtimeEvent } from '@garage/realtime-client';
 import type { DateOnly } from '@garage/i18n';
 import { useApi } from '../../shell/api-provider/api-provider';
+import { useReconnectReconciliation } from '../../lot/lot-screen/use-lot-realtime';
 
 export function useDeskRealtime(date: DateOnly): void {
   const api = useApi();
   const queryClient = useQueryClient();
 
   useDayRoom(date);
+  // Broadcasts missed while the socket was down are not replayed: ask again.
+  const queryKey = useMemo(
+    () => api.desk.directory.queryOptions({ input: { date } }).queryKey,
+    [api, date]
+  );
+  useReconnectReconciliation(queryKey);
 
   const refresh = useCallback(
     (event: { readonly date: string }) => {

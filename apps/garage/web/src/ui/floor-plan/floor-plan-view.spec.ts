@@ -28,6 +28,12 @@ describe('floor-plan-view', () => {
     expect(far.ty).toBe(-500);
   });
 
+  it('panBy at scale 1 pans only along the axis the plan overflows (cover fit)', () => {
+    // visible window 400 wide of a 1000 wide plan: slack is 600 on x, none on y
+    const v = panBy(IDENTITY_VIEW, -5000, -5000, 400, 500, 1000, 500);
+    expect(v).toEqual({ scale: 1, tx: -600, ty: 0 });
+  });
+
   it('panBy at scale 1 is a no-op', () => {
     expect(panBy(IDENTITY_VIEW, 30, -30, 1000, 500)).toEqual(IDENTITY_VIEW);
   });

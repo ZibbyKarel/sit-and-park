@@ -94,7 +94,8 @@ export interface AdminSpotsScreenProps {
    */
   readonly todayBySpotId: ReadonlyMap<string, SpotToday>;
   /** Offices for the column and the form's picker. */
-  readonly offices: readonly Pick<AdminOffice, 'id' | 'name'>[];
+  readonly offices: readonly (Pick<AdminOffice, 'id' | 'name'> &
+    Partial<Pick<AdminOffice, 'active'>>)[];
   /** Resolves when the spot exists; rejects to keep the dialog open. */
   readonly onCreate: (input: CreateSpotInput) => Promise<void>;
   /** Same contract, for a label/group/EV charger edit. */

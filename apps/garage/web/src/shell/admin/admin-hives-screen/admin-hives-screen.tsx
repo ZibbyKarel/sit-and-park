@@ -126,14 +126,23 @@ export function AdminHivesScreen() {
         <Stack orientation="horizontal" align="center" gap="sm">
           <Button
             variant="secondary"
+            aria-label={t('membersFor', { name: hive.name })}
             onClick={() => changeDialog({ kind: 'members', hiveId: hive.id })}
           >
             {t('members')}
           </Button>
-          <Button variant="secondary" onClick={() => changeDialog({ kind: 'edit', hive })}>
+          <Button
+            variant="secondary"
+            aria-label={t('editFor', { name: hive.name })}
+            onClick={() => changeDialog({ kind: 'edit', hive })}
+          >
             {t('edit')}
           </Button>
-          <Button variant="destructive" onClick={() => changeDialog({ kind: 'delete', hive })}>
+          <Button
+            variant="destructive"
+            aria-label={t('deleteFor', { name: hive.name })}
+            onClick={() => changeDialog({ kind: 'delete', hive })}
+          >
             {t('delete')}
           </Button>
         </Stack>

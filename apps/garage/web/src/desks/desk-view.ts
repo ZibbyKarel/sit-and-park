@@ -174,7 +174,8 @@ export type DeskNoteKey =
   | 'noteApproval'
   | 'noteApprovalNotFree'
   | 'noteHasDeskToday'
-  | 'notePendingRequest';
+  | 'notePendingRequest'
+  | 'notePast';
 
 export interface DeskDialogView {
   /** Book this one day (`desk.reserve` with one date). */
@@ -196,6 +197,10 @@ export interface DeskDialogContext {
   readonly holdsPermanentDesk: boolean;
   /** Code of the desk the viewer already has that day, or `null`. */
   readonly myDeskToday: string | null;
+  /** The shown day is before today (Prague). */
+  readonly isPast: boolean;
+  /** Admins may cancel past reservations; nobody else may. */
+  readonly isAdmin: boolean;
 }
 
 /**
@@ -213,8 +218,11 @@ export function toDeskDialogView(desk: DirectoryDesk, ctx: DeskDialogContext): D
       : desk.status === 'ASSIGNED'
         ? desk.permanentAssigneeName
         : null;
-  const canCancel = desk.status === 'RESERVED_BY_ME' && desk.myReservationId !== null;
-  const blocked = ctx.holdsPermanentDesk || desk.status === 'INACTIVE';
+  const canCancel =
+    desk.status === 'RESERVED_BY_ME' &&
+    desk.myReservationId !== null &&
+    (!ctx.isPast || ctx.isAdmin);
+  const blocked = ctx.holdsPermanentDesk || desk.status === 'INACTIVE' || ctx.isPast;
   const canSeries = !blocked && desk.access === 'DIRECT';
   const canBookDay = canSeries && desk.status === 'FREE' && ctx.myDeskToday === null;
   const canCancelRequest = desk.myPendingRequestId !== null;
@@ -231,23 +239,25 @@ export function toDeskDialogView(desk: DirectoryDesk, ctx: DeskDialogContext): D
       ? 'notePendingRequest'
       : desk.assignedToMe
         ? null
-        : ctx.holdsPermanentDesk
-          ? 'notePermanentHolder'
-          : desk.status === 'INACTIVE'
-            ? 'noteInactive'
-            : desk.access === 'NONE'
-              ? 'noteNoAccess'
-              : desk.status === 'ASSIGNED'
-                ? 'noteAssigned'
-                : desk.status === 'RESERVED'
-                  ? 'noteReserved'
-                  : ctx.myDeskToday !== null
-                    ? 'noteHasDeskToday'
-                    : desk.access === 'APPROVAL'
-                      ? canRequest
-                        ? 'noteApproval'
-                        : 'noteApprovalNotFree'
-                      : null;
+        : ctx.isPast
+          ? 'notePast'
+          : ctx.holdsPermanentDesk
+            ? 'notePermanentHolder'
+            : desk.status === 'INACTIVE'
+              ? 'noteInactive'
+              : desk.access === 'NONE'
+                ? 'noteNoAccess'
+                : desk.status === 'ASSIGNED'
+                  ? 'noteAssigned'
+                  : desk.status === 'RESERVED'
+                    ? 'noteReserved'
+                    : ctx.myDeskToday !== null
+                      ? 'noteHasDeskToday'
+                      : desk.access === 'APPROVAL'
+                        ? canRequest
+                          ? 'noteApproval'
+                          : 'noteApprovalNotFree'
+                        : null;
 
   return { canBookDay, canSeries, canCancel, canRequest, canCancelRequest, note, holderName };
 }

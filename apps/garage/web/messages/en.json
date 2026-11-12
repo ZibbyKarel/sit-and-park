@@ -471,7 +471,10 @@
     "rejectLabel": "Reject the request for desk {code} by {requester}",
     "approved": "The request was approved and the desk booked.",
     "rejected": "The request was rejected.",
-    "errDecideInvalid": "The requester no longer meets the conditions (inactive or in another office), or the desk is no longer in a hive."
+    "errDecideInvalid": "The requester no longer meets the conditions (inactive or in another office), or the desk is no longer in a hive.",
+    "errDecidePermanentHolder": "The requester has a permanent desk and cannot reserve another one.",
+    "errDecideLimitReached": "The requester already has another desk reserved for that day — only one is allowed per day.",
+    "errDecidePast": "The requested day is already in the past, so the request cannot be approved."
   },
   "desks": {
     "title": "Desk booking",
@@ -536,6 +539,7 @@
     "cancelReservation": "Cancel my booking",
     "requestApproval": "Request approval",
     "requestSent": "Request sent. It awaits approval; you can follow it in My desks.",
+    "notePast": "Nothing can be reserved or requested for a past day.",
     "notePendingRequest": "Your request for this desk on this day is awaiting approval.",
     "cancelRequest": "Cancel request",
     "errRequestNotAllowed": "This desk cannot be requested: either you can book it directly, or it belongs to no team.",
@@ -690,6 +694,9 @@
     "members": "Members",
     "edit": "Edit",
     "delete": "Delete",
+    "membersFor": "Members of hive {name}",
+    "editFor": "Edit hive {name}",
+    "deleteFor": "Delete hive {name}",
     "add": "Add hive",
     "empty": "No hives yet",
     "emptyDescription": "A hive groups desks and the people who may book them without approval.",

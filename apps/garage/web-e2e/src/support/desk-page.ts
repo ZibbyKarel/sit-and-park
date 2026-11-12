@@ -86,6 +86,9 @@ export async function goToMyDesks(page: Page): Promise<void> {
   await expect(page.getByRole('heading', { name: 'Moje rezervace stolů' })).toBeVisible({
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
+  // The H2s sit outside each section's data guard, so the heading alone says nothing
+  // about the data: an "absent" assertion would pass while it is still loading.
+  await expect(page.getByRole('status').filter({ hasText: 'Načítá se' })).toHaveCount(0);
 }
 
 /** A section of `/desks/my` by its heading. */

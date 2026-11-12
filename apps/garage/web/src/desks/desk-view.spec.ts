@@ -11,7 +11,7 @@ import {
   toSeriesView,
 } from './desk-view';
 
-const NO_CONTEXT = { holdsPermanentDesk: false, myDeskToday: null };
+const NO_CONTEXT = { holdsPermanentDesk: false, myDeskToday: null, isPast: false, isAdmin: false };
 
 describe('deskPlanLabel', () => {
   it.each([
@@ -154,6 +154,26 @@ describe('toDeskDialogView', () => {
     expect(view).toMatchObject({ canCancel: true, canBookDay: false, note: null });
   });
 
+  it('offers nothing to book or request on a past day', () => {
+    const past = { ...NO_CONTEXT, isPast: true };
+    expect(toDeskDialogView(directoryDesk(), past)).toMatchObject({
+      canBookDay: false,
+      canSeries: false,
+      note: 'notePast',
+    });
+    expect(toDeskDialogView(directoryDesk({ access: 'APPROVAL' }), past)).toMatchObject({
+      canRequest: false,
+      note: 'notePast',
+    });
+  });
+
+  it('lets only an admin cancel a past booking', () => {
+    const desk = directoryDesk({ status: 'RESERVED_BY_ME', myReservationId: 'res-1' });
+    const past = { ...NO_CONTEXT, isPast: true };
+    expect(toDeskDialogView(desk, past)).toMatchObject({ canCancel: false, note: 'notePast' });
+    expect(toDeskDialogView(desk, { ...past, isAdmin: true })).toMatchObject({ canCancel: true });
+  });
+
   it('names the holder of a taken desk and still offers other days', () => {
     const view = toDeskDialogView(
       directoryDesk({ status: 'RESERVED', reservedByName: 'Petr Novák' }),
@@ -211,7 +231,7 @@ describe('toDeskDialogView', () => {
     [
       'a permanent holder',
       directoryDesk(),
-      { holdsPermanentDesk: true, myDeskToday: null },
+      { ...NO_CONTEXT, holdsPermanentDesk: true },
       'notePermanentHolder',
     ],
   ])('offers nothing for %s', (_label, desk, ctx, note) => {

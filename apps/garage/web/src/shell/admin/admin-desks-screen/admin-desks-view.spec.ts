@@ -105,10 +105,7 @@ describe('what a change sets off', () => {
       cancelsReservations: false,
       rejectsRequests: true,
     });
-    expect(patchImpact({ active: true })).toEqual({
-      cancelsReservations: false,
-      rejectsRequests: true,
-    });
+    expect(patchImpact({ active: true })).toBeNull();
   });
 
   it('looks only at the desks a bulk change would really change', () => {
@@ -117,10 +114,7 @@ describe('what a change sets off', () => {
       cancelsReservations: true,
       rejectsRequests: true,
     });
-    expect(bulkImpact([C], { active: true })).toEqual({
-      cancelsReservations: false,
-      rejectsRequests: true,
-    });
+    expect(bulkImpact([C], { active: true })).toBeNull();
     expect(bulkImpact([B], { hiveId: 'h1' })).toBeNull();
     expect(bulkImpact([A], { hiveId: 'h1' })?.rejectsRequests).toBe(true);
     expect(bulkImpact([B], { hiveId: null })?.cancelsReservations).toBe(false);

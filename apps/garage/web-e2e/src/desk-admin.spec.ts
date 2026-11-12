@@ -41,17 +41,20 @@ async function editDesk(page: Page, code: string): Promise<Locator> {
   return editor;
 }
 
-/** Flips the desk's "Aktivní" switch, saves and confirms. */
+/** Flips the desk's "Aktivní" switch, saves, and confirms a deactivation. */
 async function toggleActive(page: Page, editor: Locator, active: boolean): Promise<void> {
   const toggle = editor.getByRole('switch', { name: 'Aktivní' });
   await expect(toggle).toBeChecked({ checked: !active });
   await toggle.click();
   await editor.getByRole('button', { name: 'Uložit změny' }).click();
 
-  const confirm = page.getByRole('dialog', { name: `Změnit stůl ${DESK}?` });
-  if (!active) await expect(confirm).toContainText('Budoucí rezervace stolu budou zrušeny.');
-  await confirm.getByRole('button', { name: 'Potvrdit' }).click();
-  await expect(confirm).toBeHidden();
+  // Only deactivation has an impact to confirm; reactivation saves straight away.
+  if (!active) {
+    const confirm = page.getByRole('dialog', { name: `Změnit stůl ${DESK}?` });
+    await expect(confirm).toContainText('Budoucí rezervace stolu budou zrušeny.');
+    await confirm.getByRole('button', { name: 'Potvrdit' }).click();
+    await expect(confirm).toBeHidden();
+  }
   await expect(toggle).toBeChecked({ checked: active });
 }
 
