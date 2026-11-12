@@ -15,7 +15,7 @@ something new:
 everything here. `doc/implementation-plan.md` is its breakdown into tasks.
 
 This index is generated from the filesystem and accounts for every file under
-`doc/`: 21 topic documents, 205 decision records, and `doc/design/`.
+`doc/`: 23 topic documents, 218 decision records, and `doc/design/`.
 
 ---
 
@@ -31,6 +31,8 @@ This index is generated from the filesystem and accounts for every file under
 | [`bulk-reservation-modal.md`](bulk-reservation-modal.md) | The front end of that allocator — the `Hromadná rezervace` modal in `apps/garage/web/src/lot/`.                                                                                                                                               |
 | [`contract.md`](contract.md)                             | `libs/garage/contract`, the single source of truth for every FE↔BE shape, and how to add a schema, a procedure or an error to it.                                                                                                            |
 | [`database.md`](database.md)                             | The PostgreSQL schema, Prisma 7 setup, migrations, the development seed, and backups.                                                                                                                                                         |
+| [`desk-merge-handoff.md`](desk-merge-handoff.md) | Live progress of the desk merge: which stage is done, what is in flight, what the next agent must know. |
+| [`desk-merge-plan.md`](desk-merge-plan.md) | The binding plan for merging the desk-booking app into garage: decisions, rules carried over, data model, floor plan and stages. |
 | [`environment.md`](environment.md)                       | Every environment variable the two apps need, how the local Docker stack is started, and how dev, e2e and production differ (values only, never code).                                                                                        |
 | [`frontend.md`](frontend.md)                             | `apps/garage/web`: the route tree, the single client boundary, provider order, the sign-in flow, the screen states and the `ScreenData<T>` union that selects one, and the `*-view.ts` split between what a screen decides and what it draws. |
 | [`i18n.md`](i18n.md)                                     | `libs/shared/i18n` — the only place allowed to import `next-intl` — the two message catalogs in `apps/garage/web/messages`, how a request's locale is chosen, and the English glossary.                                                       |
@@ -61,5 +63,5 @@ staying alive (historical: `@shoptet/ui` is the visual source of truth now, `doc
 ## Decision records
 
 Indexed in their own directory: [`doc/decision/README.md`](decision/README.md)
-lists all 205 records, one line each, in the same format as the topic-document
+lists all 218 records, one line each, in the same format as the topic-document
 table above.

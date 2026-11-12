@@ -213,3 +213,16 @@ for why, and take the next number from the end of this list.
 - [`0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`](0317-the-ev-charger-flag-is-informational-and-shown-to-everyone.md) — 0317 – The EV charger flag is informational and shown to everyone
 - [`0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted`](0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md) — 0318 – UI comes from @shoptet/ui and the in-house design system is deleted
 - [`0319-pnpm-is-the-package-manager`](0319-pnpm-is-the-package-manager.md) — 0319 – pnpm is the package manager, and npm is not used anywhere
+- [`0320-desks-live-in-the-garage-app-and-are-reimplemented-not-ported`](0320-desks-live-in-the-garage-app-and-are-reimplemented-not-ported.md) — 0320 – Desks live in the garage app and are reimplemented, not ported
+- [`0321-desks-follow-the-sources-rules-not-parkings`](0321-desks-follow-the-sources-rules-not-parkings.md) — 0321 – Desks follow the source's rules, not parking's reservation window, quota or waitlist
+- [`0322-a-hive-owner-is-hive-ownerid-not-a-role`](0322-a-hive-owner-is-hive-ownerid-not-a-role.md) — 0322 – A hive owner is `Hive.ownerId`, not a role
+- [`0323-offices-scope-desks-and-parking-hives-stay-global`](0323-offices-scope-desks-and-parking-hives-stay-global.md) — 0323 – Offices scope desks and parking; an admin does not bypass the office for booking; hives stay global
+- [`0324-zones-are-a-table-per-office`](0324-zones-are-a-table-per-office.md) — 0324 – Zones are a table per office
+- [`0325-the-floor-plan-is-a-bundled-static-image-and-desk-geometry-is-data`](0325-the-floor-plan-is-a-bundled-static-image-and-desk-geometry-is-data.md) — 0325 – The floor plan is a bundled static image and desk geometry is data
+- [`0326-database-uniques-carry-the-booking-guarantees`](0326-database-uniques-carry-the-booking-guarantees.md) — 0326 – Database uniques carry the booking guarantees
+- [`0327-desk-and-hive-changes-cancel-or-reject-what-they-orphan`](0327-desk-and-hive-changes-cancel-or-reject-what-they-orphan.md) — 0327 – Desk and hive changes cancel or reject what they orphan
+- [`0328-booking-a-series-always-skips-conflicts-and-reports-typed-reasons`](0328-booking-a-series-always-skips-conflicts-and-reports-typed-reasons.md) — 0328 – Booking a series always skips conflicts and reports typed reasons
+- [`0329-users-are-deactivated-never-deleted`](0329-users-are-deactivated-never-deleted.md) — 0329 – Users are deactivated, never deleted; deactivation applies to the whole app
+- [`0330-employee-sync-endpoint-key-hash-dry-run-shrink-protection`](0330-employee-sync-endpoint-key-hash-dry-run-shrink-protection.md) — 0330 – Employee sync: endpoint outside oRPC, key hash from the environment, dry-run default, shrink protection, manual accounts
+- [`0331-the-contract-stays-mcp-friendly-no-mcp-server-or-slack-bot`](0331-the-contract-stays-mcp-friendly-no-mcp-server-or-slack-bot.md) — 0331 – The contract stays MCP-friendly; no MCP server or Slack bot is built
+- [`0332-deskapprovalrequest-naming-and-the-request-lifecycle`](0332-deskapprovalrequest-naming-and-the-request-lifecycle.md) — 0332 – `DeskApprovalRequest` naming and the request lifecycle
