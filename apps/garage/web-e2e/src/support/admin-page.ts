@@ -27,12 +27,14 @@ export const ADMIN_PATH = '/admin';
  */
 const FIRST_ROUTE_VISIT_TIMEOUT_MS = 30_000;
 
-/** The four tabs of `AdminScreen`, by the label each one renders. */
+/** The tabs of `AdminScreen` the specs visit, by the label each one renders. */
 export const ADMIN_TABS = {
   overview: 'Přehled parkoviště',
   users: 'Uživatelé',
   spots: 'Parkovací místa',
   window: 'Rezervační okno',
+  desks: 'Stoly',
+  hives: 'Hivy',
 } as const;
 
 export type AdminTab = keyof typeof ADMIN_TABS;
@@ -55,12 +57,14 @@ export async function goToAdminTab(page: Page, tab: AdminTab): Promise<Locator> 
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
 
-  const strip = page.getByRole('tablist');
+  const strip = page.getByRole('tablist').first();
   const trigger = strip.getByRole('tab', { name: ADMIN_TABS[tab], exact: true });
   await trigger.click();
   await expect(trigger).toHaveAttribute('aria-selected', 'true');
 
-  const panel = page.getByRole('tabpanel');
+  // `.first()`: the desks tab nests its own plan/table tabs, so a second
+  // `tabpanel` lives inside this one; the outer panel comes first in the DOM.
+  const panel = page.getByRole('tabpanel').first();
   await expect(panel).toBeVisible();
   return panel;
 }

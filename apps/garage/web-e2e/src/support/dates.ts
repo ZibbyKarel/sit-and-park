@@ -85,6 +85,15 @@ export const SPEC_DAY_SLOTS = {
   adminUsers: 9,
   adminWindow: 10,
   settingsProfile: 11,
+  deskBooking: 12,
+  deskSeries: 13,
+  // The series spec's second day, and it must be the *next* business day after
+  // `deskSeries`: it is picked by its weekday checkbox, which only reaches the
+  // first week from the series' start.
+  deskSeriesSecondDay: 14,
+  deskApproval: 15,
+  deskAdmin: 16,
+  deskRelease: 17,
 } as const;
 
 const CZECH_MONTHS_GENITIVE = [
