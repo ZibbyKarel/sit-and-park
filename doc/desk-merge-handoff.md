@@ -25,20 +25,24 @@ Read this first; it is updated after every stage.
 
 | Stage | State | Commit | Verified |
 | --- | --- | --- | --- |
-| 1 Decisions and spec | pending | | |
-| 2 Data model | pending | | |
-| 3 Contract | pending | | |
-| 4 Desk API | pending | | |
+| 1 Decisions and spec | done (records 0320-0332; `doc/desks.md` still to write, stage 9) | ca16e2f | prettier |
+| 2 Data model | done | 44e00bf | migrate deploy on existing + empty DB, seed x2, `database:test` 181 pass |
+| 3 Contract | done | 44e00bf | contract 549 tests, shared-types 202, `web:typecheck` green |
+| 4 Desk API | in progress: 4.0 unblocking API compile (audit payloads, `me.get`, gateway, parity list) | | |
 | 5 Employee sync | pending | | |
 | 6 Offices for parking | pending | | |
-| 7 Web | pending | | |
+| 7 Web | in progress: `FloorPlan` done (17f8fdd, not browser-tested); desks day screen (7b) and my-desks (7c) running | | |
 | 8 Notifications and calendar | pending | | |
 | 9 E2E and docs | pending | | |
 
 ## Next step
 
-Stage 2 and 3 in parallel, Stage 1 docs alongside.
+After 4.0 is green: launch 4A (desk core: rules, directory, reserve, cancel, releases, approval), 4B (admin desks/hives/offices/zones/stats + stage 6 parking offices) and stage 5 (employee sync) in parallel. Then 7d admin web, 8, review, 9.
 
 ## Notes for whoever resumes
 
-(none yet)
+- Agents get a shared brief: `SCRATCH/agent-brief.md`; they never commit, the orchestrator does.
+- The Prisma client is committed (`libs/garage/database/src/generated`); regenerate after schema changes.
+- A JIT-provisioned user has `officeId = null` until stage 5/6 assigns the default office.
+- `reset-e2e.ts` does not clean desk tables yet (stage 9).
+- Seed: `desk@example.com` holds permanent desk D-013; hives Engineering (D-037..042, owner admin) and Sales (D-013..018).
