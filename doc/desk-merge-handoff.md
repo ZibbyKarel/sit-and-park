@@ -28,16 +28,27 @@ Read this first; it is updated after every stage.
 | 1 Decisions and spec | done (records 0320-0332; `doc/desks.md` still to write, stage 9) | ca16e2f | prettier |
 | 2 Data model | done | 44e00bf | migrate deploy on existing + empty DB, seed x2, `database:test` 181 pass |
 | 3 Contract | done | 44e00bf | contract 549 tests, shared-types 202, `web:typecheck` green |
-| 4 Desk API | in progress: 4.0 unblocking API compile (audit payloads, `me.get`, gateway, parity list) | | |
-| 5 Employee sync | pending | | |
-| 6 Offices for parking | pending | | |
-| 7 Web | in progress: `FloorPlan` done (17f8fdd, not browser-tested); desks day screen (7b) and my-desks (7c) running | | |
-| 8 Notifications and calendar | pending | | |
-| 9 E2E and docs | pending | | |
+| 4 Desk API | done (4.0 unblock, 4A `desks/`, 4B `desk-admin/`) | 6794744, b1488a6 | api: 1026 unit, 216 db tests; lint, typecheck, build green |
+| 5 Employee sync | done (`employee-sync/`, `doc/employee-sync.md`) | b1488a6 | unit + db suite + HTTP test |
+| 6 Offices for parking | done (`common/office-scope.ts`) | b1488a6 | `parking-offices.db.spec.ts` |
+| 7 Web | done against the contract: nav, `/desks`, `/desks/my`, admin tabs (desks, stats, hives, offices, sync) | ee8a34f, b1488a6 | web unit tests only; first live run is stage 9a |
+| 8 Notifications and calendar | done (Slack DMs for approval, desk events in ICS) | b1488a6 | unit + db |
+| 9 E2E and docs | in progress: 9a = live smoke + Playwright specs (running); two read-only reviews of the API running | | |
 
 ## Next step
 
-After 4.0 is green: launch 4A (desk core: rules, directory, reserve, cancel, releases, approval), 4B (admin desks/hives/offices/zones/stats + stage 6 parking offices) and stage 5 (employee sync) in parallel. Then 7d admin web, 8, review, 9.
+1. Apply the findings of the two reviews (API correctness; sync/deactivation/office-scope security) and of the 9a live run.
+2. Small contract gap from 7b: `desk.directory` desks lack `myPendingRequestId`, so the dialog offers "request approval" twice (server refuses the duplicate).
+3. Stage 9b docs: `doc/desks.md`, `README.md`, `CLAUDE.md` counts (decision records, db suites, e2e counts), `doc/frontend.md`/`api-modules.md` rows, `graphify update .` (the worktree has no graph; run in the main checkout after merge).
+4. Final full verification, final handoff, report to the user.
+
+## Open product questions (for the user)
+
+- The ICS calendar is still named "Parkování" although it now contains desks.
+- Desks can be booked on weekends/holidays (source behaviour; parking refuses them).
+- Admin desk screens are tabs of `/admin`, not separate routes.
+- A user with `officeId = null` sees parking spots of every office.
+- Sync pre-creates new employees with `oktaId = "hibob:<id>"`; first Okta login adopts the row by email.
 
 ## Notes for whoever resumes
 
