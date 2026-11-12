@@ -260,6 +260,25 @@ describe('DesksScreen', () => {
     expect(await bodiesOf(api, 'desk/requestApproval')).toEqual([{ deskId: HIVE.id, date: DATE }]);
   });
 
+  it('withdraws the viewer’s pending request instead of offering a new one', async () => {
+    const waiting = { ...HIVE, myPendingRequestId: 'req-1' };
+    const api = serve({
+      'desk/directory': ok(directory([waiting])),
+      'desk/cancelRequest': ok({ requestId: 'req-1' }),
+    });
+    const user = renderScreen();
+
+    const dialog = await openDesk(user, waiting);
+    expect(within(dialog).getByText('notePendingRequest')).toBeInTheDocument();
+    expect(
+      within(dialog).queryByRole('button', { name: 'requestApproval' })
+    ).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'cancelRequest' }));
+
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(await bodiesOf(api, 'desk/cancelRequest')).toEqual([{ requestId: 'req-1' }]);
+  });
+
   it('cancels the viewer’s own booking from the dialog', async () => {
     const mine = directoryDesk({
       id: 'd2',

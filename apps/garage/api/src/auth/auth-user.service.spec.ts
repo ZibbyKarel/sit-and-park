@@ -179,6 +179,25 @@ describe('AuthUserService', () => {
       expect(store.createCount).toBe(0);
       expect(store.all()).toHaveLength(1);
     });
+
+    it('matches a lower-cased row whatever the case of the email claim', async () => {
+      const { service, store } = build([
+        { oktaId: 'hibob:1', email: 'jane.doe@team.blue', name: 'Jane Doe' },
+      ]);
+
+      const user = await service.resolve({ sub: 'okta-jane', email: ' Jane.Doe@Team.Blue ' });
+
+      expect(user).toMatchObject({ oktaId: 'okta-jane', email: 'jane.doe@team.blue' });
+      expect(store.createCount).toBe(0);
+    });
+
+    it('stores a new user’s email lower-cased', async () => {
+      const { service, store } = build();
+
+      await service.resolve({ sub: 'okta-1', email: 'Alice@Example.com', name: 'Alice' });
+
+      expect(store.all()[0]?.email).toBe('alice@example.com');
+    });
   });
 
   describe('a deactivated user', () => {

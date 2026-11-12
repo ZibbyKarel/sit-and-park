@@ -109,6 +109,15 @@ export function matchesDeskFilter(desk: DirectoryDesk, filter: DeskFilter): bool
 /** Builds a desk's accessible name; the caller supplies the translated pieces. */
 export type DeskAriaLabel = (desk: DirectoryDesk) => string;
 
+/**
+ * The text drawn on a desk: the plan's own numbering (`D-037` -> `37`). The full
+ * code stays in the accessible name; five characters do not fit a desk drawn
+ * 139 units wide at any legible size.
+ */
+export function deskPlanLabel(code: string): string {
+  return code.replace(/^D-0*(?=\d)/, '');
+}
+
 /** One plan shape per desk; a desk the filter rejects stays on the plan, faint. */
 export function toDeskShapes(
   desks: readonly DirectoryDesk[],
@@ -121,7 +130,7 @@ export function toDeskShapes(
     y: desk.y,
     width: desk.width,
     height: desk.height,
-    label: desk.code,
+    label: deskPlanLabel(desk.code),
     ariaLabel: ariaLabel(desk),
     tone: desk.status,
     outlineColor: desk.hiveColor ?? undefined,
@@ -164,7 +173,8 @@ export type DeskNoteKey =
   | 'noteNoAccess'
   | 'noteApproval'
   | 'noteApprovalNotFree'
-  | 'noteHasDeskToday';
+  | 'noteHasDeskToday'
+  | 'notePendingRequest';
 
 export interface DeskDialogView {
   /** Book this one day (`desk.reserve` with one date). */
@@ -173,6 +183,8 @@ export interface DeskDialogView {
   readonly canSeries: boolean;
   readonly canCancel: boolean;
   readonly canRequest: boolean;
+  /** Withdraw the viewer's pending request for this desk and day (`desk.cancelRequest`). */
+  readonly canCancelRequest: boolean;
   /** Why something is not offered; `null` when nothing needs explaining. */
   readonly note: DeskNoteKey | null;
   /** Who holds the desk that day, if anybody but the viewer. */
@@ -191,7 +203,8 @@ export interface DeskDialogContext {
  * offered that can only be refused: a permanent holder books nothing; series
  * need direct access to an active desk (the other blockers are per day);
  * one day needs the desk free and the viewer deskless that day; approval is
- * for a free hive desk without direct access.
+ * for a free hive desk without direct access, and is not offered again while
+ * the viewer's request for that desk and day is pending (withdrawing it is).
  */
 export function toDeskDialogView(desk: DirectoryDesk, ctx: DeskDialogContext): DeskDialogView {
   const holderName =
@@ -204,32 +217,39 @@ export function toDeskDialogView(desk: DirectoryDesk, ctx: DeskDialogContext): D
   const blocked = ctx.holdsPermanentDesk || desk.status === 'INACTIVE';
   const canSeries = !blocked && desk.access === 'DIRECT';
   const canBookDay = canSeries && desk.status === 'FREE' && ctx.myDeskToday === null;
+  const canCancelRequest = desk.myPendingRequestId !== null;
   const canRequest =
-    !blocked && desk.access === 'APPROVAL' && desk.status === 'FREE' && ctx.myDeskToday === null;
+    !blocked &&
+    !canCancelRequest &&
+    desk.access === 'APPROVAL' &&
+    desk.status === 'FREE' &&
+    ctx.myDeskToday === null;
 
   const note: DeskNoteKey | null = canCancel
     ? null
-    : desk.assignedToMe
-      ? null
-      : ctx.holdsPermanentDesk
-        ? 'notePermanentHolder'
-        : desk.status === 'INACTIVE'
-          ? 'noteInactive'
-          : desk.access === 'NONE'
-            ? 'noteNoAccess'
-            : desk.status === 'ASSIGNED'
-              ? 'noteAssigned'
-              : desk.status === 'RESERVED'
-                ? 'noteReserved'
-                : ctx.myDeskToday !== null
-                  ? 'noteHasDeskToday'
-                  : desk.access === 'APPROVAL'
-                    ? canRequest
-                      ? 'noteApproval'
-                      : 'noteApprovalNotFree'
-                    : null;
+    : canCancelRequest
+      ? 'notePendingRequest'
+      : desk.assignedToMe
+        ? null
+        : ctx.holdsPermanentDesk
+          ? 'notePermanentHolder'
+          : desk.status === 'INACTIVE'
+            ? 'noteInactive'
+            : desk.access === 'NONE'
+              ? 'noteNoAccess'
+              : desk.status === 'ASSIGNED'
+                ? 'noteAssigned'
+                : desk.status === 'RESERVED'
+                  ? 'noteReserved'
+                  : ctx.myDeskToday !== null
+                    ? 'noteHasDeskToday'
+                    : desk.access === 'APPROVAL'
+                      ? canRequest
+                        ? 'noteApproval'
+                        : 'noteApprovalNotFree'
+                      : null;
 
-  return { canBookDay, canSeries, canCancel, canRequest, note, holderName };
+  return { canBookDay, canSeries, canCancel, canRequest, canCancelRequest, note, holderName };
 }
 
 // --- series -----------------------------------------------------------------

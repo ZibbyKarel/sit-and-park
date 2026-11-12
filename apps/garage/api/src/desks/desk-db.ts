@@ -70,6 +70,35 @@ export async function lockDesk(tx: Prisma.TransactionClient, deskId: string): Pr
   await tx.$queryRaw`SELECT "id" FROM "Desk" WHERE "id" = ${deskId}::uuid FOR UPDATE`;
 }
 
+/** {@link lockDesk} for several desks, ascending id so concurrent multi-desk writers cannot deadlock. */
+export async function lockDesks(
+  tx: Prisma.TransactionClient,
+  deskIds: readonly string[]
+): Promise<void> {
+  const sorted = [...deskIds].sort();
+  await tx.$queryRaw`SELECT "id" FROM "Desk" WHERE "id" = ANY(${sorted}::uuid[]) ORDER BY "id" FOR UPDATE`;
+}
+
+/**
+ * A row lock on one user, always taken **after** the desk lock (order: desk →
+ * user). It serialises "this user becomes a permanent holder"
+ * (`setPermanentAssignee`, `FOR UPDATE`) against "this user books a desk"
+ * (`reserve`, approval; `FOR SHARE`, so bookings of one user on different
+ * desks do not wait on each other). Those writers lock different desks, so
+ * the desk lock alone does not order them. Read the user's facts after it.
+ */
+export async function lockUser(
+  tx: Prisma.TransactionClient,
+  userId: string,
+  mode: 'SHARE' | 'UPDATE'
+): Promise<void> {
+  if (mode === 'UPDATE') {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR UPDATE`;
+  } else {
+    await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR SHARE`;
+  }
+}
+
 export function toContractDesk(row: DeskRow): Desk {
   return {
     id: row.id,

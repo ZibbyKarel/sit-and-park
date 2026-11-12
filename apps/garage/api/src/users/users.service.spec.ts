@@ -10,7 +10,14 @@ describe('UsersService', () => {
 
   beforeEach(() => {
     double = new PrismaDouble();
-    deactivate = jest.fn().mockResolvedValue(undefined);
+    // Like the real one, the deactivation owns the `active` flip.
+    deactivate = jest.fn(async (id: string) => {
+      const row = double.users.find((candidate) => candidate.id === id);
+      if (row !== undefined) {
+        row.active = false;
+        row.deactivatedAt ??= new Date();
+      }
+    });
     users = new UsersService(
       double.asPrismaService(),
       new AuditLogService(double.asPrismaService()),
@@ -171,16 +178,31 @@ describe('UsersService', () => {
       expect(double.users.find((row) => row.id === target.id)?.active).toBe(false);
     });
 
-    it('runs the shared deactivation clean-up, once, only when the user was active', async () => {
+    it('leaves the active flip to the shared deactivation clean-up', async () => {
+      const admin = double.seedUser({ role: 'ADMIN' });
+      const target = double.seedUser();
+      deactivate.mockRejectedValueOnce(new Error('clean-up failed'));
+
+      await expect(users.adminUpdate({ id: target.id, active: false }, admin)).rejects.toThrow(
+        'clean-up failed'
+      );
+
+      // Still active, so the admin's retry runs the whole deactivation again.
+      expect(double.users.find((row) => row.id === target.id)?.active).toBe(true);
+    });
+
+    it('runs the shared deactivation clean-up whenever an admin sets inactive, a retry included', async () => {
       const admin = double.seedUser({ role: 'ADMIN' });
       const target = double.seedUser();
       const inactive = double.seedUser({ active: false });
 
       await users.adminUpdate({ id: target.id, active: false }, admin);
       await users.adminUpdate({ id: inactive.id, active: false }, admin);
+      await users.adminUpdate({ id: inactive.id, role: 'USER' }, admin);
 
-      expect(deactivate).toHaveBeenCalledTimes(1);
-      expect(deactivate).toHaveBeenCalledWith(target.id, 'ADMIN', admin.id);
+      expect(deactivate).toHaveBeenCalledTimes(2);
+      expect(deactivate).toHaveBeenNthCalledWith(1, target.id, 'ADMIN', admin.id);
+      expect(deactivate).toHaveBeenNthCalledWith(2, inactive.id, 'ADMIN', admin.id);
       expect(double.users.find((row) => row.id === target.id)?.deactivatedAt).toBeInstanceOf(Date);
     });
 

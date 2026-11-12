@@ -14,9 +14,18 @@
  * retry loop, the broadcast and the Slack notice. Promotion cannot join the
  * user transaction: its retry re-runs a whole transaction. The account is
  * already inactive by then, so the user cannot book anything in the gap.
+ *
+ * A cancel that fails is logged and counted, not thrown, and the clean-up is
+ * **re-runnable**: calling {@link UserDeactivationService.deactivate} for a
+ * user who is already inactive finishes whatever is left (the employee sync
+ * sweeps such users on every run, an admin re-saving "inactive" does the same).
+ * Only the call that actually flips the account audits `USER_DEACTIVATED`, so
+ * the audit trail keeps who deactivated the user, which decides whether the
+ * sync may reactivate them.
  */
 
 import { Injectable } from '@nestjs/common';
+import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import type { Prisma } from '@garage/database';
 import type { DateOnly } from '@garage/shared-types';
 import { todayInPrague } from '@garage/shared-types';
@@ -41,6 +50,13 @@ export interface DeactivationReport {
   ownedHives: string[];
 }
 
+export interface DeactivationOutcome {
+  /** `freedParkingReservations` counts the cancels that succeeded. */
+  report: DeactivationReport;
+  /** Future parking reservations whose cancel failed; a later call retries them. */
+  failedParkingReservations: number;
+}
+
 type Reader = Pick<
   Prisma.TransactionClient,
   'deskReservation' | 'deskApprovalRequest' | 'reservation' | 'waitlistEntry' | 'desk' | 'hive'
@@ -53,7 +69,8 @@ export class UserDeactivationService {
     private readonly deskCleanup: DeskCleanupService,
     private readonly reservations: ReservationsService,
     private readonly audit: AuditLogService,
-    private readonly publisher: DomainEventPublisher
+    private readonly publisher: DomainEventPublisher,
+    @InjectPinoLogger(UserDeactivationService.name) private readonly logger: PinoLogger
   ) {}
 
   /** What {@link deactivate} would do, without doing it (the sync's dry run). */
@@ -62,16 +79,17 @@ export class UserDeactivationService {
   }
 
   /**
-   * Deactivates `userId`. `actorUserId` is who the audit trail names: the
-   * admin, or for the sync (which is not a user) the deactivated user
-   * themselves, as system actions are attributed to their trigger.
+   * Deactivates `userId`, or finishes the clean-up of a user already inactive.
+   * `actorUserId` is who the audit trail names: the admin, or for the sync
+   * (which is not a user) the deactivated user themselves, as system actions
+   * are attributed to their trigger.
    */
   async deactivate(
     userId: string,
     source: 'EMPLOYEE_SYNC' | 'ADMIN',
     actorUserId: string,
     today: DateOnly = todayInPrague()
-  ): Promise<DeactivationReport> {
+  ): Promise<DeactivationOutcome> {
     const outcome = await this.prisma.client.$transaction(async (tx) => {
       const user = await tx.user.findUnique({ where: { id: userId } });
       if (user === null) {
@@ -109,22 +127,24 @@ export class UserDeactivationService {
         waitlistEvents.push({ name: 'waitlist:updated', payload: { ...cell, waitlistCount } });
       }
 
-      await this.audit.record(
-        {
-          actorUserId,
-          action: 'USER_DEACTIVATED',
-          entityType: 'User',
-          entityId: userId,
-          payload: {
-            source,
-            freedReservations: report.freedParkingReservations,
-            freedDeskReservations: report.freedDeskReservations,
-            removedWaitlistEntries: report.removedWaitlistEntries,
-            rejectedRequests: report.rejectedRequests,
+      if (user.active) {
+        await this.audit.record(
+          {
+            actorUserId,
+            action: 'USER_DEACTIVATED',
+            entityType: 'User',
+            entityId: userId,
+            payload: {
+              source,
+              freedReservations: report.freedParkingReservations,
+              freedDeskReservations: report.freedDeskReservations,
+              removedWaitlistEntries: report.removedWaitlistEntries,
+              rejectedRequests: report.rejectedRequests,
+            },
           },
-        },
-        tx
-      );
+          tx
+        );
+      }
       return { report, parkingReservationIds, deskEvents, waitlistEvents };
     }, RESERVATION_TRANSACTION_OPTIONS);
 
@@ -132,17 +152,27 @@ export class UserDeactivationService {
     this.publisher.publish(outcome.waitlistEvents);
 
     const actor = await this.actor(actorUserId);
+    let freed = 0;
+    let failed = 0;
     for (const reservationId of outcome.parkingReservationIds) {
       try {
         await this.reservations.cancel({ reservationId }, actor, today);
+        freed += 1;
       } catch (error) {
-        // Cancelled by somebody else in the meantime: already free.
+        // NOT_FOUND: cancelled by somebody else in the meantime, already free.
         if (!(error instanceof DomainError && error.code === 'NOT_FOUND')) {
-          throw error;
+          failed += 1;
+          this.logger.error(
+            { err: error, userId, reservationId },
+            'Could not cancel a deactivated user’s parking reservation; the next clean-up retries'
+          );
         }
       }
     }
-    return outcome.report;
+    return {
+      report: { ...outcome.report, freedParkingReservations: freed },
+      failedParkingReservations: failed,
+    };
   }
 
   private async collect(

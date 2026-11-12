@@ -1,5 +1,6 @@
 import { directoryDesk } from './desk.test-helpers';
 import {
+  deskPlanLabel,
   EMPTY_DESK_FILTER,
   matchesDeskFilter,
   MAX_SERIES_WEEKS,
@@ -11,6 +12,16 @@ import {
 } from './desk-view';
 
 const NO_CONTEXT = { holdsPermanentDesk: false, myDeskToday: null };
+
+describe('deskPlanLabel', () => {
+  it.each([
+    ['D-001', '1'],
+    ['D-037', '37'],
+    ['D-221', '221'],
+    ['D-000', '0'],
+    ['X-7', 'X-7'],
+  ])('%s -> %s', (code, label) => expect(deskPlanLabel(code)).toBe(label));
+});
 
 describe('toFloorPlanView', () => {
   const office = {
@@ -82,7 +93,7 @@ describe('toDeskShapes', () => {
         y: 20,
         width: 30,
         height: 40,
-        label: 'D-001',
+        label: '1',
         ariaLabel: 'aria D-001',
         tone: 'FREE',
         outlineColor: '#FF0000',
@@ -124,6 +135,7 @@ describe('toDeskDialogView', () => {
       canSeries: true,
       canCancel: false,
       canRequest: false,
+      canCancelRequest: false,
       note: null,
       holderName: null,
     });
@@ -170,6 +182,18 @@ describe('toDeskDialogView', () => {
       canSeries: false,
       canBookDay: false,
       note: 'noteApproval',
+    });
+  });
+
+  it('offers withdrawing, not re-filing, while the viewer’s request is pending', () => {
+    const view = toDeskDialogView(
+      directoryDesk({ access: 'APPROVAL', myPendingRequestId: 'req-1' }),
+      NO_CONTEXT
+    );
+    expect(view).toMatchObject({
+      canRequest: false,
+      canCancelRequest: true,
+      note: 'notePendingRequest',
     });
   });
 

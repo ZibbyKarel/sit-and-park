@@ -26,9 +26,16 @@ import { PrismaService } from '../database/prisma.service';
 import type { DeskApprovalNotice } from '../reservations/reservation-events';
 import { DomainEventPublisher } from '../reservations/reservation-events';
 import { RESERVATION_TRANSACTION_OPTIONS } from '../reservations/transaction-options';
-import { loadCaller, lockDesk, toContractDeskRequest, toContractDeskReservation } from './desk-db';
+import { DeskCleanupService } from './desk-cleanup.service';
+import {
+  loadCaller,
+  lockDesk,
+  lockUser,
+  toContractDeskRequest,
+  toContractDeskReservation,
+} from './desk-db';
 import { deskAccess, isAssignedOn } from './desk-rules';
-import { rethrowUnique } from './desks.service';
+import { historyFloor, rethrowUnique } from './desks.service';
 
 const NOT_FOUND_REQUEST = { message: 'No such approval request.' };
 
@@ -37,13 +44,16 @@ export class DeskRequestsService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly audit: AuditLogService,
-    private readonly publisher: DomainEventPublisher
+    private readonly publisher: DomainEventPublisher,
+    private readonly cleanup: DeskCleanupService
   ) {}
 
   /**
    * Files a `PENDING` request. Besides the contract's booking errors, a desk
    * that cannot be requested — no hive, another office, or one the caller may
-   * book directly — is `VALIDATION_FAILED`.
+   * book directly — is `VALIDATION_FAILED`. The desk is locked first, so an
+   * admin edit or hive deletion that clears pending requests either commits
+   * before this (and is seen) or waits and then finds this request.
    */
   async requestApproval(
     input: RequestDeskApprovalInput,
@@ -55,6 +65,7 @@ export class DeskRequestsService {
         if (compareDateOnly(input.date, today) < 0) {
           throw new DomainError('PAST_DATE');
         }
+        await lockDesk(tx, input.deskId);
         const caller = await loadCaller(tx, actor.id);
         if (caller.officeId === null) {
           throw new DomainError('NO_OFFICE_ASSIGNED');
@@ -171,9 +182,12 @@ export class DeskRequestsService {
     return { requestId: row.id };
   }
 
-  async myRequests(actor: AuthenticatedUser): Promise<MyDeskRequestsOutput> {
+  async myRequests(
+    actor: AuthenticatedUser,
+    today: DateOnly = todayInPrague()
+  ): Promise<MyDeskRequestsOutput> {
     const rows = await this.prisma.client.deskApprovalRequest.findMany({
-      where: { userId: actor.id },
+      where: { userId: actor.id, date: { gte: historyFloor(today) } },
       include: { desk: { select: { code: true, zone: { select: { name: true } } } } },
       orderBy: [{ date: 'desc' }, { createdAt: 'desc' }],
     });
@@ -228,8 +242,10 @@ export class DeskRequestsService {
   /**
    * Approves or rejects one pending request. Allowed for an admin or the owner
    * of the desk's **current** hive. A rejection always goes through; an
-   * approval locks the desk and re-checks the date, the desk and the
-   * requester before booking.
+   * approval locks the desk, then the requester (order desk → user, see
+   * `lockUser`), re-checks the date, the desk and the requester, books, and
+   * rejects the other pending requests for that desk and day (reason
+   * `DESK_TAKEN`, no notification: they can no longer be approved).
    */
   async decideRequest(
     input: DecideDeskRequestInput,
@@ -251,24 +267,28 @@ export class DeskRequestsService {
 
         const request = await tx.deskApprovalRequest.findUnique({
           where: { id: input.requestId },
-          include: {
-            desk: { include: { hive: { select: { ownerId: true } } } },
-            user: {
-              select: {
-                id: true,
-                name: true,
-                active: true,
-                officeId: true,
-                permanentDesk: { select: { id: true } },
-              },
-            },
-          },
+          include: { desk: { include: { hive: { select: { ownerId: true } } } } },
         });
         if (request === null) {
           throw new DomainError('NOT_FOUND', NOT_FOUND_REQUEST);
         }
+        if (input.approve) {
+          // Before reading the requester: orders this booking against the
+          // requester becoming a permanent holder of another desk.
+          await lockUser(tx, request.userId, 'SHARE');
+        }
+        const requester = await tx.user.findUniqueOrThrow({
+          where: { id: request.userId },
+          select: {
+            id: true,
+            name: true,
+            active: true,
+            officeId: true,
+            permanentDesk: { select: { id: true } },
+          },
+        });
         const caller = await loadCaller(tx, actor.id);
-        const { desk, user: requester } = request;
+        const { desk } = request;
         if (!caller.isAdmin && desk.hive?.ownerId !== caller.id) {
           throw new DomainError('FORBIDDEN', {
             message: 'Only the owner of the desk’s hive, or an admin, may decide this request.',
@@ -341,6 +361,12 @@ export class DeskRequestsService {
               payload: { ...cell, userId: requester.id },
             },
             tx
+          );
+          await this.cleanup.rejectPendingRequests(
+            tx,
+            { deskId: desk.id, date: request.date, id: { not: request.id } },
+            'DESK_TAKEN',
+            caller.id
           );
         }
 

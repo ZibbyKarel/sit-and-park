@@ -10,7 +10,7 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, CheckboxField, CounterInput, DateField, SystemMessage } from '@shoptet/ui';
+import { Button, CheckboxField, CounterField, DateField, SystemMessage } from '@shoptet/ui';
 import {
   addDays,
   dayOfWeek,
@@ -92,7 +92,7 @@ export function SeriesSection({ deskId, start, pending, onSubmit }: SeriesSectio
         ))}
       </fieldset>
 
-      <CounterInput
+      <CounterField
         label={t('seriesWeeks')}
         value={weeks}
         min={1}

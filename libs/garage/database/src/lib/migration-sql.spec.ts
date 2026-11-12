@@ -339,6 +339,19 @@ describe('desks migration — hand-written constraints', () => {
   });
 });
 
+describe('lowercase-user-email migration', () => {
+  const emailSql = readMigration('20261113120000_lowercase_user_email').replace(/\s+/g, ' ');
+
+  it('lower-cases only where no other row already has the lower-cased address', () => {
+    // Unguarded, two rows `A@x` and `a@x` would collide on the unique index and
+    // fail the whole deploy.
+    expect(emailSql).toContain('SET "email" = lower(btrim(u."email"))');
+    expect(emailSql).toContain(
+      'AND NOT EXISTS ( SELECT 1 FROM "User" AS other WHERE other."id" <> u."id" AND lower(btrim(other."email")) = lower(btrim(u."email")) )'
+    );
+  });
+});
+
 describe('migration_lock.toml', () => {
   it('pins the provider to postgresql', () => {
     const lock = readFileSync(join(MIGRATIONS_DIR, 'migration_lock.toml'), 'utf8');

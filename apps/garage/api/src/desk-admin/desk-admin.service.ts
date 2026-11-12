@@ -38,7 +38,7 @@ import { DomainError } from '../common/errors/domain-error';
 import { toDateColumn } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
 import { DeskCleanupService } from '../desks/desk-cleanup.service';
-import { lockDesk, toContractDesk } from '../desks/desk-db';
+import { lockDesk, lockDesks, lockUser, toContractDesk } from '../desks/desk-db';
 import { deskStatus } from '../desks/desk-rules';
 import { RESERVATION_TRANSACTION_OPTIONS } from '../reservations/transaction-options';
 import { computeDeskStats, deskChangeEffects } from './desk-admin-rules';
@@ -64,12 +64,6 @@ function auditFields(row: DeskRow): DeskFields {
     active: row.active,
     permanentAssigneeId: row.permanentAssigneeId,
   };
-}
-
-/** Ascending, so concurrent multi-desk edits take their locks in one order. */
-async function lockDesks(tx: Prisma.TransactionClient, deskIds: readonly string[]): Promise<void> {
-  const sorted = [...deskIds].sort();
-  await tx.$queryRaw`SELECT "id" FROM "Desk" WHERE "id" = ANY(${sorted}::uuid[]) ORDER BY "id" FOR UPDATE`;
 }
 
 @Injectable()
@@ -229,6 +223,10 @@ export class DeskAdminService {
         return { row: before, events: [] as DeskReleasedEvent[] };
       }
       if (input.userId !== null) {
+        // After the desk lock (order desk → user): a booking by this user on
+        // another desk either committed (and is cancelled below) or waits and
+        // then sees the permanent desk.
+        await lockUser(tx, input.userId, 'UPDATE');
         await this.requireEligibleHolder(tx, input.userId, before);
       }
 

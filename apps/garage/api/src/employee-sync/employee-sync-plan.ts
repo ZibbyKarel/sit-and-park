@@ -7,17 +7,27 @@
  * Rules (`doc/employee-sync.md`, `doc/decision/0330-*`):
  *
  * 1. The whole list is validated first; one bad row rejects everything.
- * 2. An empty list, or one shorter than 90 % of the active synced users, is
- *    rejected (a broken export must not offboard the company).
+ * 2. An empty list is rejected, and so is a plan that would deactivate more
+ *    than 10 % of the active synced users (fewer than 90 % would stay): a
+ *    broken export, or a list of strangers, must not offboard the company.
  * 3. A *manual* account (`manualAccount`, or an address outside
- *    `@team.blue`) is never touched.
- * 4. Rows match by HiBob id, then by e-mail. Conflicting matches are warnings,
- *    resolved by hand. An existing user is linked, renamed and reactivated,
- *    never re-addressed, and nothing else about them changes.
- * 5. Active synced users missing from the list are deactivated.
+ *    `@team.blue`) is never touched, and a row outside `@team.blue` creates
+ *    nobody.
+ * 4. Rows match by HiBob id, then by e-mail. Conflicting matches, and two
+ *    accounts whose e-mails differ only in case, are warnings, resolved by
+ *    hand. An existing user is linked, renamed and reactivated (only when the
+ *    sync itself deactivated them), never re-addressed, and nothing else
+ *    about them changes.
+ * 5. Active synced users missing from the list are deactivated, except the
+ *    last active admin.
  */
 
-import type { EmployeeSyncReasonCode, EmployeeSyncRow } from '@garage/contract';
+import type {
+  EmployeeSyncReasonCode,
+  EmployeeSyncRow,
+  EmployeeSyncSummary,
+} from '@garage/contract';
+import { EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT } from '@garage/shared-types';
 
 export const EMPLOYEE_DOMAIN = '@team.blue';
 
@@ -28,9 +38,15 @@ export const MAX_SHRINK = 0.1;
 const REPORTED_ROW_PROBLEMS = 5;
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-/** `syncEmailSchema` / `syncNameSchema` in the contract's summary. */
+/** Bounds of `employeeSyncSummarySchema` (contract `schemas/entities.ts`). */
 const MAX_EMAIL_LENGTH = 320;
 const MAX_NAME_LENGTH = 200;
+const MAX_HIBOB_ID_LENGTH = 100;
+const MAX_WARNING_LENGTH = 1000;
+const MAX_DESK_CODE_LENGTH = 40;
+const MAX_PERMANENT_DESKS = 10;
+const MAX_HIVE_NAME_LENGTH = 100;
+const MAX_OWNED_HIVES = 100;
 
 /** What the plan needs to know about an existing user. */
 export interface SyncProfile {
@@ -40,6 +56,13 @@ export interface SyncProfile {
   hibobId: string | null;
   active: boolean;
   manualAccount: boolean;
+  role: 'USER' | 'ADMIN';
+  /**
+   * The latest `USER_DEACTIVATED` audit row says `source: 'EMPLOYEE_SYNC'`.
+   * Only such a user is reactivated: an admin's deactivation (or one with no
+   * audit row) stands.
+   */
+  deactivatedBySync: boolean;
 }
 
 /** A validated, cleaned row. */
@@ -83,7 +106,7 @@ export function isManualAccount(profile: Pick<SyncProfile, 'email' | 'manualAcco
   return profile.manualAccount || !normaliseEmail(profile.email).endsWith(EMPLOYEE_DOMAIN);
 }
 
-function normaliseEmail(email: string): string {
+export function normaliseEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
@@ -114,6 +137,8 @@ export function validateRows(
 
     if (hibobId === '') {
       problems.push(`row ${n}: missing HiBob id`);
+    } else if (hibobId.length > MAX_HIBOB_ID_LENGTH) {
+      problems.push(`row ${n}: HiBob id longer than ${MAX_HIBOB_ID_LENGTH} characters`);
     } else if (seenIds.has(hibobId)) {
       problems.push(`row ${n}: duplicate HiBob id ${hibobId}`);
     }
@@ -160,23 +185,15 @@ export function planEmployeeSync(
       activeBefore
     );
   }
-  const minimum = Math.ceil(activeBefore * (1 - MAX_SHRINK));
-  if (received < minimum) {
-    return reject(
-      'LIST_SHRANK',
-      `The list has ${received} employees, the app has ${activeBefore} active ones; a drop of more than 10 % (minimum ${minimum}). Nothing was changed.`,
-      received,
-      activeBefore
-    );
-  }
 
   const byHibobId = new Map<string, SyncProfile>();
-  const byEmail = new Map<string, SyncProfile>();
+  const byEmail = new Map<string, SyncProfile[]>();
   for (const profile of profiles) {
     if (profile.hibobId !== null) {
       byHibobId.set(profile.hibobId, profile);
     }
-    byEmail.set(normaliseEmail(profile.email), profile);
+    const key = normaliseEmail(profile.email);
+    byEmail.set(key, [...(byEmail.get(key) ?? []), profile]);
   }
 
   const seen = new Set<string>();
@@ -186,8 +203,18 @@ export function planEmployeeSync(
   let unchanged = 0;
 
   for (const row of validated.rows) {
+    const sameEmail = byEmail.get(row.email) ?? [];
+    if (sameEmail.length > 1) {
+      warnings.push(
+        `${row.email}: ${sameEmail.length} accounts have this e-mail in different letter case; resolve by hand.`
+      );
+      for (const profile of sameEmail) {
+        seen.add(profile.id);
+      }
+      continue;
+    }
     const byId = byHibobId.get(row.hibobId);
-    const byMail = byEmail.get(row.email);
+    const byMail = sameEmail[0];
 
     if (byId !== undefined && byMail !== undefined && byId.id !== byMail.id) {
       warnings.push(
@@ -198,7 +225,12 @@ export function planEmployeeSync(
     }
     const profile = byId ?? byMail;
     if (profile === undefined) {
-      create.push(row);
+      if (row.email.endsWith(EMPLOYEE_DOMAIN)) {
+        create.push(row);
+      } else {
+        // It would be a manual account forever, out of the sync's reach.
+        warnings.push(`${row.email}: not a ${EMPLOYEE_DOMAIN} address; not created.`);
+      }
       continue;
     }
     seen.add(profile.id);
@@ -226,7 +258,13 @@ export function planEmployeeSync(
       change.rename = { from: profile.name, to: row.name };
     }
     if (!profile.active) {
-      change.reactivate = true;
+      if (profile.deactivatedBySync) {
+        change.reactivate = true;
+      } else {
+        warnings.push(
+          `${profile.email}: deactivated by an admin, not by the sync; not reactivated, reactivate by hand.`
+        );
+      }
     }
     if (change.linkHibobId === undefined && change.rename === undefined && !change.reactivate) {
       unchanged += 1;
@@ -235,7 +273,37 @@ export function planEmployeeSync(
     }
   }
 
-  const deactivate = synced.filter((profile) => profile.active && !seen.has(profile.id));
+  // Never leave the app without an active admin (`UsersService` has the same
+  // rule); manual admins count, they keep their access.
+  let activeAdmins = profiles.filter((p) => p.active && p.role === 'ADMIN').length;
+  const deactivate: SyncProfile[] = [];
+  for (const profile of synced) {
+    if (!profile.active || seen.has(profile.id)) {
+      continue;
+    }
+    if (profile.role === 'ADMIN') {
+      if (activeAdmins <= 1) {
+        warnings.push(
+          `${profile.email}: missing from the list but the last active admin; not deactivated.`
+        );
+        continue;
+      }
+      activeAdmins -= 1;
+    }
+    deactivate.push(profile);
+  }
+
+  // Judged on the outcome, not on the row count: a list of strangers is long
+  // enough but matches nobody.
+  const minimum = Math.ceil(activeBefore * (1 - MAX_SHRINK));
+  if (activeBefore - deactivate.length < minimum) {
+    return reject(
+      'LIST_SHRANK',
+      `The list would deactivate ${deactivate.length} of ${activeBefore} active employees; a drop of more than 10 % (minimum ${minimum} stay). Nothing was changed.`,
+      received,
+      activeBefore
+    );
+  }
 
   return {
     status: 'OK',
@@ -246,5 +314,46 @@ export function planEmployeeSync(
     deactivate,
     unchanged,
     warnings,
+  };
+}
+
+function clip(value: string, max: number): string {
+  return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
+}
+
+/**
+ * Caps every list and clips every string so the summary always satisfies
+ * `employeeSyncSummarySchema`: names and e-mails of existing users, hive names
+ * and HiBob ids in warnings come from the database, not from the validated
+ * list. Counts stay as they are; the caller takes totals from the uncapped one.
+ */
+export function fitSummary(summary: EmployeeSyncSummary): EmployeeSyncSummary {
+  const list = <T>(items: readonly T[]): T[] => items.slice(0, EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT);
+  const email = (value: string) => clip(value, MAX_EMAIL_LENGTH);
+  const name = (value: string) => clip(value, MAX_NAME_LENGTH);
+  return {
+    ...summary,
+    created: list(summary.created).map((r) => ({ email: email(r.email), name: name(r.name) })),
+    renamed: list(summary.renamed).map((r) => ({
+      email: email(r.email),
+      from: name(r.from),
+      to: name(r.to),
+    })),
+    deactivated: list(summary.deactivated).map((r) => ({
+      ...r,
+      email: email(r.email),
+      name: name(r.name),
+      permanentDesks: r.permanentDesks
+        .slice(0, MAX_PERMANENT_DESKS)
+        .map((code) => clip(code, MAX_DESK_CODE_LENGTH)),
+      ownedHives: r.ownedHives
+        .slice(0, MAX_OWNED_HIVES)
+        .map((hive) => clip(hive, MAX_HIVE_NAME_LENGTH)),
+    })),
+    reactivated: list(summary.reactivated).map((r) => ({
+      email: email(r.email),
+      name: name(r.name),
+    })),
+    warnings: list(summary.warnings).map((warning) => clip(warning, MAX_WARNING_LENGTH)),
   };
 }

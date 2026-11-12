@@ -106,7 +106,8 @@ const ShapeLayer = memo(function ShapeLayer({
             className={styles.label}
             x={s.x + s.width / 2}
             y={s.y + s.height / 2}
-            fontSize={Math.min(s.width, s.height) * 0.5}
+            // Fits the label's width too (bold digits are ~0.65 em), or it spills onto the neighbour.
+            fontSize={Math.min(s.height * 0.5, s.width / (Math.max(s.label.length, 1) * 0.65))}
             aria-hidden="true"
           >
             {s.label}

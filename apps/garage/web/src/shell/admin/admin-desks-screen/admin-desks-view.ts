@@ -5,7 +5,7 @@
 
 import type { AdminDesk, AdminDeskStatus } from '@garage/contract';
 import type { FloorPlanShape } from '../../../ui/floor-plan/floor-plan';
-import { DESK_TONES } from '../../../desks/desk-view';
+import { DESK_TONES, deskPlanLabel } from '../../../desks/desk-view';
 
 /** Fill colour per admin status (the keys are `FloorPlanShape.tone`s). */
 export const ADMIN_DESK_TONES: Readonly<Record<AdminDeskStatus, string>> = DESK_TONES;
@@ -90,7 +90,7 @@ export function toAdminShapes(
     y: desk.y,
     width: desk.width,
     height: desk.height,
-    label: desk.code,
+    label: deskPlanLabel(desk.code),
     ariaLabel: ariaLabel(desk),
     tone: desk.status,
     outlineColor: desk.hiveColor ?? undefined,

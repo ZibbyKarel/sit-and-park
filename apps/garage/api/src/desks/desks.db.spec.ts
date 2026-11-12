@@ -24,6 +24,7 @@ import {
 } from '../testing/database/reservation-harness';
 import { unique } from '../testing/database/test-database';
 import { DeskCleanupService } from './desk-cleanup.service';
+import { lockDesk, lockUser } from './desk-db';
 import { DeskRequestsService } from './desk-requests.service';
 import { DesksService } from './desks.service';
 
@@ -46,10 +47,11 @@ describe('desk booking against a real PostgreSQL', () => {
   function services(db: PrismaClient, recorder: RecordingPublisher) {
     const prisma = asPrismaService(db);
     const audit = new AuditLogService(prisma);
+    const cleanup = new DeskCleanupService(audit, recorder);
     return {
       desks: new DesksService(prisma, audit, recorder),
-      requests: new DeskRequestsService(prisma, audit, recorder),
-      cleanup: new DeskCleanupService(audit, recorder),
+      requests: new DeskRequestsService(prisma, audit, recorder, cleanup),
+      cleanup,
     };
   }
 
@@ -294,6 +296,92 @@ describe('desk booking against a real PostgreSQL', () => {
       expect(await codeOf(loser)).toBe('DESK_RESERVATION_LIMIT_REACHED');
       expect(await client.deskReservation.count({ where: { userId: me.id } })).toBe(1);
     });
+
+    /** What `admin.desk.setPermanentAssignee` holds while it makes `holder` the holder of `deskId`. */
+    function holdPermanentAssignment(deskId: string, holder: UserRow) {
+      return holdTransaction(otherClient, async (tx) => {
+        await lockDesk(tx, deskId);
+        await lockUser(tx, holder.id, 'UPDATE');
+        await tx.desk.update({ where: { id: deskId }, data: { permanentAssigneeId: holder.id } });
+      });
+    }
+
+    it('a booking racing the caller becoming a permanent holder of another desk waits and is refused', async () => {
+      const me = await user();
+      const [target, assigned] = [await desk(), await desk()];
+      const held = holdPermanentAssignment(assigned.id, me);
+      await held.ready;
+      const booking = desks.reserve({ deskId: target.id, dates: [D1] }, actorFor(me), TODAY);
+      await waitForBlockedBackend(client);
+      held.release();
+      await held.done;
+      expect(await codeOf(booking)).toBe('PERMANENT_DESK_HOLDER');
+      expect(await client.deskReservation.count({ where: { userId: me.id } })).toBe(0);
+    });
+
+    it('an approval racing the requester becoming a permanent holder waits and is refused', async () => {
+      const [owner, requester] = [await user(), await user()];
+      const target = await desk({ hiveId: await hive(owner.id) });
+      const assigned = await desk();
+      const request = await requests.requestApproval(
+        { deskId: target.id, date: D1 },
+        actorFor(requester),
+        TODAY
+      );
+      const held = holdPermanentAssignment(assigned.id, requester);
+      await held.ready;
+      const approval = requests.decideRequest(
+        { requestId: request.id, approve: true },
+        actorFor(owner),
+        TODAY
+      );
+      await waitForBlockedBackend(client);
+      held.release();
+      await held.done;
+      expect(await codeOf(approval)).toBe('PERMANENT_DESK_HOLDER');
+      expect(await client.deskReservation.count({ where: { userId: requester.id } })).toBe(0);
+    });
+
+    it('a request filed while its hive is being deleted waits and finds no hive', async () => {
+      const [owner, requester] = [await user(), await user()];
+      const hiveId = await hive(owner.id);
+      const target = await desk({ hiveId });
+      // What `admin.hive.delete` holds: its desks locked, the hive gone.
+      const held = holdTransaction(otherClient, async (tx) => {
+        await lockDesk(tx, target.id);
+        await tx.hive.delete({ where: { id: hiveId } });
+      });
+      await held.ready;
+      const filing = requests.requestApproval(
+        { deskId: target.id, date: D1 },
+        actorFor(requester),
+        TODAY
+      );
+      await waitForBlockedBackend(client);
+      held.release();
+      await held.done;
+      expect(await codeOf(filing)).toBe('VALIDATION_FAILED');
+      expect(await client.deskApprovalRequest.count({ where: { deskId: target.id } })).toBe(0);
+    });
+
+    it('a release racing a reassignment of the desk waits and is NO_PERMANENT_DESK', async () => {
+      const [holder, successor] = [await user(), await user()];
+      const own = await desk({ permanentAssigneeId: holder.id });
+      const held = holdTransaction(otherClient, async (tx) => {
+        await lockDesk(tx, own.id);
+        await tx.desk.update({
+          where: { id: own.id },
+          data: { permanentAssigneeId: successor.id },
+        });
+      });
+      await held.ready;
+      const releasing = desks.release({ dates: [D1] }, actorFor(holder), TODAY);
+      await waitForBlockedBackend(client);
+      held.release();
+      await held.done;
+      expect(await codeOf(releasing)).toBe('NO_PERMANENT_DESK');
+      expect(await client.deskRelease.count({ where: { deskId: own.id } })).toBe(0);
+    });
   });
 
   // --- permanent desks and releases --------------------------------------------
@@ -440,6 +528,7 @@ describe('desk booking against a real PostgreSQL', () => {
         status: 'FREE',
         access: 'APPROVAL',
         hiveColor: '#2563EB',
+        myPendingRequestId: null,
       });
       expect(byId.get(assigned.id)).toMatchObject({
         status: 'ASSIGNED',
@@ -451,12 +540,61 @@ describe('desk booking against a real PostgreSQL', () => {
       expect(result.hives.some((row) => row.id === hiveId)).toBe(true);
     });
 
+    it('myPendingRequestId is the caller’s own pending request for that desk and day only', async () => {
+      const [me, other, owner] = [await user(), await user(), await user()];
+      const hiveDesk = await desk({ hiveId: await hive(owner.id) });
+      const mine = await requests.requestApproval(
+        { deskId: hiveDesk.id, date: D1 },
+        actorFor(me),
+        TODAY
+      );
+      const theirs = await requests.requestApproval(
+        { deskId: hiveDesk.id, date: D1 },
+        actorFor(other),
+        TODAY
+      );
+      await requests.requestApproval({ deskId: hiveDesk.id, date: D2 }, actorFor(me), TODAY);
+      const pendingOn = async (who: UserRow, date: DateOnly) =>
+        (await desks.directory({ date }, actorFor(who))).desks.find((row) => row.id === hiveDesk.id)
+          ?.myPendingRequestId;
+
+      expect(await pendingOn(me, D1)).toBe(mine.id);
+      expect(await pendingOn(other, D1)).toBe(theirs.id);
+      expect(await pendingOn(me, D3)).toBeNull();
+      await requests.decideRequest({ requestId: mine.id, approve: false }, actorFor(owner), TODAY);
+      expect(await pendingOn(me, D1)).toBeNull();
+    });
+
     it('NO_OFFICE_ASSIGNED for a caller without an office', async () => {
       const homeless = await user({ inOffice: false });
       expect(await codeOf(desks.directory({ date: D1 }, actorFor(homeless)))).toBe(
         'NO_OFFICE_ASSIGNED'
       );
     });
+  });
+
+  // --- the caller's own lists ------------------------------------------------------
+
+  it('myReservations and myRequests reach back DESK_HISTORY_MONTHS from today, no further', async () => {
+    const [me, owner] = [await user(), await user()];
+    const target = await desk();
+    const hiveDesk = await desk({ hiveId: await hive(owner.id) });
+    const floor = '2097-12-29' as DateOnly; // TODAY minus 12 months
+    const tooOld = '2097-12-28' as DateOnly;
+    const kept = await book(me, target.id, floor);
+    await book(me, target.id, tooOld);
+    const future = await book(me, target.id, D1);
+    const requestOn = (date: DateOnly) =>
+      client.deskApprovalRequest.create({
+        data: { deskId: hiveDesk.id, userId: me.id, date: toDateColumn(date), status: 'REJECTED' },
+      });
+    const keptRequest = await requestOn(floor);
+    await requestOn(tooOld);
+
+    const reservations = await desks.myReservations(actorFor(me), TODAY);
+    expect(reservations.reservations.map((row) => row.id)).toEqual([kept, future]);
+    const mine = await requests.myRequests(actorFor(me), TODAY);
+    expect(mine.requests.map((row) => row.id)).toEqual([keptRequest.id]);
   });
 
   // --- approval -------------------------------------------------------------------
@@ -519,6 +657,49 @@ describe('desk booking against a real PostgreSQL', () => {
         )
       ).toBe('DESK_REQUEST_ALREADY_DECIDED');
       expect((await requests.myRequests(actorFor(requester))).requests[0]?.status).toBe('APPROVED');
+    });
+
+    it('an approval rejects the other pending requests for that desk and day, without notifying', async () => {
+      const { owner, requester, target } = await hiveDeskScene();
+      const [rival, otherDay] = [await user(), await user()];
+      const approved = await requests.requestApproval(
+        { deskId: target.id, date: D1 },
+        actorFor(requester),
+        TODAY
+      );
+      const lost = await requests.requestApproval(
+        { deskId: target.id, date: D1 },
+        actorFor(rival),
+        TODAY
+      );
+      const untouched = await requests.requestApproval(
+        { deskId: target.id, date: D2 },
+        actorFor(otherDay),
+        TODAY
+      );
+      publisher.reset();
+
+      await requests.decideRequest(
+        { requestId: approved.id, approve: true },
+        actorFor(owner),
+        TODAY
+      );
+
+      const statuses = await client.deskApprovalRequest.findMany({
+        where: { id: { in: [lost.id, untouched.id] } },
+        select: { id: true, status: true, decidedById: true },
+      });
+      expect(new Map(statuses.map((row) => [row.id, [row.status, row.decidedById]]))).toEqual(
+        new Map([
+          [lost.id, ['REJECTED', owner.id]],
+          [untouched.id, ['PENDING', null]],
+        ])
+      );
+      const audit = await client.auditLog.findFirstOrThrow({
+        where: { action: 'DESK_APPROVAL_DECIDED', entityId: lost.id },
+      });
+      expect(audit.payload).toMatchObject({ status: 'REJECTED', reason: 'DESK_TAKEN' });
+      expect(publisher.approvalNotices.map((notice) => notice.requestId)).toEqual([approved.id]);
     });
 
     it('approval after the desk got taken is DESK_ALREADY_RESERVED; rejection still works', async () => {

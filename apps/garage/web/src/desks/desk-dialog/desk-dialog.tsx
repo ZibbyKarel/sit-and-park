@@ -3,7 +3,7 @@
 /**
  * The dialog behind one desk on one day: who holds it, and whatever the
  * viewer may do with it — book the day, book a series, cancel their own
- * booking, or ask for approval. What is offered is `toDeskDialogView`'s;
+ * booking, ask for approval, or withdraw their pending request. What is offered is `toDeskDialogView`'s;
  * this file only draws it and runs the writes.
  *
  * Connected (unlike `../../lot/spot-dialog`), because the series preview is a
@@ -69,8 +69,17 @@ export function DeskDialog({ desk, date, context, onClose, onChanged }: DeskDial
     },
   });
 
-  const failure = reserve.error ?? cancel.error ?? request.error;
-  const pending = reserve.isPending || cancel.isPending || request.isPending;
+  const cancelRequest = useMutation({
+    ...api.desk.cancelRequest.mutationOptions(),
+    onSuccess: () => {
+      onChanged();
+      onClose();
+    },
+  });
+
+  const failure = reserve.error ?? cancel.error ?? request.error ?? cancelRequest.error;
+  const pending =
+    reserve.isPending || cancel.isPending || request.isPending || cancelRequest.isPending;
   const done = result !== null || requested;
 
   const holder = desk.status === 'RESERVED_BY_ME' ? t('dialogMe') : (view.holderName ?? null);
@@ -189,6 +198,24 @@ export function DeskDialog({ desk, date, context, onClose, onChanged }: DeskDial
                   }}
                 >
                   {t('cancelReservation')}
+                </Button>
+                <Spacer grow />
+              </>
+            ) : null}
+            {view.canCancelRequest && !done ? (
+              <>
+                <Button
+                  {...primaryButtonProps}
+                  variant="destructive"
+                  isLoading={cancelRequest.isPending}
+                  disabled={pending}
+                  onClick={() => {
+                    if (desk.myPendingRequestId !== null) {
+                      cancelRequest.mutate({ requestId: desk.myPendingRequestId });
+                    }
+                  }}
+                >
+                  {t('cancelRequest')}
                 </Button>
                 <Spacer grow />
               </>

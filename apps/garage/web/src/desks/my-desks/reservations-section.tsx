@@ -235,7 +235,6 @@ export function ReservationsSection() {
                     <div className={styles.toolbar}>
                       <CheckboxField
                         label={t('selectAll')}
-                        labelAfter={t('selectAll')}
                         checked={allSelected}
                         onChange={() =>
                           setSelected(

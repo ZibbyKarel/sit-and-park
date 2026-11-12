@@ -14,11 +14,14 @@ import type { DateOnly } from '@garage/shared-types';
 import { AuditLogService } from '../audit/audit-log.service';
 import { toDateColumn } from '../common/prisma-mapping';
 import { DeskCleanupService } from '../desks/desk-cleanup.service';
+import { lockDesk } from '../desks/desk-db';
 import {
   asPrismaService,
   codeOf,
   connect,
+  holdTransaction,
   RecordingPublisher,
+  waitForBlockedBackend,
 } from '../testing/database/reservation-harness';
 import { unique } from '../testing/database/test-database';
 import { DeskAdminService } from './desk-admin.service';
@@ -30,6 +33,7 @@ const PAST = '2020-01-06' as DateOnly;
 
 describe('desk administration against a real PostgreSQL', () => {
   let client: PrismaClient;
+  let otherClient: PrismaClient;
   let publisher: RecordingPublisher;
   let deskAdmin: DeskAdminService;
   let hiveAdmin: HiveAdminService;
@@ -39,6 +43,7 @@ describe('desk administration against a real PostgreSQL', () => {
 
   beforeAll(async () => {
     client = connect();
+    otherClient = connect();
     publisher = new RecordingPublisher();
     const prisma = asPrismaService(client);
     const audit = new AuditLogService(prisma);
@@ -59,7 +64,7 @@ describe('desk administration against a real PostgreSQL', () => {
   });
 
   afterAll(async () => {
-    await client.$disconnect();
+    await Promise.all([client.$disconnect(), otherClient.$disconnect()]);
   });
 
   beforeEach(() => {
@@ -205,6 +210,44 @@ describe('desk administration against a real PostgreSQL', () => {
     expect(await client.hiveMembership.findUnique({ where: { userId: member.id } })).toBeNull();
     expect(await statusOf(pending)).toBe('REJECTED');
     expect(await reservationsOf(deskId)).toEqual([reservation]);
+  });
+
+  it('a new permanent holder’s booking of another desk, still uncommitted, is waited for and cancelled', async () => {
+    const holder = await user();
+    const [deskId, elsewhere] = [await desk(), await desk()];
+    // `desk.reserve` on another desk, mid-transaction: it locks only that desk.
+    const held = holdTransaction(otherClient, (tx) =>
+      tx.deskReservation.create({
+        data: { deskId: elsewhere, userId: holder.id, date: toDateColumn(FUTURE) },
+      })
+    );
+    await held.ready;
+    const assignment = deskAdmin.setPermanentAssignee({ deskId, userId: holder.id }, admin.id);
+    await waitForBlockedBackend(client);
+    held.release();
+    await held.done;
+    await assignment;
+    expect(await reservationsOf(elsewhere)).toEqual([]);
+  });
+
+  it('a request filed during a hive deletion is waited for and rejected', async () => {
+    const asker = await user();
+    const hiveId = await hive(admin.id);
+    const deskId = await desk(hiveId);
+    // `desk.requestApproval` mid-transaction: the desk locked, the request written.
+    const held = holdTransaction(otherClient, async (tx) => {
+      await lockDesk(tx, deskId);
+      return tx.deskApprovalRequest.create({
+        data: { deskId, userId: asker.id, date: toDateColumn(FUTURE) },
+      });
+    });
+    const pending = await held.ready;
+    const deletion = hiveAdmin.delete({ hiveId }, admin.id);
+    await waitForBlockedBackend(client);
+    held.release();
+    await held.done;
+    await deletion;
+    expect(await statusOf(pending.id)).toBe('REJECTED');
   });
 
   it('setMembership moves a user from one hive to another, and removes only from its own hive', async () => {

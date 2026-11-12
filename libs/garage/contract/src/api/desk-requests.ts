@@ -4,6 +4,7 @@
  */
 
 import * as z from 'zod';
+import { DESK_HISTORY_MONTHS } from '@garage/shared-types';
 import {
   deskApprovalRequestSchema,
   deskReservationSchema,
@@ -67,13 +68,15 @@ export const myDeskRequestSchema = deskApprovalRequestSchema.extend({
 export type MyDeskRequest = z.infer<typeof myDeskRequestSchema>;
 
 export const myDeskRequestsOutputSchema = z.object({
-  /** Every request of the caller, newest date first. */
+  /** The caller's requests dated from `DESK_HISTORY_MONTHS` months before today on, newest date first. */
   requests: z.array(myDeskRequestSchema),
 });
 export type MyDeskRequestsOutput = z.infer<typeof myDeskRequestsOutputSchema>;
 
 export const myDeskRequestsContract = authed
-  .route({ description: 'All approval requests the caller filed, in any status.' })
+  .route({
+    description: `The approval requests the caller filed, in any status: every future one and the past ones of the last ${DESK_HISTORY_MONTHS} months.`,
+  })
   .input(noInputSchema)
   .output(myDeskRequestsOutputSchema);
 

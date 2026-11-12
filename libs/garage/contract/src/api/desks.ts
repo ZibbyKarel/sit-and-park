@@ -12,6 +12,7 @@ import * as z from 'zod';
 import {
   addDays,
   compareDateOnly,
+  DESK_HISTORY_MONTHS,
   MAX_DESK_RELEASE_DATES,
   MAX_DESK_SERIES_DATES,
   MAX_DESK_SERIES_SPAN_DAYS,
@@ -78,6 +79,8 @@ export const directoryDeskSchema = deskSchema.extend({
   /** Permanently assigned **and** released by its holder that day. */
   releasedOn: z.boolean(),
   myReservationId: idSchema.nullable(),
+  /** The caller's `PENDING` approval request for this desk and day, if any. */
+  myPendingRequestId: idSchema.nullable(),
   assignedToMe: z.boolean(),
   grantedToMe: z.boolean(),
 });
@@ -216,13 +219,15 @@ export const myDeskReservationSchema = deskReservationSchema.extend({
 export type MyDeskReservation = z.infer<typeof myDeskReservationSchema>;
 
 export const myDeskReservationsOutputSchema = z.object({
-  /** Past and future, ascending by date. */
+  /** From `DESK_HISTORY_MONTHS` months before today on, ascending by date. */
   reservations: z.array(myDeskReservationSchema),
 });
 export type MyDeskReservationsOutput = z.infer<typeof myDeskReservationsOutputSchema>;
 
 export const myDeskReservationsContract = authed
-  .route({ description: 'All of the caller’s desk reservations, past and future, by date.' })
+  .route({
+    description: `The caller’s desk reservations by date: every future one and the past ones of the last ${DESK_HISTORY_MONTHS} months.`,
+  })
   .input(noInputSchema)
   .output(myDeskReservationsOutputSchema);
 

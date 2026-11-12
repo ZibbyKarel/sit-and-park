@@ -26,6 +26,7 @@ export function directoryDesk(overrides: Partial<DirectoryDesk> = {}): Directory
     permanentAssigneeName: null,
     releasedOn: false,
     myReservationId: null,
+    myPendingRequestId: null,
     assignedToMe: false,
     grantedToMe: false,
     ...overrides,

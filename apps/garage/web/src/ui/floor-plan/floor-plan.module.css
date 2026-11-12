@@ -52,7 +52,8 @@
   stroke-width: 2.5px;
 }
 .shape[aria-pressed='true'] rect {
-  stroke: rgb(var(--foreground--neutral-full-default--light));
+  /* Not the near-black of a reserved desk: on a small desk the stroke is most of what shows. */
+  stroke: rgb(var(--border--controls-medium-selected--light));
   stroke-width: 3.5px;
 }
 .shape:focus-visible rect {

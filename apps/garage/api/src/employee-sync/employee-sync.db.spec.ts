@@ -7,7 +7,10 @@
  * earlier tests here as manual, so each test sees only the employees it made.
  */
 
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
 import type { ConfigService } from '@nestjs/config';
+import type { PinoLogger } from 'nestjs-pino';
 import type { PrismaClient, User as UserRow } from '@garage/database';
 import type { DateOnly } from '@garage/shared-types';
 import { AuditLogService } from '../audit/audit-log.service';
@@ -28,6 +31,12 @@ import { EmployeeSyncService, placeholderOktaId } from './employee-sync.service'
 import { UserDeactivationService } from './user-deactivation.service';
 
 const FUTURE = '2099-01-05' as DateOnly;
+const logger = {
+  debug: jest.fn(),
+  info: jest.fn(),
+  warn: jest.fn(),
+  error: jest.fn(),
+} as unknown as PinoLogger;
 const PAST = '2098-12-28' as DateOnly;
 
 describe('employee sync against a real PostgreSQL', () => {
@@ -49,10 +58,11 @@ describe('employee sync against a real PostgreSQL', () => {
       new DeskCleanupService(audit, harness.publisher),
       harness.reservations,
       audit,
-      harness.publisher
+      harness.publisher,
+      logger
     );
     const config = { get: () => 'a'.repeat(64) } as unknown as ConfigService<ApiEnv, true>;
-    sync = new EmployeeSyncService(prisma, deactivation, audit, config);
+    sync = new EmployeeSyncService(prisma, deactivation, audit, config, logger);
     admin = await seedUser(client);
     const office = await client.office.findUniqueOrThrow({
       where: { name: 'Praha' },
@@ -65,6 +75,10 @@ describe('employee sync against a real PostgreSQL', () => {
   afterAll(async () => {
     await sync.setLiveMode({ liveMode: false }, admin.id);
     await client.$disconnect();
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
   });
 
   beforeEach(async () => {
@@ -119,6 +133,31 @@ describe('employee sync against a real PostgreSQL', () => {
     });
   }
 
+  /** Nine listed employees: enough that deactivating one stays within 10 %. */
+  async function stayers(): Promise<{ id: string; email: string; name: string }[]> {
+    const users = await Promise.all(Array.from({ length: 9 }, () => employee()));
+    return users.map((user) => rowOf(user));
+  }
+
+  /** The audit row a deactivation by `source` leaves behind. */
+  async function deactivatedBy(user: UserRow, source: 'EMPLOYEE_SYNC' | 'ADMIN'): Promise<void> {
+    await client.auditLog.create({
+      data: {
+        actorUserId: source === 'ADMIN' ? admin.id : user.id,
+        action: 'USER_DEACTIVATED',
+        entityType: 'User',
+        entityId: user.id,
+        payload: {
+          source,
+          freedReservations: 0,
+          freedDeskReservations: 0,
+          removedWaitlistEntries: 0,
+          rejectedRequests: 0,
+        },
+      },
+    });
+  }
+
   async function reload(user: UserRow): Promise<UserRow> {
     return client.user.findUniqueOrThrow({ where: { id: user.id } });
   }
@@ -128,14 +167,17 @@ describe('employee sync against a real PostgreSQL', () => {
     const unlinked = await employee({ hibobId: null });
     const renamed = await employee({ name: 'Old Name' });
     const returning = await employee({ active: false });
+    await deactivatedBy(returning, 'EMPLOYEE_SYNC');
     const leaver = await employee();
     const newHibobId = unique('hb-new');
     const newEmail = `${unique('new')}@team.blue`;
+    const padding = await stayers();
 
     const result = await sync.run(
       {
         source: 'test',
         employees: [
+          ...padding,
           rowOf(unlinked, { id: 'hb-linked-' + unlinked.id }),
           rowOf(renamed, { name: 'New Name' }),
           rowOf(returning),
@@ -151,8 +193,8 @@ describe('employee sync against a real PostgreSQL', () => {
       mode: 'LIVE',
       reason: null,
       counts: {
-        received: 4,
-        activeBefore: 3,
+        received: 13,
+        activeBefore: 12,
         created: 1,
         renamed: 1,
         reactivated: 1,
@@ -228,16 +270,7 @@ describe('employee sync against a real PostgreSQL', () => {
       },
     });
 
-    // Padding: two active employees need two rows to clear the shrink check.
-    const result = await sync.run(
-      {
-        employees: [
-          rowOf(stayer),
-          { id: unique('hb'), email: `${unique('pad')}@team.blue`, name: 'Padding' },
-        ],
-      },
-      TODAY
-    );
+    const result = await sync.run({ employees: [rowOf(stayer), ...(await stayers())] }, TODAY);
 
     expect(result.status).toBe(200);
     const deactivated = (
@@ -317,6 +350,7 @@ describe('employee sync against a real PostgreSQL', () => {
     const result = await sync.run(
       {
         employees: [
+          ...(await stayers()),
           rowOf(stayer, { name: 'After' }),
           { id: unique('hb'), email: newEmail, name: 'Dry New' },
         ],
@@ -399,7 +433,7 @@ describe('employee sync against a real PostgreSQL', () => {
       data: { deskId: freeDesk.id, userId: leaver.id, date: toDateColumn(FUTURE) },
     });
 
-    const report = await deactivation.deactivate(leaver.id, 'ADMIN', admin.id, TODAY);
+    const { report } = await deactivation.deactivate(leaver.id, 'ADMIN', admin.id, TODAY);
 
     expect(report.freedDeskReservations).toBe(1);
     expect(await client.deskReservation.count({ where: { userId: leaver.id } })).toBe(0);
@@ -411,5 +445,155 @@ describe('employee sync against a real PostgreSQL', () => {
       actorUserId: admin.id,
       payload: expect.objectContaining({ source: 'ADMIN' }),
     });
+  });
+
+  it('keeps going when a parking cancel fails, reports only what was freed, and finishes on the next run', async () => {
+    await sync.setLiveMode({ liveMode: true }, admin.id);
+    const padding = await stayers();
+    const leaver = await employee();
+    const spot = await seedSpot(client);
+    const parking = await client.reservation.create({
+      data: { parkingSpotId: spot.id, userId: leaver.id, date: toDateColumn(FUTURE) },
+    });
+    jest.spyOn(harness.reservations, 'cancel').mockRejectedValueOnce(new Error('connection reset'));
+
+    const first = await sync.run({ employees: padding }, TODAY);
+
+    expect(first.status).toBe(200);
+    const summary = (
+      await client.employeeSyncRun.findUniqueOrThrow({ where: { id: first.body.runId } })
+    ).summary as { deactivated: { freedParkingReservations: number }[]; warnings: string[] };
+    expect(summary.deactivated).toEqual([expect.objectContaining({ freedParkingReservations: 0 })]);
+    expect(summary.warnings).toEqual([expect.stringContaining('could not be cancelled')]);
+    expect(await reload(leaver)).toMatchObject({ active: false });
+    expect(await client.reservation.findUnique({ where: { id: parking.id } })).not.toBeNull();
+
+    // The leaver is already inactive; the next run sweeps the leftover.
+    const second = await sync.run({ employees: padding }, TODAY);
+
+    expect(second.body.counts.deactivated).toBe(0);
+    expect(await client.reservation.findUnique({ where: { id: parking.id } })).toBeNull();
+    const secondSummary = (
+      await client.employeeSyncRun.findUniqueOrThrow({ where: { id: second.body.runId } })
+    ).summary as { warnings: string[] };
+    expect(secondSummary.warnings).toEqual([
+      expect.stringContaining(`${leaver.email}: finished the clean-up`),
+    ]);
+    // Re-running the clean-up audits no second deactivation.
+    expect(
+      await client.auditLog.count({ where: { action: 'USER_DEACTIVATED', entityId: leaver.id } })
+    ).toBe(1);
+  });
+
+  it('logs the run even when one user’s deactivation throws', async () => {
+    await sync.setLiveMode({ liveMode: true }, admin.id);
+    const padding = await stayers();
+    const leaver = await employee();
+    jest.spyOn(deactivation, 'deactivate').mockRejectedValueOnce(new Error('deadlock'));
+
+    const result = await sync.run({ employees: padding }, TODAY);
+
+    expect(result.status).toBe(200);
+    expect(result.body.counts).toMatchObject({ deactivated: 0, warnings: 1 });
+    const run = await client.employeeSyncRun.findUniqueOrThrow({
+      where: { id: result.body.runId },
+    });
+    expect((run.summary as { warnings: string[] }).warnings).toEqual([
+      expect.stringContaining(`${leaver.email}: deactivation failed`),
+    ]);
+  });
+
+  it('reactivates only users the sync itself deactivated', async () => {
+    await sync.setLiveMode({ liveMode: true }, admin.id);
+    const bySync = await employee({ active: false });
+    await deactivatedBy(bySync, 'EMPLOYEE_SYNC');
+    const byAdmin = await employee({ active: false });
+    await deactivatedBy(byAdmin, 'EMPLOYEE_SYNC');
+    await deactivatedBy(byAdmin, 'ADMIN');
+    const legacy = await employee({ active: false });
+
+    const result = await sync.run(
+      { employees: [rowOf(bySync), rowOf(byAdmin), rowOf(legacy)] },
+      TODAY
+    );
+
+    expect(result.body.counts).toMatchObject({ reactivated: 1, warnings: 2 });
+    expect((await reload(bySync)).active).toBe(true);
+    expect((await reload(byAdmin)).active).toBe(false);
+    expect((await reload(legacy)).active).toBe(false);
+  });
+
+  it('warns when new employees get no office because none is active', async () => {
+    await sync.setLiveMode({ liveMode: true }, admin.id);
+    const active = await client.office.findMany({ where: { active: true }, select: { id: true } });
+    const ids = active.map((office) => office.id);
+    await client.office.updateMany({ where: { id: { in: ids } }, data: { active: false } });
+    try {
+      const email = `${unique('nooffice')}@team.blue`;
+      const result = await sync.run(
+        { employees: [{ id: unique('hb'), email, name: 'No Office' }] },
+        TODAY
+      );
+
+      expect(result.body.counts).toMatchObject({ created: 1, warnings: 1 });
+      expect((await client.user.findUniqueOrThrow({ where: { email } })).officeId).toBeNull();
+    } finally {
+      await client.office.updateMany({ where: { id: { in: ids } }, data: { active: true } });
+    }
+  });
+
+  it('the lower-case migration folds e-mails case, except where two rows would collide', async () => {
+    const tag = unique('case');
+    const lone = await client.user.create({
+      data: {
+        email: `${tag}.Lone@Team.Blue`,
+        name: 'L',
+        oktaId: unique('o'),
+        icsToken: unique('i'),
+        manualAccount: true,
+      },
+    });
+    const pairUpper = await client.user.create({
+      data: {
+        email: `${tag}.Pair@team.blue`,
+        name: 'P',
+        oktaId: unique('o'),
+        icsToken: unique('i'),
+        manualAccount: true,
+      },
+    });
+    const pairOther = await client.user.create({
+      data: {
+        email: `${tag}.PAIR@team.blue`,
+        name: 'Q',
+        oktaId: unique('o'),
+        icsToken: unique('i'),
+        manualAccount: true,
+      },
+    });
+    const sql = readFileSync(
+      join(
+        __dirname,
+        '..',
+        '..',
+        '..',
+        '..',
+        '..',
+        'libs',
+        'garage',
+        'database',
+        'prisma',
+        'migrations',
+        '20261113120000_lowercase_user_email',
+        'migration.sql'
+      ),
+      'utf8'
+    );
+
+    await client.$executeRawUnsafe(sql);
+
+    expect((await reload(lone)).email).toBe(`${tag}.lone@team.blue`);
+    expect((await reload(pairUpper)).email).toBe(pairUpper.email);
+    expect((await reload(pairOther)).email).toBe(pairOther.email);
   });
 });

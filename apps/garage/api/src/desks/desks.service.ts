@@ -26,7 +26,13 @@ import type {
   ReserveDeskOutput,
 } from '@garage/contract';
 import type { FloorPlan, DateOnly } from '@garage/shared-types';
-import { compareDateOnly, FLOOR_PLANS, todayInPrague } from '@garage/shared-types';
+import {
+  addMonths,
+  compareDateOnly,
+  DESK_HISTORY_MONTHS,
+  FLOOR_PLANS,
+  todayInPrague,
+} from '@garage/shared-types';
 import { AuditLogService } from '../audit/audit-log.service';
 import type { AuthenticatedUser } from '../auth/authenticated-user';
 import { DomainError } from '../common/errors/domain-error';
@@ -39,9 +45,20 @@ import { PrismaService } from '../database/prisma.service';
 import { DomainEventPublisher } from '../reservations/reservation-events';
 import { RESERVATION_TRANSACTION_OPTIONS } from '../reservations/transaction-options';
 import type { DeskReader } from './desk-db';
-import { loadCaller, lockDesk, toContractDesk, toContractDeskReservation } from './desk-db';
+import {
+  loadCaller,
+  lockDesk,
+  lockUser,
+  toContractDesk,
+  toContractDeskReservation,
+} from './desk-db';
 import type { DeskFacts } from './desk-rules';
 import { assertSeriesAllowed, deskAccess, deskStatus, planSeries } from './desk-rules';
+
+/** The earliest date the caller's own lists reach back to (`DESK_HISTORY_MONTHS`). */
+export function historyFloor(today: DateOnly): Date {
+  return toDateColumn(addMonths(today, -DESK_HISTORY_MONTHS));
+}
 
 function isFloorPlan(value: string | null): value is FloorPlan {
   return value !== null && (FLOOR_PLANS as readonly string[]).includes(value);
@@ -82,7 +99,7 @@ export class DesksService {
     const officeId = caller.officeId;
     const date = toDateColumn(input.date);
 
-    const [office, zones, hives, desks, reservations, releases] = await Promise.all([
+    const [office, zones, hives, desks, reservations, releases, myPending] = await Promise.all([
       db.office.findUniqueOrThrow({ where: { id: officeId } }),
       db.zone.findMany({ where: { officeId }, orderBy: { name: 'asc' } }),
       db.hive.findMany({ select: { id: true, name: true, color: true }, orderBy: { name: 'asc' } }),
@@ -100,10 +117,15 @@ export class DesksService {
         select: { id: true, deskId: true, userId: true, user: { select: { name: true } } },
       }),
       db.deskRelease.findMany({ where: { date, desk: { officeId } }, select: { deskId: true } }),
+      db.deskApprovalRequest.findMany({
+        where: { date, userId: caller.id, status: 'PENDING' },
+        select: { id: true, deskId: true },
+      }),
     ]);
 
     const reservationByDesk = new Map(reservations.map((row) => [row.deskId, row]));
     const releasedDesks = new Set(releases.map((row) => row.deskId));
+    const myPendingByDesk = new Map(myPending.map((row) => [row.deskId, row.id]));
 
     return {
       date: input.date,
@@ -139,6 +161,7 @@ export class DesksService {
           permanentAssigneeName: desk.permanentAssignee?.name ?? null,
           releasedOn: desk.permanentAssigneeId !== null && released,
           myReservationId: reservation?.userId === caller.id ? reservation.id : null,
+          myPendingRequestId: myPendingByDesk.get(desk.id) ?? null,
           assignedToMe: desk.permanentAssigneeId === caller.id,
           grantedToMe: caller.grantedDeskIds.has(desk.id),
         };
@@ -170,6 +193,9 @@ export class DesksService {
     const outcome = await this.prisma.client
       .$transaction(async (tx) => {
         await lockDesk(tx, input.deskId);
+        // Orders this booking against the caller becoming a permanent holder
+        // of another desk; `plan` reads the caller's facts after it.
+        await lockUser(tx, actor.id, 'SHARE');
         const { desk, days, callerName } = await this.plan(tx, input, actor.id, today);
         const free = days.filter((day) => day.ok);
         if (free.length === 0) {
@@ -280,9 +306,12 @@ export class DesksService {
     return result;
   }
 
-  async myReservations(actor: AuthenticatedUser): Promise<MyDeskReservationsOutput> {
+  async myReservations(
+    actor: AuthenticatedUser,
+    today: DateOnly = todayInPrague()
+  ): Promise<MyDeskReservationsOutput> {
     const rows = await this.prisma.client.deskReservation.findMany({
-      where: { userId: actor.id },
+      where: { userId: actor.id, date: { gte: historyFloor(today) } },
       include: {
         desk: {
           select: {
@@ -338,18 +367,30 @@ export class DesksService {
     };
   }
 
-  /** Releases the caller's permanent desk on today-or-later dates; existing ones are skipped. */
+  /**
+   * Releases the caller's permanent desk on today-or-later dates; existing ones
+   * are skipped. Locks the desk and re-reads its holder like
+   * {@link cancelRelease}, so a reassignment that lands first is seen.
+   */
   async release(
     input: ReleaseDeskInput,
     actor: AuthenticatedUser,
     today: DateOnly = todayInPrague()
   ): Promise<ReleaseDeskOutput> {
     return this.prisma.client.$transaction(async (tx) => {
-      const desk = await tx.desk.findUnique({
+      const found = await tx.desk.findUnique({
         where: { permanentAssigneeId: actor.id },
-        select: { id: true, code: true },
+        select: { id: true },
       });
-      if (desk === null) {
+      if (found === null) {
+        throw new DomainError('NO_PERMANENT_DESK');
+      }
+      await lockDesk(tx, found.id);
+      const desk = await tx.desk.findUnique({
+        where: { id: found.id },
+        select: { id: true, code: true, permanentAssigneeId: true },
+      });
+      if (desk?.permanentAssigneeId !== actor.id) {
         throw new DomainError('NO_PERMANENT_DESK');
       }
       const dates = [...new Set(input.dates)].sort(compareDateOnly);

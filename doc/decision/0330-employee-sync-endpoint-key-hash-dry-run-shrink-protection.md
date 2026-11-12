@@ -10,7 +10,9 @@ The source accepts an employee list over `POST /api/employee-sync`, authenticate
 
 - `POST /api/employee-sync` is a plain Nest route outside oRPC: `@Public()`, a strict throttle and a bearer key.
 - Only the key's SHA-256 is known to the server, via `EMPLOYEE_SYNC_KEY_SHA256`; unset means 503. No secret is stored in the database.
-- The whole list is validated before anything is written. An empty list, or one below 90 % of the active synced users, is rejected.
+- The whole list is validated before anything is written. An empty list is rejected, and so is a run that would deactivate more than 10 % of the active synced users (judged on the outcome, not the row count, so a list of strangers is rejected too).
+- The sync reactivates only users it deactivated itself (latest `USER_DEACTIVATED` audit `source`), never deactivates the last active admin, and does not create accounts outside `@team.blue`.
+- Deactivation clean-up is re-runnable: every live run sweeps inactive synced users who still hold future bookings, queue places or pending requests; one user's failure is a warning and the run is still logged.
 - Dry-run unless `EmployeeSyncSettings.liveMode`; every run, accepted or rejected, is logged in `EmployeeSyncRun`.
 - Users outside `@team.blue` or with `manualAccount` are never touched.
 
@@ -21,4 +23,4 @@ The source accepts an employee list over `POST /api/employee-sync`, authenticate
 
 ## If wrong
 
-A bad feed that stays above 90 % still deactivates people in live mode; the dry-run log is the check, and reactivation is a manual step.
+A bad feed that deactivates fewer than 10 % still deactivates them in live mode; the dry-run log is the check, and the next correct list reactivates them (they were deactivated by the sync).

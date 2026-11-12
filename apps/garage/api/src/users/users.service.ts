@@ -149,16 +149,30 @@ export class UsersService {
       }
     }
 
+    // `active: false` is not written here: `deactivate` flips it in the same
+    // transaction as the clean-up, so a failed clean-up leaves the user active
+    // and a retry of the same request starts over.
     const data: Prisma.UserUncheckedUpdateInput = {
       ...(changes.role === undefined ? {} : { role: changes.role }),
-      ...(changes.active === undefined ? {} : { active: changes.active }),
-      ...(changes.active === undefined || changes.active === existing.active
-        ? {}
-        : { deactivatedAt: changes.active ? null : new Date() }),
+      ...(changes.active === true ? { active: true } : {}),
+      ...(changes.active === true && !existing.active ? { deactivatedAt: null } : {}),
       ...(changes.officeId === undefined ? {} : { officeId: changes.officeId }),
       ...(changes.manualAccount === undefined ? {} : { manualAccount: changes.manualAccount }),
     };
-    const row = await this.prisma.client.user.update({ where: { id }, data });
+    await this.prisma.client.user.update({ where: { id }, data });
+
+    // Offboarding has side effects beyond the flag (decision 0329): future
+    // desk and parking reservations, waitlist entries and pending requests.
+    // The same path the employee sync uses. Also run for a user who is
+    // already inactive: it finishes a clean-up an earlier attempt left
+    // incomplete, and audits nothing new.
+    if (changes.active === false) {
+      await this.deactivation.deactivate(id, 'ADMIN', actor.id);
+    }
+    const row = await this.prisma.client.user.findUnique({ where: { id } });
+    if (row === null) {
+      throw new DomainError('NOT_FOUND', { message: 'No such user.' });
+    }
 
     // The `payload` shape is fixed per action by `../audit/audit-payloads.ts`.
     await this.audit.record({
@@ -182,13 +196,6 @@ export class UsersService {
         },
       },
     });
-
-    // Offboarding has side effects beyond the flag (decision 0329): future
-    // desk and parking reservations, waitlist entries and pending requests.
-    // The same path the employee sync uses.
-    if (changes.active === false && existing.active) {
-      await this.deactivation.deactivate(id, 'ADMIN', actor.id);
-    }
 
     return toAdminUser(row);
   }

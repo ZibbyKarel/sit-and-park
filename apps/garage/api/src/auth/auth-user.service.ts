@@ -132,7 +132,10 @@ export class AuthUserService {
       }
 
       try {
-        return await this.linkOrCreate(claims, claims.email);
+        // `User.email` is case-sensitive unique and stored lower-cased (the
+        // employee sync pre-creates rows that way), so the claim must be too,
+        // or `Jane.Doe@…` misses `jane.doe@…` and provisions a second row.
+        return await this.linkOrCreate(claims, claims.email.trim().toLowerCase());
       } catch (error) {
         if (!isUniqueConstraintViolation(error)) {
           throw error;

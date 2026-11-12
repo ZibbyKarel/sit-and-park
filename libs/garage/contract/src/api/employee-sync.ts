@@ -89,9 +89,12 @@ export const EMPLOYEE_SYNC_REASON_CODES = [
   'INVALID_PAYLOAD',
   /** `employees` is empty (422). */
   'EMPTY_LIST',
-  /** At least one row is invalid or duplicated (422). */
+  /**
+   * At least one row is invalid or duplicated, or has an id over 100, a name
+   * over 200 or an e-mail over 320 characters (422).
+   */
   'INVALID_ROWS',
-  /** Fewer rows than 90 % of the active synced users (422). */
+  /** The run would deactivate more than 10 % of the active synced users (422). */
   'LIST_SHRANK',
 ] as const;
 export type EmployeeSyncReasonCode = (typeof EMPLOYEE_SYNC_REASON_CODES)[number];

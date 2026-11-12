@@ -21,6 +21,7 @@ import { DomainError } from '../common/errors/domain-error';
 import { toTimestamp } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
 import { DeskCleanupService } from '../desks/desk-cleanup.service';
+import { lockDesks } from '../desks/desk-db';
 import { RESERVATION_TRANSACTION_OPTIONS } from '../reservations/transaction-options';
 
 export function toContractHive(row: HiveRow): Hive {
@@ -107,11 +108,21 @@ export class HiveAdminService {
    * its owner, who no longer decides them; reason `HIVE_DELETED`), then
    * deletes it: its desks' `hiveId` is set to null by the foreign key (they
    * become open to their office) and its memberships cascade. Reservations
-   * stay — they were made with access.
+   * stay — they were made with access. The hive's desks are locked first
+   * (ascending, like a bulk edit), so a request filed on one of them either
+   * committed before (and is rejected here) or waits and finds no hive.
    */
   async delete(input: AdminDeleteHiveInput, actorUserId: string): Promise<AdminDeleteHiveOutput> {
     await this.prisma.client.$transaction(async (tx) => {
       const before = await this.requireHive(tx, input.hiveId);
+      const desks = await tx.desk.findMany({
+        where: { hiveId: input.hiveId },
+        select: { id: true },
+      });
+      await lockDesks(
+        tx,
+        desks.map((desk) => desk.id)
+      );
       await this.cleanup.rejectPendingRequests(
         tx,
         { desk: { hiveId: input.hiveId } },

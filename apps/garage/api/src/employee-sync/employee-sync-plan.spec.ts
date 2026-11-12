@@ -1,6 +1,7 @@
-import type { EmployeeSyncRow } from '@garage/contract';
+import type { EmployeeSyncRow, EmployeeSyncSummary } from '@garage/contract';
+import { employeeSyncSummarySchema } from '@garage/contract';
 import type { EmployeeSyncPlan, SyncProfile } from './employee-sync-plan';
-import { isManualAccount, planEmployeeSync } from './employee-sync-plan';
+import { fitSummary, isManualAccount, planEmployeeSync } from './employee-sync-plan';
 
 let nextId = 0;
 function profile(overrides: Partial<SyncProfile> = {}): SyncProfile {
@@ -12,6 +13,8 @@ function profile(overrides: Partial<SyncProfile> = {}): SyncProfile {
     hibobId: `hb${nextId}`,
     active: true,
     manualAccount: false,
+    role: 'USER',
+    deactivatedBySync: false,
     ...overrides,
   };
 }
@@ -52,6 +55,11 @@ describe('planEmployeeSync', () => {
         'an invalid e-mail',
         [{ id: '1', email: 'not-an-email', name: 'A' }],
         /row 1: invalid e-mail/,
+      ],
+      [
+        'an id over 100 characters',
+        [{ id: 'x'.repeat(101), email: 'a@team.blue', name: 'A' }],
+        /row 1: HiBob id longer/,
       ],
       [
         'a name over 200 characters',
@@ -101,6 +109,17 @@ describe('planEmployeeSync', () => {
       const plan = planEmployeeSync(profiles.slice(0, 8).map(rowOf), profiles);
       expect(plan).toMatchObject({ status: 'REJECTED', code: 'LIST_SHRANK', activeBefore: 10 });
       expect(plan.status === 'REJECTED' && plan.reason).toContain('minimum 9');
+    });
+
+    it('when a long enough list matches nobody (judged on the outcome, not the row count)', () => {
+      const profiles = Array.from({ length: 10 }, () => profile());
+      const strangers = Array.from({ length: 10 }, (_, i) => ({
+        id: `stranger-${i}`,
+        email: `stranger${i}@team.blue`,
+        name: `Stranger ${i}`,
+      }));
+      const plan = planEmployeeSync(strangers, profiles);
+      expect(plan).toMatchObject({ status: 'REJECTED', code: 'LIST_SHRANK', received: 10 });
     });
 
     it('validates before it checks the shrink', () => {
@@ -173,7 +192,7 @@ describe('planEmployeeSync', () => {
   });
 
   it('renames and reactivates, matched by HiBob id', () => {
-    const p = profile({ name: 'Old Name', active: false });
+    const p = profile({ name: 'Old Name', active: false, deactivatedBySync: true });
     const plan = ok(planEmployeeSync([{ ...rowOf(p), name: 'New Name' }], [p]));
     expect(plan.update).toEqual([
       {
@@ -226,18 +245,105 @@ describe('planEmployeeSync', () => {
   });
 
   it('deactivates active synced users missing from the list, and only them', () => {
-    const kept = profile();
+    const kept = Array.from({ length: 9 }, () => profile());
     const gone = profile();
     const alreadyInactive = profile({ active: false });
     const manual = profile({ manualAccount: true });
-    // Two active synced users; one row keeps ceil(2 * 0.9) = 2 out of reach, so
-    // pad with a new employee to stay above the minimum.
+    const plan = ok(planEmployeeSync(kept.map(rowOf), [...kept, gone, alreadyInactive, manual]));
+    expect(plan.deactivate.map((p) => p.id)).toEqual([gone.id]);
+  });
+
+  it('does not reactivate a user an admin deactivated, or one with no audit trail', () => {
+    const byAdmin = profile({ active: false, deactivatedBySync: false, name: 'Old' });
+    const plan = ok(planEmployeeSync([{ ...rowOf(byAdmin), name: 'New' }], [byAdmin]));
+    expect(plan.update).toEqual([
+      { userId: byAdmin.id, email: byAdmin.email, name: 'Old', rename: { from: 'Old', to: 'New' } },
+    ]);
+    expect(plan.warnings).toEqual([expect.stringContaining('not reactivated')]);
+  });
+
+  it('never deactivates the last active admin, but other missing admins go', () => {
+    const kept = Array.from({ length: 18 }, () => profile());
+    const admins = [profile({ role: 'ADMIN' }), profile({ role: 'ADMIN' })];
+    const plan = ok(planEmployeeSync(kept.map(rowOf), [...kept, ...admins]));
+    expect(plan.deactivate.map((p) => p.id)).toEqual([admins[0]?.id]);
+    expect(plan.warnings).toEqual([
+      expect.stringContaining(
+        `${admins[1]?.email}: missing from the list but the last active admin`
+      ),
+    ]);
+  });
+
+  it('counts a manual admin as the admin who remains', () => {
+    const kept = Array.from({ length: 9 }, () => profile());
+    const syncedAdmin = profile({ role: 'ADMIN' });
+    const manualAdmin = profile({ role: 'ADMIN', manualAccount: true });
+    const plan = ok(planEmployeeSync(kept.map(rowOf), [...kept, syncedAdmin, manualAdmin]));
+    expect(plan.deactivate.map((p) => p.id)).toEqual([syncedAdmin.id]);
+  });
+
+  it('skips, with a warning, an e-mail two accounts share apart from letter case', () => {
+    const upper = profile({ email: 'Jane.Doe@team.blue', hibobId: null });
+    const lower = profile({ email: 'jane.doe@team.blue', hibobId: null });
     const plan = ok(
       planEmployeeSync(
-        [rowOf(kept), { id: 'n', email: 'n@team.blue', name: 'N' }],
-        [kept, gone, alreadyInactive, manual]
+        [{ id: 'hb-jane', email: 'jane.doe@team.blue', name: 'Jane' }],
+        [upper, lower]
       )
     );
-    expect(plan.deactivate.map((p) => p.id)).toEqual([gone.id]);
+    expect(plan.update).toEqual([]);
+    expect(plan.create).toEqual([]);
+    expect(plan.deactivate).toEqual([]);
+    expect(plan.warnings).toEqual([expect.stringContaining('different letter case')]);
+  });
+
+  it('does not create an account for a row outside @team.blue', () => {
+    const plan = ok(
+      planEmployeeSync(
+        [
+          { id: 'ext', email: 'someone@example.com', name: 'Ext' },
+          { id: 'in', email: 'in@team.blue', name: 'In' },
+        ],
+        []
+      )
+    );
+    expect(plan.create.map((row) => row.hibobId)).toEqual(['in']);
+    expect(plan.warnings).toEqual([
+      expect.stringContaining('someone@example.com: not a @team.blue'),
+    ]);
+  });
+});
+
+describe('fitSummary', () => {
+  it('always satisfies the summary schema, whatever came from the database', () => {
+    const long = (n: number) => 'x'.repeat(n);
+    const summary: EmployeeSyncSummary = {
+      received: 1,
+      activeBefore: 1,
+      created: Array.from({ length: 600 }, () => ({ email: 'a@team.blue', name: 'A' })),
+      renamed: [{ email: `${long(400)}@team.blue`, from: long(300), to: 'B' }],
+      deactivated: [
+        {
+          email: 'a@team.blue',
+          name: long(300),
+          freedDeskReservations: 0,
+          freedParkingReservations: 0,
+          removedWaitlistEntries: 0,
+          rejectedRequests: 0,
+          permanentDesks: Array.from({ length: 12 }, () => long(50)),
+          ownedHives: Array.from({ length: 120 }, () => long(150)),
+        },
+      ],
+      reactivated: [],
+      linked: 0,
+      unchanged: 0,
+      warnings: [long(5000)],
+    };
+    expect(employeeSyncSummarySchema.safeParse(summary).success).toBe(false);
+
+    const fitted = employeeSyncSummarySchema.parse(fitSummary(summary));
+
+    expect(fitted.created).toHaveLength(500);
+    expect(fitted.warnings[0]).toHaveLength(1000);
   });
 });

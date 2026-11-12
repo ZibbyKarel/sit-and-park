@@ -263,6 +263,12 @@ export const MAX_DESK_SERIES_DATES = 20;
 /** The last date of a desk series lies at most this many days after the first. */
 export const MAX_DESK_SERIES_SPAN_DAYS = 34;
 
+/**
+ * `desk.myReservations` and `desk.myRequests` list the caller's rows dated at
+ * most this many months before today (Prague), and everything later.
+ */
+export const DESK_HISTORY_MONTHS = 12;
+
 /** A permanent holder releases 1 to this many dates in one call. */
 export const MAX_DESK_RELEASE_DATES = 60;
 

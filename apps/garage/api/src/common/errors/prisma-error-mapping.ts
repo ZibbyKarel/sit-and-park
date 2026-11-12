@@ -338,8 +338,12 @@ export function mapPrismaErrorCode(
     case PRISMA_RECORD_NOT_FOUND:
       return 'NOT_FOUND';
     case PRISMA_FOREIGN_KEY_CONSTRAINT:
-      // Every foreign key in this schema is ON DELETE RESTRICT, so this is
-      // always "something still references the row you tried to remove".
+      // Most foreign keys here are ON DELETE RESTRICT (the exceptions:
+      // `User.preferredParkingSpotId` and `Desk.hiveId` are SET NULL,
+      // `HiveMembership` cascades with its hive and `DeskGrant` with its desk),
+      // so this is "something still references the row you tried to remove",
+      // or a write referencing a row a concurrent change just removed. Either
+      // way the request lost to the current state of the data.
       return 'CONFLICT';
     case PRISMA_WRITE_CONFLICT:
       // Literally the contract's definition of `CONFLICT`: "the request lost a
