@@ -19,8 +19,6 @@
     "adminBadge": "Admin",
     "settings": "Settings",
     "administration": "Administration",
-    "language": "Language",
-    "languageCurrent": "(current)",
     "switchToLight": "Switch to light mode",
     "switchToDark": "Switch to dark mode",
     "signOut": "Sign out",

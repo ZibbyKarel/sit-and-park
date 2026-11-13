@@ -19,7 +19,7 @@
 
 import { Avatar, Icon, Menu, Stack, Text } from '@shoptet/ui';
 import type { UserRole } from '@sit-and-park/contract';
-import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@sit-and-park/i18n';
+import { useTranslations } from '@sit-and-park/i18n';
 import NextLink from 'next/link';
 import {
   ADMIN_ROUTE,
@@ -29,16 +29,12 @@ import {
   SETTINGS_ROUTE,
 } from '../../routes';
 import { MoonIcon, SunIcon } from '../../ui/icons/icons';
-import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import styles from './top-bar.module.css';
 
 /** Menu entry ids. `onSelect` is called with one of these. */
 export const MENU_SETTINGS = 'settings';
 export const MENU_ADMIN = 'administration';
 export const MENU_SIGN_OUT = 'sign-out';
-
-/** Prefix of the menu item id for a language choice: `locale:cs`, `locale:en`. */
-export const MENU_LOCALE_PREFIX = 'locale:';
 
 /**
  * The primary sections, in bar order. Admin screens for desks are tabs of
@@ -66,10 +62,6 @@ export interface TopBarProps {
   /** Called with {@link ADMIN_ROUTE} or {@link SETTINGS_ROUTE}. */
   readonly onNavigate: (route: string) => void;
   readonly onSignOut: () => void;
-  /** The active locale, so the menu can mark it. */
-  readonly locale: Locale;
-  /** Called with the locale the user picked. Never called for the active one. */
-  readonly onLocaleChange: (locale: Locale) => void;
   /** Whether dark mode is on, so the toggle offers the opposite. */
   readonly dark: boolean;
   readonly onThemeToggle: () => void;
@@ -82,8 +74,6 @@ export function TopBar({
   role,
   onNavigate,
   onSignOut,
-  locale,
-  onLocaleChange,
   dark,
   onThemeToggle,
 }: TopBarProps) {
@@ -96,13 +86,6 @@ export function TopBar({
       onNavigate(SETTINGS_ROUTE);
     } else if (id === MENU_ADMIN) {
       onNavigate(ADMIN_ROUTE);
-    } else if (id.startsWith(MENU_LOCALE_PREFIX)) {
-      const picked = id.slice(MENU_LOCALE_PREFIX.length);
-      // Re-picking the active language is a no-op rather than a reload: the
-      // cookie is already set and `router.refresh()` would repaint for nothing.
-      if (isLocale(picked) && picked !== locale) {
-        onLocaleChange(picked);
-      }
     } else if (id === MENU_SIGN_OUT) {
       onSignOut();
     }
@@ -185,29 +168,6 @@ export function TopBar({
               </span>
             </Menu.Item>
           ) : null}
-          <Menu.Divider />
-          {/* `Menu` has no radio items, so the active language carries a checkmark and is a plain item. */}
-          <Menu.Item disabled>
-            <Text appearance="sm" variant="secondary">
-              {t('language')}
-            </Text>
-          </Menu.Item>
-          {LOCALES.map((candidate) => (
-            <Menu.Item
-              key={candidate}
-              onAction={() => onSelect(`${MENU_LOCALE_PREFIX}${candidate}`)}
-            >
-              <span className={styles.entry}>
-                {LOCALE_LABELS[candidate]}
-                {candidate === locale ? (
-                  <span data-active="true">
-                    <Icon icon="shp-checkmark" size="sm" />
-                    <VisuallyHidden> {t('languageCurrent')}</VisuallyHidden>
-                  </span>
-                ) : null}
-              </span>
-            </Menu.Item>
-          ))}
           <Menu.Divider />
           <Menu.Item destructive onAction={() => onSelect(MENU_SIGN_OUT)}>
             {t('signOut')}

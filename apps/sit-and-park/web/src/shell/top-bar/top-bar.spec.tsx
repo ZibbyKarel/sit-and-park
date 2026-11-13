@@ -3,7 +3,6 @@ import userEvent from '@testing-library/user-event';
 import { IntlProvider } from '@sit-and-park/i18n';
 import cs from '../../../messages/cs.json';
 import type { UserRole } from '@sit-and-park/contract';
-import type { Locale } from '@sit-and-park/i18n';
 import { ADMIN_ROUTE, DESKS_ROUTE, MY_RESERVATIONS_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { TopBar } from './top-bar';
 
@@ -18,14 +17,12 @@ function renderTopBar(
     name?: string;
     email?: string;
     role?: UserRole | undefined;
-    locale?: Locale;
     pathname?: string;
     dark?: boolean;
   } = {}
 ) {
   const onNavigate = jest.fn();
   const onSignOut = jest.fn();
-  const onLocaleChange = jest.fn();
   const onThemeToggle = jest.fn();
 
   render(
@@ -37,15 +34,13 @@ function renderTopBar(
         role={overrides.role}
         onNavigate={onNavigate}
         onSignOut={onSignOut}
-        locale={overrides.locale ?? 'cs'}
-        onLocaleChange={onLocaleChange}
         dark={overrides.dark ?? false}
         onThemeToggle={onThemeToggle}
       />
     </IntlProvider>
   );
 
-  return { onNavigate, onSignOut, onLocaleChange, onThemeToggle, user: userEvent.setup() };
+  return { onNavigate, onSignOut, onThemeToggle, user: userEvent.setup() };
 }
 
 async function openMenu(user: ReturnType<typeof userEvent.setup>) {
@@ -147,43 +142,12 @@ describe('TopBar', () => {
     expect(onNavigate).not.toHaveBeenCalled();
   });
 
-  describe('the language switcher', () => {
-    /** The active language is the one item carrying the checkmark. */
-    function isMarked(item: HTMLElement) {
-      return item.querySelector('[data-active="true"]') !== null;
-    }
+  it('offers no language entries in the menu', async () => {
+    const { user } = renderTopBar();
+    await openMenu(user);
 
-    it('offers both languages and marks the active one', async () => {
-      const { user } = renderTopBar({ locale: 'cs' });
-      await openMenu(user);
-
-      expect(isMarked(screen.getByRole('menuitem', { name: /Čeština/ }))).toBe(true);
-      expect(isMarked(screen.getByRole('menuitem', { name: /English/ }))).toBe(false);
-    });
-
-    it('marks English when English is the active locale', async () => {
-      const { user } = renderTopBar({ locale: 'en' });
-      await openMenu(user);
-
-      expect(isMarked(screen.getByRole('menuitem', { name: /English/ }))).toBe(true);
-      expect(isMarked(screen.getByRole('menuitem', { name: /Čeština/ }))).toBe(false);
-    });
-
-    it('reports the language the user picked', async () => {
-      const { user, onLocaleChange } = renderTopBar({ locale: 'cs' });
-      await openMenu(user);
-      await user.click(screen.getByRole('menuitem', { name: /English/ }));
-
-      expect(onLocaleChange).toHaveBeenCalledWith('en');
-    });
-
-    it('does not report a change when the active language is picked again', async () => {
-      const { user, onLocaleChange } = renderTopBar({ locale: 'cs' });
-      await openMenu(user);
-      await user.click(screen.getByRole('menuitem', { name: /Čeština/ }));
-
-      expect(onLocaleChange).not.toHaveBeenCalled();
-    });
+    expect(screen.queryByRole('menuitem', { name: /Čeština|English/ })).not.toBeInTheDocument();
+    expect(screen.queryByText('language')).not.toBeInTheDocument();
   });
 
   describe('the theme toggle', () => {
