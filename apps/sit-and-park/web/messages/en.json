@@ -581,7 +581,7 @@
     "skipAlreadyThisDesk": "you already have this desk that day",
     "skipAlreadyOtherDesk": "you already have another desk that day",
     "skipDeskTaken": "the desk is taken that day",
-    "bulkOpen": "Bulk desk booking",
+    "bulkOpen": "Bulk reservation",
     "selectionCount": "{count, plural, one {# desk} other {# desks}} selected",
     "selectionClear": "Clear selection",
     "columnSelect": "Select",

@@ -283,7 +283,7 @@ export function DesksScreen() {
           <Chip size="md" tone="outline" as="p">
             {t('freeCount', { free, total: desks.length })}
           </Chip>
-          <Button variant="secondary" size="sm" onClick={() => setBulkOpen(true)}>
+          <Button size="sm" onClick={() => setBulkOpen(true)}>
             {t('bulkOpen')}
           </Button>
         </div>

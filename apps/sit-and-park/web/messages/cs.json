@@ -581,7 +581,7 @@
     "skipAlreadyThisDesk": "tento stůl už ten den máte",
     "skipAlreadyOtherDesk": "ten den už máte jiný stůl",
     "skipDeskTaken": "stůl je ten den obsazený",
-    "bulkOpen": "Hromadná rezervace stolů",
+    "bulkOpen": "Hromadná rezervace",
     "selectionCount": "Vybráno {count, plural, one {# stůl} few {# stoly} other {# stolů}}",
     "selectionClear": "Zrušit výběr",
     "columnSelect": "Výběr",

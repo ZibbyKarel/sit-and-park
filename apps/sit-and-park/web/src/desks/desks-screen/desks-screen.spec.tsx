@@ -114,6 +114,17 @@ async function openDesk(user: ReturnType<typeof userEvent.setup>, desk: Director
 }
 
 describe('DesksScreen', () => {
+  it('renders the bulk button as the primary small button, like the lot header', async () => {
+    serve({ 'desk/directory': ok(directory([FREE])) });
+    renderScreen();
+
+    const bulk = await screen.findByRole('button', { name: 'bulkOpen' });
+    const today = screen.getByRole('button', { name: 'today' });
+    expect(bulk.className).not.toBe(today.className);
+    expect(today.className).toContain('secondary');
+    expect(bulk.className).not.toContain('secondary');
+  });
+
   it('draws one plan shape per desk with its Czech accessible name, and the same desks as a list', async () => {
     const api = serve({ 'desk/directory': ok(directory([FREE, HIVE])) });
     const user = renderScreen();
