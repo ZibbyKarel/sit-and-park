@@ -70,8 +70,10 @@ describe('TopBar', () => {
   });
 
   describe('for a plain user', () => {
-    it('renders no ADMIN badge', () => {
-      renderTopBar({ role: 'USER' });
+    it('renders no admin crown', async () => {
+      const { user } = renderTopBar({ role: 'USER' });
+      expect(screen.queryByTestId('admin-crown')).not.toBeInTheDocument();
+      await openMenu(user);
       expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
     });
 
@@ -86,8 +88,15 @@ describe('TopBar', () => {
   });
 
   describe('for an administrator', () => {
-    it('renders the ADMIN badge', () => {
-      renderTopBar({ role: 'ADMIN' });
+    it('renders the admin crown', async () => {
+      const { user } = renderTopBar({ role: 'ADMIN' });
+      const crown = screen.getByTestId('admin-crown');
+      expect(crown).toHaveAttribute('aria-hidden', 'true');
+      expect(
+        within(screen.getByRole('button', { name: 'userMenu' })).getByTestId('admin-crown')
+      ).toBe(crown);
+      expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
+      await openMenu(user);
       expect(screen.getByText('adminBadge')).toBeInTheDocument();
     });
 
@@ -102,9 +111,10 @@ describe('TopBar', () => {
   describe('when the role is not known yet', () => {
     // `me.get` is in flight, or it failed. Both reach this component as
     // `role === undefined`, and both have to fail closed.
-    it('renders neither the badge nor the administration entry', async () => {
+    it('renders neither the crown nor the administration entry', async () => {
       const { user } = renderTopBar({ role: undefined });
 
+      expect(screen.queryByTestId('admin-crown')).not.toBeInTheDocument();
       expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
       await openMenu(user);
       expect(screen.queryByRole('menuitem', { name: /administration/ })).not.toBeInTheDocument();

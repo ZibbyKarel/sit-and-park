@@ -57,8 +57,19 @@
   color: rgb(var(--foreground--neutral-full-default--light));
 }
 
-.adminBadge {
-  text-transform: uppercase;
+.avatar {
+  position: relative;
+  display: inline-flex;
+}
+
+.crown {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  transform: rotate(45deg);
+  color: rgb(var(--background--notice-high-default--light));
+  pointer-events: none;
+  line-height: 0;
 }
 
 .trigger {

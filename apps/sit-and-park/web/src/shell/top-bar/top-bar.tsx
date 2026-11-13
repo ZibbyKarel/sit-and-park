@@ -12,12 +12,12 @@
  * It takes what it draws as props and reports what was chosen through two
  * callbacks; `../app-top-bar.tsx` is the half that reads the session and the
  * profile. The split is not ceremony: every rule this file encodes — when the
- * `ADMIN` badge appears, when `Správa` appears, what the initials are, which
+ * admin crown appears, when `Správa` appears, what the initials are, which
  * entry is destructive — is then a pure function of its input, and a test can
  * ask about all of them without a router, a session or a network.
  */
 
-import { Avatar, Icon, Menu, Stack, Tag, Text } from '@shoptet/ui';
+import { Avatar, Icon, Menu, Stack, Text } from '@shoptet/ui';
 import type { UserRole } from '@sit-and-park/contract';
 import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@sit-and-park/i18n';
 import NextLink from 'next/link';
@@ -134,12 +134,6 @@ export function TopBar({
       </nav>
 
       <Stack orientation="horizontal" align="center" gap="md">
-        {isAdmin ? (
-          <span className={styles.adminBadge}>
-            <Tag level="notice">{t('adminBadge')}</Tag>
-          </span>
-        ) : null}
-
         <button
           type="button"
           className={styles.themeToggle}
@@ -153,7 +147,14 @@ export function TopBar({
           placement="bottom end"
           trigger={({ props }) => (
             <button type="button" {...props} aria-label={t('userMenu')} className={styles.trigger}>
-              <Avatar name={name} />
+              <span className={styles.avatar}>
+                <Avatar name={name} />
+                {isAdmin ? (
+                  <span className={styles.crown} aria-hidden="true" data-testid="admin-crown">
+                    <Icon icon="shp-crown" size="sm" />
+                  </span>
+                ) : null}
+              </span>
               <span aria-hidden="true">▾</span>
             </button>
           )}
@@ -165,6 +166,11 @@ export function TopBar({
               <Text appearance="sm" variant="secondary">
                 {email}
               </Text>
+              {isAdmin ? (
+                <Text appearance="sm" variant="secondary">
+                  {t('adminBadge')}
+                </Text>
+              ) : null}
             </div>
           </Menu.Item>
           <Menu.Divider />
