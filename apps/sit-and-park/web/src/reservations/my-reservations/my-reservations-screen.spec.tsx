@@ -497,6 +497,35 @@ describe('MyReservationsScreen calendar', () => {
     expect(item(/^eventRequest/)).toHaveAttribute('data-type', 'desk');
   });
 
+  it('shows the approval inbox below the calendar for a hive owner or admin', async () => {
+    await setup(
+      {
+        me: profile({ ownsHive: true }),
+        pending: [
+          {
+            ...request,
+            id: 'req-9',
+            userId: 'user-other',
+            hiveId: 'hive-1',
+            hiveName: 'Hive Modrý',
+            requesterName: 'Petr Novák',
+          },
+        ],
+      },
+      'calendar'
+    );
+    expect(await screen.findByRole('grid', { name: 'calendarLabel' })).toBeInTheDocument();
+    expect(await screen.findByText('inboxTitle')).toBeInTheDocument();
+    expect(await screen.findByRole('button', { name: /^approveLabel/ })).toBeInTheDocument();
+  });
+
+  it('shows no list of my own reservations in the calendar view', async () => {
+    await setup({}, 'calendar');
+    await screen.findByRole('grid', { name: 'calendarLabel' });
+    await screen.findByText('requestsEmpty');
+    expect(screen.queryByRole('region', { name: 'title' })).not.toBeInTheDocument();
+  });
+
   async function openEvent(name: string, partial: Parameters<typeof setup>[0]) {
     const { api, user } = await setup(partial, 'calendar');
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
@@ -691,6 +720,7 @@ describe('MyReservationsScreen calendar', () => {
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     expect(within(grid).getByText('A-01')).toBeInTheDocument();
     expect(screen.getByText(/calendarPartialError/)).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'retry' })).toBeInTheDocument();
+    // the sections below fail on their own and each has a retry of its own
+    expect(screen.getAllByRole('button', { name: 'retry' }).length).toBeGreaterThanOrEqual(1);
   });
 });
