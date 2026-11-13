@@ -5,7 +5,7 @@
  *
  * A cookie plus `router.refresh()`, deliberately, rather than a locale path
  * segment: the root layout resolves the locale per request (see
- * `../../i18n/resolve-locale.ts`), `refresh()` re-runs it on the server, and
+ * `../i18n/resolve-locale.ts`), `refresh()` re-runs it on the server, and
  * every URL in the application stays what it was — which is what keeps the
  * browser suite's asserted paths and backlog item 7's date-in-the-URL work
  * from colliding with this one.

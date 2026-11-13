@@ -111,6 +111,7 @@ type ScreenOverrides = Partial<Omit<SettingsScreenProps, 'ics'>> & {
 function renderScreen(overrides: ScreenOverrides = {}) {
   const onRetry = jest.fn();
   const onSave = jest.fn();
+  const onLocaleChange = jest.fn();
   const onRegenerateToken = jest.fn().mockResolvedValue(undefined);
   const onClose = jest.fn();
 
@@ -135,6 +136,8 @@ function renderScreen(overrides: ScreenOverrides = {}) {
       spotsPending: false,
       spotsError: false,
       onSave,
+      locale: 'cs',
+      onLocaleChange,
       isSaving: false,
       saveError: null,
       ics: {
@@ -169,7 +172,15 @@ function renderScreen(overrides: ScreenOverrides = {}) {
     );
   }
 
-  return { onRetry, onSave, onRegenerateToken, onClose, user: userEvent.setup(), rerenderWith };
+  return {
+    onRetry,
+    onSave,
+    onLocaleChange,
+    onRegenerateToken,
+    onClose,
+    user: userEvent.setup(),
+    rerenderWith,
+  };
 }
 
 function stubClipboard(): { writeText: jest.Mock } {
@@ -721,5 +732,38 @@ describe('SettingsScreen — the ICS section', () => {
     expect(
       within(dialog).getByRole('button', { name: /icsRegenerateConfirmButton/ })
     ).toHaveAttribute('aria-busy', 'true');
+  });
+});
+
+describe('SettingsScreen — the language switcher', () => {
+  it('offers both languages and checks the active one', () => {
+    renderScreen({ locale: 'cs' });
+    const group = screen.getByRole('radiogroup', { name: 'languageHeading' });
+    expect(within(group).getByRole('radio', { name: 'Čeština' })).toBeChecked();
+    expect(within(group).getByRole('radio', { name: 'English' })).not.toBeChecked();
+  });
+
+  it('checks English when English is active', () => {
+    renderScreen({ locale: 'en' });
+    expect(screen.getByRole('radio', { name: 'English' })).toBeChecked();
+  });
+
+  it('reports the picked language and does not save or close', async () => {
+    const { user, onLocaleChange, onSave, onClose } = renderScreen({ locale: 'cs' });
+    await user.click(screen.getByRole('radio', { name: 'English' }));
+    expect(onLocaleChange).toHaveBeenCalledWith('en');
+    expect(onSave).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
+  it('does not report a change when the active language is picked again', async () => {
+    const { user, onLocaleChange } = renderScreen({ locale: 'cs' });
+    await user.click(screen.getByRole('radio', { name: 'Čeština' }));
+    expect(onLocaleChange).not.toHaveBeenCalled();
+  });
+
+  it('is not shown while the profile is loading', () => {
+    renderScreen({ isPending: true, profile: undefined });
+    expect(screen.queryByRole('radiogroup', { name: 'languageHeading' })).not.toBeInTheDocument();
   });
 });

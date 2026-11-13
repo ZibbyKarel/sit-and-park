@@ -37,7 +37,7 @@ import { DEFAULT_LOCALE, isLocale, useLocale } from '@sit-and-park/i18n';
 import { LOGIN_ROUTE } from '../routes';
 import { useThemeSwitch } from '../theme/use-theme-switch';
 import { TopBar } from './top-bar/top-bar';
-import { useLocaleSwitch } from './top-bar/use-locale-switch';
+import { useLocaleSwitch } from './use-locale-switch';
 import { useCurrentUser } from './use-current-user';
 
 export function AppTopBar() {

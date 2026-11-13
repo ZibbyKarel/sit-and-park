@@ -13,10 +13,11 @@ import { useRouter } from 'next/navigation';
 import type { UpdateMySettingsInput } from '@sit-and-park/contract';
 import { useRequireAuth } from '@sit-and-park/auth/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { todayInPrague } from '@sit-and-park/i18n';
+import { DEFAULT_LOCALE, isLocale, todayInPrague, useLocale } from '@sit-and-park/i18n';
 import { LOT_ROUTE } from '../routes';
 import { useApi } from './api-provider/api-provider';
 import { useCurrentUser } from './use-current-user';
+import { useLocaleSwitch } from './use-locale-switch';
 import { SettingsScreen } from './settings-screen/settings-screen';
 
 export interface SettingsPageProps {
@@ -33,6 +34,13 @@ export function SettingsPage({ apiOrigin }: SettingsPageProps) {
   const api = useApi();
   const queryClient = useQueryClient();
   const { status } = useRequireAuth();
+
+  // `useLocale()` is typed as a bare string — `AppConfig["Locale"]` is
+  // deliberately not augmented (`apps/sit-and-park/web/next-intl.d.ts`), so the narrowing
+  // happens here rather than by asserting.
+  const contextLocale = useLocale();
+  const locale = isLocale(contextLocale) ? contextLocale : DEFAULT_LOCALE;
+  const switchLocale = useLocaleSwitch();
 
   const profileQuery = useCurrentUser();
   const spotsQuery = useQuery({
@@ -86,6 +94,8 @@ export function SettingsPage({ apiOrigin }: SettingsPageProps) {
       desksError={desksQuery.isError}
       onRetryDesks={() => void desksQuery.refetch()}
       onSave={(input: UpdateMySettingsInput) => updateSettings.mutate(input)}
+      locale={locale}
+      onLocaleChange={switchLocale}
       isSaving={updateSettings.isPending}
       saveError={updateSettings.error}
       ics={{

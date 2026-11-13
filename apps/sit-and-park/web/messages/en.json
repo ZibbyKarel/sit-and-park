@@ -36,6 +36,7 @@
   },
   "settings": {
     "title": "Settings",
+    "languageHeading": "Language",
     "description": "Your license plate is prefilled every time you reserve a spot. We use your preferred spot first in a bulk reservation.",
     "licensePlateLabel": "Car license plate",
     "licensePlateTooLong": "16 characters at most.",

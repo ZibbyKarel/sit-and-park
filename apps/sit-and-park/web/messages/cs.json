@@ -36,6 +36,7 @@
   },
   "settings": {
     "title": "Nastavení",
+    "languageHeading": "Jazyk",
     "description": "SPZ se předplní při každé rezervaci místa. Preferované místo použijeme přednostně u hromadné rezervace.",
     "licensePlateLabel": "SPZ auta",
     "licensePlateTooLong": "Nejvýše 16 znaků.",

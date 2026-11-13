@@ -27,10 +27,10 @@ import type {
 } from '@sit-and-park/contract';
 import { toContractError } from '@sit-and-park/api-client';
 import { FormField, FormProvider, useAppForm } from '@sit-and-park/form';
-import { Button, Modal, Stack, Text } from '@shoptet/ui';
+import { Button, Modal, SegmentedControl, Stack, Text } from '@shoptet/ui';
 import { SingleSelectField } from '../../ui/client-select/client-select';
 import { TextField } from '../../ui/text-field/text-field';
-import { useTranslations } from '@sit-and-park/i18n';
+import { isLocale, LOCALE_LABELS, LOCALES, useTranslations, type Locale } from '@sit-and-park/i18n';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
 import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import { useNotify } from '../notifications/toast-provider';
@@ -139,6 +139,10 @@ export interface SettingsScreenProps {
   readonly desksError?: boolean | undefined;
   readonly onRetryDesks?: (() => void) | undefined;
   readonly onSave: (input: UpdateMySettingsInput) => void;
+  /** The active interface language. */
+  readonly locale: Locale;
+  /** Called with the locale the user picked. Never called for the active one. */
+  readonly onLocaleChange: (locale: Locale) => void;
   readonly isSaving: boolean;
   /** Whatever the failing `me.updateSettings` call threw. */
   readonly saveError: unknown;
@@ -174,6 +178,8 @@ export function SettingsScreen({
   desksError = false,
   onRetryDesks,
   onSave,
+  locale,
+  onLocaleChange,
   isSaving,
   saveError,
   ics,
@@ -413,6 +419,23 @@ export function SettingsScreen({
                     )}
                   </Stack>
                 </form>
+
+                {/* Like the ICS section below, outside the `<form>` and immediate: the
+                  language is per-browser cookie state, not part of
+                  `UpdateMySettingsInput`, so it applies on click, not on Save. */}
+                <Stack gap="sm">
+                  <Text appearance="strong-sm">{t('languageHeading')}</Text>
+                  <SegmentedControl
+                    aria-label={t('languageHeading')}
+                    options={LOCALES.map((l) => ({ value: l, label: LOCALE_LABELS[l] }))}
+                    getOptionValue={(option) => option.value}
+                    getOptionLabel={(option) => option.label}
+                    value={locale}
+                    onChange={(value) => {
+                      if (isLocale(value) && value !== locale) onLocaleChange(value);
+                    }}
+                  />
+                </Stack>
 
                 {/* Deliberately outside the `<form>` above: the ICS section acts
                   immediately on its own two buttons (both `type="button"`), not
