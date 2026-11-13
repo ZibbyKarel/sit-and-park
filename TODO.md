@@ -1,6 +1,6 @@
 # TODO
 
-1. [ ] přepínátko na světlý/tmavý režim přesuneme vedle user avatara a dáme to jako IconButton se sluníčkem pokud mám tmavý režim a měsíčkem pokud mám světlý režim
+1. [x] přepínátko na světlý/tmavý režim přesuneme vedle user avatara a dáme to jako IconButton se sluníčkem pokud mám tmavý režim a měsíčkem pokud mám světlý režim (main@5f12691)
 2. [ ] Badge "Admin" vedle user avatara nahradíme za zlatou korunku nasazenou na kolečko user vatara pod 45 stupněma nahoře v pravo aby to vypadalo že to má nasazeno na hlavě
 3. [ ] přepínátko jazyků přesuneme do dialogu nastavení
 4. [ ] Option "Správa ->" z user dropdownu smažeme a místo toho uděláme novou záložku v TopBaru, kterou uvidí jen správci
