@@ -296,7 +296,7 @@ export function DeskBulkModal({
           <div className={styles.people}>
             <MultiSelect
               label={t('peopleLegend')}
-              options={userOptions.options}
+              options={[...userOptions.options]}
               getOptionValue={(option) => option.userId}
               getOptionLabel={(option) => option.name}
               value={[...people]}
