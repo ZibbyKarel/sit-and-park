@@ -64,6 +64,8 @@ export function EyeOffIcon({ size = 'sm', label, ...rest }: EyeOffIconProps) {
 export type CarIconProps = IconProps;
 export type DeskIconProps = IconProps;
 export type WarningIconProps = IconProps;
+export type SunIconProps = IconProps;
+export type MoonIconProps = IconProps;
 
 /** A car seen from the side, in the colour of the surrounding text. */
 export function CarIcon({ size = 'sm', label, ...rest }: CarIconProps) {
@@ -128,6 +130,47 @@ export function WarningIcon({ size = 'sm', label, ...rest }: WarningIconProps) {
       {label === undefined ? null : <title>{label}</title>}
       <path d="M12 3 2 20h20L12 3Z" />
       <path d="M12 10v4M12 17.5v.01" />
+    </svg>
+  );
+}
+
+/** A sun with rays, in the colour of the surrounding text. */
+export function SunIcon({ size = 'sm', label, ...rest }: SunIconProps) {
+  return (
+    <svg
+      {...rest}
+      {...a11y(label)}
+      viewBox="0 0 24 24"
+      focusable="false"
+      className={styles.sun}
+      data-size={size}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {label === undefined ? null : <title>{label}</title>}
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41" />
+    </svg>
+  );
+}
+
+/** A crescent moon, in the colour of the surrounding text. */
+export function MoonIcon({ size = 'sm', label, ...rest }: MoonIconProps) {
+  return (
+    <svg
+      {...rest}
+      {...a11y(label)}
+      viewBox="0 0 24 24"
+      focusable="false"
+      className={styles.moon}
+      data-size={size}
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      {label === undefined ? null : <title>{label}</title>}
+      <path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" />
     </svg>
   );
 }
