@@ -7,14 +7,14 @@
  * Under `strategy: 'jwt'` the session lives entirely in the cookie, and Auth.js
  * **re-issues that cookie on every request that reads the session** — every page
  * render, every RSC prefetch, every `auth()` call in the proxy. Observed on this
- * application (Task 33): one navigation to `/` was answered with three different
+ * application: one navigation to `/` was answered with three different
  * session cookies, each request carrying the one the previous response had set.
  *
  * That turns sign-out into a race it cannot reliably win. `POST
  * /api/auth/signout` clears the cookie, but any request already in flight
  * carrying the old cookie answers with a freshly issued one, and the browser
  * applies whichever `Set-Cookie` arrives last. The clear is not last whenever a
- * concurrent render finishes after it — which is what `doc/decision/0189-*`
+ * concurrent render finishes after it — which is what was
  * observed under load.
  *
  * No amount of client-side ordering closes that: the application does not
@@ -62,7 +62,7 @@
  * The store is **in-process**, which is sound for the stated single-instance
  * deployment and nothing more — the same posture, and the same reasoning, as
  * `LockService` on the API side. One consequence, accepted deliberately and
- * recorded in `doc/decision/0230-*`: **a restart of the Next.js server forgets
+ * stated here: **a restart of the Next.js server forgets
  * every revocation**, so a token that survived a sign-out would work again after
  * a restart until it expires. Running more than one web instance would require
  * moving this behind a shared store (Redis, or a table); the interface below is
@@ -118,8 +118,8 @@ export interface SignOutRegistryOptions {
    * is deliberately not done, because the gap is not reachable: to use it a
    * holder must present a copied cookie **30 days** after the sign-out, and by
    * then its access token expired long ago and the renewal that would replace it
-   * fails on a refresh token of the same age — which fails closed and signs out
-   * (`doc/decision/0048-*`). The window buys a session that cannot make an
+   * fails on a refresh token of the same age — which fails closed and signs out.
+   * The window buys a session that cannot make an
    * authenticated API call.
    *
    * Recorded rather than rounded off because the reasoning this file was
@@ -156,11 +156,10 @@ export class SignOutRevocationUnavailableError extends Error {
         ? 'Sign-out revocation cannot work in a browser bundle (NEXT_RUNTIME is "", ' +
             'which is what Next.js inlines for the client compilation): it keeps per-process ' +
             'server state. Import @sit-and-park/auth/client from a client component, not ' +
-            '@sit-and-park/auth (doc/decision/0231-*).'
+            '@sit-and-park/auth.'
         : `Sign-out revocation cannot work on the "${runtime}" runtime: it keeps ` +
             'per-process state, and the Edge runtime gives each bundle its own ' +
-            'isolate. Serve apps/sit-and-park/web on the Node.js runtime (doc/decision/0100-*, ' +
-            'doc/decision/0231-*).'
+            'isolate. Serve apps/sit-and-park/web on the Node.js runtime.'
     );
     this.name = 'SignOutRevocationUnavailableError';
   }

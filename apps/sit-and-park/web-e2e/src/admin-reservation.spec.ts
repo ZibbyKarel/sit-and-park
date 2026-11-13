@@ -13,7 +13,7 @@
  * - It does not reassign the reservation to somebody else. The contract has no
  *   procedure for that: `reservation.create` books for the caller and
  *   `reservation.cancel` gives a bay back, and "editing someone else's
- *   reservation" is composed from those. See `doc/decision/0125-*`.
+ *   reservation" is composed from those.
  * - It does not pick a day the ordinary reservation window would have refused.
  *   An admin is exempt from the month window, but that exemption is not what is
  *   under test here, and leaning on it would mean the test also passed for an

@@ -7,13 +7,13 @@
  * cannot use the session cookie. It is a plain `GET` authenticated by an
  * unguessable token in the path, which is what `User.icsToken` is for.
  *
- * `plan.md` §Contract-first names this as the single exception. The contract's
+ * This is the single exception to contract-first. The contract's
  * job here is therefore not to define a procedure but to own the **shape of the
  * URL**, so that `apps/sit-and-park/api` (which serves it) and `apps/sit-and-park/web` (which shows it)
  * cannot drift apart. Regenerating the token *is* a procedure, and lives in
  * `./me`.
  *
- * Task 14 adds the second half: the **shape of what goes into the feed**. There
+ * The second half is the **shape of what goes into the feed**. There
  * is no response schema — the response is `text/calendar`, not JSON — but the
  * data handed to `@sit-and-park/calendar-export` is domain data crossing a module
  * boundary, and contract-first applies to it for the same reason it applies to
@@ -87,9 +87,8 @@ export function buildIcsFeedUrl(baseUrl: string, icsToken: string): string {
  *   one here would create a second, unreviewed copy of a user-facing string.
  *
  * `createdAt` **is** present, and is not decoration: it becomes the event's
- * `DTSTAMP`, which is what makes the rendered feed a pure function of the data
- * — see `doc/decision/0081-*`.
- */
+ * `DTSTAMP`, which is what makes the rendered feed a pure function of the data.
+ * */
 export const icsCalendarEntrySchema = reservationSchema
   .pick({ date: true, createdAt: true })
   .extend({

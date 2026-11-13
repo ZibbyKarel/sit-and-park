@@ -3,11 +3,11 @@
  *
  * The *count* is a request-time computation, not stored state: no column holds
  * how much of the month somebody has used. The *cap* is an admin setting — the
- * `ReservationLimitSettings` singleton (`doc/decision/0312-*`) — and every path
+ * `ReservationLimitSettings` singleton — and every path
  * that inserts a `Reservation` row for a real user (never a guest — a guest has
  * no `userId`, so no budget applies) **while the cap is in force**
  * (`isMonthlyCapInForce` in `@sit-and-park/shared-types`: `AUTO` and today inside the
- * target month's window — `doc/decision/0315-*`) loads it with
+ * target month's window) loads it with
  * {@link readMonthlyReservationCap} and passes it to
  * `assertWithinMonthlyReservationCap`, which runs as the last check before the
  * insert, inside the same transaction that will do the insert.
@@ -32,8 +32,7 @@
  * because the key is month-scoped and the row locks are date-scoped:
  * `BulkReservationService.committedConfirm` re-runs the transaction on any
  * `isWriteConflict` and reports `CONFLICT` when the attempts run out, exactly
- * as `ReservationsService.cancel` does for the cycle in
- * `doc/decision/0065-*`. `doc/decision/0307-*` has the full analysis.
+ * as `ReservationsService.cancel` does for the cancel/promote cycle.
  *
  * Unlike the per-day rule (a real unique index, so an optimistic pre-check is
  * safe and `P2002` is the final arbiter), there is no constraint that could

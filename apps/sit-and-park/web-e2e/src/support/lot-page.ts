@@ -63,8 +63,8 @@ export function spotDialog(page: Page): Locator {
  * `tsconfig.json` has no `jsx` option — the same reason `lot-screen.tsx`'s
  * date arithmetic used to be mirrored here with `@sit-and-park/shared-types`
  * alone. A four-digit year alone is not enough to anchor it: a taken tile's
- * accessible name carries the holder's plate (`doc/decision/`'s license-plate
- * format is four digits too), so this anchors on the one thing on the whole
+ * accessible name carries the holder's plate (a license-plate
+ * format of four digits), so this anchors on the one thing on the whole
  * screen that starts with a weekday name. The day cell carries the same full
  * date as its accessible name — not the bare number the cell prints — so it
  * is matched the same way: a weekday word, then the wanted day number
@@ -205,14 +205,13 @@ export async function expectFree(page: Page, label: string): Promise<void> {
  * guessed: the dev server logged `GET /settings 200 in 4.9s (compile: 1573ms,
  * proxy.ts: 1177ms, render: 2.2s)` on a machine that was also running three
  * browsers and a webpack watch — over Playwright's 5 s default, which is what
- * made the settings step flaky before this existed. See `doc/decision/0183-*`
- * and `doc/decision/0187-*`.
+ * made the settings step flaky before this existed.
  *
  * It is deliberately **not** the global `expect` timeout: raising that would
  * make every assertion in the suite wait three times as long to report a real
  * failure. Only the one step that pays a compilation carries the allowance,
  * and the wait is still on a condition — the modal being visible — never on a
- * fixed delay. See `doc/decision/0183-*`.
+ * fixed delay.
  */
 export const FIRST_ROUTE_VISIT_TIMEOUT_MS = 30_000;
 
@@ -277,8 +276,8 @@ export async function closeBulkResult(page: Page): Promise<void> {
 /**
  * Opens Nastavení from the user menu and returns the modal.
  *
- * Settings is a route rendered as a modal over whatever is underneath
- * (`doc/decision/0150-*`), so this waits for the URL first: a `/settings` that
+ * Settings is a route rendered as a modal over whatever is underneath,
+ * so this waits for the URL first: a `/settings` that
  * never arrives and a modal that never renders are different failures, and the
  * report should say which one happened.
  */

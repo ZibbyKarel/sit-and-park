@@ -2,7 +2,7 @@
  * Schema validation of everything the socket delivers.
  *
  * The gateway validates every inbound *command* against
- * `CLIENT_TO_SERVER_EVENT_SCHEMAS` (Task 15, `libs/sit-and-park/contract/src/realtime/commands.ts`).
+ * `CLIENT_TO_SERVER_EVENT_SCHEMAS`.
  * This file is the mirror of that rule on the browser side: **nothing that
  * arrives over the socket reaches a component before it has been parsed by the
  * schema the contract registers for it.**

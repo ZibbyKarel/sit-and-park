@@ -5,7 +5,7 @@
  * reads the session, runs `callbacks.authorized` (`isAuthorized` in
  * `libs/sit-and-park/auth`) and, when that returns `false`, redirects to
  * `pages.signIn` — which is {@link LOGIN_ROUTE}, because `auth.ts` passed it as
- * `signInPath`. `doc/auth.md` §"The flow, end to end" draws this step.
+ * `signInPath`. `doc/auth.md` draws this step.
  *
  * ## Why `proxy.ts` and not `middleware.ts`
  *
@@ -13,8 +13,7 @@
  * and the two differ in more than a name — **`proxy` runs on the Node.js
  * runtime and that is not configurable**, whereas `middleware` still runs on
  * the Edge runtime by default (verified against the Next.js 16 upgrade guide,
- * not from memory; see
- * `doc/decision/0100-the-session-check-lives-in-proxy-ts-on-the-node-runtime.md`).
+ * not from memory).
  *
  * The runtime is the reason this matters here rather than a cosmetic rename.
  * `./auth.ts` reads `AUTH_SECRET` and the OAuth client secret from
@@ -28,7 +27,7 @@
  *   a session check would require being signed in to sign in.
  * - `/api/health` — an orchestrator's probe carries no session, so protecting
  *   it would report every healthy instance as dead. Same reasoning as the API's
- *   `@Public()` probes (`doc/auth.md` §Public routes).
+ *   `@Public()` probes (`doc/auth.md`).
  * - `_next/static`, `_next/image` and root-level `*.ico|png|svg` files from `public/` (favicon,
  *   logo) — assets, not navigations. Without the extension rule the login page
  *   cannot even load its own logo: the request is redirected to the login page.
@@ -48,5 +47,7 @@ export { auth as proxy } from './auth';
  * starts the same way. `proxy.spec.ts` pins both cases.
  */
 export const config = {
-  matcher: ['/((?!api/auth/|api/health(?:$|/)|_next/static|_next/image|[^/]+\\.(?:ico|png|svg)$).*)'],
+  matcher: [
+    '/((?!api/auth/|api/health(?:$|/)|_next/static|_next/image|[^/]+\\.(?:ico|png|svg)$).*)',
+  ],
 };

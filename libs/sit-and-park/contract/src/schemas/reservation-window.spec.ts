@@ -2,7 +2,7 @@ import { monthLockState, reservationWindowRange } from '@sit-and-park/shared-typ
 import { monthWindowOverviewSchema, reservationWindowSettingsSchema } from './reservation-window';
 
 describe('reservationWindowSettingsSchema', () => {
-  it('fills in the defaults from doc/decision/0004', () => {
+  it('fills in the documented defaults', () => {
     expect(reservationWindowSettingsSchema.parse({})).toEqual({
       openDaysBefore: 7,
       lockMode: 'AUTO',
@@ -58,7 +58,7 @@ describe('monthWindowOverviewSchema', () => {
   });
 
   it('requires lockMode — a FORCE_LOCKED month must not look AUTO-derived', () => {
-    // Regression guard for the Task 3 review finding S2: without lockMode the
+    // Regression guard: without lockMode the
     // UI could render "opens 25 Aug" for a month the admin has force-locked.
     const withoutLockMode: Record<string, unknown> = { ...valid };
     delete withoutLockMode['lockMode'];

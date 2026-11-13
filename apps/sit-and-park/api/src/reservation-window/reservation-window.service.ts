@@ -2,7 +2,7 @@
  * The reservation window: the singleton settings, and where each month stands.
  *
  * **Nothing in this file decides whether a month is open.** That is
- * `monthLockState()` / `isMonthOpen()` in `@sit-and-park/shared-types` (Task 3),
+ * `monthLockState()` / `isMonthOpen()` in `@sit-and-park/shared-types`,
  * which transcribe the `monthOpen` function from the approved design and are
  * covered by their own tests. This service loads the settings, asks today's date
  * in Europe/Prague, calls those functions, and shapes the answer for the
@@ -12,7 +12,7 @@
  * ## Why the settings row is upserted rather than required
  *
  * `ReservationWindowSettings` is a singleton with a fixed id and a
- * `CHECK ("id" = 1)` constraint (`doc/decision/0026-*`), created by the seed. A
+ * `CHECK ("id" = 1)` constraint, created by the seed. A
  * deployment whose seed has not run would otherwise answer `admin.window.get`
  * with a 500 — and the honest value for "no row yet" is not an error, it is the
  * documented defaults, which is exactly what the row would have contained.
@@ -64,7 +64,7 @@ export class ReservationWindowService {
    *
    * A **replacement**, not a patch — the contract's input is the settings schema
    * itself, so an omitted field has already been filled in with its default by
-   * the time it reaches here (`doc/contract.md` §"Reservation window").
+   * the time it reaches here (`doc/contract.md`).
    *
    * The audit entry is the point of the operation as much as the write is: these
    * two fields decide, for every user, whether a month can be booked at all, and

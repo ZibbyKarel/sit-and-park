@@ -10,12 +10,12 @@
  * status the provider gates on, and on React's real commit behaviour — none of
  * which a component test exercises.
  *
- * It exists because the claim was measured wrong once. `doc/decision/0187-*`
- * counted WebSockets per Playwright `Page` and found "23 of 68 pages opened a
+ * It exists because the claim was measured wrong once. An earlier
+ * measurement counted WebSockets per Playwright `Page` and found "23 of 68 pages opened a
  * second socket — about one page in three", and recorded the cause as unknown.
  * A `Page` is not a document: six of this suite's pages reload or navigate a
  * second time, and a second document is *supposed* to open a second socket.
- * `doc/decision/0221-*` has the re-measurement. What was missing was a test that
+ * The re-measurement showed otherwise. What was missing was a test that
  * asks the question at the level the answer lives at, and this is it: an init
  * script runs once per document, so the tally it keeps cannot span a
  * navigation.
@@ -86,7 +86,7 @@ test('a lot page holds exactly one realtime connection, before and after a reloa
   // A reload is a new document, so its tally starts empty: this leg asserts the
   // *replacement* is single, not that the page never opened a second socket in
   // its life. The page-wide count is two here and always was — that is the
-  // number `doc/decision/0187-*` mistook for a defect.
+  // number that was once mistaken for a defect.
   await waitForFirstSocket(userPage);
   await goToDate(userPage, DATE);
   await openSpot(userPage, SPOT);

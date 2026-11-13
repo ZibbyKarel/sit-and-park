@@ -2,7 +2,7 @@
  * What `createApiClient` actually puts on the wire.
  *
  * These tests import **only** `../index` — the wrapper's public entry point —
- * and never `@orpc/client`. That is the point of the lib (`doc/wrappers.md`),
+ * and never `@orpc/client`. That is the point of the lib (`doc/frontend.md`),
  * and the last test in this file reads this file's own source to prove it,
  * rather than trusting that nobody adds the import later.
  */
@@ -135,7 +135,7 @@ describe('createApiClient', () => {
 
   it('is usable without importing @orpc/client anywhere in this file', () => {
     // The wrapper exists so application code never names the wrapped package
-    // (`doc/wrappers.md`). Every test above is real application-shaped usage;
+    // (`doc/frontend.md`). Every test above is real application-shaped usage;
     // this one pins that none of it needed the banned import — a claim that
     // would otherwise quietly stop being true the first time someone reaches
     // for an oRPC type here.

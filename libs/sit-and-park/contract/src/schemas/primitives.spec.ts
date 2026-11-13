@@ -40,7 +40,7 @@ describe('dateOnlySchema', () => {
   describe('validates format only — never the reservation horizon', () => {
     // The horizon depends on ReservationWindowSettings read from the database,
     // which a static schema cannot see; both the "not in the past" check and
-    // the window check are service-level (Task 13). See doc/decision/0004.
+    // the window check are service-level.
     it('accepts yesterday, today and tomorrow alike', () => {
       expect(dateOnlySchema.safeParse('2026-08-27').success).toBe(true);
       expect(dateOnlySchema.safeParse('2026-08-28').success).toBe(true);

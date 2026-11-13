@@ -9,7 +9,7 @@ description: |
   deciding on retry/stale-time behavior, or writing a test against the query
   layer.
 
-  Covers: this repo's post-doc/decision/0308 layout (no libs/query wrapper),
+  Covers: this repo's layout (no libs/query wrapper),
   contract-derived query keys via createApiQueryUtils, the retry-by-HTTP-status
   policy, QueryClient defaults, provider setup, and the stubApi testing
   pattern.
@@ -24,10 +24,8 @@ metadata:
 # TanStack Query in this repo
 
 **Status:** `@tanstack/react-query` is used directly — it is **not** one of
-this workspace's mandatory wrapper libraries. That was true through
-`TODO.md` item 6; before it, `libs/query` was the only allowed import site.
-`doc/decision/0308-*` records why it was removed and `doc/wrappers.md` has
-the current reference section. This skill is the quick, task-oriented version
+this workspace's mandatory wrapper libraries. There is no `libs/query` wrapper; `doc/frontend.md` has
+the reference section. This skill is the quick, task-oriented version
 of the same material.
 
 For general TanStack Query knowledge — query keys, `useInfiniteQuery`,
@@ -94,7 +92,7 @@ the client (and throw the cache away) on every render. Nothing currently
 stops a call site from calling `new QueryClient()` directly instead; there's
 no compile-time ban the way `libs/query` used to have one. If you're adding a
 new provider or a new place a `QueryClient` gets constructed, call
-`createQueryClient` — see `doc/decision/0308-*` for why this is a known,
+`createQueryClient` — this is a known,
 accepted gap rather than an oversight.
 
 ## Errors: switch on the contract code, not the HTTP status
@@ -162,16 +160,11 @@ together (e.g. proving a branch key invalidates its leaves), it must live in
 `module: esnext`. Building both under a `commonjs`-resolving tsconfig hits the
 dual-package hazard between `@tanstack/react-query`'s CommonJS `require`
 condition and `@orpc/tanstack-query`'s ESM-only `import` condition —
-documented in `doc/decision/0038-*`. `libs/shared/api-client`'s own
+see `doc/frontend.md`. `libs/shared/api-client`'s own
 `api-query.spec.ts` only covers key shape/stability, deliberately avoiding a
 real `QueryClient` construction.
 
 ## See also
 
-- `doc/decision/0308-*` — why `libs/query` was removed and where each piece
-  moved to.
-- `doc/wrappers.md` — the workspace-wide wrapper-lib reference (this section
+- `doc/frontend.md` — the workspace-wide wrapper-lib reference (this section
   is the "TanStack Query — used directly, not wrapped" entry).
-- `doc/decision/0038-*`, `doc/decision/0039-*`, `doc/decision/0040-*` — the
-  dual-package hazard, the error-mapping rationale, and the `ContractClient`
-  generic, respectively.

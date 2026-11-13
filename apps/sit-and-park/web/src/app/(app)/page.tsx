@@ -1,7 +1,7 @@
 import { LotScreen } from '../../lot/lot-screen/lot-screen';
 
 /**
- * The parking overview — the application's home screen (Task 24).
+ * The parking overview — the application's home screen.
  *
  * A server component that renders one client component and nothing else. The
  * screen needs the session, the query cache and the socket, all of which live

@@ -1,10 +1,9 @@
 /**
  * Entity schemas — the single source of truth for every shape that crosses the
- * FE ↔ BE boundary, per `plan.md` §"Doménový model" plus the extensions from
- * `doc/decision/0004-mvp-scope-includes-design-features.md`.
+ * FE ↔ BE boundary.
  *
  * These describe entities as the API *returns* them. Request payloads (create,
- * update, filter) are derived from them in Task 4 with `.pick()`, `.omit()` and
+ * update, filter) are derived from them with `.pick()`, `.omit()` and
  * `.partial()` rather than written out again.
  */
 
@@ -70,7 +69,7 @@ export type User = z.infer<typeof userSchema>;
  * It lives among the entities rather than in `api/` because **both** entry
  * points need it: the day overview returns it, and the realtime events
  * broadcast it into a day room. `src/realtime` must not import from `src/api`,
- * so a projection shared by the two belongs here (Task 5).
+ * so a projection shared by the two belongs here.
  */
 export const userSummarySchema = userSchema.pick({
   id: true,
@@ -94,15 +93,14 @@ export const parkingSpotSchema = z.object({
    * the lot, the preferred-spot picker, bulk booking, the Slack digest, the
    * realtime broadcasts — except the viewer's own reservation or queue entry on
    * it. An admin can still book it for anybody. Not a retirement: `active` is
-   * independent. `doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`.
+   * independent.
    */
   hidden: z.boolean(),
   /**
    * The spot has a charger for electric cars. Informational only: every
    * viewer sees it (the lot tile's green bolt), and nothing about reserving,
    * bulk booking, the waitlist or the cap reads it.
-   * `doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`.
-   */
+   * */
   evCharger: z.boolean(),
   /** The office the spot belongs to; users see and book spots of their own office. */
   officeId: idSchema,
@@ -116,8 +114,8 @@ export type ParkingSpot = z.infer<typeof parkingSpotSchema>;
  * admin booked it for.
  *
  * **`userId` is nullable and `guestName` is nullable, but never both, and never
- * neither** — a `CHECK` constraint enforces that in the database
- * (`doc/decision/0305-a-reservation-holder-is-a-user-or-a-guest-never-neither`). Two unique constraints back the rest up:
+ * neither** — a `CHECK` constraint enforces that in the database.
+ * Two unique constraints back the rest up:
  * `(parkingSpotId, date)` — one reservation per spot per day, the double-booking
  * guarantee — and `(userId, date)`, one reservation per user per day. `NULL`s do
  * not collide in a Postgres unique index, so the second one deliberately does
@@ -147,8 +145,7 @@ export type Reservation = z.infer<typeof reservationSchema>;
  * A discriminated union rather than a widened user summary, because a guest has
  * no `User` row and the type has to say so: `kind: 'GUEST'` has **no `userId`
  * member at all**, so `holder.userId` on a guest is a compile error rather than
- * a `null` every reader has to remember to check. That is the property
- * `doc/decision/0304-the-reservation-holder-projection-is-a-discriminated-union` was written to keep.
+ * a `null` every reader has to remember to check. That is the property the discriminated union exists to keep.
  *
  * `name` and `licensePlate` are the **effective** values — the server has
  * already applied `Reservation.licensePlate` over the holder's stored one — so a
@@ -184,7 +181,7 @@ export type ReservationHolder = z.infer<typeof reservationHolderSchema>;
  *
  * The field is `holder`, not `user`: a field called `user` cannot carry a guest,
  * and renaming it is what forced every reader to be revisited rather than
- * silently reading `undefined` (`doc/decision/0304-the-reservation-holder-projection-is-a-discriminated-union`).
+ * silently reading `undefined`.
  *
  * Shared by `src/api` and `src/realtime`, for the reason given on
  * {@link userSummarySchema}.
@@ -207,8 +204,7 @@ export type PublicReservation = z.infer<typeof publicReservationSchema>;
  *
  * A spot cannot have both a full-day `Reservation` and any `TimedReservation`
  * rows for the same day; a database trigger enforces the exclusivity rather
- * than application code, because every writer of either table must obey it
- * (`doc/decision/0314-*`).
+ * than application code, because every writer of either table must obey it.
  *
  * **Deliberately not `.refine()`d**: Zod v4 refuses `.pick()`/`.extend()` on a
  * refined object, and `publicTimedReservationSchema` below needs to `.pick()`
@@ -264,9 +260,7 @@ export type WaitlistEntry = z.infer<typeof waitlistEntrySchema>;
  * Audit log actions.
  *
  * Deliberately a closed enum: contract-first means a new action must be added
- * here before any service can write it. The list starts with the actions named
- * in `plan.md` §"Doménový model"; later tasks extend it as they introduce
- * further mutations.
+ * here before any service can write it. Each new mutation adds its member here.
  */
 export const AUDIT_LOG_ACTIONS = [
   'RESERVATION_CREATED',
@@ -276,25 +270,23 @@ export const AUDIT_LOG_ACTIONS = [
   'USER_UPDATED',
   'SPOT_UPDATED',
   /**
-   * An admin changed `openDaysBefore` or `lockMode`. Added by Task 12, which is
-   * the task that made the change possible: the reservation-window settings are
+   * An admin changed `openDaysBefore` or `lockMode`. The reservation-window settings are
    * a singleton whose two fields decide, for every user, whether a month can be
-   * booked at all, and `plan.md` requires that change to be audited. The
+   * booked at all, so that change is audited. The
    * existing members all name a row that was created or deleted, so none of them
-   * could describe it (`doc/decision/0059-*`).
+   * could describe it.
    */
   'RESERVATION_WINDOW_UPDATED',
   /**
-   * Somebody was put into a spot's queue for a day. Added by Task 30, which
-   * needed it: bulk booking creates queue entries on the user's behalf, and
-   * `plan.md` requires every row a mutation creates to be accounted for.
+   * Somebody was put into a spot's queue for a day. Bulk booking creates queue entries on the user's behalf, and
+   * every row a mutation creates is accounted for.
    *
    * The existing members could not describe it — `WAITLIST_PROMOTED` is the
    * *opposite* event (an entry being consumed), and the reservation members name
    * a different table. Both procedures that create a queue entry write it
    * (`waitlist.join` and `reservation.confirmBulk`): an audit action whose
    * presence depends on which endpoint the row arrived through is not an audit
-   * trail. See `doc/decision/0091-*`.
+   * trail.
    */
   'WAITLIST_JOINED',
   /**
@@ -304,8 +296,7 @@ export const AUDIT_LOG_ACTIONS = [
    *
    * One member rather than two, because "for a guest" is not a different action,
    * it is a different holder: the payload carries `holderUserId` **or**
-   * `guestName`, and the audit trail reads the same either way
-   * (`doc/decision/0306-an-admin-names-the-holder-and-defaults-to-themselves`).
+   * `guestName`, and the audit trail reads the same either way.
    */
   'RESERVATION_CREATED_BY_ADMIN',
   /**
@@ -317,21 +308,20 @@ export const AUDIT_LOG_ACTIONS = [
    */
   'WAITLIST_JOINED_BY_ADMIN',
   /**
-   * An admin changed a reservation limit — today, the monthly cap. Added by
-   * TODO item 2, the change that made it possible: the cap became an admin
+   * An admin changed a reservation limit — today, the monthly cap. The cap is an admin
    * setting, and a single row that decides how much *every* user may book is
-   * exactly the kind of change `plan.md` requires audited.
+   * exactly the kind of change that is audited.
    *
    * `RESERVATION_WINDOW_UPDATED` could not describe it: that member names the
    * window singleton, whose fields decide whether a month is open at all, and
    * an audit action shared between two unrelated settings tables is not an
-   * audit trail. See `doc/decision/0312-*`.
+   * audit trail.
    */
   'RESERVATION_LIMITS_UPDATED',
   /**
    * An admin booked a guest into a half-hour block. Not `RESERVATION_CREATED_BY_ADMIN`:
    * that member names a row in the `Reservation` table, and a timed block is a
-   * different table with a different exclusivity rule (`doc/decision/0314-*`).
+   * different table with a different exclusivity rule.
    */
   'TIMED_RESERVATION_CREATED',
   /**
@@ -341,7 +331,7 @@ export const AUDIT_LOG_ACTIONS = [
    */
   'TIMED_RESERVATION_CANCELLED',
   /*
-   * Desk booking (`doc/desk-merge-plan.md`). The desk members mirror the
+   * Desk booking (`doc/desks.md`). The desk members mirror the
    * parking ones above for the same reason the parking ones are split: each
    * names its own table, and "who acted on whose behalf" must be legible.
    */
@@ -383,7 +373,7 @@ export const auditLogSchema = z.object({
 export type AuditLog = z.infer<typeof auditLogSchema>;
 
 // ---------------------------------------------------------------------------
-// Desk booking (`doc/desk-merge-plan.md` §"Data model"). Keys match the Prisma
+// Desk booking (`doc/desks.md`). Keys match the Prisma
 // models field for field (`schema-contract-parity.spec.ts`).
 // ---------------------------------------------------------------------------
 

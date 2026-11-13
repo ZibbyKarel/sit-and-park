@@ -2,7 +2,7 @@
  * `@sit-and-park/realtime-client` — the wrapper lib that owns `socket.io-client`.
  *
  * No application or feature file may import `socket.io-client` directly
- * (`eslint.config.mjs` → `WRAPPED_LIBRARIES`, `doc/wrappers.md`); everything a
+ * (`eslint.config.mjs` → `WRAPPED_LIBRARIES`, `doc/frontend.md`); everything a
  * feature needs to watch a day, hold a cell or read a broadcast is here:
  *
  * - `RealtimeProvider` / `useRealtime` — the one connection, its handshake

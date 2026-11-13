@@ -38,8 +38,7 @@
  *    is the one status a form can sit in indefinitely, and it is the one the
  *    hook cannot resolve by itself — the cell becomes free because of something
  *    that happens on *another* client. Two independent things end it, and both
- *    are wired here rather than assumed: the gateway's `cell:unlocked` broadcast
- *    (`doc/decision/0111-*`, which is emitted on all four ways a hold can end),
+ *    are wired here rather than assumed: the gateway's `cell:unlocked` broadcast,
  *    and the ack's own `expiresAt` running out. Either one alone would do; both
  *    are here because 0111 says in as many words that neither side should
  *    assume the other did it. Neither is polling — see
@@ -113,7 +112,7 @@ export type CellLockHolder = Extract<CellLockAck, { result: 'HELD_BY_OTHER' }>['
  * takes a non-nullable `string` — so a `held-by-other` carrying `null` could
  * schedule no backstop timer and would freeze a tile on "právě upravuje …" for
  * a user who closed their laptop, which is the exact failure
- * `doc/decision/0111-*` exists to prevent. The flat shape let the compiler sign
+ * the unlock broadcast exists to prevent. The flat shape let the compiler sign
  * that off. It also means a consumer reading `lockedBy` gets a holder rather
  * than `CellLockHolder | null` in every status, with a fallback to invent.
  */
@@ -267,7 +266,7 @@ export function useCellLock(options: UseCellLockOptions): CellLockState {
         //   - their `expiresAt` passes with no broadcast having arrived, which
         //     is this timer.
         //
-        // The timer is the backstop `doc/decision/0111-*` asks for by name: it
+        // The timer is the backstop the lock protocol requires: it
         // is what stops a broadcast that is never sent, or never arrives,
         // freezing this form on a holder who left. See
         // `contendedRetryDelayMs` for why it waits the *whole* remaining TTL.

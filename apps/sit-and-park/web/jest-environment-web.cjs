@@ -1,9 +1,7 @@
 /**
  * jsdom, with one consistent set of fetch/stream Web APIs — Node's.
  *
- * A copy of `libs/query/jest-environment-web.cjs`, for the same reason and
- * with the same contents; `doc/decision/0037-*` explains the mechanism in
- * full. Two things in `apps/sit-and-park/web` need it:
+ * Two things in `apps/sit-and-park/web` need it:
  *
  * - `src/shell/screen-state/screen-state.spec.tsx` builds its errors by driving a **real**
  *   `RPCLink` (through `createApiClient`) rather than hand-rolling an oRPC
@@ -24,14 +22,14 @@
  *
  * ## Why `FormData`, `Blob` and `File` are *not* replaced here
  *
- * `libs/query`'s copy overrides all three. This one deliberately does not, and
+ * The shared-lib copies of this environment overrode all three. This one deliberately does not, and
  * the reason was measured rather than reasoned: React 19 implements a form
  * `action` by calling `new FormData(formElement)`, and **Node's `FormData`
  * does not accept an element** — the login screen's submit test failed with
  * `TypeError: FormData constructor: Argument 1 could not be converted to:
  * undefined`. jsdom's `FormData` does accept one.
  *
- * The consistency argument in `doc/decision/0037-*` still stands for the
+ * The consistency argument still stands for the
  * fetch/stream family, which is why the rest is replaced; it only bites when
  * one object is *passed* to another realm's constructor, and nothing here
  * builds a `Request` out of a `FormData` — the oRPC calls in these tests send

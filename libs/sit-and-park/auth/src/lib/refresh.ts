@@ -173,7 +173,7 @@ export const sharedRefreshStates = processGlobalMap<TokenRefreshState>('token-re
  * lives in a closure therefore has two siblings that cannot see it, and the
  * proxy and the root layout — which read the **same request cookie** — each
  * send their own `refresh_token` grant. Measured before this fix: two grants
- * where `doc/decision/0051-*` promised one.
+ * where the design promised one.
  *
  * Keyed by issuer **and** client id, not by refresh token: the token is the key
  * *inside* {@link TokenRefreshState.inFlight}, and one process could in
@@ -228,12 +228,12 @@ export function sharedRefreshState(issuer: string, clientId: string): TokenRefre
  * The token request is coalesced the same way: concurrent callers presenting
  * the same refresh token share one grant, which is what stops a rotating
  * authorization server from invalidating the token under its own siblings. See
- * the comment on the returned function and `doc/decision/0051-*`.
+ * the comment on the returned function.
  *
  * Both live in `options.state`, which the application points at
  * {@link sharedRefreshState} so that the three refreshers Next.js builds share
  * one slot. A closure would give each of them a private one, which is what
- * `doc/decision/0051-*` used to claim was enough and is not.
+ * an earlier design claimed was enough and is not.
  */
 export function createTokenRefresher(options: TokenRefresherOptions): TokenRefresher {
   const { issuer, clientId, clientSecret } = options;
@@ -345,7 +345,7 @@ export function createTokenRefresher(options: TokenRefresherOptions): TokenRefre
     // in-flight request removes that for every caller in this process —
     // *including* the ones on Next.js's other two bundles, which is what
     // `state` being process-global buys and a closure did not.
-    // Residual races and the multi-process case: `doc/decision/0051-*`.
+    // Residual races and the multi-process case.
     const current = state.inFlight;
     if (current?.refreshToken === refreshToken) return current.result;
 

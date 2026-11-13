@@ -4,7 +4,7 @@
  * `@sit-and-park/auth/client` is meant to reach `next-auth/react` and nothing
  * else; `@sit-and-park/auth` is what reaches Auth.js's server runtime (route
  * handlers, `next/server`, the OAuth machinery). Keeping them apart is the
- * whole reason there are two entry points (`doc/decision/0046-*`), and it is
+ * whole reason there are two entry points, and it is
  * the kind of property that breaks silently: one `import { X } from './config'`
  * added for a constant drags the provider and the token refresher across, and
  * nothing fails until the app is bundled.
@@ -53,24 +53,20 @@ import * as clientEntry from '../client';
  * the explanation is wanted.
  */
 jest.mock('next-auth', () => {
-  throw new Error(
-    '@sit-and-park/auth/client reached "next-auth" — the server half. See doc/decision/0046-*.'
-  );
+  throw new Error('@sit-and-park/auth/client reached "next-auth" — the server half.');
 });
 jest.mock('next-auth/providers/okta', () => {
   throw new Error(
-    '@sit-and-park/auth/client reached "next-auth/providers/okta" — the server half. See doc/decision/0046-*.'
+    '@sit-and-park/auth/client reached "next-auth/providers/okta" — the server half.'
   );
 });
 jest.mock('./config', () => {
   throw new Error(
-    '@sit-and-park/auth/client reached "./config" — the server half. Move what it needed into src/lib/session.ts. See doc/decision/0046-*.'
+    '@sit-and-park/auth/client reached "./config" — the server half. Move what it needed into src/lib/session.ts.'
   );
 });
 jest.mock('./create-auth', () => {
-  throw new Error(
-    '@sit-and-park/auth/client reached "./create-auth" — the server half. See doc/decision/0046-*.'
-  );
+  throw new Error('@sit-and-park/auth/client reached "./create-auth" — the server half.');
 });
 
 describe('@sit-and-park/auth/client', () => {

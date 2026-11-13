@@ -18,8 +18,7 @@
  * 3. **Create.** With a fresh `icsToken`.
  *
  * Step 2 is a deliberate, security-relevant choice — an email match rebinds a
- * row to a new `sub` — and is written up with its risk in
- * `doc/decision/0044-*`. In short: this deployment has exactly one identity
+ * row to a new `sub` — and carries a risk. In short: this deployment has exactly one identity
  * provider, the company's Okta, which owns the address space; a token it signed
  * saying "`sub` X is alice@…" *is* Alice.
  *
@@ -193,7 +192,7 @@ export class AuthUserService {
         // than an empty string, which `userSchema` forbids anyway.
         name: claims.name ?? email,
         icsToken: generateIcsToken(),
-        // The oldest active office (desk merge, stage 6); `null` when there is
+        // The oldest active office; `null` when there is
         // none, which still leaves parking usable (`../common/office-scope.ts`).
         officeId: await defaultOfficeId(this.prisma.client),
       },

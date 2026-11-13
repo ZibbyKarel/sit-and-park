@@ -13,7 +13,7 @@
  * actually let an unauthenticated caller in and which was guarded nowhere. It
  * now walks all of `apps/sit-and-park/api/src`. The file keeps its name because four places
  * in the codebase and the docs cite it by that name; the `describe` titles below
- * say what it actually covers. See `doc/decision/0238-*`.
+ * say what it actually covers.
  *
  * Source is read from disk rather than asserted behaviourally because the claim
  * is about what is *not* there. A behavioural test can only probe the branches
@@ -160,7 +160,7 @@ describe('the realtime module', () => {
   });
 
   it('verifies tokens through the shared JwksVerifierService, not a second jwks client', () => {
-    // `doc/decision/0042-*`: two `JwksClient`s would mean two key caches, two
+    // Two `JwksClient`s would mean two key caches, two
     // rate limiters and two rotation moments, so a rotated key could be live
     // over HTTP and not yet over WebSocket. Checked across the whole tree, not
     // just this module: a second client anywhere would have the same effect.

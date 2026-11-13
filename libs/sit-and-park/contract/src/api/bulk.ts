@@ -1,6 +1,5 @@
 /**
- * Bulk booking — the two-step flow from
- * `doc/decision/0004-mvp-scope-includes-design-features.md` §Bulk reservation.
+ * Bulk booking — the two-step draft and confirm flow (`doc/parking.md`).
  *
  * 1. `previewBulk` proposes a schedule for the selected days. It writes nothing.
  * 2. `confirmBulk` takes **the same day list** and performs the writes, then
@@ -13,8 +12,7 @@
  * only in that the confirmed one carries the ids of the rows it created. That
  * is what makes the difference legible: the client keeps the preview it showed
  * the user, zips it with the result by `date` and can say "we proposed E2.92,
- * you ended up third in the queue" — see
- * `doc/decision/0019-draft-and-confirm-bulk-reservation.md` for why the
+ * you ended up third in the queue" — see `doc/parking.md` for why the
  * server cannot compute that diff itself.
  */
 
@@ -227,9 +225,8 @@ export const previewBulkContract = authed
  *
  * Same days as `previewBulk`, plus optional admin `spotChoices`. Apart from
  * those picks the server does not receive, and does not trust, the plan the
- * client is holding; it re-validates each choice. See
- * `doc/decision/0333-admin-may-change-the-proposed-parking-spot.md`.
- */
+ * client is holding; it re-validates each choice.
+ * */
 export const confirmBulkContract = authed
   .input(confirmBulkInputSchema)
   .output(confirmBulkOutputSchema)

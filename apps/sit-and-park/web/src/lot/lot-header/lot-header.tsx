@@ -7,8 +7,7 @@
  *   `./date-picker-dialog`'s `DatePickerDialog`), the "Dnes" shortcut, the
  *   occupancy pill and the bulk-reservation button. This is where
  *   `./date-nav-bar`'s sticky footer bar moved to
- *   (`doc/design/sit-and-park-design.dc.html`'s current `isLot` header row) —
- *   there is no footer left on this screen (Task 25 revisited).
+ *   the header row — there is no footer left on this screen.
  * - {@link WindowBanner} — the one true sentence about the month's window;
  * - {@link RealtimeNotice} — the affordance for a refused socket.
  */
@@ -106,8 +105,8 @@ export function LotHeader({
  * The status banner above the map.
  *
  * There is always exactly one: `overview.day` always carries a `window`, and
- * each of its three states has one true sentence. See `doc/decision/0122-*`
- * for why the design's `showLockState` prototype prop is not a hiding rule.
+ * each of its three states has one true sentence. The design's
+ * `showLockState` prototype prop is therefore not a hiding rule.
  *
  * `role="status"` so a screen reader is told when the window changes under a
  * page that is already open — which an admin flipping `lockMode` does, through
@@ -134,7 +133,7 @@ export function WindowBanner({ banner }: { readonly banner: BannerView }) {
  * the true one for both: live updates are off, so the overview may not refresh
  * on its own. What differs is whether there is anything for the user to do.
  *
- * - **Refused** (`doc/decision/0061-*` makes a refused handshake terminal for
+ * - **Refused** (a refused handshake is terminal for
  *   that socket and bounds the automatic retries, precisely so a page cannot
  *   sit forever presenting a credential the gateway has already rejected).
  *   Nothing will happen without the user, so `onReconnect` is passed and the

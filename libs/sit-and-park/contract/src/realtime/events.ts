@@ -1,10 +1,10 @@
 /**
  * Payload schemas of the **server → client** realtime events.
  *
- * Naming, settled here for the whole project (Task 5 brief asks for it):
+ * Naming, settled here for the whole project:
  *
  * - `<subject>:<past participle>` — every one of these announces something that
- *   has **already happened and is already committed**. Task 15 broadcasts only
+ *   has **already happened and is already committed**. The gateway broadcasts only
  *   after the transaction commits, and the past tense is what says so. Commands
  *   travelling the other way are imperative (`cell:lock`), so a name alone tells
  *   you which direction it belongs to; see `./commands`.
@@ -13,8 +13,7 @@
  *   editing hold is held on the pair (`parkingSpotId`, `date`) — one cell of the
  *   day × spot grid — and neither `spot:` nor `reservation:` names that pair.
  *   `spot:locked` would read as "this spot is locked on every day", which is a
- *   different (and non-existent) thing. `plan.md` and the Task 24 brief already
- *   call it a "cell-lock".
+ *   different (and non-existent) thing. The project already calls it a "cell-lock".
  *
  * **`locked` here has nothing to do with `MonthLockState.LOCKED`.** That is the
  * reservation window closing for a whole month; this is one user editing one

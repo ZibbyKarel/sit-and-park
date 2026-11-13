@@ -10,12 +10,11 @@
  * - the token comes from `useAccessTokenProvider()`, whose returned function is
  *   referentially stable yet always reads the *latest* session. That is why the
  *   client can be memoised for the life of the page without pinning an expired
- *   token to it (`doc/auth.md`, §"Using it from the app").
+ *   token to it (`doc/auth.md`).
  * - nothing here names `@orpc/client` directly. The transport and the
  *   contract-derived query utilities both come from `@sit-and-park/api-client` —
  *   the wrapper rule for `@orpc/client`, enforced by `no-restricted-imports`
- *   in `eslint.config.mjs`. `@tanstack/react-query` itself is not wrapped
- *   (`doc/decision/0308-*`).
+ *   in `eslint.config.mjs`. `@tanstack/react-query` itself is not wrapped.
  */
 
 import { createContext, useContext, useMemo } from 'react';

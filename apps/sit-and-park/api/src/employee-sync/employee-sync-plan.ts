@@ -4,7 +4,7 @@
  * `employee-sync-plan.spec.ts`; `EmployeeSyncService` only reads the users,
  * calls {@link planEmployeeSync} and, in live mode, applies the plan.
  *
- * Rules (`doc/employee-sync.md`, `doc/decision/0330-*`):
+ * Rules (`doc/integrations.md`):
  *
  * 1. The whole list is validated first; one bad row rejects everything.
  * 2. An empty list is rejected, and so is a plan that would deactivate more

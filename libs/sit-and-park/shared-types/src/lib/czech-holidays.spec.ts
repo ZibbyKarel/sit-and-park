@@ -97,7 +97,7 @@ describe('czechPublicHolidays', () => {
   it('omits Good Friday before it became a public holiday in 2016', () => {
     // Novela z. 245/2000 Sb. added Good Friday from 2016. The pure function had
     // no lower bound, so czechPublicHolidays(2015) claimed a holiday that did
-    // not exist (Task 3 review, N1).
+    // not exist.
     const ids2015 = czechPublicHolidays(2015).map((holiday) => holiday.id);
     expect(ids2015).not.toContain('GOOD_FRIDAY');
     expect(ids2015).toContain('EASTER_MONDAY');

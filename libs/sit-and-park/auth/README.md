@@ -13,7 +13,7 @@ Two entry points:
   `useAccessTokenProvider`, plus `useSession`/`signIn`/`signOut`.
 
 Usage, refresh token rotation, and what does and does not reach the browser:
-**`doc/wrappers.md`** (section "`libs/sit-and-park/auth` — next-auth v5 / Auth.js") and **`doc/auth.md`**
+**`doc/frontend.md`** and **`doc/auth.md`**
 for the flow end to end.
 
 ## Running unit tests

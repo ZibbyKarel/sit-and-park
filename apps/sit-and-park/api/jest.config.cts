@@ -4,13 +4,12 @@
  *
  * - `@orpc/contract` (`"type": "module"`, `.mjs` only) — reached through
  *   `@sit-and-park/contract`, which the exception filter imports for
- *   `ERROR_DEFINITIONS`. Same three lines as `libs/sit-and-park/contract/jest.config.cts`;
- *   see `doc/decision/0020-*`.
+ *   `ERROR_DEFINITIONS`. Same three lines as `libs/sit-and-park/contract/jest.config.cts`.
  * - `@nestjs/config` v12 (`"type": "module"`, `.js`) — imported by every module
  *   that reads validated env, so any test that builds a Nest testing module
  *   hits it.
  * - `@nestjs/passport` v12 (`"type": "module"`, `.js`) — the `AuthGuard` and
- *   `PassportStrategy` the auth layer is built on (Task 11).
+ *   `PassportStrategy` the auth layer is built on.
  * - `jose` v6 (`"type": "module"`) — not imported by this app directly, but
  *   `require()`d by `jwks-rsa`, which is CommonJS. Node 24 resolves that on its
  *   own; Jest's CJS runtime does not, so it needs transpiling too.

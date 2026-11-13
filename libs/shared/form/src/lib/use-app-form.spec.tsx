@@ -67,7 +67,7 @@ describe('useAppForm + FormField', () => {
 
 /**
  * The `TIn`/`TOut` split — the central design claim of `use-app-form.ts` and
- * the subject of `doc/decision/0031-*`.
+ * what this suite pins.
  *
  * Every other form in this workspace uses a schema whose input and output types
  * are **the same** (`.refine()` does not change a type, and both call sites in
@@ -116,7 +116,7 @@ function ProfileForm({ onValid }: { readonly onValid: (values: ProfileOut) => vo
             // `TIn`: what the field holds, before the transform. A `string` —
             // this line is a compile error the moment `TIn` widens to
             // `FieldValues`, which is exactly what the abandoned
-            // `schema: TSchema` signature did (`doc/decision/0031-*`).
+            // `schema: TSchema` signature did.
             const draftAge: string = form.getValues('age');
             void draftAge;
 

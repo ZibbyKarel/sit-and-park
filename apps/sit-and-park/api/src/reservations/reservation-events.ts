@@ -4,7 +4,7 @@
  *
  * ## Why this exists as an interface with a no-op default
  *
- * `plan.md` and the Task 13 brief are explicit that the reservation transaction
+ * The reservation transaction
  * must be minimal — **no Slack call and no broadcast inside it**. That is not a
  * style preference. Both are network calls, and a network call inside an open
  * transaction holds `FOR UPDATE` locks on the waitlist rows of a spot for as
@@ -48,7 +48,7 @@ import type {
  * One committed, already-persisted fact, ready to be broadcast.
  *
  * A discriminated union over the contract's event map, so `name` narrows
- * `payload`. Task 15's gateway can therefore forward one with
+ * `payload`. The gateway can therefore forward one with
  * `io.to(roomForDate(payload.date)).emit(name, payload)` and nothing else.
  */
 export type DomainEvent = {
@@ -63,7 +63,7 @@ export type DomainEvent = {
  * rather than merely near them.
  *
  * Only promotion qualifies today: it is the one outcome a user did not ask for
- * and would otherwise discover by refreshing the page. Task 16 turns this into
+ * and would otherwise discover by refreshing the page. The Slack publisher turns this into
  * an outbound `chat.postMessage`; there are deliberately no slash commands and
  * no interactive Block Kit (global constraint 8).
  */
@@ -83,8 +83,8 @@ export interface WaitlistPromotionNotice {
  * Implementations must not throw and must not block: they are called after the
  * transaction has committed, on the request's way out, and a failure to
  * broadcast must never turn a successful cancellation into an error the user
- * sees. There are two implementations — Task 15's Socket.io broadcast and
- * Task 16's outbound Slack notification — and one token resolves to one
+ * sees. There are two implementations — the Socket.io broadcast and
+ * the outbound Slack notification — and one token resolves to one
  * provider, so `reservations.module.ts` binds it to
  * `CompositeDomainEventPublisher`, which forwards to both with each call in its
  * own `try`.
@@ -106,10 +106,10 @@ export abstract class DomainEventPublisher {
   /** A desk reservation is gone (`desk:released`). Never called inside a transaction. */
   abstract deskReleased(payload: DeskReleasedEvent): void;
 
-  /** A desk approval request was filed. Out of band only (stage 8: Slack DM to the owner). */
+  /** A desk approval request was filed. Out of band only (Slack DM to the owner). */
   abstract deskApprovalRequested(notice: DeskApprovalNotice): void;
 
-  /** A desk approval request was decided. Out of band only (stage 8: Slack DM to the requester). */
+  /** A desk approval request was decided. Out of band only (Slack DM to the requester). */
   abstract deskApprovalDecided(notice: DeskApprovalNotice): void;
 }
 

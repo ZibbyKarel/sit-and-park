@@ -1,7 +1,7 @@
 /**
  * The day overview — one request that paints the whole parking screen.
  *
- * `plan.md` and the contract are explicit that this is **one** query from the
+ * The contract is explicit that this is **one** query from the
  * client's side: the grid, the queue badges, the caller's own position and the
  * reservation-window banner all come back together. A screen assembled from four
  * round trips can render a day's grid against a window it fetched a second
@@ -15,7 +15,7 @@
  * A `groupBy` for the counts plus a second query for the caller's position would
  * be two reads of the same data with nothing keeping them consistent, and the
  * position is defined by the *order* of the rows anyway (`createdAt`, then `id`
- * as the tiebreaker — the same order Task 13 promotes in). One ordered read of
+ * as the tiebreaker — the same order promotion uses). One ordered read of
  * one day's queue, counted in memory, is both cheaper and the only way the count
  * and the position cannot contradict each other.
  */
@@ -95,7 +95,7 @@ export class DayOverviewService {
       timedReservationsBySpot.set(row.parkingSpotId, blocks);
     }
 
-    // Hidden spots are the admins' (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`),
+    // Hidden spots are the admins',
     // and a spot of another office is nobody's here — admins included, this is
     // the user-facing grid (`../common/office-scope.ts`; `null` = every office).
     // A viewer still gets a spot they hold or are queued for that day either
@@ -150,15 +150,14 @@ export class DayOverviewService {
    * Whether **this** caller may create reservations anywhere in the month
    * `date` falls in — the **per-month** half of `canReserve`.
    *
-   * 1. An admin is exempt from the reservation window (`plan.md`
-   *    §Byznys pravidla, `doc/decision/0004-*`).
+   * 1. An admin is exempt from the reservation window.
    * 2. Everybody else needs the target day's month to be open, which is
    *    `isMonthOpen` from `@sit-and-park/shared-types` and is never re-implemented
    *    here.
    *
    * Both facts are the backend's alone — the frontend must not re-derive them
    * from `window`, because the admin exemption does not appear anywhere in the
-   * payload (`doc/decision/0120-*`).
+   * payload.
    */
   private canReserveMonth(
     date: DateOnly,
@@ -182,8 +181,7 @@ export class DayOverviewService {
    *
    * Kept apart from {@link canReserveMonth} rather than inlined into one
    * four-rule check, because the two halves answer different questions and
-   * `canReserveMonth` is now on the wire in its own right
-   * (`doc/decision/0175-*`). Splitting them is also what makes `canReserve`'s
+   * `canReserveMonth` is now on the wire in its own right. Splitting them is also what makes `canReserve`'s
    * composition visible: `canReserveMonth && isReservableDay`, in that order,
    * is exactly the four rules the previous single method ran — the admin
    * exemption still does **not** rescue a weekend, because this conjunct is

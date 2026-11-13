@@ -6,8 +6,7 @@
  * The Auth.js session carries the identity Okta asserted — a name and an email
  * — and nothing else. It deliberately does not carry a role: roles live in this
  * application's own `User` row, which is created on the caller's first ever
- * request by just-in-time provisioning (`doc/auth.md`, §Just-in-time
- * provisioning), and `libs/sit-and-park/auth`'s `projectSession` copies only the access
+ * request by just-in-time provisioning (`doc/auth.md`), and `libs/sit-and-park/auth`'s `projectSession` copies only the access
  * token onto what the browser may see.
  *
  * So the role comes from the contract, through `me.get`, like every other piece

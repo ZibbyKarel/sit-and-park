@@ -131,7 +131,7 @@ describe('CalendarService', () => {
 
     it('refuses an unknown token with 404, not 401', async () => {
       // 401 would confirm to somebody walking the token space that the route
-      // exists and the token was merely wrong. `doc/decision/0080-*`.
+      // exists and the token was merely wrong.
       await expect(service.feedEntriesForToken('nope', NOW)).rejects.toBeInstanceOf(
         NotFoundException
       );

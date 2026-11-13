@@ -4,11 +4,11 @@
  * ## The one route outside the oRPC contract
  *
  * Everything else in this application is a procedure reached over the RPC
- * protocol (`doc/decision/0057-*`). This is not, and the exemption is narrow
+ * protocol. This is not, and the exemption is narrow
  * and deliberate: a calendar client subscribes by pasting a URL, sends no
  * `Authorization` header, cannot be taught the `{ json, meta }` envelope, and
- * expects `text/calendar` rather than JSON. `plan.md` §Contract-first names
- * exactly this endpoint as the single exception.
+ * expects `text/calendar` rather than JSON. It is the single
+ * exception to contract-first.
  *
  * Contract-first still binds everywhere it can: the URL's shape comes from
  * `ICS_FEED_BASE_PATH` in `libs/sit-and-park/contract`, and the data handed to the renderer
@@ -20,15 +20,15 @@
  * 32-byte `randomBytes` token in the path, and `CalendarService` is what
  * resolves it. Because that makes this the one route an unauthenticated
  * stranger can reach with a payload of their choosing, it also carries
- * `@StrictThrottle()` (20 requests/minute by default, `doc/decision/0034-*`) —
- * the tier that has existed unused since Task 10 precisely for this.
+ * `@StrictThrottle()` (20 requests/minute by default) —
+ * the tier that exists for exactly this.
  *
  * ## Why every failure is a 404, and why the headers are set late
  *
  * A 401 on a bad token and a 404 on a bad path would let somebody enumerate
  * valid tokens by response code alone. Every rejection here is therefore the
  * same 404 with the same body Nest produces for a path that matches no route at
- * all — see `doc/decision/0080-*`.
+ * all.
  *
  * That is also why the response headers are set **inside the handler, after the
  * lookup has succeeded**, rather than with `@Header()` decorators. Nest applies
@@ -95,8 +95,7 @@ export class CalendarController {
    * `passthrough: true` so that Nest still sends the returned string through
    * `res.send()`, which is what makes Express compute an `ETag` and answer a
    * conditional re-fetch with `304 Not Modified`. That only works because
-   * `buildReservationCalendar` is a pure function of the data — see
-   * `doc/decision/0081-*`.
+   * `buildReservationCalendar` is a pure function of the data.
    */
   @Get(CALENDAR_FEED_ROUTE)
   async feed(

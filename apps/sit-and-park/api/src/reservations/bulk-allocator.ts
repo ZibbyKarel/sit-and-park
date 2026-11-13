@@ -10,7 +10,7 @@
  *
  * ## The order of preference, and why each step is where it is
  *
- * Per day, in this order (`doc/decision/0090-*`):
+ * Per day, in this order:
  *
  * 1. **Not a business day** → `UNAVAILABLE / NOT_A_BUSINESS_DAY`. First because
  *    it is the most durable fact: a Saturday is still a Saturday next month,
@@ -26,8 +26,7 @@
  *    outcomes below.
  * 4. **An admin's spot choice for that day, if it is free** → `SPOT_ASSIGNED`
  *    (`isPreferredSpot` only if it happens to be the preferred spot). A choice
- *    that is taken, blocked or not allocatable is ignored, never an error
- *    (`doc/decision/0333-*`).
+ *    that is taken, blocked or not allocatable is ignored, never an error.
  * 5. **The preferred spot, if it is free** → `SPOT_ASSIGNED`, `isPreferredSpot`.
  * 6. **The first free spot** in the canonical order below → `SPOT_ASSIGNED`.
  * 7. Otherwise **the shortest queue** → `QUEUED`, with the position the user
@@ -51,8 +50,7 @@
  *   sequence and no cycle can form. Process them in request order instead and
  *   two users submitting the same days in opposite orders deadlock — which
  *   `bulk-concurrency.db.spec.ts` § "a forced interleaving inside one multi-row
- *   INSERT" forces with a test-only `BEFORE INSERT` trigger. See
- *   `doc/decision/0092-*`.
+ *   INSERT" forces with a test-only `BEFORE INSERT` trigger.
  *
  *   **This line is the single authority for that order.** The plan's order is
  *   the row order of the reservation `INSERT` — `createReservations` maps

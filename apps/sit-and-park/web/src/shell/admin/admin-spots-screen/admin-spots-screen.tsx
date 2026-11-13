@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The "Parkovací místa" tab (`doc/design/screens/04-admin-spots.png`): the spot
+ * The "Parkovací místa" tab : the spot
  * list, an inline category picker and activity switch per row, and add / edit /
  * delete.
  *
@@ -13,8 +13,7 @@
  * it — and the API refuses even the soft delete while somebody still holds the
  * spot from today onwards. That `CONFLICT` gets its own Czech sentence here,
  * because the generic one ("somebody else made the same change") would be a
- * false explanation. See
- * `doc/decision/0163-smazat-retires-a-spot-and-says-so-when-it-cannot.md`.
+ * false explanation.
  *
  * ## The category chips are counts, not editors
  *
@@ -22,13 +21,12 @@
  * is `PARKING_GROUPS` — a closed enum in `libs/sit-and-park/shared-types` backed by a Postgres
  * enum column — so there is nothing here that could add or remove one without a
  * schema change. The band renders the counts and says the list is fixed rather
- * than offering a control that cannot work. See
- * `doc/decision/0164-parking-categories-stay-a-closed-enum.md`.
+ * than offering a control that cannot work.
  *
  * ## "Skryté" hides, it does not retire
  *
  * A hidden spot is seen and booked by admins only; normal users do not see it
- * anywhere (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`).
+ * anywhere.
  * Unlike the activity switch it collides with nothing, so it has no conflict
  * copy of its own.
  *
@@ -36,8 +34,7 @@
  *
  * The EV-charger switch changes no booking rule and collides with nothing, so
  * like "Skryté" it has no conflict copy of its own. The bolt next to the label
- * is the same mark the lot draws, and it carries the same accessible name
- * (`doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`).
+ * is the same mark the lot draws, and it carries the same accessible name.
  *
  * Presentational: `../admin-spots-panel.tsx` is the connected half.
  */
@@ -127,8 +124,7 @@ export interface AdminSpotsScreenProps {
    * Called on every dialog change — opened, swapped, cancelled or closed after
    * a success. A failure describes one attempt at one spot; the moment the
    * admin moves to a different dialog it describes nothing on screen, and
-   * leaving it in state is how it gets re-shown under the wrong heading. See
-   * `doc/decision/0167-*`.
+   * leaving it in state is how it gets re-shown under the wrong heading.
    */
   readonly onDiscardFailure: () => void;
 }

@@ -1,8 +1,8 @@
 /**
  * These specs import `@sit-and-park/contract`, which pulls in the ESM-only
  * `@orpc/contract`, and Jest runs this project as CommonJS. The
- * `transformIgnorePatterns` half of that fix now lives in `jest.preset.js`
- * (`doc/decision/0020-*` asked for it; `doc/decision/0297-*` did it); the
+ * `transformIgnorePatterns` half of that fix now lives in `jest.preset.js`;
+ * the
  * `.mjs` transform entry and `moduleFileExtensions` stay here because they
  * depend on this project running ts-jest.
  *

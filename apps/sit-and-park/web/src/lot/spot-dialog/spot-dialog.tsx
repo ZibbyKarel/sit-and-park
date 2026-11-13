@@ -10,8 +10,7 @@
  * so does this.
  *
  * **Two places where the design draws something the contract will not let it,
- * and the contract wins** (`plan.md`: contract-first; `doc/decision/0004-*`
- * gives the design the casting vote on *visuals*, not on what may cross the
+ * and the contract wins** (the app is contract-first; the design gets the design the casting vote on *visuals*, not on what may cross the
  * wire):
  *
  * 1. **A name/SPZ form, but only for an admin.** The design's reserve modal has
@@ -19,8 +18,7 @@
  *    the contract still has nowhere to put them — the holder *is* the caller and
  *    the plate is read off their profile, which they edit in Nastavení — so
  *    their modal remains a confirmation. For an **admin**,
- *    `createReservationInputSchema.holder` now exists (TODO item 3,
- *    `doc/decision/0304-*`), so the two fields are real: a holder selector over
+ *    `createReservationInputSchema.holder` now exists , so the two fields are real: a holder selector over
  *    the active users plus a guest option, and an overridable plate. The form is
  *    `libs/shared/form`; the holder defaults to the admin themselves, so the dialog is
  *    still one click for the common case.
@@ -192,8 +190,7 @@ export function SpotDialog({
   const errors = useTranslations('errors');
   const f = useDateFormatters();
 
-  // A `'timed'` spot's holder is a fixed guest (Task 7's `HolderFields`
-  // `timedOnly`), so the holder form is offered without needing the admin's
+  // A `'timed'` spot's holder is a fixed guest (`HolderFields`' `timedOnly`), so the holder form is offered without needing the admin's
   // user list to have arrived — unlike a free bay's full holder selector,
   // which does need it (`holderOptions.length > 0`).
   const isTimedSpot = spot?.appearance === 'timed';

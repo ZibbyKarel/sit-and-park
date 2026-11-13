@@ -8,8 +8,7 @@ import { LoginScreen } from '../../shell/login-screen/login-screen';
  * The one page an unauthenticated visitor may see.
  *
  * It is deliberately outside the `(app)` route group, so it renders without a
- * top bar — the design draws it as a bare white canvas
- * (`doc/design/screens/canvas-default.png`).
+ * top bar — the design draws it as a bare white canvas.
  *
  * Auth.js sends people here on its own: `auth.ts` passes this path as
  * `signInPath`, so `pages.signIn` points at it and the proxy's redirect lands
@@ -40,7 +39,7 @@ export default async function LoginPage() {
  * A Server Action, so the whole exchange stays on the server: `signIn` issues
  * the redirect to Okta's `/authorize` with PKCE and state, and the code is
  * exchanged in `/api/auth/callback/okta` — the browser never holds the client
- * secret or the refresh token (`doc/decision/0047-*`).
+ * secret or the refresh token.
  *
  * `OKTA_PROVIDER_ID` is the constant `libs/sit-and-park/auth` registers the provider under,
  * not the literal `'okta'`: it is the same value that fixes the callback URL

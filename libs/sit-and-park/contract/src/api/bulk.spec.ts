@@ -96,7 +96,7 @@ describe('bulkBookingInputSchema', () => {
 
   it('does NOT reject a weekend, a holiday or a past day', () => {
     // Ruling window-2: day eligibility depends on database state and on
-    // "today" in Europe/Prague, so it stays in the service layer (Task 30).
+    // "today" in Europe/Prague, so it stays in the service layer.
     // 2026-09-05 is a Saturday, 2020-01-01 is long past and a public holiday.
     expect(bulkBookingInputSchema.safeParse({ dates: ['2026-09-05'] }).success).toBe(true);
     expect(bulkBookingInputSchema.safeParse({ dates: ['2020-01-01'] }).success).toBe(true);

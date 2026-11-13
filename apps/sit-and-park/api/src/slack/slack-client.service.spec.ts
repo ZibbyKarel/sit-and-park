@@ -174,7 +174,7 @@ describe('SlackClient', () => {
      *
      * It used to, under the name "posts once", and that assertion was wrong —
      * not flaky, *wrong*: it asserted a property the code does not promise.
-     * `doc/slack.md` §4 and `doc/decision/0135-*` both state the guarantee as
+     * `doc/integrations.md` states the guarantee as
      * **at-least-once**, with the loser of a lost race torn down as soon as it
      * is known to have lost. This file was the one place still claiming
      * exactly-once, and it reddened the whole workspace's verification run at
@@ -340,7 +340,7 @@ describe('SlackClient', () => {
   describe('a 4xx other than 429', () => {
     // The one row of `httpStatusIsRetryable`'s table that the rest of this file
     // exercised only through a hand-built error object in `slack-failure.spec.ts`
-    // — added here so the claim in `doc/slack.md` ("every row … from a real HTTP
+    // and is covered here so the claim in `doc/integrations.md` ("every row … from a real HTTP
     // server") is actually true rather than merely true of five rows out of six.
     it('is ours, not a Slack decision, and is not retried', async () => {
       server.respondWith(() => ({ status: 404, body: { ok: false, error: 'not_found' } }));

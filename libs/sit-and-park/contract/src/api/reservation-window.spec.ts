@@ -64,7 +64,7 @@ describe('listMonthWindowsInputSchema', () => {
 
   // The span cap is structural so the client knows the limit from the schema
   // instead of discovering it by being rejected at runtime; that is why the
-  // procedure declares no VALIDATION_FAILED (doc/decision/0021-*).
+  // procedure declares no VALIDATION_FAILED.
   it('accepts a range exactly MAX_MONTH_WINDOW_SPAN months long', () => {
     // 2026-01 .. 2027-12 is 24 months counting both endpoints.
     expect(MAX_MONTH_WINDOW_SPAN).toBe(24);

@@ -6,15 +6,13 @@
  * `src/instrumentation-node.ts`, which Next.js loads once when an actual
  * server instance boots (`next dev` / `next start`) — so a missing or
  * malformed variable crashes the process immediately with a readable error
- * instead of failing later inside a React component or a route handler. See
- * `doc/decision/0008-web-env-validation-instrumentation-hook.md` for why
- * this is not done from `next.config.ts` instead.
+ * instead of failing later inside a React component or a route handler. It is not
+ * done from `next.config.ts` because that runs at build time too.
  *
  * Dev, e2e and production all run this exact same validation; only the
- * values differ (see `.env.example` and `doc/environment.md`).
+ * values differ (see `.env.example` and `doc/workspace.md`).
  *
- * The schema is deliberately minimal for this phase (Fáze 0) and is designed
- * to grow additively: later phases add variables as new keys on this object,
+ * The schema is deliberately minimal and grows additively: new variables are added as new keys on this object,
  * never by relaxing existing ones.
  */
 import * as z from 'zod';

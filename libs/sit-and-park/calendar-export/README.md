@@ -4,7 +4,7 @@ The `ical-generator` wrapper: the **only** place in the workspace allowed to imp
 Turns contract values (`IcsCalendarEntry[]`) into an RFC 5545 document for the personal
 ICS feed.
 
-See `doc/ics.md` for the endpoint and `doc/wrappers.md` for the wrapper rules.
+See `doc/integrations.md` for the endpoint and `doc/frontend.md` for the wrapper rules.
 
 ## Running unit tests
 

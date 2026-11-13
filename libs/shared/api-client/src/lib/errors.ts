@@ -2,10 +2,9 @@
  * Mapping a failure that came back over the wire onto the contract's closed
  * error enum.
  *
- * `libs/sit-and-park/contract` defines the domain errors (`ERROR_CODES`, `errorShapeSchema`,
- * `doc/decision/0016-*`, `0018-*`); oRPC carries them as `ORPCError`
+ * `libs/sit-and-park/contract` defines the domain errors (`ERROR_CODES`, `errorShapeSchema`); oRPC carries them as `ORPCError`
  * (`{ code, status, message, data }`, where `data` is the contract's
- * `details` — `doc/decision/0018-*`). This module is the one place that turns
+ * `details`). This module is the one place that turns
  * the second into the first, so that feature code can `switch` on a member of
  * `ERROR_CODES` and never touch an oRPC type.
  *
@@ -15,14 +14,13 @@
  * That flag is **always `false`** for this backend: `apps/sit-and-park/api`'s global filter
  * serialises every domain failure with `defined: false`, because an error that
  * reached the filter is by definition one the procedure did not declare
- * (`doc/decision/0033-*`, `contractErrorBody()`). Narrowing on `defined` would
+ *`). Narrowing on `defined` would
  * therefore reject every real domain error. The check here is on the **code**
  * instead — parsed against `errorCodeSchema`, so a value outside the closed
  * enum can never be presented as a contract error.
  *
  * Full reasoning, and a live server-side mismatch this module does not fix:
- * `doc/decision/0039-*`.
- */
+ * */
 
 import { ORPCError } from '@orpc/client';
 import type { ErrorCode, ErrorDetails } from '@sit-and-park/contract';

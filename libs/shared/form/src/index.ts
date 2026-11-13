@@ -1,6 +1,6 @@
 /**
  * `@sit-and-park/form` — the only place in the workspace allowed to import
- * `react-hook-form` (enforced in `eslint.config.mjs`, see `doc/wrappers.md`).
+ * `react-hook-form` (enforced in `eslint.config.mjs`, see `doc/frontend.md`).
  *
  * The bridge between `libs/sit-and-park/contract`'s Zod schemas and the app's input
  * controls, whatever component library draws them:
@@ -12,7 +12,7 @@
  * - `FormField` — connects one field's value and Zod error message to one
  *   control, without the control ever seeing react-hook-form itself.
  *
- * Deliberately narrow: this is the whole API. See `doc/wrappers.md` for why.
+ * Deliberately narrow: this is the whole API. See `doc/frontend.md` for why.
  */
 /**
  * Named rather than `export *`, so that what leaves this lib is a decision

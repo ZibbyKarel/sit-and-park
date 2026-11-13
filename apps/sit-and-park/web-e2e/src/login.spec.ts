@@ -89,7 +89,7 @@ test('a completed sign-in yields a session the API accepts', async ({ page }) =>
  * **History, because it explains the shape of this test.** It used to fail about
  * once in ten full-suite runs and was deliberately left red: sign-out was not
  * durable under load, and the second assertion below was the only thing
- * reporting it. That defect is fixed (`doc/decision/0230-*`) — sign-out now
+ * reporting it. That defect is fixed — sign-out now
  * revokes the session server-side, so a cookie that survives the clear is
  * refused and deleted on its next use.
  *
@@ -104,7 +104,7 @@ test('a completed sign-in yields a session the API accepts', async ({ page }) =>
  * produce. *"a session cookie kept from before sign-out is refused afterwards"*
  * below asserts the same property deterministically and is the one to read first
  * when this area breaks. Keep both. Do not retry, relax or `fixme` this one —
- * `doc/decision/0189-*` records why each of those is a way of not knowing.
+ * each of those is a way of not knowing.
  */
 test('signing out returns to the sign-in screen and the lot is protected again', async ({
   page,

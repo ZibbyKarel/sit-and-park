@@ -38,8 +38,8 @@ function rpcPayload(value: unknown) {
 
 /**
  * A domain failure in oRPC's wire shape (`ORPCErrorJSON`). `defined: false`
- * because `apps/sit-and-park/api`'s global filter serialises every domain error that way —
- * `doc/decision/0033-*`, and the reason `toContractError` reads the code and
+ * because `apps/sit-and-park/api`'s global filter serialises every domain error that way — which is why
+ * `toContractError` reads the code and
  * not oRPC's `defined` flag.
  */
 function contractErrorBody(code: string, status: number, message: string) {

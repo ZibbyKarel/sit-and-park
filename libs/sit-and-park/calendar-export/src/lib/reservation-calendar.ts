@@ -12,7 +12,7 @@
  * whole rendering testable without a server and — more importantly — makes the
  * body **deterministic**: the same reservations always produce the same bytes,
  * so Express can compute a strong-enough `ETag` and answer a polling calendar
- * client with `304 Not Modified` (`doc/decision/0081-*`). A `DTSTAMP` of "now"
+ * client with `304 Not Modified`. A `DTSTAMP` of "now"
  * would defeat that on every single request.
  *
  * ## The calendar's time zone is deliberately unset
@@ -27,7 +27,7 @@
  * `reservation-calendar.spec.ts` pins that by flipping `process.env.TZ`.
  *
  * This does not weaken the Europe/Prague rule: a reservation day is a *calendar
- * day* (`doc/decision/0013-calendar-arithmetic-and-single-timezone-boundary`), an all-day `VALUE=DATE` event carries no time
+ * day*, an all-day `VALUE=DATE` event carries no time
  * and therefore no offset, and the conversion from a stored `@db.Date` to
  * `YYYY-MM-DD` already happened in `apps/sit-and-park/api`.
  */
@@ -40,10 +40,9 @@ import { addDays, toUtcMidnight } from '@sit-and-park/shared-types';
  * `X-WR-CALNAME` / `NAME` — what a calendar client labels the subscription.
  *
  * Czech, like the rest of the UI: this string is read by an employee in
- * Outlook, so it is UI copy, and `CLAUDE.md` keeps UI copy Czech. It lives here
+ * Outlook, so it is UI copy, and `AGENTS.md` keeps UI copy Czech. It lives here
  * rather than in `libs/shared/i18n` because `libs/shared/i18n` is `scope:web` and the Nx
- * boundary rule forbids `apps/sit-and-park/api` from reaching it — see
- * `doc/decision/0082-*`.
+ * boundary rule forbids `apps/sit-and-park/api` from reaching it.
  */
 export const ICS_CALENDAR_NAME = 'Parkování';
 
@@ -57,7 +56,7 @@ export const ICS_CALENDAR_NAME = 'Parkování';
  * missed morning.
  *
  * Seconds, not milliseconds: this is not an env variable (see
- * `doc/environment.md`'s `_MS` rule), it is the unit `ical-generator`'s `ttl`
+ * `doc/workspace.md`'s `_MS` rule), it is the unit `ical-generator`'s `ttl`
  * option takes.
  */
 export const ICS_REFRESH_INTERVAL_SECONDS = 3600;

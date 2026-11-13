@@ -2,7 +2,7 @@
  * The three URLs the browser and the server derive from one env variable.
  *
  * `NEXT_PUBLIC_API_URL` is the API's **base URL, global prefix included**
- * (`http://localhost:3000/api`, see `doc/environment.md`). It is not itself
+ * (`http://localhost:3000/api`, see `doc/workspace.md`). It is not itself
  * any of the three endpoints the app talks to: the RPC transport sits one
  * segment below it, and the readiness probe and the websocket sit outside the
  * prefix entirely. All three are derived here rather than configured
@@ -26,7 +26,7 @@ export const API_RPC_SEGMENT = 'rpc';
  * **Not** `/api/health/ready`. `configureApp()` passes the health prefix to
  * `setGlobalPrefix`'s `exclude`, so the probes sit at the server root while
  * every procedure sits under `/api` (`apps/sit-and-park/api/src/health/health.controller.ts`,
- * `doc/auth.md` §Public routes). Building this path off the configured URL
+ * `doc/auth.md`). Building this path off the configured URL
  * *including* its prefix is the mistake that produces a health check which is
  * red on a perfectly healthy deployment.
  */
@@ -37,7 +37,7 @@ export const API_READINESS_PATH = '/health/ready';
  *
  * This is what Socket.io needs. `io(url)` reads a path in the URL as a
  * **namespace**, not as a mount point: handing it `http://host/api` would make
- * the client dial the `/api` namespace, which the gateway (Task 15) does not
+ * the client dial the `/api` namespace, which the gateway does not
  * register, and the handshake would be refused for a reason that looks like an
  * auth failure. `RealtimeSocketOptions.url` is documented as "origin of the
  * API" for exactly this reason; the Socket.io mount point is its separate

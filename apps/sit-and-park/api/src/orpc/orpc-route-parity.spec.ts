@@ -7,8 +7,8 @@
  * that can be wrong. This file is what makes it not be:
  *
  * - every registered RPC route names a procedure that exists in `libs/sit-and-park/contract`;
- * - every procedure Task 12 implements has exactly one route;
- * - every procedure it does not implement has **none** — so a half-added Task 13
+ * - every procedure the API implements has exactly one route;
+ * - every procedure it does not implement has **none** — so a half-added
  *   procedure fails here rather than answering 404 in production;
  * - every `admin.*` route carries `@Roles('ADMIN')` and no other route does;
  * - and, separately, that **the compiled application** registers no HTTP route
@@ -26,7 +26,7 @@
  * route that the contract does not declare"* making a **global** claim off that
  * same list, and the Nx scaffold's `AppController` (`GET /api` →
  * `{"message":"Hello API"}`) sailed through it for not being in the list. The
- * controller is gone (`doc/decision/0239-*`); the missing check is the part that
+ * controller is gone; the missing check is the part that
  * would have caught the next one, and it can only come from the composed
  * application, so `the compiled application` below boots `AppModule` and
  * enumerates what Nest actually registered.
@@ -63,9 +63,8 @@ import { RPC_ROUTE_PREFIX } from './rpc-route';
  * same commit that adds its routes, and the assertions below force that to
  * happen together.
  *
- * Task 13 removed the four single-day procedures; Task 30 removed the bulk pair.
- * The desk merge added 33 procedures (`desk.*`, `admin.desk|hive|office|zone|employeeSync.*`);
- * the stage that implements each removes its entries. An empty list is a state the
+ * Procedures the contract declares but the API does not implement yet are listed here and
+ * removed once implemented. An empty list is a state the
  * assertions have to keep working in — "every procedure has exactly one route".
  */
 const NOT_YET_IMPLEMENTED: string[] = [];
@@ -280,13 +279,12 @@ describe('the RPC routing table', () => {
      *
      * Deliberately a literal, and deliberately *here*: these are exemptions,
      * and an exemption that is not visible is a hole. The ICS feed is a
-     * browser/calendar-client subscription URL and cannot be an RPC POST
-     * (`doc/decision/0080-*`); the two probes are excluded from the global
+     * browser/calendar-client subscription URL and cannot be an RPC POST; the two probes are excluded from the global
      * prefix so an orchestrator can reach them without knowing it.
      */
     const NON_CONTRACT_ROUTES = [
       'calendar/:icsToken.ics',
-      // Keboola's employee-list push, bearer-key authenticated (`doc/decision/0330-*`).
+      // Keboola's employee-list push, bearer-key authenticated.
       'employee-sync',
       'health/live',
       'health/ready',

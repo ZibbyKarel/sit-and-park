@@ -1,5 +1,5 @@
 /**
- * Day eligibility, which is the one part of Task 13 that is pure.
+ * Day eligibility, which is the pure part of the reservation rules.
  *
  * Everything else in this task — the transaction, the row lock, the retry, the
  * `P2002` mapping — is a property of PostgreSQL and is tested against a real one

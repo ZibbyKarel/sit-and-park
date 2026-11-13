@@ -92,7 +92,7 @@ describe('init migration — tables and enums', () => {
 });
 
 describe('init migration — date-only columns', () => {
-  // A timestamp here would silently reintroduce the timezone bugs Task 3 spent
+  // A timestamp here would silently reintroduce the timezone bugs the shared date helpers spent
   // its whole test suite eliminating.
   it.each(['Reservation', 'WaitlistEntry'])('%s.date is DATE, not a timestamp', (table) => {
     const createTable = flat.match(new RegExp(`CREATE TABLE "${table}" \\((.*?)\\);`))?.[1];
@@ -104,7 +104,7 @@ describe('init migration — date-only columns', () => {
 
 describe('init migration — uniqueness that makes double-booking impossible', () => {
   it('one reservation per spot and day', () => {
-    // Task 10 maps this constraint's P2002 onto SPOT_ALREADY_RESERVED.
+    // The API maps this constraint's P2002 onto SPOT_ALREADY_RESERVED.
     expect(flat).toContain(
       'CREATE UNIQUE INDEX "Reservation_parkingSpotId_date_key" ON "Reservation"("parkingSpotId", "date")'
     );

@@ -7,7 +7,7 @@
  *
  * 1. **The token is read from `handshake.auth.token` and from nowhere else.**
  *    The query-string arm is not a hypothetical: it is the mistake
- *    `doc/decision/0060-*` exists to prevent, and the only way to know the
+ *    this rule exists to prevent, and the only way to know the
  *    gateway does not *also* accept one is to send one.
  * 2. **A refusal arrives as a CONNECT_ERROR packet**, identified by
  *    `socket.io-parser`'s own `PacketType.CONNECT_ERROR` rather than by a
@@ -81,7 +81,7 @@ describe('the Socket.io handshake', () => {
     });
 
     it('refuses a token presented in the query string instead of the auth payload', async () => {
-      // `doc/decision/0060-*`: a query string is written verbatim into nginx's
+      // A query string is written verbatim into nginx's
       // `$request_uri`, load-balancer access logs and engine.io's debug output,
       // none of which redact. A gateway that accepted one would make the
       // client's careful `auth` callback pointless, and nothing else in this

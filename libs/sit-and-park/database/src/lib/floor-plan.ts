@@ -1,6 +1,6 @@
 /**
  * Desk geometry and zone membership, read out of a bundled floor-plan SVG, and
- * the migration SQL that stores them (`doc/decision/0325-*`).
+ * the migration SQL that stores them.
  *
  * Runs at migration-generation time only (`src/scripts/generate-floor-plan-sql.ts`),
  * never in the browser and never at runtime: the web app shows the SVG as an

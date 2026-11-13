@@ -4,7 +4,7 @@
  * Five admin specs had a byte-identical (or near-identical) copy of this, and
  * four more files had it in three other spellings. Every copy re-stated the wire
  * envelope `{ json: { defined: false, code, status, message }, meta: [] }` —
- * the one detail `doc/decision/0039-*` says must not be guessed at, and the one
+ * the one detail that must not be guessed at, and the one
  * `apps/sit-and-park/api`'s `ContractExceptionFilter` owns on the other side. Nine
  * restatements is nine chances for a spec to assert its own idea of the wire
  * instead of the wire's.

@@ -242,7 +242,7 @@ describe('toSpotView', () => {
   });
 
   it('ignores a lock this client holds itself', () => {
-    // Whether the gateway echoes a broadcast to its own sender is Task 15's
+    // Whether the gateway echoes a broadcast to its own sender is the gateway's
     // business. The caller with the form open must never see their own tile
     // hatched and their own reserve action taken away.
     const view = toSpotView(spotRow(), context({ locks: lock(VIEWER) }));
@@ -461,7 +461,7 @@ describe('toBannerView', () => {
   });
 
   it('drops the cap once today is past the window, in the running month', () => {
-    // `doc/decision/0315-*`: under AUTO, OPEN also covers the running month,
+    // Under AUTO, OPEN also covers the running month,
     // where the cap no longer applies and `windowTo` is already in the past —
     // quoting it as a still-binding deadline would be a false statement.
     const view = toBannerView(window(), false, cs, '2026-09-05');

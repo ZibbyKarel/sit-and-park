@@ -33,7 +33,7 @@ export function rpcPayload(value: unknown): { json: unknown; meta: [] } {
 
 /**
  * The response `apps/sit-and-park/api` produces for a domain error, wrapped in the RPC
- * envelope the client reads it out of (`doc/decision/0018-*`, `0033-*`).
+ * envelope the client reads it out of.
  */
 export function contractErrorResponse(
   code: ErrorCode,

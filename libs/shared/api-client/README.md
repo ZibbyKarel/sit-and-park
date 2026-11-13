@@ -4,7 +4,7 @@
 the workspace allowed to import that package.
 
 Usage, the access-token provider and how contract errors are read:
-**`doc/wrappers.md`** (section "`libs/shared/api-client` — the oRPC client").
+**`doc/frontend.md`**.
 
 ## Running unit tests
 

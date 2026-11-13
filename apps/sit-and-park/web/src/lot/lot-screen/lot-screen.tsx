@@ -13,8 +13,8 @@
  *
  * Nothing here names `socket.io-client`, `next-intl`, `next-auth` or
  * `@orpc/client` — the wrapper rule, enforced by `no-restricted-imports`
- * (`doc/wrappers.md`). `@tanstack/react-query` is no longer one of the wrapped
- * packages (`doc/decision/0308-*`).
+ * (`doc/frontend.md`). `@tanstack/react-query` is no longer one of the wrapped
+ * packages.
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -176,7 +176,7 @@ export function LotScreen() {
   });
 
   // This client's own hold, taken while the dialog is open and released by the
-  // same effect when it closes (`doc/realtime.md`, §"The cell lock"). It is a
+  // same effect when it closes (`doc/integrations.md`). It is a
   // courtesy, not an authorisation step: skipping it would get a `CONFLICT`
   // from `reservation.create` rather than a double booking — which is also
   // why `info` is excluded: it is the **only** action `SpotDialog` can never
@@ -292,8 +292,8 @@ export function LotScreen() {
      * written with `userId: null`
      * (`apps/sit-and-park/api/src/reservations/reservations.service.ts`). For
      * `RESERVATION_LIMIT_REACHED` that null is exempt from the
-     * `Reservation(userId, date)` constraint the code comes from
-     * (`doc/decision/0303-*`). For `MONTHLY_RESERVATION_LIMIT_REACHED` there is
+     * `Reservation(userId, date)` constraint the code comes from.
+     * For `MONTHLY_RESERVATION_LIMIT_REACHED` there is
      * no constraint at all: the cap is a per-user budget, and a guest has no
      * `userId`, so `assertWithinMonthlyReservationCap` is never called for one
      * (`apps/sit-and-park/api/src/reservations/monthly-reservation-cap.ts`). Both branches
@@ -420,8 +420,7 @@ export function LotScreen() {
         //
         // `canReserveMonth`, **not** `canReserve`: the bulk modal's subject is
         // the month, and `canReserve` is per-day — reading it hid this button
-        // on every weekend, holiday and past day of an open month
-        // (`doc/decision/0175-*`).
+        // on every weekend, holiday and past day of an open month.
         showBulk={day.canReserveMonth}
         onBulk={() => {
           setBulkOpen(true);
@@ -443,8 +442,7 @@ export function LotScreen() {
       {/*
         `canReserveMonth` is passed as well as consulted by `showBulk` above,
         because hiding a control is not enforcement: the window can close
-        while the modal is already open, and the modal is what refuses then
-        (`doc/decision/0173-*`).
+        while the modal is already open, and the modal is what refuses then.
       */}
       <BulkReservationModal
         open={bulkOpen}

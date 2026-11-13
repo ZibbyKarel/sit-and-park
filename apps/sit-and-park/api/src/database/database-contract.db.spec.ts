@@ -7,7 +7,7 @@
  * because it once was: `PrismaDouble` fabricated `P2002` with a `meta.target`
  * key, the real `@prisma/adapter-pg` emits no such key, and every unique
  * violation therefore degraded to the vague `CONFLICT` — including
- * `SPOT_ALREADY_RESERVED`, which `plan.md` names as the concurrency guarantee
+ * `SPOT_ALREADY_RESERVED`, which is the concurrency guarantee
  * of the whole reservation flow. The mapping was unit-tested and green
  * throughout. Nothing short of a real connection could have caught it.
  *
@@ -294,7 +294,7 @@ describe('what PostgreSQL actually does', () => {
 
   describe('the shape of a deadlock', () => {
     /**
-     * Task 13's cancellation path retries `P2034`, and this is what it is
+     * The cancellation path retries `P2034`, and this is what it is
      * retrying. Pinned here for the same reason `P2002` is: the code and the
      * `meta` are what the mapping and the retry predicate read, and neither is
      * something a double should be trusted to describe.
@@ -367,7 +367,7 @@ describe('what PostgreSQL actually does', () => {
      * and onto `$queryRaw`, and from that moment a deadlock whose victim was
      * that statement stopped matching the cancellation retry's `P2034` test.
      * Half of `waitlist-concurrency.db.spec.ts`'s concurrent cancellations
-     * failed. `doc/decision/0240-*`.
+     * failed.
      *
      * Deliberately the same two-`ParkingSpot` cycle as above, with only the
      * second statement swapped for `$executeRaw`, so the *one* thing that

@@ -191,7 +191,7 @@ describe('MeService', () => {
     });
 
     it('retries past a token collision instead of surfacing an error the UI has no copy for', async () => {
-      // The contract declares no error on this procedure (`doc/decision/0021-*`),
+      // The contract declares no error on this procedure,
       // so a P2002 on the random token has to be resolved here rather than
       // reported. The collision is induced at the unique index — the layer that
       // would really detect it — because a 32-byte random value cannot be made

@@ -32,7 +32,7 @@ import { useLotRealtime } from './use-lot-realtime';
  *   `createApiQueryUtils` derives keys from the *path* of the property access,
  *   not from anything the transport does.
  * - `@sit-and-park/realtime-client`, replaced by a registry that hands the test a
- *   handle on each subscribed handler. Task 21 already proves a real socket
+ *   handle on each subscribed handler. The realtime client's tests already prove a real socket
  *   delivers a parsed payload to that handler (`connection.spec.tsx`, 69
  *   tests); re-proving it here would test their code, not this hook's.
  */
@@ -59,9 +59,8 @@ jest.mock('@sit-and-park/api-client', () => ({
 }));
 
 jest.mock('@sit-and-park/auth/client', () => ({
-  // A stable function reference, not `() => async () => 'irrelevant'` — see
-  // `doc/decision/0141-*` for why that form defeats `api`'s identity staying
-  // put across a rerender. Same fix as `api-provider.spec.tsx`.
+  // A stable function reference, not `() => async () => 'irrelevant'` — that form
+  // defeats `api`'s identity staying put across a rerender. Same fix as `api-provider.spec.tsx`.
   useAccessTokenProvider: () => mockGetAccessToken,
 }));
 
@@ -71,7 +70,7 @@ const handlers = new Map<string, (payload: unknown) => void>();
 
 /**
  * One join-or-leave, in the order it happened. A bare `jest.fn()` recording
- * calls would not do here: Task 25's risk is that changing the day on screen
+ * calls would not do here: the risk is that changing the day on screen
  * leaves the *old* room subscribed, and a mock that only ever "joins" cannot
  * fail that way no matter what `useLotRealtime` does with the date it is
  * given. `roomEvent` is instead a faithful-enough stand-in for the real
@@ -374,7 +373,7 @@ describe('useLotRealtime', () => {
 });
 
 /**
- * Task 25's named risk: changing the day on screen moves **both** the
+ * The named risk: changing the day on screen moves **both** the
  * realtime room and the query-cache key, and a client that forgets the first
  * half quietly keeps listening — and keeps a socket-side room membership —
  * for a day nobody is looking at any more.
@@ -506,7 +505,7 @@ describe('useLotRealtime — when a patch is not enough', () => {
  *
  * The four handlers above patch the cache from broadcasts. A broadcast
  * published while the socket is down is not queued anywhere and never
- * arrives — and `libs/query` sets `refetchOnWindowFocus: false` and a 30 s
+ * arrives — and the app's `QueryClient` sets `refetchOnWindowFocus: false` and a 30 s
  * `staleTime`, while TanStack's `refetchOnReconnect` keys off
  * `navigator.onLine`, which says nothing about an API restart, a proxy idle
  * timeout or a laptop resume. So the grid kept drawing spots as free that had

@@ -125,7 +125,7 @@ describe('the Slack environment keys', () => {
   });
 
   it('is additive: every pre-existing key still parses exactly as before', () => {
-    // The schema may only gain keys (`doc/environment.md`). This is the cheap
+    // The schema may only gain keys (`doc/workspace.md`). This is the cheap
     // structural check that no Slack key was added by loosening an old one.
     const result = apiEnvSchema.safeParse(BASE);
 

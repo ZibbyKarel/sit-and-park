@@ -7,7 +7,7 @@
  * the same lock `desk.reserve` and approval take, so a booking either commits
  * before the edit and is cleaned up by it, or waits and sees the edited desk.
  * The clean-up the source app lacked (cancelling future reservations,
- * rejecting pending requests; `doc/desk-merge-plan.md` defect table) runs in
+ * rejecting pending requests) runs in
  * that same transaction through `DeskCleanupService`, and the `desk:released`
  * broadcasts go out after commit.
  */

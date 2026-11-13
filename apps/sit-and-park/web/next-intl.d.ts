@@ -15,7 +15,7 @@
  *
  * **This is not an import of `next-intl`.** `declare module` is a type-level
  * augmentation, not an import declaration, so the wrapper rule
- * (`eslint.config.mjs`'s `no-restricted-imports`, `doc/i18n.md`) is untouched:
+ * (`eslint.config.mjs`'s `no-restricted-imports`, `doc/frontend.md`) is untouched:
  * no value from the package is reachable from here, and there is nowhere else
  * this can live — `libs/shared/i18n` may not read `apps/sit-and-park/web/messages/cs.json`.
  */

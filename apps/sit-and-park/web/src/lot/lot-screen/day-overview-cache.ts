@@ -2,7 +2,7 @@
  * How a realtime broadcast becomes a change to the day overview in the query
  * cache.
  *
- * `plan.md` (Fáze 6) requires **one** mechanism — "realtime events
+ * The app requires **one** mechanism — "realtime events
  * invalidate/patch the query cache, no ad-hoc local state" — and this module
  * is the whole of it. The rule it implements, in one sentence:
  *
@@ -107,7 +107,7 @@ export function applyReservationCreated(
  *
  * A cancellation that promoted somebody arrives as `reservation:reassigned`
  * instead, never as a cancel followed by a create
- * (`doc/decision/0022-*`) — so clearing the holder here cannot flash a cell
+ * — so clearing the holder here cannot flash a cell
  * empty that is about to be refilled.
  *
  * Guarded on the id: a cancel for a reservation this client no longer shows
@@ -131,7 +131,7 @@ export function applyReservationCancelled(
 /**
  * `reservation:reassigned` — the cell changed hands inside one transaction.
  *
- * Deliberately a different event from `created` (`doc/decision/0022-*`):
+ * Deliberately a different event from `created`:
  * auto-promotion is a system action exempt from the reservation-window lock,
  * so a `created` arriving in a locked month would look like a violated window.
  * For the cache the effect is the same — the new holder replaces the old.

@@ -88,7 +88,7 @@ export class WaitlistService {
    * not caught here. That is fine, not a gap: `WaitlistPromotionService`
    * re-checks eligibility at promotion time and skips such a candidate then,
    * so the worst case is a queue entry that (correctly) never promotes. See
-   * `doc/waitlist.md` §"What happens under concurrency".
+   * `doc/parking.md`.
    *
    * **The target may be somebody else**, if the caller is an admin.
    * `assertMayNameWaitlistTarget` is the boundary, mirroring
@@ -134,7 +134,7 @@ export class WaitlistService {
       select: { id: true, active: true, hidden: true, officeId: true },
     });
     // Same rule as `ReservationsService.create`: a hidden spot's queue is
-    // reachable only through an admin (`doc/decision/0316-*`).
+    // reachable only through an admin.
     // A spot of another office is likewise not there for a non-admin
     // (`../common/office-scope.ts`); an admin books across offices.
     if (
@@ -156,7 +156,7 @@ export class WaitlistService {
     `;
     if (holder === undefined) {
       // No full-day `Reservation`, but the cell may still carry guest time
-      // blocks (`doc/decision/0314-*`) — that spot is not free either, it
+      // blocks — that spot is not free either, it
       // just has no queue: see `WaitlistService.join`'s doc comment and
       // "A spot with blocks has no queue" in the decision record.
       const hasBlocks =
@@ -198,7 +198,7 @@ export class WaitlistService {
     // In the transaction, for the same reason the reservation's entry is: a
     // queue entry nobody can account for is what the audit log exists to
     // prevent, and `reservation.confirmBulk` writes the same action for the
-    // rows it creates (`doc/decision/0091-*`). The `payload` shape is fixed per
+    // rows it creates. The `payload` shape is fixed per
     // action by `../audit/audit-payloads.ts`.
     //
     // `WAITLIST_JOINED` still means "the queued person joined for themselves",
@@ -253,18 +253,12 @@ export class WaitlistService {
   /**
    * Leaves the queue.
    *
-   * **No window check**, exactly like `reservation.cancel` — see
-   * `doc/decision/0233-leaving-a-waitlist-is-exempt-from-the-reservation-window`,
-   * which amends `doc/decision/0004-*`. The rule that used to be here read
-   * "leaving reshuffles everybody behind you, so it is a write like any other".
-   * Under the shipped `AUTO` / `openDaysBefore = 7` defaults that made leaving
-   * impossible for the whole live life of every queue: `monthLockState` then
-   * returned `LOCKED` from the 1st of the target month onwards (no longer —
-   * `doc/decision/0315-*`), and the target month is
-   * the only period a queue for it can be promoted in. The person was then
-   * force-promoted into a reservation they had asked to leave, with no way out.
-   * The reshuffle argument also cuts the other way: everyone behind you moves
-   * *up*, which is nearer to cancellation (always allowed) than to creation.
+   * **No window check**, exactly like `reservation.cancel`. A person must always
+   * be able to leave: the target month is the only period a queue for it can be
+   * promoted in, so refusing to let them leave would force-promote them into a
+   * reservation they had asked to leave, with no way out. Leaving also moves
+   * everyone behind you *up*, which is nearer to cancellation (always allowed)
+   * than to creation.
    *
    * That is why `leaveWaitlistContract` declares no window errors at all.
    */

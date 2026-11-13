@@ -12,7 +12,7 @@
  * It matters more than a header would. The token never expires on its own, is
  * not scoped to one request, and reading it back gives an attacker the holder's
  * entire parking calendar for as long as it is not regenerated. It is also the
- * exact secret the feed's 404-for-everything design (`doc/decision/0080-*`)
+ * exact secret the feed's 404-for-everything design
  * exists to keep unguessable — writing it to stdout hands it over for free to
  * anyone with log access.
  *

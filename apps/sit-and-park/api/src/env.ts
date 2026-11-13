@@ -10,10 +10,10 @@
  * an arbitrary call site.
  *
  * Dev, e2e and production all run this exact same validation; only the
- * values differ (see `.env.example` and `doc/environment.md`).
+ * values differ (see `.env.example` and `doc/workspace.md`).
  *
- * The schema is deliberately minimal for this phase (Fáze 0) and is designed
- * to grow additively: later phases add Slack, ICS and throttler variables as
+ * The schema is deliberately minimal and is designed
+ * to grow additively: Slack, ICS and throttler variables are
  * new keys on this object, never by relaxing existing ones.
  */
 import * as z from 'zod';
@@ -94,7 +94,7 @@ export const ENV_DEFAULTS = {
   HEALTH_DB_TIMEOUT_MS: 3_000,
   REALTIME_LOCK_TTL_MS: 30_000,
 
-  // --- Slack and scheduled jobs (Task 16) --------------------------------
+  // --- Slack and scheduled jobs --------------------------------
   SLACK_REQUEST_TIMEOUT_MS: 5_000,
   SLACK_RETRY_ATTEMPTS: 3,
   SLACK_RETRY_BASE_DELAY_MS: 500,
@@ -110,11 +110,11 @@ const apiEnvObjectSchema = z.object({
   CORS_ALLOWED_ORIGINS: corsAllowedOriginsSchema,
   LOG_LEVEL: logLevelSchema,
 
-  // --- Operational baseline (Task 10) ------------------------------------
+  // --- Operational baseline ------------------------------------
   // Everything below has a default. `.env.example` is owned by another task's
   // file set, so a *required* key here would break every existing `.env` with
   // no way for this task to update the example. Defaults are the production
-  // values; `doc/environment.md` lists them.
+  // values; `doc/workspace.md` lists them.
 
   /** Global rate-limit window, in milliseconds. */
   THROTTLE_TTL_MS: positiveMillisecondsSchema.default(ENV_DEFAULTS.THROTTLE_TTL_MS),
@@ -124,7 +124,7 @@ const apiEnvObjectSchema = z.object({
    * "Per source IP" is literal: `ThrottlerGuard` buckets by `req.ip`, which
    * Express takes from the socket because `trust proxy` is not set. Behind a
    * reverse proxy every client therefore shares one bucket — see the proxy
-   * section in `doc/api-operations.md` before deploying behind one.
+   * section in `doc/backend.md` before deploying behind one.
    */
   THROTTLE_LIMIT: positiveCountSchema.default(ENV_DEFAULTS.THROTTLE_LIMIT),
   /** Window for the stricter, session-less tier (see `StrictThrottle`). */
@@ -142,7 +142,7 @@ const apiEnvObjectSchema = z.object({
    */
   HEALTH_DB_TIMEOUT_MS: positiveMillisecondsSchema.default(ENV_DEFAULTS.HEALTH_DB_TIMEOUT_MS),
 
-  // --- Realtime (Task 15) -------------------------------------------------
+  // --- Realtime -------------------------------------------------
 
   /**
    * How long a cell's editing hold lasts before it lapses, in milliseconds.
@@ -152,7 +152,7 @@ const apiEnvObjectSchema = z.object({
    * `CELL_LOCK_ACK_ATTEMPTS` (2) attempts of `CELL_LOCK_ACK_TIMEOUT_MS` (5 s)
    * each, so a renewal falling due at ~15 s resolves by ~25 s — inside the same
    * TTL, with margin. A TTL much below ~15 s would leave the client giving up
-   * after the hold had already lapsed. See `doc/decision/0110-*`.
+   * after the hold had already lapsed.
    *
    * It is configurable rather than a constant so that tests can run the *same*
    * gateway code against a short TTL: there is no test branch in the realtime
@@ -161,16 +161,16 @@ const apiEnvObjectSchema = z.object({
    */
   REALTIME_LOCK_TTL_MS: positiveMillisecondsSchema.default(ENV_DEFAULTS.REALTIME_LOCK_TTL_MS),
 
-  // --- Slack and scheduled jobs (Task 16) --------------------------------
+  // --- Slack and scheduled jobs --------------------------------
   // Additive, like the block above: every key has a default, so an existing
   // `.env` keeps working and an installation that wants no Slack has to do
-  // nothing at all. See `doc/slack.md` and `doc/decision/0130-*`.
+  // nothing at all. See `doc/integrations.md`.
 
   /**
    * Whether outbound Slack notifications are actually sent.
    *
    * **Defaults to `false`**, which is what keeps a developer's machine from
-   * posting into a real workspace — see `doc/decision/0130-*`. It is an env
+   * posting into a real workspace. It is an env
    * *value*, not a `NODE_ENV` branch: the disabled path runs the same code, it
    * just stops at the one gate repeated in each of `SlackClient`'s three
    * public methods (`postToChannel`, `postDirectMessage`,
@@ -206,12 +206,12 @@ const apiEnvObjectSchema = z.object({
   /** When the daily summary is posted, as `HH:MM` **in Europe/Prague**. */
   SLACK_DAILY_SUMMARY_AT: timeOfDaySchema.default(ENV_DEFAULTS.SLACK_DAILY_SUMMARY_AT),
 
-  // --- Employee sync (desk merge, stage 5) --------------------------------
+  // --- Employee sync --------------------------------
 
   /**
    * SHA-256 (hex) of the bearer key Keboola sends to `POST /api/employee-sync`.
    * The key itself never reaches the server. Unset = the endpoint answers 503.
-   * See `doc/employee-sync.md` and `doc/decision/0330-*`.
+   * See `doc/integrations.md`.
    */
   EMPLOYEE_SYNC_KEY_SHA256: z
     .string()

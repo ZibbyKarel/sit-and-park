@@ -18,21 +18,21 @@ import { SlackConfig } from './slack.config';
  * **Outbound only.** There is no controller in this module and there is no
  * route anywhere in `apps/sit-and-park/api` that Slack could call: no slash command, no
  * interactive Block Kit, no events subscription, and consequently no request
- * signature to verify. `plan.md` states that as a scope boundary, and the
+ * signature to verify. That is a scope boundary, and the
  * absence of a controller here is what enforces it — a reviewer does not have
  * to trust a comment.
  *
  * ## What is exported and why
  *
  * `SlackDomainEventPublisher` is exported because `ReservationsModule` injects
- * it into the delegate list behind the after-commit seam Task 13 left
+ * it into the delegate list behind the after-commit seam
  * (`reservations/composite-domain-event.publisher.ts`). It is **not** bound to
- * the `DomainEventPublisher` token directly — Task 15's Socket.io publisher
+ * the `DomainEventPublisher` token directly — the Socket.io publisher
  * implements the same seam, and one token resolves to one provider, so the
  * token is bound to the composite and both implementations sit behind it.
  *
- * What the export still has to guarantee is what Task 16's original
- * `useExisting` guaranteed: the instance reached through the seam is the one
+ * What the export still has to guarantee is what `useExisting`
+ * guarantees: the instance reached through the seam is the one
  * **this** module built. That matters because of
  * `SlackDomainEventPublisher.inFlight` — a second instance would drain an empty
  * set on `SIGTERM` while a real notification was still in the air.

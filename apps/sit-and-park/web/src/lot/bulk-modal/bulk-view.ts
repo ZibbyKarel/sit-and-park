@@ -82,8 +82,7 @@ export type BulkMonthGrid = CalendarGrid<BulkDayCell>;
  * One day's cell.
  *
  * The order of the checks is the allocator's, not a convenience: `planDay`
- * asks `isBusinessDay` **first** (`doc/decision/0090-*`, following
- * `doc/decision/0064-*`) because a Saturday is the most durable fact about a
+ * asks `isBusinessDay` **first** because a Saturday is the most durable fact about a
  * day. A past Saturday therefore reads as a weekend here too, which is what
  * the note under the grid explains; reversing it would put "in the past" on
  * cells whose real reason never changes.
@@ -116,7 +115,7 @@ function toCell(
  *
  * A past day is not selectable even though it is a perfectly good business
  * day: `previewBulk` and `confirmBulk` answer `PAST_DATE` for the **whole**
- * request when one is present (`doc/decision/0090-*`), so offering it would
+ * request when one is present, so offering it would
  * let one stale cell throw away a month's selection.
  */
 export function buildMonthGrid(
@@ -169,8 +168,8 @@ export function weekendColumns(grid: BulkMonthGrid): readonly boolean[] {
  * therefore checked first and short-circuits.
  *
  * Note that one `failed` flag covers both queries even though they are two
- * requests. That is not the "several typed errors, one sentence" defect
- * (`doc/decision/0171-*`): this line answers a single question — *what is your
+ * requests. That is not the "several typed errors, one sentence" defect:
+ * this line answers a single question — *what is your
  * preferred spot* — and when either read fails the honest answer to it is the
  * same, "we could not find out". There is no action the user could take that
  * differs between the two.
@@ -379,7 +378,7 @@ export interface BulkDayDifference {
  *
  * This is the whole reason the flow has two steps. `confirmBulk` deliberately
  * leaves a race open between the read and the write
- * (`doc/decision/0092-*`, §"Why no `SELECT … FOR UPDATE`"): a day the preview
+ * (no `SELECT … FOR UPDATE`): a day the preview
  * promised a spot for can come back as a queue position because somebody else
  * booked it in between. The server cannot compute this diff — it never
  * receives the plan the client is holding (`libs/sit-and-park/contract/src/api/bulk.ts`) —
@@ -419,7 +418,7 @@ export function diffBulkSchedule(
  * the shared `errors` one. Those two catalogs say different things on purpose:
  * `errors.VALIDATION_FAILED` reads "weekend or holiday", which is true of
  * `reservation.create` and never of a bulk request, where a weekend is a
- * per-day fact inside a *successful* response (`doc/decision/0090-*`). Funnelling
+ * per-day fact inside a *successful* response. Funnelling
  * every bulk failure through one generic sentence — or through a neighbouring
  * flow's sentence — is the defect this function exists to prevent.
  *

@@ -239,7 +239,7 @@ describe('SettingsScreen — loading and error', () => {
     // must read `isPending` for itself. Pairing `isPending: true` with
     // `profile: undefined` (as the "shows the loading state" test above does)
     // would let `ready` stay false via the *other* clause alone, and never
-    // prove this one (Task 26 review, I2).
+    // prove this one.
     renderScreen({ isPending: true, profile: PROFILE });
 
     expect(screen.queryByLabelText('licensePlateLabel')).not.toBeInTheDocument();
@@ -251,7 +251,7 @@ describe('SettingsScreen — loading and error', () => {
     // should not arise from real query state (`profile` is documented as
     // `undefined` exactly when `isPending || isError`), but `ready` itself
     // must not rely on that invariant holding — it reads `profile !== undefined`
-    // directly (Task 26 review, I2).
+    // directly.
     renderScreen({ isPending: false, isError: false, profile: undefined });
 
     expect(screen.queryByLabelText('licensePlateLabel')).not.toBeInTheDocument();
@@ -413,7 +413,7 @@ describe('SettingsScreen — the form', () => {
     // and on this screen `VALIDATION_FAILED` means one thing: the stored
     // preferred spot has been retired. The shared error catalogue's sentence
     // for that code is about reservation-day rules (weekends, holidays), which
-    // has nothing to do with this screen (Task 26 review, I3) — asserting the
+    // has nothing to do with this screen — asserting the
     // catalogue string here would pin the bug, not catch it.
     const error = await failureFrom(
       transportAnswering(400, rpcPayload(contractErrorBody('VALIDATION_FAILED', 400, 'nope')))
@@ -461,7 +461,7 @@ describe('SettingsScreen — the form', () => {
   it('rejects a licence plate over 16 characters with the Czech message, not the browser silently truncating it', async () => {
     // `maxLength` used to be set on the underlying `<input>`, which made this
     // path of the schema (`.max(16)`) — and its Czech message — unreachable
-    // by construction (Task 26 review, m2). The browser attribute is gone, so
+    // by construction. The browser attribute is gone, so
     // typing past the limit now reaches real Zod validation.
     const { onSave, user } = renderScreen();
 
@@ -493,8 +493,7 @@ describe('SettingsScreen — the form', () => {
     // this component does anything about it — jsdom does the same, which is
     // why that display alone is not asserted here as proof of the fix. What
     // only the fix explains is the *submitted* value: without it, Save would
-    // silently resubmit the retired id nobody can see selected (Task 26
-    // review, I1).
+    // silently resubmit the retired id nobody can see selected.
     const { onSave, user } = renderScreen({
       profile: PROFILE_WITH_RETIRED_PREFERENCE,
       spots: [SPOT_A, SPOT_B],
@@ -645,7 +644,7 @@ describe('SettingsScreen — the ICS section', () => {
 
   it('warns, in the confirmation, that the old link stops working', async () => {
     // The entire reason this confirmation is meaningful for an irreversible
-    // action is this sentence (Task 26 review, M9) — the title and confirm
+    // action is this sentence — the title and confirm
     // label alone do not say what confirming actually does.
     const { user } = renderScreen();
 

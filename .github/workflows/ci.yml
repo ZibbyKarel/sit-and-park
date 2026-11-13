@@ -27,7 +27,7 @@
 # token-only-credential model are exercised end to end **only** in
 # `apps/sit-and-park/web-e2e`, and `apps/sit-and-park/api-e2e` is the only place the API is spoken to
 # over HTTP with a real token. Neither ran here; both ran when a developer
-# remembered. `doc/decision/0286-*`.
+# remembered.
 #
 # Every command here is one a developer runs locally, unchanged. Nothing in
 # this file is CI-only behaviour in the application.
@@ -136,7 +136,7 @@ jobs:
       # green and surfaces at runtime as `P2022`/`P2021`. This target closes
       # that: `migrate diff --exit-code` catches a schema the migrations do not
       # reproduce, and `prisma generate && git diff --exit-code` catches a
-      # generated client that is behind. `doc/decision/0277-*`.
+      # generated client that is behind.
       #
       # It runs here rather than in `verify` because it needs a live PostgreSQL,
       # which only this job has.
@@ -175,11 +175,11 @@ jobs:
       # The same issuer `docker compose --profile dev` starts, run the same
       # way: no `JSON_CONFIG`, so its defaults apply and `personas.ts` supplies
       # the `email` and `name` claims through the sign-in form's optional-claims
-      # field, exactly as it does locally (`doc/decision/0180-*`).
+      # field, exactly as it does locally.
       #
       # It builds every URL it publishes — the authorization endpoint, the JWKS
       # URI, the `iss` claim — from the Host header of the request it answers
-      # (`docker-compose.yml`, and `doc/decision/0201-*`). Here the browser, the
+      # (`docker-compose.yml`). Here the browser, the
       # API and the web app all reach it as `localhost:8080`, so there is one
       # name and no mismatch. No health check: the image ships none, and the
       # step below waits on its discovery document instead, which is a stronger
@@ -225,8 +225,8 @@ jobs:
 
       # Chromium only, matching `playwright.config.mts`: this suite drives two
       # and three concurrent sessions against one database, so a second and
-      # third browser would triple the contention for no coverage
-      # (`doc/decision/0182-*`). `--with-deps` installs the system libraries
+      # third browser would triple the contention for no coverage.
+      # `--with-deps` installs the system libraries
       # the runner image does not carry.
       - run: pnpm exec playwright install --with-deps chromium
 

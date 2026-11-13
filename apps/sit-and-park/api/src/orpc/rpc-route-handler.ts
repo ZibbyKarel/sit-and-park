@@ -7,8 +7,7 @@
  * own, and mounting it once behind a single `@All()` would be less code. It
  * would also put every procedure behind one set of guards, which is the thing
  * this application cannot afford: `admin.*` is admin-only, and the mechanism
- * for that in this codebase is `@Roles('ADMIN')` on the route (Task 11,
- * `doc/auth.md` §"Adding an authenticated route"). A catch-all would have forced
+ * for that in this codebase is `@Roles('ADMIN')` on the route (`doc/auth.md`). A catch-all would have forced
  * a second, oRPC-side authorization mechanism next to the guard that already
  * exists — two places to get "who may do this" right.
  *
@@ -21,7 +20,7 @@
  *
  * `RPCHandler` writes the response itself — status, headers and the `{ json,
  * meta }` envelope the RPC protocol defines. That is precisely what makes the
- * codes readable on the client (`doc/decision/0039-*`), so nothing here may
+ * codes readable on the client, so nothing here may
  * reshape it. The Nest route is therefore in library-specific mode (`@Res()`),
  * and returns nothing.
  *

@@ -21,7 +21,7 @@
  * `refresh.spec.ts` were already using for `sharedRevokedStore` and
  * `sharedRefreshStates`, which were withheld from here for the same reason.
  *
- * See `doc/wrappers.md` for why the direct `next-auth` import is banned
+ * See `doc/frontend.md` for why the direct `next-auth` import is banned
  * everywhere else, and `doc/auth.md` for the flow end to end.
  */
 

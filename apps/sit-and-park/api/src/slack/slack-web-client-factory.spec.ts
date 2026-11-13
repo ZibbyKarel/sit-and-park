@@ -17,7 +17,7 @@
  * This file mocks the SDK's `WebClient` constructor directly, so it can assert
  * the shipped factory's actual call — the option object a maintainer would
  * have to touch to weaken any of the three safety properties
- * `doc/slack.md` §5.1 and the class comment on `DefaultSlackWebClientFactory`
+ * `doc/integrations.md` and the class comment on `DefaultSlackWebClientFactory`
  * describe.
  */
 

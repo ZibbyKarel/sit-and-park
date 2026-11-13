@@ -2,7 +2,7 @@
  * The Socket.io connection, typed from `@sit-and-park/contract/realtime`.
  *
  * This is the only file in the workspace allowed to import `socket.io-client`
- * (`eslint.config.mjs` → `WRAPPED_LIBRARIES`; `doc/wrappers.md`). Everything
+ * (`eslint.config.mjs` → `WRAPPED_LIBRARIES`; `doc/frontend.md`). Everything
  * else — feature code, the hooks in this lib's own `connection.tsx` and
  * `cell-lock.ts` — goes through {@link RealtimeSocket}, whose every event name
  * and payload type is derived from the contract's schema registries. An event
@@ -14,7 +14,7 @@
  * The access token travels in `socket.handshake.auth.token`, **never** in the
  * connection URL's query string. A query string is written to proxy and server
  * access logs verbatim, and an access token in a log file is an access token
- * that outlives its session. `doc/decision/0060-*` records the choice; the ban
+ * that outlives its session. The ban
  * is exercised by `socket.spec.ts`, which reads the URI the real client would
  * dial and asserts no token appears in it.
  *
@@ -33,8 +33,7 @@
  * **That is a guarantee about reconnects, not about the connection.** The token
  * is checked once per handshake and never again: an **established** socket is
  * not re-authenticated, so a session revoked or a token expired mid-connection
- * keeps receiving room broadcasts until the transport drops. That is a decision,
- * with its reasoning and its revisit conditions in `doc/decision/0296-*` — the
+ * keeps receiving room broadcasts until the transport drops. That is a decision — the
  * short version is that the exposure is a day room's broadcasts, which are
  * already visible to everyone in the room, and that every action a socket can
  * take is separately authorised on the API side.
@@ -61,7 +60,7 @@ export type RealtimeSocket = Socket<ServerToClientEvents, ClientToServerEvents>;
  * Re-exported under this lib's own name for callers that already import it
  * from here, but the value comes from `@sit-and-park/contract/realtime`'s
  * `SOCKET_IO_PATH` — the one constant `apps/sit-and-park/api`'s `RealtimeIoAdapter` and this
- * client both dial (`doc/decision/0113-*`). `socket.spec.ts` asserts the
+ * client both dial. `socket.spec.ts` asserts the
  * socket this function builds is actually configured with the contract's
  * export, not a private literal, which is the half of the cross-halves
  * guarantee this project can enforce from `libs/sit-and-park/realtime-client` — the other
@@ -108,7 +107,7 @@ export interface RealtimeHandshakeAuth {
  *
  * Reconnection is left at Socket.io's defaults — unlimited attempts, 1 s
  * growing to 5 s with 0.5 jitter — on purpose, and that is a recorded decision
- * rather than an unexamined default: `doc/decision/0063-*`. They are
+ * rather than an unexamined default. They are
  * exponential backoff with jitter already, restating them here would be a
  * second place to keep in sync, and the part of reconnection this project
  * actually has an opinion about is *what a reconnect re-sends*, which is the
@@ -117,7 +116,7 @@ export interface RealtimeHandshakeAuth {
  * Those defaults govern **transport** failures only. A handshake the gateway
  * *refuses* is not retried by socket.io at all — it destroys the socket — and
  * is handled with a deliberately bounded policy one layer up, in
- * `connection.tsx` (`doc/decision/0061-*`).
+ * `connection.tsx`.
  */
 export function createRealtimeSocket(options: RealtimeSocketOptions): RealtimeSocket {
   const {

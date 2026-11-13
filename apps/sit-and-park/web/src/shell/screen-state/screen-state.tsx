@@ -3,7 +3,7 @@
 /**
  * The three states every screen has to be able to be in, written once.
  *
- * `plan.md` (Fáze 6, point 3) requires each screen to define a loading, an
+ * Every screen must to define a loading, an
  * empty and an error state, and requires a contract error code to reach the
  * user as a sentence rather than an enum name. These are those pieces —
  * composed from `ui/empty-state` and `@shoptet/ui`'s `Button` and `Loader`.

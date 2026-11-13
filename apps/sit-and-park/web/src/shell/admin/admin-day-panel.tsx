@@ -7,7 +7,7 @@
  * ## Which day
  *
  * Today in Europe/Prague, from `todayInPrague()`. The date bar that lets an
- * admin walk to another day is Task 25's, and it will supply the date from
+ * admin walk to another day belongs to the lot screen, and it will supply the date from
  * above; `date` is already a prop of `AdminDayScreen`, so wiring it up is a
  * change to this file alone.
  */

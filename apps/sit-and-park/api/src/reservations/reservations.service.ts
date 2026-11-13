@@ -152,7 +152,7 @@ export class ReservationsService {
    * user, or a guest. `assertMayNameHolder` is the boundary; the target user's
    * existence is a real check (a foreign key would only say `CONFLICT`), and the
    * two one-per-day rules stay the unique indexes' job. A guest has no `userId`,
-   * so `(userId, date)` does not apply to one — see `doc/decision/0303-*`.
+   * so `(userId, date)` does not apply to one.
    */
   async create(
     input: CreateReservationInput,
@@ -181,7 +181,7 @@ export class ReservationsService {
       where: { id: input.parkingSpotId },
       select: { id: true, active: true, hidden: true, officeId: true },
     });
-    // A hidden spot is the admins' (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`):
+    // A hidden spot is the admins':
     // to anybody else it does not exist, hence the same answer as a retired one.
     // A spot of another office is likewise not there for a non-admin
     // (`../common/office-scope.ts`); an admin books across offices.
@@ -687,9 +687,9 @@ export class ReservationsService {
    * same `40P01`. Both are the identical condition and both must be retried,
    * which is why the test is {@link isWriteConflict} and not `code === 'P2034'`.
    * Getting that wrong made half of `waitlist-concurrency.db.spec.ts`'s
-   * concurrent-cancellation runs fail — `doc/decision/0240-*`.
+   * concurrent-cancellation runs fail.
    *
-   * See `doc/decision/0065-*` for the full deadlock analysis and the
+   * for the full deadlock analysis and the
    * advisory-lock upgrade path.
    *
    * `SPOT_ALREADY_RESERVED` is deliberately **not** retryable: it would mean

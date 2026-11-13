@@ -9,7 +9,7 @@ export * from './lib/time-of-day';
  * names any of them; `czech-holidays.spec.ts` imports the module directly.
  *
  * This barrel is also `@sit-and-park/i18n`'s, re-exported wholesale under the
- * same names by `doc/decision/0003-*` — so a symbol published here is
+ * same names — so a symbol published here is
  * published to the browser bundle too.
  */
 export { czechPublicHolidayOn, isBusinessDay, isCzechPublicHoliday } from './lib/czech-holidays';

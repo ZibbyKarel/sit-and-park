@@ -42,8 +42,7 @@ below.
 `mock-oauth2-server` asks for a subject and accepts anything; the API matches
 the seeded account by **email**, so it has to be given as an optional claim.
 On the sign-in screen, click the Okta button, then in the mock issuer's form
-enter a subject and put the JSON below in its _Optional claims JSON_ box
-(`doc/decision/0180-the-e2e-login-types-the-claims-the-mock-issuer-does-not-mint`).
+enter a subject and put the JSON below in its _Optional claims JSON_ box.
 Leaving the claims box empty signs you in without an `email`, which the API
 does not recognise.
 
@@ -77,14 +76,12 @@ pnpm nx run web-e2e:e2e                     # the eight Playwright journeys
 ```
 
 `doc/testing.md` explains what each layer covers and what has to be running.
-All of these run in CI, in four jobs — including the two e2e targets, which
-until recently ran only when somebody remembered
-(`doc/decision/0286-*`).
+All of these run in CI, in four jobs — including the two e2e targets.
 
 Free port 4200 before the browser suite. It starts its own server and refuses
 to adopt one, so anything already listening there — a `nx run web:dev`, a
 leftover `next start` — stops the run with _"is already used"_ rather than
-letting it test the wrong app (`doc/decision/0285-*`).
+letting it test the wrong app.
 
 ## The containerised stack
 
@@ -105,8 +102,8 @@ add to `/etc/hosts`:
 
 Both names have to mean the same server from the browser and from inside the
 containers, because `mock-oauth2-server` builds the `iss` it mints from the Host
-header it was asked on
-(`doc/decision/0201-the-issuer-url-must-be-one-name-on-both-sides-of-the-network`).
+header it was asked on.
+The issuer URL must be one name on both sides of the network.
 With a real Okta tenant the issuer is already a public name.
 
 The web app is published on <http://localhost:4200> and the API on
@@ -135,9 +132,8 @@ have to say what you want. Pick by what is _not_ yours to run:
 Nothing in the `app` profile depends on the mock issuer, and `postgres` is a
 `required: false` dependency, so the last row starts cleanly with `DATABASE_URL`
 pointed at RDS or Cloud SQL. The database is a choice rather than a default on
-purpose, and so is the issuer: this is why the brief's literal `docker compose
-up` is not what shipped
-(`doc/decision/0208-every-service-carries-a-profile-and-the-database-is-a-choice`).
+purpose, and so is the issuer: this is why a bare `docker compose
+up` starts nothing.
 
 ## Migrations
 
@@ -150,7 +146,7 @@ In the containerised stack `migrate deploy` is the `migrate` service and runs
 by itself. **`prisma migrate reset` destroys the database**; it is not part of
 any routine here — if the schema is behind, `migrate deploy` is the command.
 Details and the "where storage differs from the contract" table are in
-`doc/database.md`.
+`doc/backend.md`.
 
 ## Seeding
 
@@ -182,7 +178,7 @@ Domain and rules: `doc/desks.md`.
 - **`EMPLOYEE_SYNC_KEY_SHA256`** (SHA-256 hex of the bearer key) enables
   `POST /api/employee-sync`; unset, the endpoint answers 503. The sync starts in
   dry-run mode: an admin switches it live in `Synchronizace`. Key generation,
-  rotation and the endpoint contract: `doc/employee-sync.md`.
+  rotation and the endpoint contract: `doc/integrations.md`.
 
 ## Regenerating an ICS token
 
@@ -190,7 +186,7 @@ A person does it themselves: **Nastavení → the calendar section → regenerat
 It is `me.regenerateIcsToken`, it invalidates the old URL immediately (the old
 one becomes a 404 like any unknown token), and it does not touch their
 reservations. There is no administrative override, on purpose — the token is
-the credential, and it is theirs. `doc/ics.md`.
+the credential, and it is theirs. `doc/integrations.md`.
 
 ## Backups
 
@@ -211,7 +207,7 @@ backup you do not discover is empty until you need it. `$(date +%F)` is outside
 the quotes on purpose — that one _is_ yours to expand.
 
 Restore, `--data-only` restores, and the `ReservationWindowSettings` row that
-has to be deleted first are all in `doc/database.md` §Backups.
+has to be deleted first are all in `doc/backend.md`.
 
 ## Okta
 
@@ -224,14 +220,13 @@ Two things nothing in this repository can enforce, and both bite silently:
   `AUTH_OKTA_AUDIENCE` is that server's audience — typically `api://default`,
   and `default` for the dev mock. `doc/auth.md`.
 - **Leave refresh-token rotation off.** Concurrent refreshes are coalesced
-  in-process only (`doc/decision/0051-concurrent-refreshes-are-coalesced-in-process-only`),
+  in-process only,
   so with rotation on, two tabs refreshing at once can invalidate each other's
   token. Whoever provisions the Okta application has to be told; the code cannot
   detect it.
 
 Also set `AUTH_URL` to the origin a browser reaches the web app on. Without it
-a successful sign-in redirects to the address the server bound to
-(`doc/decision/0202-auth-url-is-required-in-a-container-because-the-request-url-is-the-bind-address`).
+a successful sign-in redirects to the address the server bound to.
 
 ## When one instance is no longer enough
 
@@ -239,11 +234,11 @@ The MVP targets a single instance, and there is no Redis, no BullMQ and no
 broker. The seams for adding them exist and are documented; none of them is
 built:
 
-| What                       | Where the seam is                                                                                                                                     | The upgrade                                                                                                                                                         |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Socket.io across instances | `configureRealtime` in `apps/sit-and-park/api/src/realtime/realtime-io.adapter.ts`                                                                    | Give the adapter `@socket.io/redis-adapter` so a broadcast from one instance reaches sockets held by another. Nothing above the adapter changes.                    |
-| Cell locks                 | `LockService` (`apps/sit-and-park/api/src/realtime/`) — an interface over an in-process map with a TTL                                                | Back it with Redis `SET NX PX`. The TTL is already the contract (`REALTIME_LOCK_TTL_MS`, `doc/decision/0110-the-cell-lock-ttl-is-thirty-seconds-and-configurable`). |
-| Scheduled work             | `ScheduledJobRunner` (`apps/sit-and-park/api/src/scheduling/`) — today the daily Slack summary in `apps/sit-and-park/api/src/slack/` (`doc/slack.md`) | An in-process schedule fires once per instance, so N instances post N summaries. BullMQ with a repeatable job, or a single elected leader, is the fix.              |
+| What                       | Where the seam is                                                                                                                                            | The upgrade                                                                                                                                            |
+| -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Socket.io across instances | `configureRealtime` in `apps/sit-and-park/api/src/realtime/realtime-io.adapter.ts`                                                                           | Give the adapter `@socket.io/redis-adapter` so a broadcast from one instance reaches sockets held by another. Nothing above the adapter changes.       |
+| Cell locks                 | `LockService` (`apps/sit-and-park/api/src/realtime/`) — an interface over an in-process map with a TTL                                                       | Back it with Redis `SET NX PX`. The TTL is already the contract (`REALTIME_LOCK_TTL_MS`).                                                              |
+| Scheduled work             | `ScheduledJobRunner` (`apps/sit-and-park/api/src/scheduling/`) — today the daily Slack summary in `apps/sit-and-park/api/src/slack/` (`doc/integrations.md`) | An in-process schedule fires once per instance, so N instances post N summaries. BullMQ with a repeatable job, or a single elected leader, is the fix. |
 
-Until then: **run one instance.** `doc/realtime.md` and `doc/api-operations.md`
+Until then: **run one instance.** `doc/integrations.md` and `doc/backend.md`
 describe what each seam guarantees today.

@@ -7,7 +7,7 @@
  * logger writes by default. Before this spec, a successful request logged the
  * token **three times** at `level: info` — `req.url` and `req.params` from
  * `nestjs-pino`'s per-request line, and `path` again from
- * `ContractExceptionFilter` on the 404 — while `doc/ics.md` §7 said "the app
+ * `ContractExceptionFilter` on the 404 — while `doc/integrations.md` said "the app
  * never logs it". Nothing caught it because every other spec in this workspace
  * pins `LOG_LEVEL: 'fatal'` and none of them attaches a destination, so no test
  * had ever read a log line.
@@ -62,7 +62,7 @@ interface LogLine {
  * bearer token was once logged in four places, and a security spec that reddens
  * on a busy CI box gets its number bumped or gets quarantined — and then nobody
  * looks the time it goes red for a real reason. The api suite grew from 38 to
- * 49 suites when Task 16 merged, so the trend is one-directional.
+ * 49 suites as Slack landed, so the trend is one-directional.
  *
  * The wait below is now **event-driven** — the capture stream resolves it the
  * instant a matching line is written — so no polling interval and no starved

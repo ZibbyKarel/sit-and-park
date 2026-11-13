@@ -3,12 +3,12 @@
  * deadlocks.
  *
  * A bulk confirmation holds up to 31 uncommitted `(parkingSpotId, date)` keys at
- * a time, which is Task 13's deadlock risk multiplied by the size of the batch.
+ * a time, which is the cancel/promote deadlock risk multiplied by the size of the batch.
  * What keeps it from being a problem is one line in `bulk-allocator.ts` — the
  * ascending sort, the single authority for the order the rows are written in —
  * and this file is where that line stops being an argument:
  *
- * - **the brief's case**: two users booking *the same days in opposite request
+ * - **the core case**: two users booking *the same days in opposite request
  *   order* both succeed, and the database agrees with what each of them was
  *   told;
  * - **the same case, with the statement broken open**: a test-only `BEFORE
@@ -243,7 +243,7 @@ describe('two bulk bookings at once', () => {
      * in request order — one forwards, one backwards — each holding what the
      * other wants, and PostgreSQL kills a side with `40P01` → `P2034` →
      * `CONFLICT`. Measured: 3/3 fulfilled with the sort, 3/3 with one side
-     * rejected without it. See `doc/decision/0092-*` §"One authority".
+     * rejected without it.
      *
      * `waitForBlockedBackend` is what stops this from being two requests that
      * never met: it throws if no backend ever waits on a lock, which is exactly
@@ -311,7 +311,7 @@ describe('two bulk bookings at once', () => {
      * aborts itself.
      *
      * **The caller no longer sees it.** `committedConfirm` retries on any write
-     * conflict (`doc/decision/0307-*`, added for the monthly cap's advisory-lock
+     * conflict (added for the monthly cap's advisory-lock
      * cycle, but not narrowable to it — a `40P01` from a cell-ordering cycle and
      * one from the cap cycle are the same error). By the time the retry starts
      * the competitor has settled, so it cannot deadlock again: it re-reads and
@@ -327,8 +327,7 @@ describe('two bulk bookings at once', () => {
      *
      * That the retry also absorbs this deadlock is a widening the monthly cap
      * paid for: this case used to be the end-to-end falsification of
-     * `allocateBulk`'s ascending sort, and it no longer is. See
-     * `doc/decision/0307-*` §"What is not tested".
+     * `allocateBulk`'s ascending sort, and it no longer is.
      */
     it('deadlocks, and the retry absorbs it without a half-written batch', async () => {
       const booker = await seedUser(client);

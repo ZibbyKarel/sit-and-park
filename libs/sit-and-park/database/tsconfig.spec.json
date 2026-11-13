@@ -6,7 +6,7 @@
     "moduleResolution": "bundler",
     "types": ["jest", "node"],
     // For ts-jest only: it refuses to transform the `.mjs` files of the
-    // ESM-only `@orpc/contract` without it (`doc/decision/0020-*`). `include`
+    // ESM-only `@orpc/contract` without it. `include`
     // below never reaches node_modules, so `tsc --noEmit` is unaffected.
     "allowJs": true
   },

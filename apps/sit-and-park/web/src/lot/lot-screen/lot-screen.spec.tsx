@@ -18,7 +18,7 @@ import { selectOption } from '../../test-utils/select-option';
 const cs = createDateFormatters('cs');
 
 /**
- * The connected half of the screen — Task 24's fix round, Important-1.
+ * The connected half of the screen.
  *
  * `lot-view.ts`, `day-overview-cache.ts`, `use-cell-locks.ts` and
  * `use-lot-realtime.ts` all have their own suites and are exercised for real
@@ -67,8 +67,8 @@ jest.mock('@sit-and-park/auth/client', () => ({
   // A stable function reference, not `() => async () => 'irrelevant'` — that
   // form hands `ApiProvider` a *new* function every render, which keeps its
   // `useMemo([url, getAccessToken])` from ever settling and defeats any
-  // assertion that depends on `api`'s identity staying put across a rerender
-  // (`doc/decision/0141-*`). Same fix as `api-provider.spec.tsx`.
+  // assertion that depends on `api`'s identity staying put across a rerender.
+  // Same fix as `api-provider.spec.tsx`.
   useAccessTokenProvider: () => mockGetAccessToken,
   useSession: () => ({ status: currentSessionStatus() }),
 }));
@@ -477,7 +477,7 @@ describe('LotScreen — the bulk modal', () => {
   it('hands the modal the backend’s own canReserveMonth, so a window closing under it is refused', async () => {
     // Hiding the header button covers "do not invite this"; it cannot cover a
     // window that closes while the modal is already open, and this is the
-    // wiring that does (`doc/decision/0173-*`). A modal handed a hard-coded
+    // wiring that does. A modal handed a hard-coded
     // `true` would keep offering the flow here.
     const { user, client } = setup();
 
@@ -496,7 +496,7 @@ describe('LotScreen — the bulk modal', () => {
     // make it false while leaving the month wide open. Reading it here switched
     // the feature off on roughly a third of the calendar — including 28
     // September 2026, the holiday the design's own screenshot shows the modal
-    // open on (`doc/decision/0175-*`).
+    // open on.
     const { user } = setup({
       day: dayOverview({ canReserve: false, canReserveMonth: true }),
     });
@@ -1116,7 +1116,7 @@ describe('LotScreen — telling the user the board has stopped updating', () => 
   });
 
   it('reports a refused handshake even before the board was ever live', () => {
-    // Terminal by construction (`doc/decision/0061-*`): no later state
+    // Terminal by construction: no later state
     // corrects it, so the "has it ever connected" guard must not swallow it.
     setup({ realtimeStatus: 'rejected' });
     expect(screen.getByText(NOTICE)).toBeInTheDocument();

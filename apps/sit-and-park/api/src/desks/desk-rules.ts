@@ -2,7 +2,7 @@
  * The desk booking rules, pure: one place that decides access, a day's status,
  * a series day's verdict and the series-level blockers, shared by the
  * directory, the series preview, booking and approval
- * (`doc/desk-merge-plan.md` §"Rules carried over").
+ * (`doc/desks.md`).
  *
  * Nothing here reads the database. The services load the facts — the caller's
  * office, role, hive membership, grants and permanent desk, inside the same

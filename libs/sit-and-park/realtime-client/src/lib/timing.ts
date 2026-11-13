@@ -77,7 +77,7 @@ export function renewDelayMs(expiresAt: string, now: number): number {
  * does not do.
  *
  * It is the *backstop*, not the mechanism — the gateway broadcasts
- * `cell:unlocked` on all four ways a hold ends (`doc/decision/0111-*`), and
+ * `cell:unlocked` on all four ways a hold ends, and
  * that arrives first in every ordinary case. This timer is what makes the two
  * independent, so a broadcast that is never sent or never arrives cannot leave
  * a form asserting "právě upravuje …" forever.

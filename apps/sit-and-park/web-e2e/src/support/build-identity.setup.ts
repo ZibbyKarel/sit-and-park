@@ -10,8 +10,7 @@
  * `reuseExistingServer: !process.env['CI']`, with `CI` never set, because CI
  * ran no e2e job — adopted it. That run reported *20 passed* without executing
  * `web:build` at all, against the previous run's compiled output. A source
- * change made in between was invisible to it. Measured twice, same PID, in
- * `doc/decision/0285-*`.
+ * change made in between was invisible to it. Measured twice, same PID.
  *
  * `playwright.config.mts` closes the two mechanisms: the server is started in
  * a group Playwright can kill, and `reuseExistingServer` is `false`. This file
@@ -28,8 +27,7 @@
  * **When the server latches that id was measured, not reasoned, and the answer
  * is neither of the two obvious ones.** It is not re-read per request, and it
  * is not read at boot either: it is read on the first render the process
- * serves, and cached from then on. Three servers, one workspace, ids A, B, C
- * (`doc/decision/0285-*`):
+ * serves, and cached from then on. Three servers, one workspace, ids A, B, C:
  *
  * - Server started on A, first request made only after a rebuild to B →
  *   reported **B**. Boot did not latch it.

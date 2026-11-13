@@ -2,7 +2,7 @@
 
 /**
  * Hromadná rezervace — the two-step bulk-booking modal
- * (`doc/design/screens/10-modal-bulk.png`, `doc/bulk-reservation-modal.md`).
+ * (see `doc/parking.md`).
  *
  * Step 1 picks days out of a month grid; step 2 shows the schedule
  * `reservation.previewBulk` proposes; confirming runs
@@ -10,15 +10,15 @@
  * compares what happened against what was proposed.
  *
  * **The third step is the point.** `confirmBulk` deliberately leaves a race
- * open between its read and its write (`doc/decision/0092-*`), so a day the
+ * open between its read and its write, so a day the
  * preview promised a spot for can come back as a queue position. A modal that
  * proposed one thing and quietly confirmed another would be worse than one
  * with no proposal at all, because the user would believe they got what they
- * saw. See `doc/decision/0170-*`.
+ * saw.
  *
  * Everything this file decides lives in `./bulk-view.ts`; everything it fetches
  * goes through `@tanstack/react-query` and `@sit-and-park/api-client`. Nothing
- * here names a wrapped package (`doc/wrappers.md`).
+ * here names a wrapped package (`doc/frontend.md`).
  */
 
 import { useCallback, useEffect, useState } from 'react';
@@ -68,20 +68,19 @@ export interface BulkReservationModalProps {
   /**
    * `overview.day.canReserveMonth` for {@link anchorDate}'s month: the
    * backend's answer to "may this caller create reservations anywhere in this
-   * month", never a re-derivation of it (`doc/decision/0120-*`).
+   * month", never a re-derivation of it.
    *
    * **`canReserve` is the wrong field here and was the wrong field once.** That
    * one is per-**day** — a past day, a weekend and a Czech public holiday all
    * make it `false` while leaving the month wide open — so reading it switched
    * bulk booking off on roughly a third of the calendar, including the very
-   * holiday the design's own screenshot shows the modal open on
-   * (`doc/decision/0175-*`).
+   * holiday the design's own screenshot shows the modal open on.
    *
    * **This is the block, not a hint.** The header hides its button when it is
    * `false`, but hiding a control is not enforcement — the window can also
    * close while the modal is already open, and then this prop is the only
    * thing standing between the user and a request the API will refuse. What it
-   * must never block is the *result* step: see `doc/decision/0176-*`.
+   * must never block is the *result* step:
    */
   readonly canReserveMonth: boolean;
   /** Whether the caller is an admin — gates the holder selector, same as `SpotDialog`'s. */
@@ -113,7 +112,7 @@ const WEEKDAY_KEYS = [
  * below. Passive effects run **after paint**, so the render in which `open`
  * flips back to `true` still saw the previous run's `result` and took the
  * result branch — the user reopening the modal got a frame of the last batch's
- * outcome before the day grid appeared. See `doc/decision/0258-*`.
+ * outcome before the day grid appeared.
  *
  * A `key` fixes it by construction rather than by ordering: React discards the
  * whole subtree and mounts a fresh one, so there is no state left to flash and
@@ -284,8 +283,8 @@ function BulkReservationModalContent({
    * fallback was unbounded and a user whose month query had failed could
    * select without limit — do not reintroduce it. `null` is different: it is
    * the server saying, explicitly, that no cap applies to this month today
-   * (outside the AUTO window or under an admin override,
-   * `doc/decision/0315-*`), and only then is the selection unbounded.
+   * (outside the AUTO window or under an admin override),
+   * and only then is the selection unbounded.
    */
   const cap = activeSummary === undefined ? DEFAULT_MONTHLY_RESERVATION_CAP : activeSummary.cap;
   const remainingSlots = cap === null ? Number.POSITIVE_INFINITY : Math.max(0, cap - existingCount);
@@ -313,7 +312,7 @@ function BulkReservationModalContent({
    * Over-invalidating is nearly free — an unmounted query is only marked
    * stale — and the alternative needs the client to decide which days the
    * server changed, which is exactly the kind of re-derivation
-   * `doc/decision/0120-*` rules out. A day reported `UNAVAILABLE` may still
+   * we avoid. A day reported `UNAVAILABLE` may still
    * have moved for another reason since the overview was read.
    *
    * The refetch is not redundant with the realtime broadcast: `canReserve` and
@@ -428,7 +427,7 @@ function BulkReservationModalContent({
   // with "hromadnou rezervaci teď založit nelze" over reservations that exist —
   // the exact silent difference the whole two-step flow is built to prevent.
   // The confirm button does not exist on this step, so nothing is weakened by
-  // letting it through. See `doc/decision/0176-*`.
+  // letting it through.
   if (result !== null) {
     const differences = diffBulkSchedule(confirmedPlan ?? proposal?.days ?? [], result.days);
     return (

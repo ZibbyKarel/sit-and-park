@@ -27,7 +27,6 @@ function renderBanner(overrides: Partial<MonthWindowOverview> = {}) {
 describe('WindowBanner', () => {
   describe('under the automatic rule', () => {
     it('says a month is open and until when — the design’s own sentence', () => {
-      // doc/design/screens/06-admin-overview.png
       renderBanner({ state: 'OPEN', lockMode: 'AUTO' });
 
       expect(

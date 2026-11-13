@@ -26,7 +26,7 @@ import { PrismaService } from '../database/prisma.service';
  * unrelated horizon here could only ever hide a reservation the user really
  * holds.
  *
- * A constant rather than an env variable: `doc/environment.md` exists for
+ * A constant rather than an env variable: `doc/workspace.md` exists for
  * values that differ between deployments, and this one does not — it is a
  * product decision about what a calendar should show, the same on every
  * instance. Changing it is a code change with a test, which is the right
@@ -46,8 +46,7 @@ export class CalendarService {
    * ## Why `NotFoundException` and not `UnauthorizedException`
    *
    * A 401 would tell an attacker walking the token space that a token exists
-   * but was refused, which is exactly the oracle a 404 denies them. See
-   * `doc/decision/0080-*`. Nothing in the message varies, either — the
+   * but was refused, which is exactly the oracle a 404 denies them. Nothing in the message varies, either — the
    * exception is constructed with no argument, so Nest's default body
    * (`{ statusCode: 404, message: 'Not Found' }`) is byte-identical to the one
    * an unrouted path produces.
@@ -63,7 +62,7 @@ export class CalendarService {
    * case measurably slower, which is a distinguisher on a public URL.
    *
    * A **guest** reservation is in nobody's feed: the filter is `userId`, and a
-   * guest row has none (`doc/decision/0303-*`). That is the intended outcome —
+   * guest row has none. That is the intended outcome —
    * a guest has no calendar to subscribe with — and `calendar.db.spec.ts`
    * asserts it, so it cannot be lost to a later `where` clause.
    */

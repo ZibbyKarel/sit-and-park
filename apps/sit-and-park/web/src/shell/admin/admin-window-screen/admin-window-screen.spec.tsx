@@ -107,7 +107,6 @@ function monthRow(name: string): HTMLElement {
 describe('AdminWindowScreen', () => {
   describe('the settings card', () => {
     it('carries the design’s explanation verbatim', () => {
-      // doc/design/screens/05-admin-window.png
       renderScreen();
 
       expect(screen.getByText('windowOpenDescription')).toBeInTheDocument();

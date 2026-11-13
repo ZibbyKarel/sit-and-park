@@ -1,5 +1,5 @@
 /**
- * Proves the `doc/decision/0003-*` re-export actually works — feature code
+ * Proves the re-export actually works — feature code
  * imports `@sit-and-park/i18n` alone and gets the Europe/Prague date logic and
  * Czech holidays, without reaching into `@sit-and-park/shared-types` itself.
  *

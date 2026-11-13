@@ -13,13 +13,13 @@
  *   not intercept it, or signing in would require being signed in.
  *
  * Paths are English, because a URL is a code-related identifier rather than
- * UI copy (`doc/decision/0298-*`). The interface itself stays Czech — that is
- * `doc/decision/0029-*` and this does not disturb it.
+ * UI copy. The interface itself stays Czech — this does
+ * not disturb it.
  */
 
 import type { DateOnly } from '@sit-and-park/i18n';
 
-/** The parking overview — the application's home screen (Task 24). */
+/** The parking overview — the application's home screen. */
 export const LOT_ROUTE = '/';
 
 /** Desk booking for one day: floor plan, list, booking dialog. */
@@ -36,10 +36,10 @@ export function deskOnPlanHref(deskId: string, date: DateOnly): string {
 /** The signed-out screen with the single Okta button. */
 export const LOGIN_ROUTE = '/login';
 
-/** Personal settings: licence plate, preferred spot, preferred desk, ICS feed (Task 26). */
+/** Personal settings: licence plate, preferred spot, preferred desk, ICS feed. */
 export const SETTINGS_ROUTE = '/settings';
 
-/** Administration: users, spots, reservation window (Task 27). Admins only. */
+/** Administration: users, spots, reservation window. Admins only. */
 export const ADMIN_ROUTE = '/admin';
 
 /** The caller's own calendar: parking, desk reservations, releases and approval requests. */
@@ -51,6 +51,6 @@ export const AUTH_API_ROUTE_PREFIX = '/api/auth';
 /**
  * This application's readiness probe. Public, because an orchestrator has no
  * bearer token and no way to obtain one — the same reasoning that makes the
- * API's probes `@Public()` (`doc/auth.md`, §Public routes).
+ * API's probes `@Public()` (`doc/auth.md`).
  */
 export const HEALTH_ROUTE = '/api/health';

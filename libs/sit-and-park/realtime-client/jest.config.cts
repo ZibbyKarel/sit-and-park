@@ -1,7 +1,7 @@
 /**
  * No ESM-transform block here, and that is a finding rather than an omission.
  *
- * The block that `doc/decision/0020-*` describes (and that `libs/sit-and-park/contract`,
+ * The ESM-only transform block (which `libs/sit-and-park/contract`,
  * `libs/sit-and-park/database`, `apps/sit-and-park/api`, `libs/shared/i18n`, `libs/query`, `libs/shared/api-client` and
  * `libs/sit-and-park/auth` all carry) exists for packages published ESM-only. Nothing on
  * this lib's runtime path is one: `socket.io-client` 4.8.3 is `"type":

@@ -18,7 +18,7 @@
  * What is deliberately *not* asserted is type equality of the fields
  * themselves: storage legitimately differs from the wire (`Date` vs ISO string,
  * `Date` vs `YYYY-MM-DD`, `JsonValue` vs `Record<string, unknown>`). Those
- * differences are listed in `doc/database.md`.
+ * differences are listed in `doc/backend.md`.
  */
 
 import type {
@@ -235,7 +235,7 @@ describe('Prisma models mirror the contract entities', () => {
   it('TimedReservation stores the contract fields, minutes where the contract stores HH:MM', () => {
     // Not the generic `%s stores exactly the contract fields` check above:
     // storage uses `startMinute`/`endMinute` (`Int`) where the contract uses
-    // `startTime`/`endTime` (`HH:MM` strings) — see `doc/database.md`
+    // `startTime`/`endTime` (`HH:MM` strings) — see `doc/backend.md`
     // (§"Where storage differs from the contract"). Every other field name is
     // identical.
     const TIME_FIELDS: Record<string, string> = { startTime: 'startMinute', endTime: 'endMinute' };
@@ -302,13 +302,13 @@ describe('storage types that are deliberately not the wire types', () => {
 
   it('AuditLog.payload is JSON, not a structured column', () => {
     // `Prisma.JsonValue` on the storage side, `Record<string, unknown>` on the
-    // wire — the known, documented divergence (doc/database.md).
+    // wire — the known, documented divergence (doc/backend.md).
     const payloadIsJson: Expect<Equal<PrismaAuditLog['payload'], Prisma.JsonValue>> = true;
     expect(payloadIsJson).toBe(true);
   });
 
   it('the reservation day is a Date in storage and a YYYY-MM-DD string on the wire', () => {
-    // Task 10 owns the conversion; this pins that a conversion is needed at all,
+    // The API owns the conversion; this pins that a conversion is needed at all,
     // so nobody hands a `Date` straight to a contract-typed response. The column
     // being `DATE` and not `TIMESTAMP` is asserted in migration-sql.spec.ts.
     const storage: [

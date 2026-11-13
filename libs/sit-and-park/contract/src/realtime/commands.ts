@@ -3,7 +3,7 @@
  *
  * This is the security-relevant half of the realtime contract: these payloads
  * arrive from a browser and are, until validated, attacker-controlled. The rule
- * the gateway implements (Task 15) and `doc/contract.md` records is therefore
+ * the gateway implements and `doc/contract.md` records is therefore
  * absolute: **the server validates every inbound client event against the
  * schema registered for it, and drops the event if validation fails.** No
  * handler ever sees a raw payload.
@@ -50,7 +50,7 @@ export type DayRoomCommand = z.infer<typeof dayRoomCommandSchema>;
  * `cell:unlock` — give it back.
  *
  * There is no separate heartbeat command. Re-sending `cell:lock` for a cell the
- * caller already holds **extends** the TTL (Task 15: "TTL ~30 s a prodlužování"),
+ * caller already holds **extends** the TTL,
  * which is the heartbeat — one command fewer on the inbound surface, and an
  * idempotent one, so a client that loses track of its own state cannot corrupt
  * the server's.

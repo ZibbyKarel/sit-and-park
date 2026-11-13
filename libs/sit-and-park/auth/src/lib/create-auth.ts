@@ -2,7 +2,7 @@
  * The one call that instantiates Auth.js, and the only file in the workspace
  * that names the `next-auth` default export.
  *
- * `apps/sit-and-park/web` (Task 23) does:
+ * `apps/sit-and-park/web` does:
  *
  * ```ts
  * // apps/sit-and-park/web/src/auth.ts

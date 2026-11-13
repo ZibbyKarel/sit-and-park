@@ -1,9 +1,9 @@
 /**
- * The three `@orpc` lines are the ones `doc/decision/0020-*` describes: this
+ * The three `@orpc` lines are the ESM-only block: this
  * project's specs import `@sit-and-park/contract`, which pulls in the ESM-only
  * `@orpc/contract`, and Jest runs here as CommonJS. This is the **second**
- * copy of that configuration — per decision 0020, the third project to need it
- * (Task 11 or 12) moves it into `jest.preset.js` instead of copying again.
+ * copy of that configuration — a third project that needs it moves it into
+ * `jest.preset.js` instead of copying again.
  *
  * The pattern is built by `jest.preset.js`'s `buildTransformIgnorePatterns`
  * rather than hand-rolled here — a plain `/node_modules/(?!(?:pkg)/)` regex

@@ -2,8 +2,8 @@
  * The whole API contract, assembled.
  *
  * This object is the binding list of what the backend may implement and what
- * the frontend may call. `apps/sit-and-park/api` (Task 12) implements it, `libs/shared/api-client`
- * (Task 11) types the client from it, and nothing outside it may exist.
+ * the frontend may call. `apps/sit-and-park/api` implements it, `libs/shared/api-client`
+ * types the client from it, and nothing outside it may exist.
  *
  * Grouping follows who calls it, not which table it touches: everything under
  * `admin` requires `role: 'ADMIN'`, everything else is available to any active
@@ -217,8 +217,7 @@ export type Contract = typeof contract;
  * This alias lives here rather than in `libs/shared/api-client` on purpose.
  * `ContractRouterClient` comes from `@orpc/contract`, and that package is
  * allow-listed for the `type:contract` tag **only** (`NPM_ALLOWLIST.contract` in
- * `eslint.config.mjs`, which is deliberately narrow — see
- * `doc/decision/0007-*`). Applying it here means `libs/shared/api-client` can type its
+ * `eslint.config.mjs`, which is deliberately narrow). Applying it here means `libs/shared/api-client` can type its
  * client without `@orpc/contract` being opened up to every `type:util` lib,
  * which would also have handed it to `libs/shared/form`, `libs/shared/i18n` and every wrapper
  * still to come.

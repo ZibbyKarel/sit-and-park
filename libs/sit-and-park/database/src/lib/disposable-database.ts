@@ -9,8 +9,7 @@
  * and `apps/sit-and-park/web-e2e`'s `globalSetup` spawns the script with the environment it
  * inherited. So the one variable that actually decided which database was
  * emptied — `DATABASE_URL` — was never consulted, and the one that was
- * consulted was almost never set. The final review found it as I-2; see
- * `doc/decision/0276-destructive-database-scripts-are-guarded-by-the-connection-string.md`.
+ * consulted was almost never set. The final review found it as I-2.
  *
  * The property that matters is *which database this is*, and the connection
  * string is the only thing that states it. So that is what is checked.
@@ -71,9 +70,7 @@ export function assertDisposableDatabase(
   env: NodeJS.ProcessEnv = process.env
 ): DisposableDatabase {
   if (url === undefined || url === '') {
-    throw new Error(
-      'DATABASE_URL is not set — copy .env.example to .env (see doc/environment.md).'
-    );
+    throw new Error('DATABASE_URL is not set — copy .env.example to .env (see doc/workspace.md).');
   }
 
   let parsed: URL;

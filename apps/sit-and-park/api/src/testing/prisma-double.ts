@@ -4,10 +4,9 @@
  *
  * Nothing **in this file** ever speaks to a real Postgres — that is what makes
  * it a double, not a statement about the project. The `*.db.spec.ts` suites do,
- * against PostgreSQL 17, under `nx run api:test-db` and in CI's own job
- * (`doc/decision/0206-*`), and they are where anything resting on the database's
+ * against PostgreSQL 17, under `nx run api:test-db` and in CI's own job, and they are where anything resting on the database's
  * actual behaviour belongs. This double is deliberately narrow: it implements
- * only the query shapes the Task 12 services actually issue, and it **fails
+ * only the query shapes the services actually issue, and it **fails
  * loudly** on anything else rather than quietly returning `[]`. A double that
  * silently answers a query it does not understand is how a test passes while the
  * code it covers is wrong.
@@ -704,7 +703,7 @@ export class PrismaDouble {
             // guest row must not go through `copy` at all here. A real Prisma
             // `include`/`select` on a `User?` relation returns a genuine
             // `null`, and this double has to match that or `toPublicReservation`'s
-            // callers (Task 3) never see the guest holder they now project.
+            // callers never see the guest holder they now project.
             //
             // The return-type annotation documents this branch's actual shape
             // (the other return path, above, joins `parkingSpot`, never
@@ -925,7 +924,7 @@ export class PrismaDouble {
 
   /**
    * Mirrors a Prisma `include: { user: true }` on `Reservation.user`, which is
-   * a `User?` relation (`doc/decision/0303-*`): `null` when the reservation is
+   * a `User?` relation: `null` when the reservation is
    * a guest's, {@link requireUser} otherwise.
    */
   private findHolder(userId: string | null): UserRow | null {

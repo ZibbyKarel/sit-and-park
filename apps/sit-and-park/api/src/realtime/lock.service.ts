@@ -7,16 +7,16 @@
  * instead of a nicer message. What it buys is the "právě upravuje …" state on
  * everybody else's tile while one user has a form open. Nothing in this file
  * may therefore be relied on for correctness of the reservation itself — the
- * unique indexes are what enforce that (`doc/database.md`).
+ * unique indexes are what enforce that (`doc/backend.md`).
  *
  * ## Why one concrete class, no abstraction for Redis
  *
  * The MVP is a single instance (global constraint 8), so a `Map` in this
- * process *is* the whole truth about who is editing what. `plan.md` puts a
+ * process *is* the whole truth about who is editing what. A
  * multi-instance deployment (and the Redis lock this class would need then)
- * explicitly out of scope, and there is no second implementation to type-check
+ * is out of scope, and there is no second implementation to type-check
  * a seam against — so this is a plain `@Injectable()` class rather than an
- * interface with one implementation. See `doc/realtime.md` §"Single instance"
+ * interface with one implementation. See `doc/integrations.md`
  * for the upgrade path if that constraint ever changes: every method below has
  * a Redis equivalent (`SET NX PX` for {@link acquire}, a Lua compare-and-delete
  * for {@link release}, a per-socket key set for {@link releaseSocket}, keyspace
@@ -57,9 +57,7 @@
  * and it works for the same reason: a renewal re-keys `socketId`, so the
  * *current* connection always matches and a superseded one never does. It costs
  * nothing on the reconnect path — the client re-requests the hold on the new
- * socket before it could ever release it — which is why the objection recorded
- * against this in `doc/decision/0187-*` was retracted there and answered here.
- * See `doc/decision/0220-*`.
+ * socket before it could ever release it — so no guard is needed.
  */
 
 import { Injectable } from '@nestjs/common';
@@ -245,8 +243,7 @@ export class LockService implements OnModuleDestroy {
    * **This is load-bearing, not bookkeeping.** `useCellLock` puts a contended
    * cell into `held-by-other` and then *sits still* — it deliberately does not
    * poll — so a hold that lapses with no broadcast leaves every other client
-   * showing "právě upravuje …" for a user who closed their laptop. See
-   * `doc/decision/0111-*`.
+   * showing "právě upravuje …" for a user who closed their laptop.
    */
   onExpired(listener: LockExpiryListener): void {
     this.expiryListeners.push(listener);

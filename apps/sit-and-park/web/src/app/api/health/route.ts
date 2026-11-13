@@ -12,8 +12,7 @@ import { apiReadinessUrl } from '../../../api-url';
  *
  * **Public.** An orchestrator's probe carries no bearer token and no way to
  * obtain one, so `src/proxy.ts` excludes this path from the session check —
- * the same reasoning that makes the API's probes `@Public()` (`doc/auth.md`,
- * §Public routes).
+ * the same reasoning that makes the API's probes `@Public()` (`doc/auth.md`).
  *
  * **It exposes nothing.** The body is a status and a fixed reason string. No
  * URL, no exception message, no stack: a probe is reachable by anyone who can
@@ -24,7 +23,7 @@ import { apiReadinessUrl } from '../../../api-url';
 /**
  * How long to wait for the API's readiness probe.
  *
- * Milliseconds, hence the suffix (`doc/environment.md`). A constant rather
+ * Milliseconds, hence the suffix (`doc/workspace.md`). A constant rather
  * than an env variable: a probe timeout is a property of the probe, and a
  * value nobody would ever set per-deployment does not earn a key in a schema
  * that is only allowed to grow. It sits below the API's own

@@ -93,8 +93,7 @@ function unavailable(
 
 describe('buildMonthGrid — the layout the design draws', () => {
   it('starts the first row on Monday, padding the days before the 1st', () => {
-    // September 2026 begins on a Tuesday (doc/design/screens/10-modal-bulk.png:
-    // the first row's PO cell is empty and the 1 sits under ÚT).
+    // September 2026 begins on a Tuesday (the first row's PO cell is empty and the 1 sits under ÚT).
     const grid = buildMonthGrid('2026-09-15', '2026-09-01', new Set());
 
     expect(grid.month).toBe('2026-09');
@@ -166,7 +165,7 @@ describe('buildMonthGrid — which days may be picked', () => {
   });
 
   it('blocks a business day that is already in the past', () => {
-    // One `PAST_DATE` day rejects the whole batch (doc/decision/0090-*), so a
+    // One `PAST_DATE` day rejects the whole batch, so a
     // past cell must not be offered.
     const midMonth = buildMonthGrid('2026-09-15', '2026-09-15', new Set());
     expect(cellOn(midMonth, '2026-09-14')).toMatchObject({ selectable: false, block: 'PAST' });
@@ -174,7 +173,7 @@ describe('buildMonthGrid — which days may be picked', () => {
   });
 
   it('reports a past Saturday as a weekend, the way the allocator orders it', () => {
-    // `planDay` asks `isBusinessDay` first (doc/decision/0090-*): a Saturday is
+    // `planDay` asks `isBusinessDay` first: a Saturday is
     // the most durable fact about a day. Reversing the two checks would put
     // "in the past" on a cell whose real reason never changes.
     const late = buildMonthGrid('2026-09-15', '2026-09-30', new Set());
@@ -486,7 +485,7 @@ describe('diffBulkSchedule — what the user must not be allowed to miss', () =>
   });
 
   it('reports a promised spot that became a queue place', () => {
-    // The race `doc/decision/0092-*` deliberately leaves open.
+    // The preview-to-confirm race is deliberately left open.
     const proposal = [assigned('2026-09-01', { isPreferredSpot: true })];
     const confirmed: BulkDayResult[] = [
       { ...queued('2026-09-01', { waitlistPosition: 1 }), waitlistEntryId: 'wl-1' },
@@ -549,7 +548,7 @@ describe('toBulkErrorMessageKey — one sentence per thing that actually went wr
   /**
    * oRPC's error envelope, as `apps/sit-and-park/api`'s global filter serialises it:
    * `{ json, meta }` on the outside (the payload is not at the top level) and
-   * `defined: false` on the inside — `doc/decision/0033-*`, and the reason
+   * `defined: false` on the inside — which is why
    * `toContractError` reads the code rather than oRPC's `defined` flag.
    */
   function errorResponse(code: string, status: number) {

@@ -36,7 +36,7 @@ describe('roomForDate', () => {
   });
 
   it('throws on a non-string, which TypeScript alone cannot prevent at a boundary', () => {
-    // `DateOnly` is an unbranded string alias (doc/decision/0014-*), so a value
+    // `DateOnly` is an unbranded string alias, so a value
     // arriving from a socket can be anything at runtime.
     expect(() => roomForDate(undefined as unknown as string)).toThrow(TypeError);
     expect(() => roomForDate(42 as unknown as string)).toThrow(TypeError);

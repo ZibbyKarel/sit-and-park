@@ -4,8 +4,8 @@
  *
  * **No branch on `NODE_ENV`, and no configuration value read from the
  * environment.** Dev, e2e and production build this same object and differ only
- * in the values `apps/sit-and-park/web` passes in, which is the rule Task 11 has to hold to
- * on the API side as well.
+ * in the values `apps/sit-and-park/web` passes in, which is the rule the API side has to hold to
+ * as well.
  *
  * That is narrower than what this docblock used to claim ("a pure function of
  * its arguments — no `process.env`, no module-level state"), and the difference
@@ -13,14 +13,14 @@
  * pieces of **process-global** state, because Next.js compiles the proxy, the
  * `/api/auth/*` handlers and the server components into separate bundles and
  * runs this function once per bundle — three times in one `next start`,
- * measured (`doc/decision/0231-*`). Anything that has to be shared by all three
+ * measured. Anything that has to be shared by all three
  * cannot live in a closure:
  *
  * - `sharedRevokedStore()` (`revocation.ts`) — the sign-out registry's map. It
  *   also reads `process.env.NEXT_RUNTIME` and **throws** at call time on any
  *   runtime but Node.js, so building a configuration is not infallible.
  * - `sharedRefreshState()` (`refresh.ts`) — the discovery promise and the
- *   in-flight token grant (`doc/decision/0245-*`).
+ *   in-flight token grant.
  *
  * Both are passed in explicitly at the call site below rather than reached for
  * inside their modules, so the global state is visible here.
@@ -42,7 +42,7 @@ import type { SignOutRegistry } from './revocation';
  * `offline_access` is the load-bearing one: without it Okta issues no refresh
  * token at all, the `jwt` callback below has nothing to rotate, and the session
  * dies with the first access token. The other three are what the API's JIT
- * provisioning (Task 11) reads the user's identity from.
+ * provisioning reads the user's identity from.
  */
 export const OKTA_SCOPES = 'openid profile email offline_access';
 
@@ -62,7 +62,7 @@ export interface AuthOptions {
   readonly secret: string;
   /**
    * Path of the application's own sign-in page. When omitted, Auth.js serves
-   * its built-in one at `/api/auth/signin`. `apps/sit-and-park/web` (Task 23) supplies the
+   * its built-in one at `/api/auth/signin`. `apps/sit-and-park/web` supplies the
    * real route.
    */
   readonly signInPath?: string;
@@ -279,8 +279,8 @@ export function createAuthConfig(options: AuthOptions): NextAuthConfig {
   // to be — for exactly the reason stated below for the revocation map. Three
   // refreshers with three private in-flight slots do not coalesce anything
   // between the proxy and the layout, and those two read the *same* request
-  // cookie: measured at two token grants where `doc/decision/0051-*` promised
-  // one. See `sharedRefreshState` and `doc/decision/0245-*`.
+  // cookie: measured at two token grants where the design promised
+  // one. See `sharedRefreshState`.
   const refresh = createTokenRefresher({
     issuer: options.issuer,
     clientId: options.clientId,
@@ -295,7 +295,7 @@ export function createAuthConfig(options: AuthOptions): NextAuthConfig {
   // this function runs three times in one `next start` — measured. A private
   // map per call would mean the sign-out endpoint revoking into a registry that
   // the proxy, which does the actual authorizing, never reads. See
-  // `sharedRevokedStore` and `doc/decision/0231-*`.
+  // `sharedRevokedStore`.
   const registry = createSignOutRegistry({
     retentionSeconds: options.sessionMaxAgeSeconds ?? DEFAULT_SESSION_MAX_AGE_SECONDS,
     revoked: sharedRevokedStore(),

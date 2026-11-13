@@ -5,7 +5,7 @@
  * The path is not decorative. `/api/auth/callback/okta` is the redirect URI
  * that has to be registered with the Okta application, and its last segment is
  * `OKTA_PROVIDER_ID` — which is why that is a constant in `libs/sit-and-park/auth` and never
- * a literal (`doc/auth.md`, §"What the Okta org has to be configured to do").
+ * a literal (`doc/auth.md`).
  *
  * `src/proxy.ts` deliberately does not match this prefix: a session check in
  * front of the sign-in callback would require being signed in to sign in.

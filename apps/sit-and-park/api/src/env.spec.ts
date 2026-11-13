@@ -35,10 +35,10 @@ describe('validateApiEnv', () => {
       THROTTLE_STRICT_LIMIT: 20,
       BODY_LIMIT: '100kb',
       HEALTH_DB_TIMEOUT_MS: 3_000,
-      // Task 15's cell-lock TTL. Defaulted, like every key above it, so that
+      // the cell-lock TTL. Defaulted, like every key above it, so that
       // adding it could not break an existing `.env`.
       REALTIME_LOCK_TTL_MS: 30_000,
-      // Slack (Task 16) — also all optional. `SLACK_BOT_TOKEN` and
+      // Slack — also all optional. `SLACK_BOT_TOKEN` and
       // `SLACK_CHANNEL_ID` are absent rather than `undefined`: they have no
       // default, so Zod omits the keys entirely, which is what makes
       // `SLACK_ENABLED: false` the only Slack fact a bare `.env` produces.

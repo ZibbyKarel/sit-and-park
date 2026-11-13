@@ -140,8 +140,7 @@ export class WaitlistPromotionService {
     }
 
     // The per-day filter above is a snapshot read; the monthly cap check is
-    // the authoritative "lock, then recount" from `assertWithinMonthlyReservationCap`
-    // (Task 3), so it can still say no even for a candidate `eligibleInOrder`
+    // the authoritative "lock, then recount" from `assertWithinMonthlyReservationCap`, so it can still say no even for a candidate `eligibleInOrder`
     // judged clear a moment ago. A capped candidate is **skipped**, not
     // failed — their queue entry stays, and the spot goes to the next person
     // in line, same as a per-day conflict.

@@ -7,7 +7,7 @@
  * scattering that across feature modules is how the order stops being
  * knowable. This module owns the strategy and the two services.
  *
- * `JwksVerifierService` is exported: Task 15's Socket.io gateway authenticates
+ * `JwksVerifierService` is exported: the Socket.io gateway authenticates
  * its handshake with `verifyToken()`, and must reuse this process's single
  * JWKS client rather than open a second one. `AuthUserService` is exported for
  * the same reason — the gateway has to resolve a handshake's claims to a user

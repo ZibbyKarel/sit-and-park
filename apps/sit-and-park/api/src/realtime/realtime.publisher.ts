@@ -2,8 +2,8 @@
  * The after-commit seam, filled in.
  *
  * `reservations/reservation-events.ts` declared `DomainEventPublisher` as an
- * abstract class with a no-op implementation and said Task 15 would swap the
- * binding. This is that swap, and it is deliberately the *only* thing this task
+ * abstract class with a no-op implementation and said the realtime layer would swap the
+ * binding. This is that swap, and it is deliberately the *only* thing it
  * changes about reservations: **when** an event is published is not up to the
  * publisher. `ReservationsService.cancel` computes events inside the
  * transaction, returns them, and calls `publish` past the `await` — outside the
@@ -31,7 +31,7 @@
  *
  * ## What sits above this class
  *
- * Since Task 16 the `DomainEventPublisher` token is bound to
+ * The `DomainEventPublisher` token is bound to
  * `reservations/composite-domain-event.publisher.ts`, not to this class: Slack
  * implements the same seam, and one token resolves to one provider. The
  * composite hands this class one event at a time, each call in its own `try`,
@@ -87,8 +87,8 @@ export class RealtimeDomainEventPublisher extends DomainEventPublisher {
   }
 
   /**
-   * Out-of-band notification of a promoted user — **Task 16's job, not this
-   * class's**, and it stays that way now that Task 16 has landed.
+   * Out-of-band notification of a promoted user — **the Slack publisher's job, not this
+   * class's**.
    *
    * A no-op rather than a removal: the method is abstract, so this class cannot
    * exist without it, and a promoted user does already learn what happened over

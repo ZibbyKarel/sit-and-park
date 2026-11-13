@@ -7,7 +7,7 @@
  * the Slack publisher, and reaches the same instance rather than a duplicate. A
  * test that built `SlackModule` in isolation could not see either.
  *
- * Since Task 15 landed alongside this one, the seam is
+ * The seam is
  * `CompositeDomainEventPublisher` and the Slack implementation sits behind it,
  * so "is the Slack one" is asserted as "is among the composite's delegates".
  * That the composite actually *calls* each delegate — and keeps calling the
@@ -65,7 +65,7 @@ describe('SlackModule inside AppModule', () => {
   });
 
   it('reaches the Slack publisher through the after-commit seam', () => {
-    // Task 15 (Socket.io) implements the same seam, so the token resolves to
+    // The Socket.io publisher implements the same seam, so the token resolves to
     // the composite rather than to either implementation directly. What still
     // has to be true is that the Slack one is behind it.
     const bound = moduleRef.get(DomainEventPublisher, { strict: false });
@@ -88,7 +88,7 @@ describe('SlackModule inside AppModule', () => {
 
   it('shares one publisher between the seam and SlackModule, not two', () => {
     // The instance behind the seam must be the one `SlackModule` built — the
-    // reason Task 16 needed `useExisting`, and equally the reason the composite
+    // reason Slack needs `useExisting`, and equally the reason the composite
     // is assembled by injecting the *class* rather than constructing it. A
     // second instance would resolve here too and nothing would look wrong —
     // until it had its own in-flight set, so a shutdown drained an empty one
@@ -125,7 +125,7 @@ describe('SlackModule inside AppModule', () => {
 
   describe('the outbound-only boundary', () => {
     it('registers no controller — nothing from Slack is ever accepted', () => {
-      // `plan.md`'s scope boundary, checked rather than asserted in prose: a
+      // The outbound-only scope boundary, checked rather than asserted in prose: a
       // slash command, a Block Kit interaction or an events subscription all
       // need a route, and a route needs a controller in this module.
       const controllers = Reflect.getMetadata('controllers', SlackModule) as unknown[] | undefined;
@@ -136,7 +136,7 @@ describe('SlackModule inside AppModule', () => {
     it('has no Slack-named controller anywhere in the app, not only inside this module', () => {
       // The check above only reads `SlackModule`'s own metadata — a slash
       // command or Block Kit handler added to *any other* module would pass
-      // it. `doc/slack.md`'s "adding a handler fails a test rather than
+      // it. `doc/integrations.md`'s "adding a handler fails a test rather than
       // passing review" is only as strong as this: a source-wide scan for a
       // `@Controller` route naming Slack, wherever it might be registered.
       const controllerFiles = filesUnder(join(__dirname, '..')).filter((file) =>

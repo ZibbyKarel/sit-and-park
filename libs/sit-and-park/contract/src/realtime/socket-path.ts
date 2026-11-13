@@ -5,7 +5,7 @@
  * `apps/sit-and-park/api`'s `RealtimeIoAdapter` (`realtime-io.adapter.ts`) configures the
  * real `socket.io` `Server` with this value, and `libs/sit-and-park/realtime-client`'s
  * `createRealtimeSocket` (`socket.ts`, re-exported as `DEFAULT_SOCKET_PATH`)
- * dials it. Before `doc/decision/0113-*` this was two independent literals —
+ * dials it. This used to be two independent literals —
  * `apps/sit-and-park/api`'s own `SOCKET_IO_PATH` and the client's `DEFAULT_SOCKET_PATH` —
  * because `apps/sit-and-park/api` (`scope:api`) cannot import `libs/sit-and-park/realtime-client`
  * (`scope:web`; its entry point pulls React in, so

@@ -18,7 +18,7 @@
  *
  * - **`path`** — {@link SOCKET_IO_PATH}, imported from
  *   `@sit-and-park/contract/realtime` rather than declared here. See its own
- *   comment and `doc/decision/0113-*`: `apps/sit-and-park/api` cannot import
+ *   comment: `apps/sit-and-park/api` cannot import
  *   `libs/sit-and-park/realtime-client` directly (a boundary decision, not an oversight),
  *   so the contract's shared entry point is where a constant both halves of
  *   the wire protocol must agree on lives.
@@ -52,7 +52,7 @@
  * changes: rooms, event names and payloads are the contract's. It is
  * deliberately **not** implemented — an unused implementation is an untested
  * one, and `LockService` would need its Redis half in the same change to be
- * worth anything (`doc/realtime.md` §"Single instance").
+ * worth anything (`doc/integrations.md`).
  */
 
 import { IoAdapter } from '@nestjs/platform-socket.io';

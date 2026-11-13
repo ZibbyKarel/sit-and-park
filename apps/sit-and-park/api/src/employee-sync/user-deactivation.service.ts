@@ -1,6 +1,6 @@
 /**
  * Deactivating a user, whoever asks: the employee sync, or an admin through
- * `admin.user.update` (`doc/decision/0329-*`).
+ * `admin.user.update`.
  *
  * One transaction per user flips the account off (`active = false`,
  * `deactivatedAt`), frees their future desk reservations and rejects their

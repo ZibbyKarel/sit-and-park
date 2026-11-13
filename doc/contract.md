@@ -1,905 +1,285 @@
-# Contract – structure, rules, how to add a schema
+# Contract
 
-`libs/sit-and-park/contract` is the **single source of truth** for every data shape that
-crosses the frontend ↔ backend boundary. No endpoint, DTO, or realtime event
-may exist in code before it exists here.
+`libs/sit-and-park/contract` is the single source of truth for every data shape that crosses the frontend/backend boundary. No endpoint, DTO or realtime event may exist in code before it exists here. Validation is Zod-only; `class-validator` and `class-transformer` are not used.
 
-This document was established by Task 3 (entities, primitives, the error
-contract); Task 4 added the oRPC procedures and Task 5 the realtime events.
+## Two libs
 
----
-
-## Two libs, a sharp division
-
-| lib                        | tags                                            | what it is                                                    | what it **must not** contain                               |
-| -------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
+| lib                              | tags                                            | what it is                                                    | must not contain                                           |
+| -------------------------------- | ----------------------------------------------- | ------------------------------------------------------------- | ---------------------------------------------------------- |
 | `libs/sit-and-park/shared-types` | `type:util`, `scope:shared`, `layer:foundation` | domain constants and pure date-only logic for `Europe/Prague` | Zod, next-intl, any runtime dependency                     |
-| `libs/sit-and-park/contract`     | `type:contract`, `scope:shared`                 | Zod schemas + the oRPC contract + realtime events             | anything from npm besides `zod`, `@orpc/contract`, `tslib` |
+| `libs/sit-and-park/contract`     | `type:contract`, `scope:shared`                 | Zod schemas, the oRPC contract, the realtime events           | anything from npm besides `zod`, `@orpc/contract`, `tslib` |
 
-The split isn't cosmetic. `libs/sit-and-park/shared-types` is imported by both `apps/sit-and-park/api`
-and `libs/shared/i18n`, so it must not pull in Zod or frontend libraries (see
-`doc/decision/0003-*`). `libs/sit-and-park/contract`, conversely, must not reach for
-transport — which is why ESLint only allows it `@orpc/contract`, never
-`@orpc/client` or `@orpc/server` (see `doc/decision/0007-*`).
+`shared-types` is imported by the API and by `libs/shared/i18n` (which re-exports its barrel to the browser), so it stays free of Zod and frontend libraries. The contract may use `@orpc/contract` but never `@orpc/client` or `@orpc/server`; ESLint enforces this so the contract cannot reach for transport. The dependency runs one way: `contract` to `shared-types`.
 
-The dependency runs one way only: **`contract` → `shared-types`**, never the
-reverse.
-
----
-
-## Structure of `libs/sit-and-park/contract`
+## Layout of `libs/sit-and-park/contract/src`
 
 ```
-libs/sit-and-park/contract/src/
-  index.ts                  entry point @sit-and-park/contract
-  schemas/
-    primitives.ts           idSchema, dateOnlySchema, yearMonthSchema, timestampSchema
-    enums.ts                Zod wrappers around the domain enums from shared-types
-    entities.ts             User, ParkingSpot, Reservation, WaitlistEntry, AuditLog
-    reservation-window.ts   ReservationWindowSettings, MonthWindowOverview
-    errors.ts               ERROR_CODES, errorCodeSchema, errorDetailsSchema, errorShapeSchema
-    index.ts                barrel
-  api/                      oRPC procedures (Task 4)
-    errors.ts               ERROR_DEFINITIONS, contractErrors(), the `authed` builder
-    overview.ts             the day overview
-    reservations.ts         create, cancel
-    bulk.ts                 previewBulk, confirmBulk
-    waitlist.ts             join, leave
-    spots.ts, users.ts      spot and user administration
-    me.ts                   profile, settings, ICS token regeneration
-    ics.ts                  constants and a helper for the ICS URL (the feed is outside oRPC)
-    reservation-window.ts   admin management of the reservation window
-    router.ts               `contract` — the entire router
-    index.ts                barrel
-  realtime/                 entry point @sit-and-park/contract/realtime
-    events.ts               payloads for server → client events
-    commands.ts             payloads for client → server commands + the cell:lock ack
-    event-maps.ts           the schema registry + ServerToClientEvents / ClientToServerEvents
-    rooms.ts                roomForDate(), DAY_ROOM_PREFIX
-    index.ts                barrel
-  __fixtures__/             test fixtures, excluded from tsconfig.lib.json
+index.ts            entry point @sit-and-park/contract (schemas + api)
+schemas/            shared by both entry points: primitives, enums (Zod wrappers over
+                    shared-types tuples), entities, reservation-window, reservation-limits, errors
+api/                oRPC procedures, one file per domain
+  builder.ts        `authed`, `contractErrors()`, `noInputSchema` (not re-exported)
+  errors.ts         ERROR_DEFINITIONS (HTTP status + default message per code)
+  router.ts         `contract` (the whole router), `Contract`, `ContractClient`
+  ics.ts            ICS feed URL helpers (the feed itself is outside oRPC)
+realtime/           entry point @sit-and-park/contract/realtime
+  events.ts, commands.ts, event-maps.ts, rooms.ts, socket-path.ts
+__fixtures__/       test fixtures, excluded from tsconfig.lib.json
 ```
 
-The schemas in `schemas/` are shared by both branches (`api/` and
-`realtime/`) — that's why they don't live in either one. Specifically, two
-projections live there too, not just bare entities: `userSummarySchema` (how a
-user looks to **another** user) and `publicReservationSchema` (a reservation
-as the whole day sees it). Both the day overview and the realtime broadcast
-need them, and `src/realtime` must not import from `src/api`.
+`schemas/` is shared by both branches, so it also holds the projections both need: `userSummarySchema` (how a user looks to another user: `id`, `name`, `licensePlate`) and `publicReservationSchema`. `src/realtime` never imports from `src/api`.
 
-`fixtures.ts` deliberately sits in `__fixtures__/`, which `tsconfig.lib.json`
-excludes — it wasn't enough on its own that nothing re-exports it, since it
-was still part of the lib's compiled program.
+`builder.ts` is deliberately not exported from the package: a procedure defined outside the contract lib is exactly what contract-first forbids, and an exported builder invites it.
 
----
+`router.ts` exports `Contract` and `ContractClient` (`ContractRouterClient<Contract>` already applied). `libs/shared/api-client` types its client as `ContractClient`, so `@orpc/contract` stays allow-listed for the `type:contract` tag alone.
 
-## Why types are derived
+## Rules
 
-Every type comes from `z.infer`; it is never hand-written next to a schema:
-
-```ts
-export const reservationSchema = z.object({
-  /* ... */
-});
-export type Reservation = z.infer<typeof reservationSchema>;
-```
-
-A hand-written type next to a schema is a duplicate that drifts silently: the
-schema changes, the type doesn't, TypeScript stays quiet, and the bug only
-shows up at runtime in production. A derived type can't drift.
-
-When a schema **transforms** (typically `.default()`), distinguish:
-
-- `z.infer<T>` = `z.output<T>` – the shape **after** validation, with defaults
-  filled in,
-- `z.input<T>` – the shape **before** validation, where fields with a default
-  are optional.
-
-`reservationWindowSettingsSchema` exports both
-(`ReservationWindowSettings`, `ReservationWindowSettingsInput`), because the
-admin form sends the input shape while the service layer works with the
-output shape.
-
-One exception that isn't really an exception: enum values (`PARKING_GROUPS`,
-`USER_ROLES`, …) live in `libs/sit-and-park/shared-types` as an `as const` tuple, and the
-contract just wraps them (`z.enum(PARKING_GROUPS)`). The values therefore
-still live in one place, and the type in the contract stays derived. A test
-in `enums.spec.ts` also type-checks that the two sides haven't drifted apart.
-
----
+- **Types are derived.** Every type is `z.infer` of its schema, never hand-written beside it. Where a schema has `.default()`, `z.infer` is the output shape and `z.input` the pre-validation shape; `reservationWindowSettingsSchema` and `reservationLimitSettingsSchema` export both.
+- **Enum values live in `shared-types`** as `as const` tuples (`PARKING_GROUPS`, `USER_ROLES`, ...). The contract wraps them with `z.enum(...)`; `enums.spec.ts` checks the two sides have not drifted.
+- **Schemas validate shape, not database-dependent rules.** Anything needing a lookup (the reservation window, a deactivated spot, the monthly cap, business-day eligibility) is a service-layer check.
+- **Errors are typed contract errors** (below). A procedure with no declared errors is almost certainly wrong, and so is one that declares a code whose trigger nobody can name.
+- **Every procedure has an input schema**, even one with no arguments: those use `noInputSchema` (`z.strictObject({}).optional()`). It accepts `undefined` (an RPC call) and `{}` (an argument-less OpenAPI GET) but rejects any key, so an accidental payload is not silently discarded.
+- **Every desk procedure carries a `.route({ description })`**, asserted in `router.spec.ts`, so the contract can be exposed as tools later.
+- **The router grouping is an authorization boundary.** Everything under `admin.` requires `role: 'ADMIN'`; everything else needs an active user.
 
 ## Dates and time
 
-| what                | schema                                 | note                                                     |
-| ------------------- | -------------------------------------- | -------------------------------------------------------- |
-| the reservation day | `dateOnlySchema` (`z.iso.date()`)      | `YYYY-MM-DD`, `DATE` in Postgres, never a timestamp      |
-| a month             | `yearMonthSchema`                      | `YYYY-MM`                                                |
-| a timestamp         | `timestampSchema` (`z.iso.datetime()`) | an ISO string in UTC, not `Date` (`doc/decision/0015-*`) |
+| what                | schema                                 | note                                                 |
+| ------------------- | -------------------------------------- | ---------------------------------------------------- |
+| the reservation day | `dateOnlySchema` (`z.iso.date()`)      | `YYYY-MM-DD`, a `DATE` in Postgres, never a timestamp |
+| a month             | `yearMonthSchema`                      | `YYYY-MM`, sorts lexicographically                   |
+| a timestamp         | `timestampSchema` (`z.iso.datetime()`) | an ISO UTC string, not a `Date`                      |
+| a half-hour time    | `halfHourTimeSchema`                   | `HH:MM` on the half-hour grid                        |
+| an id               | `idSchema` (`z.uuid()`)                | the UUID version is deliberately unconstrained       |
 
-`dateOnlySchema` validates **format and calendar validity** (neither
-`2023-02-29` nor `2026-04-31` passes) — and **nothing else**. Specifically it
-does not validate:
+All reservation dates are calendar days in Europe/Prague. `DateOnly` is an unbranded string. `dateOnlySchema` validates format and calendar validity (`2026-04-31` fails) and nothing else: not "in the past", not "inside the open window". Those are service checks.
 
-- that the day isn't in the past,
-- that the day falls inside the open reservation window.
+`shared-types` provides the date logic: date-only arithmetic (`addDays`, `addMonths`, `differenceInDays`, `compareDateOnly`, `startOfMonth`, `toYearMonth`, `isWeekend`, `daysInMonth`, ...), Europe/Prague helpers (`todayInPrague`, `toDateOnlyInPrague`, ...), and Czech public holidays (`isCzechPublicHoliday`, `isBusinessDay`; Easter is computed, not tabulated). Arithmetic is calendar-based and the timezone is resolved at a single boundary. Only a deliberately narrow set of holiday symbols is exported, because this barrel reaches the browser bundle.
 
-Both are **service-level** checks (Task 13), since the window depends on
-`ReservationWindowSettings` read from the database, which a static schema
-can't see. The old horizon from `plan.md` ("until the end of the following
-month") was replaced by `doc/decision/0004-*`.
+### Reservation window
 
-Computing the month state is done by the pure function `monthLockState()` /
-`isMonthOpen()` in `libs/sit-and-park/shared-types`. It's deliberately **descriptive
-only** — it enforces nothing. An automatic waitlist promotion is a system
-action, and the lock doesn't apply to it, which works only because the
-caller simply never invokes it.
+`monthLockState()` / `isMonthOpen()` in `shared-types` are pure and descriptive: they report a state and enforce nothing.
 
----
-
-## The error contract
-
-The backend never returns an ad-hoc error shape. Everything goes through
-`errorShapeSchema`:
-
-```ts
-{ code: ErrorCode, message: string, details?: Record<string, unknown> }
+```
+FORCE_OPEN   -> OPEN
+FORCE_LOCKED -> LOCKED
+AUTO         -> OPEN once today >= first of month - openDaysBefore, else NOT_YET_OPEN
 ```
 
-`ERROR_CODES` is a closed enum of twenty-three codes (twelve parking, eleven
-added by the desk merge — see "Desks" below). The frontend branches on
-`code`; `message` is detail for logs and unexpected cases, and the Czech UI
-copy is keyed by code (`libs/shared/i18n`).
+Under `AUTO` a month never closes; `LOCKED` is only an admin's `FORCE_LOCKED`. `isMonthlyCapInForce()` says the per-user monthly cap applies only under `AUTO`, while today lies inside the month's window (`reservationWindowRange`). Callers skip these checks where the lock does not apply: waitlist promotion is a system action, admins are not limited by the window, and cancelling or leaving a queue is always allowed.
 
-Two "window" codes are deliberately distinguished, because they tell the user
-something different:
+## Error contract
 
-| code                  | target month's state | what happened                                                                                                  |
-| --------------------- | -------------------- | -------------------------------------------------------------------------------------------------------------- |
-| `OUT_OF_HORIZON`      | `NOT_YET_OPEN`       | reservations for that month aren't open yet                                                                    |
-| `RESERVATIONS_LOCKED` | `LOCKED`             | an admin has forced the lock (`FORCE_LOCKED`); under `AUTO` a started month stays open (`doc/decision/0315-*`) |
+Every failure that is not a transport problem is one of `ERROR_CODES`, a closed enum, wrapped in `errorShapeSchema`: `{ code, message, details? }`. The frontend branches on `code`; `message` is a developer-facing fallback for logs; Czech UI copy is keyed by code in `libs/shared/i18n`. `details` and oRPC's `data` are the same field.
 
-Both are returned by the service layer based on `monthLockState()`, never by
-a schema.
+`ERROR_DEFINITIONS` maps each code to an HTTP status and default message and is `satisfies Record<ErrorCode, ...>`, so a code without a definition does not compile. Statuses: `FORBIDDEN` and `DESK_ACCESS_DENIED` 403; `NOT_FOUND` 404; `VALIDATION_FAILED` 400; `PAST_DATE`, `OUT_OF_HORIZON`, `CANNOT_WAITLIST_OWN_SPOT` 422; `RESERVATIONS_LOCKED` 423; the remaining codes 409.
 
-This contract maps onto oRPC 1:1 — `details` and oRPC's `data` are the same
-field. The code definitions (HTTP status, default message) are in
-`api/errors.ts`; details in
-`doc/decision/0018-mapping-error-contract-to-orpc.md`.
+Codes: `SPOT_ALREADY_RESERVED`, `RESERVATION_LIMIT_REACHED` (already a reservation that day), `MONTHLY_RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `NOT_FOUND`, `FORBIDDEN`, `ALREADY_IN_WAITLIST`, `CANNOT_WAITLIST_OWN_SPOT`, `SPOT_NOT_OCCUPIED`, `VALIDATION_FAILED`, `CONFLICT`, `RESERVATIONS_LOCKED`, and the desk codes `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED`, `PERMANENT_DESK_HOLDER`, `NO_OFFICE_ASSIGNED`, `NO_PERMANENT_DESK`, `DESK_RELEASE_ALREADY_RESERVED`, `DESK_REQUEST_ALREADY_PENDING`, `DESK_REQUEST_ALREADY_DECIDED`, `NO_FREE_DAY`.
 
----
+- `OUT_OF_HORIZON` (month is `NOT_YET_OPEN`) and `RESERVATIONS_LOCKED` (month is `LOCKED`, i.e. admin `FORCE_LOCKED`) are distinct because they tell the user different things. Both come from the service layer on top of `monthLockState()`, never from a schema.
+- `SPOT_ALREADY_RESERVED` is an occupied spot; `CONFLICT` is the narrower case of a lost race that a unique constraint turned into an error instead of a double booking.
+- `VALIDATION_FAILED` means "structurally fine but violates a domain rule that needs a lookup": a deactivated spot, a non-business day, a spot `group` outside the lot's allowed set, a role change that is not allowed, an inactive or out-of-office desk. A bad format is caught by the schema and returned as oRPC's own error.
+- A procedure declares only codes it can return. The input range limits (`MAX_MONTH_WINDOW_SPAN`, `MAX_BULK_BOOKING_DAYS`, the desk series limits) live in the schema, so clients learn them from it and `admin.window.months` and `overview.day` declare no `VALIDATION_FAILED`.
+- Transport and authentication failures are not contract errors: see `doc/auth.md` for the 401/403 split. `libs/shared/api-client` reads failures with `toContractError()`, which parses `error.code` through `errorCodeSchema` (it deliberately does not use oRPC's `isDefinedError`, because the API's filter marks every domain error `defined: false`).
 
-## oRPC procedures
+## How procedures are built
 
-The router is a single object, `contract`, in `api/router.ts`. **The grouping
-is an authorization boundary:** everything under `admin.` requires
-`role: 'ADMIN'`; everything else just needs an active user.
+```ts
+authed.input(...).output(...).errors(contractErrors('NOT_FOUND', 'CONFLICT'))
+```
 
-That file exports two types alongside it: `Contract` (the router object's own
-type) and **`ContractClient`** — the same router seen from the caller's side,
-i.e. `ContractRouterClient<Contract>` already applied. `libs/shared/api-client` types
-its client as `ContractClient` and never imports `@orpc/contract` itself, which
-keeps that package allow-listed for the `type:contract` tag alone rather than
-for every wrapper lib. See `doc/decision/0040-*`.
+`authed` is `oc.errors(contractErrors('FORBIDDEN'))`. Every procedure therefore declares `FORBIDDEN` (a deactivated user, `active: false`, is rejected before any handler runs), and the tables below omit it. `contractErrors()` returns a `Pick` of the definitions, so the client sees exactly the codes a procedure can produce.
 
-**Every** procedure declares `FORBIDDEN` — it sits on the shared `authed`
-builder, because a deactivated user (`active: false`, which is how
-offboarding works) is rejected before any handler runs. It therefore isn't
-repeated in the tables below; a `—` in the errors column means "nothing
-beyond `FORBIDDEN`".
+## Procedures
 
-**Every procedure has an input schema, even one with no arguments.** oRPC
-allows `.input()` to be omitted, but an omitted schema means an accidentally
-sent payload is silently discarded. The five argument-less procedures
-(`overview` doesn't have one; the others are `spot.list`, `me.get`,
-`me.regenerateIcsToken`, `admin.window.get`, `admin.reservationLimits.get`)
-therefore declare the shared
-`noInputSchema` from `api/errors.ts` – it accepts `undefined` (how a call
-arrives via RPC) as well as `{}` (how a GET with no parameters arrives via
-OpenAPI), but rejects anything with a key. In the tables, their input is
-written as `—`.
+Inputs and outputs are the schemas in `api/*.ts`; the tables give shape, caller and the declared errors beyond `FORBIDDEN`.
 
-**When `VALIDATION_FAILED` occurs.** It means "the request is structurally
-fine, but it violates a domain rule that requires a database lookup" — not a
-bad format, which the schema catches and oRPC returns as its own error. Every
-procedure that declares it has a specific trigger:
+### Day overview and reservations
 
-| procedure                                            | what triggers it                                                       |
-| ---------------------------------------------------- | ---------------------------------------------------------------------- |
-| `reservation.create`, `waitlist.join`                | the spot exists but is deactivated                                     |
-| `reservation.create`, `waitlist.join`                | `date` isn't a business day (a weekend or a Czech public holiday)      |
-| `reservation.previewBulk`, `reservation.confirmBulk` | the same, for the user's preferred spot                                |
-| `me.updateSettings`                                  | the preferred spot is deactivated                                      |
-| `admin.spot.create`, `admin.spot.update`             | `group` outside the parking lot's allowed set of groups                |
-| `admin.user.update`                                  | a role change that can't be made (the last admin)                      |
-| `admin.window.update`                                | a combination of `openDaysBefore` and `lockMode` that can't be applied |
+| procedure                  | input                     | output / notes                                                                                                 | errors |
+| -------------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------------- | ------ |
+| `overview.day`             | `{ date }`                | `{ date, window, canReserve, canReserveMonth, spots[], viewerReservationId }`                                  | none   |
+| `reservation.create`       | `{ parkingSpotId, date, holder? }` | `Reservation`; `holder` (admin only) is `{ kind: 'USER', userId, licensePlate }` or `{ kind: 'GUEST', name, licensePlate }`, omitted means the caller                                                                                                  | `NOT_FOUND`, `SPOT_ALREADY_RESERVED`, `RESERVATION_LIMIT_REACHED`, `MONTHLY_RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
+| `reservation.cancel`       | `{ reservationId }`       | `{ reservationId, date, parkingSpotId, promoted }`                                                             | `NOT_FOUND`, `CONFLICT` |
+| `reservation.myMonth`      | `{ month }`               | `{ month, reservedDates[], count, cap \| null, reservations[], waitlist[] }`, caller-scoped                    | none   |
+| `reservation.myReservations` | none                    | `{ reservations[] }`: future plus the last `DESK_HISTORY_MONTHS` (12) months, each with `parkingSpotLabel`      | none   |
+| `admin.reservation.month`  | `{ userId, month }`       | `{ month, reservedDates[], count, cap \| null }` (admin route)                                                  | none   |
 
-`waitlist.join` appears twice in the table deliberately: both rules can only
-be discovered from the database (a deactivated spot) or the holiday calendar,
-and the schema can't catch either. That `date` must be a business day follows
-from `canReserve` (see below) — a single-day reservation for a Saturday or for
-September 28th must therefore fail, and `VALIDATION_FAILED` is the only
-declared code that fits.
-(Bulk reservation handles this differently: there, a non-business day is a
-per-day `UNAVAILABLE` / `NOT_A_BUSINESS_DAY` result inside a successful
-response, not an error for the whole batch.)
+`overview.day` is everything the lot screen needs in one query, including the window state, so the client cannot render a day against a stale window. Three fields must not be confused:
 
-`admin.window.months` **does not declare** `VALIDATION_FAILED`. The
-`from`–`to` range is entirely guarded structurally: `from <= to` via a
-refinement, and the range length against `MAX_MONTH_WINDOW_SPAN`
-(`libs/sit-and-park/shared-types`), the same way `MAX_BULK_BOOKING_DAYS` works for the
-bulk reservation. The client therefore learns the limit from the schema and
-doesn't have to discover it by being rejected.
+- `window` is the `MonthWindowOverview` of the month `date` falls in. `lockMode !== 'AUTO'` means an admin overrode the state, and `windowFrom`/`windowTo` are then only hypothetical.
+- `canReserve` is whether this user may reserve this day. It already accounts for window, admin exemption, the past and business days. The frontend never derives it from `window`.
+- `canReserveMonth` is whether this user may reserve anywhere in that month (window and admin exemption only). `canReserve: false` with `canReserveMonth: true` is every weekend and holiday of an open month. Month-level screens (the bulk modal) read this one.
 
-`overview.day` **does not declare it** — it's a read, and no domain rule can
-be violated by a structurally valid date there (a day outside every window is
-returned with `canReserve: false`, not an error). Declaring a code a
-procedure never returns is, per `doc/decision/0018-*`, the same mistake as
-returning an undeclared one.
+Other users are only ever sent as `userSummarySchema`; `email`, `oktaId` and `icsToken` never reach another browser. Each spot row carries `waitlistCount`, the viewer's own waitlist entry and position, and `timedReservations[]` (guest half-hour blocks, non-empty only while `reservation` is `null`).
 
-### Day overview
+`reservation.cancel` declares no window error: a regular user may cancel their own reservation at any time, including a locked month. Someone else's reservation gives `FORBIDDEN`; an admin may cancel any. `promoted: true` means the freed spot went straight to the first waitlist entry (a system action, so it is not blocked by a lock).
 
-| procedure      | input      | output                                                                        | other errors |
-| -------------- | ---------- | ----------------------------------------------------------------------------- | ------------ |
-| `overview.day` | `{ date }` | `{ date, window, canReserve, canReserveMonth, spots[], viewerReservationId }` | —            |
-
-Everything the parking lot screen needs, in one query: every active spot, who
-holds it, how many people are behind it on the waitlist, where the caller
-stands — **and the reservation-window state for that day**. The window
-travels with the response deliberately, so the FE never needs a second query
-and can never render the day grid against a stale window.
-
-Three fields that must not be confused:
-
-- `window` — the `MonthWindowOverview` of the month `date` falls into. The
-  truth is carried by `state`; `lockMode !== 'AUTO'` means the state was
-  **overridden by an admin**, and `windowFrom`/`windowTo` are only
-  hypothetical (what the automatic rule would do).
-- `canReserve` — whether **this** user may reserve **this** day. It already
-  accounts for the window, the admin exception, the past, and business days.
-  **The FE must not derive it from `window` itself** — an admin isn't bound by
-  the window, and that's a fact that lives on the backend.
-- `canReserveMonth` — whether this user may reserve **anywhere in the month**
-  `date` falls in: the window and the admin exception, and nothing about `date`
-  itself. A screen whose subject is the month (the bulk-reservation modal) reads
-  this one. `canReserve: false` with `canReserveMonth: true` is every weekend
-  and every holiday of an open month, so the pair disagreeing is normal;
-  `doc/decision/0175-*` records why the month answer had to travel separately
-  rather than be inferred client-side from `canReserve` and the calendar.
-
-Read-only: a locked or not-yet-open day isn't thrown as an error, it's just
-reported in `window`.
-
-Other users' data goes out as `userSummarySchema` — a `pick` of three fields
-(`id`, `name`, `licensePlate`). `email`, `oktaId`, and above all `icsToken`
-never reach another user's browser.
-
-Each spot row also carries `timedReservations[]` — the guest half-hour
-blocks booked on that spot for that day, ascending by `startTime`. It is
-non-empty only while `reservation` is `null`: the database refuses a
-full-day `Reservation` and any `TimedReservation` block on the same cell at
-once (`doc/decision/0314-*`), so the two fields are never both meaningful for
-the same row. A spot with blocks cannot take a full-day reservation, but an
-admin may add further non-overlapping blocks to it.
-
-### Reservations
-
-| procedure                 | input                     | output                                             | other errors                                                                                                                                             |
-| ------------------------- | ------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `reservation.create`      | `{ parkingSpotId, date }` | `Reservation`                                      | `NOT_FOUND`, `SPOT_ALREADY_RESERVED`, `RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
-| `reservation.cancel`      | `{ reservationId }`       | `{ reservationId, date, parkingSpotId, promoted }` | `NOT_FOUND`, `CONFLICT`                                                                                                                                  |
-| `reservation.myMonth`     | `{ month }`               | `{ month, reservedDates[], count, cap \| null, reservations[], waitlist[] }` | —                                                                                                                                                        |
-| `reservation.myReservations` | — | `{ reservations[] }`: future + last 12 months (`DESK_HISTORY_MONTHS`), each `Reservation` + `parkingSpotLabel` | — |
-| `admin.reservation.month` | `{ userId, month }`       | `{ month, reservedDates[], count, cap \| null }`   | —                                                                                                                                                        |
-
-`reservation.cancel` **deliberately declares no window error.** Per
-`doc/decision/0004-*`, a regular user may cancel their own reservation at any
-time, even in a locked month — the lock prevents taking spots, not giving them
-back. `FORBIDDEN` covers someone else's reservation; an admin may cancel any
-of them.
-
-`promoted: true` means the freed spot was immediately given to the first
-person on the waitlist. An automatic promotion is a system action, and the
-lock doesn't apply to it, so it can happen even in a locked month.
-
-`SPOT_ALREADY_RESERVED` is the honest answer for an occupied spot;
-`CONFLICT` is the narrower case of a lost race between the check and the
-insert, which the unique constraint on (spot, day) turns into an error
-instead of a double booking.
-
-`reservation.myMonth` is caller-scoped — there is no `userId` input, so it can
-only ever answer for whoever is calling. `admin.reservation.month` answers the
-same question about a named user instead and is `@Roles('ADMIN')`: unlike the
-rest of this table, reading somebody else's month is a rule about the route,
-not about a row.
-
-`cap` is the monthly reservation cap **in force**, not the count of
-reservations that already exist. It comes from the `ReservationLimitSettings`
-singleton (`doc/decision/0312-*`), rides along on both procedures for the same
-reason the reservation-window state rides along on `overview.day`: the
-client's whole job with the two numbers is `cap - count`, and a count and a
-cap fetched from two independent round trips could disagree the moment an
-admin changes the setting between them. See "Reservation limits (admin)"
-below for where `cap` is written.
-
-`cap` is `null` when no cap applies to that month today — outside the `AUTO`
-window or under either override (`isMonthlyCapInForce`, `doc/decision/0315-*`);
-a client must then not bound the selection.
+`cap` is the monthly cap in force, not the count of existing reservations. It comes from the `ReservationLimitSettings` singleton and rides with the count so the client's `cap - count` cannot disagree across two round trips. It is `null` when no cap applies to that month today (outside the `AUTO` window, or under either override); the client then does not bound the selection.
 
 ### Waitlist
 
-| procedure        | input                     | output                                     | other errors                                                                                                                                                                                            |
-| ---------------- | ------------------------- | ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `waitlist.join`  | `{ parkingSpotId, date }` | `{ entry, position }`                      | `NOT_FOUND`, `ALREADY_IN_WAITLIST`, `CANNOT_WAITLIST_OWN_SPOT`, `SPOT_NOT_OCCUPIED`, `RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
-| `waitlist.leave` | `{ waitlistEntryId }`     | `{ waitlistEntryId, parkingSpotId, date }` | `NOT_FOUND`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `CONFLICT`                                                                                                                                        |
+| procedure        | input                     | output                                     | errors |
+| ---------------- | ------------------------- | ------------------------------------------ | ------ |
+| `waitlist.join`  | `{ parkingSpotId, date, holderId? }` (`holderId` admin only) | `{ entry, position }`                      | `NOT_FOUND`, `ALREADY_IN_WAITLIST`, `CANNOT_WAITLIST_OWN_SPOT`, `SPOT_NOT_OCCUPIED`, `RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
+| `waitlist.leave` | `{ waitlistEntryId }`     | `{ waitlistEntryId, parkingSpotId, date }` | `NOT_FOUND`, `CONFLICT` |
 
-Both are writes, so both are blocked by a locked window —
-`doc/decision/0004-*` names "leaving the waitlist" explicitly, since leaving
-reshuffles everyone behind you.
+Joining is a write and is blocked by the window; leaving is exempt from it (like cancelling, it moves others up). `RESERVATION_LIMIT_REACHED` on join is deliberate: a promotion would give the user a second reservation on a day they already hold, so they are refused up front. A promotion is not a procedure: it happens on the backend on cancellation and is reported as a realtime event.
 
-`RESERVATION_LIMIT_REACHED` on `join` isn't a typo: a promotion would give the
-user a second reservation on a day they already have one, so the waitlist
-rejects them upfront instead of never promoting them.
+### Bulk reservation (parking)
 
-`OUT_OF_HORIZON` on `leave` looks unreachable (you couldn't have joined a
-month that wasn't open), but it is reachable: an admin lowers
-`openDaysBefore`, and the month goes back to `NOT_YET_OPEN` while entries in
-it already exist.
+| procedure                 | input         | output                                               | errors |
+| ------------------------- | ------------- | ---------------------------------------------------- | ------ |
+| `reservation.previewBulk` | `{ dates[], holderId? }` | `{ month, preferredParkingSpotId, days[], freeSpots[], summary }` | `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `NOT_FOUND` |
+| `reservation.confirmBulk` | `{ dates[], holderId?, spotChoices?[{ date, parkingSpotId }] }` | `{ month, preferredParkingSpotId, days[], summary }`, days carrying the ids of the written rows | the above plus `MONTHLY_RESERVATION_LIMIT_REACHED`, `CONFLICT` |
 
-A waitlist promotion **is not a procedure** — it happens on the backend when
-a cancellation occurs, and it's reported via a realtime event (Task 5).
+`previewBulk` writes nothing (no reservation, waitlist entry or audit row) but declares the same window errors as `confirmBulk`. The input validates structure only: non-empty, at most `MAX_BULK_BOOKING_DAYS` (31), no duplicates, one month. A past day or a closed window fails the whole request (`PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, naming the earliest offending day); weekends, holidays, full days and days already booked are per-day results inside a successful response, not errors. A day is a union on `outcome`: `SPOT_ASSIGNED` (spot, label, `isPreferredSpot`), `QUEUED` (spot, label, `waitlistPosition`) or `UNAVAILABLE` (`reason`: `ALREADY_HAS_RESERVATION`, `NOT_A_BUSINESS_DAY`, `NO_SPOTS_AVAILABLE`). In `confirmBulk`, `SPOT_ASSIGNED` also carries `reservationId` and `QUEUED` carries `waitlistEntryId`. The client computes the preview-versus-outcome diff by pairing arrays on `date`; the server does not know the preview. Business rules are in `doc/parking.md`.
 
-### Bulk reservation
+### Spots, users, settings
 
-| procedure                 | input                    | output                                               | other errors                                                              |
-| ------------------------- | ------------------------ | ---------------------------------------------------- | ------------------------------------------------------------------------- |
-| `reservation.previewBulk` | `{ dates[] }`            | `{ month, preferredParkingSpotId, days[], summary }` | `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED` |
-| `reservation.confirmBulk` | `{ dates[] }` (the same) | the same + ids of the written rows                   | additionally `CONFLICT`                                                   |
+| procedure               | input                                                                | output        | errors |
+| ----------------------- | -------------------------------------------------------------------- | ------------- | ------ |
+| `spot.list`             | none                                                                 | `{ spots[] }` (active, non-hidden; for the picker) | none |
+| `admin.spot.list`       | `{ includeInactive = false, group? }`                                | `{ spots[] }` | none |
+| `admin.spot.create`     | `{ label, group, evCharger?, officeId? }`                            | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
+| `admin.spot.update`     | `{ id, label?, group?, active?, hidden?, evCharger?, officeId? }`               | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
+| `admin.spot.deactivate` | `{ id }`                                                             | `ParkingSpot` | `NOT_FOUND`, `CONFLICT` |
+| `admin.user.list`       | `{ role?, active?, search?, excludingReservedOrQueuedFor? }`                                        | `{ users[] }` | none |
+| `admin.user.update`     | `{ id, role?, active?, officeId?, manualAccount? }`                  | `AdminUser`   | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
+| `me.get`                | none                                                                 | `MyProfile`: the user including `icsToken`, plus `hiveId`, `permanentDeskId`, `ownsHive` | none |
+| `me.updateSettings`     | `{ licensePlate?, preferredParkingSpotId?, preferredDeskId? }`       | `MyProfile`   | `NOT_FOUND`, `VALIDATION_FAILED` |
+| `me.regenerateIcsToken` | none                                                                 | `{ icsToken }` | none |
 
-`previewBulk` **writes nothing** — no reservation, no waitlist entry, no
-audit record. It declares the same window errors as `confirmBulk`: proposing
-a schedule for a month the user can't reserve means showing them a plan they
-can never confirm.
+Spot `CONFLICT`: a duplicate `label` (unique across the lot) on create/update, or future reservations on deactivate. Deactivation is a soft delete (foreign keys from reservations and the audit log). Users are never created through the API (provisioned from the token on first login, see `doc/auth.md`) or deleted (offboarding is `active: false`). `adminUserSchema` is `userSchema.omit({ icsToken: true })`, so a new entity field shows up in the admin view by default while the token never does. `admin.user.update` `CONFLICT` guards against lock-out: demoting or deactivating the last active admin, and deactivating yourself.
 
-A day is a discriminated union on `outcome`:
+`me.updateSettings` is a partial update with three states per field: absent (unchanged), `null` (clear), a value (set). `preferredParkingSpotId` is the first choice of bulk reservation only and has no effect on a single-day reservation. `preferredDeskId` likewise feeds `desk.previewBulk` only; `NOT_FOUND` for an unknown desk, `VALIDATION_FAILED` for an inactive one or one outside the caller's office.
 
-| outcome         | carries                                                                            |
-| --------------- | ---------------------------------------------------------------------------------- |
-| `SPOT_ASSIGNED` | `parkingSpotId`, `parkingSpotLabel`, `isPreferredSpot`                             |
-| `QUEUED`        | `parkingSpotId`, `parkingSpotLabel`, `waitlistPosition`                            |
-| `UNAVAILABLE`   | `reason` (`ALREADY_HAS_RESERVATION` / `NOT_A_BUSINESS_DAY` / `NO_SPOTS_AVAILABLE`) |
-
-In `confirmBulk`'s result, `SPOT_ASSIGNED` additionally carries
-`reservationId` and `QUEUED` additionally carries `waitlistEntryId` — every
-result variant is a superset of the same preview variant.
-
-**The client computes the diff between the preview and the outcome** by
-pairing both arrays up by `date`; the server doesn't know the preview and has
-no need to. Why, and why the input stays just a list of days, is in
-`doc/decision/0019-draft-and-confirm-bulk-reservation.md`.
-
-The input validates **only structure**: non-empty, at most
-`MAX_BULK_BOOKING_DAYS` (31), no duplicates, all days in one month. Not
-weekends, holidays, or the past — that's day eligibility and belongs to the
-service layer, same as the window (ruling window-2).
-
-### Spots
-
-| procedure               | input                                                  | output        | other errors                                 |
-| ----------------------- | ------------------------------------------------------ | ------------- | -------------------------------------------- |
-| `spot.list`             | —                                                      | `{ spots[] }` | —                                            |
-| `admin.spot.list`       | `{ includeInactive = false, group? }`                  | `{ spots[] }` | —                                            |
-| `admin.spot.create`     | `{ label, group, evCharger?, officeId? }`              | `ParkingSpot` | `CONFLICT`, `VALIDATION_FAILED`, `NOT_FOUND` |
-| `admin.spot.update`     | `{ id, label?, group?, active?, hidden?, evCharger? }` | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
-| `admin.spot.deactivate` | `{ id }`                                               | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`                      |
-
-`spot.list` exists for a regular user too, because the settings screen needs
-a picker for `preferredParkingSpotId`. It returns only active, non-hidden
-spots and takes no filters.
-
-`CONFLICT` on `create`/`update` is a duplicate `label` (unique across the
-whole lot); on `deactivate` it's a spot with future reservations — an admin
-must resolve those before deactivating it. Deactivation is always a soft
-delete; the row isn't deleted, because of foreign keys from reservations and
-the audit log.
-
-### Users
-
-| procedure           | input                         | output        | other errors                                 |
-| ------------------- | ----------------------------- | ------------- | -------------------------------------------- |
-| `admin.user.list`   | `{ role?, active?, search? }` | `{ users[] }` | —                                            |
-| `admin.user.update` | `{ id, role?, active?, officeId?, manualAccount? }` | `AdminUser` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
-
-Users **aren't created** through the API (provisioning happens from the Okta
-token on first login) or deleted (offboarding is `active: false`).
-
-`adminUserSchema` is `userSchema.omit({ icsToken: true })` — the token is the
-only secret on the entity, and an admin has no reason to hold someone else's.
-`omit` is chosen deliberately: a new field on the entity shows up in the admin
-view automatically, which is the safer default for an administrative view
-than `pick`.
-
-An admin may only change role and active status; name, email, and license
-plate belong to the user. `CONFLICT` guards against two ways of locking the
-system out: demoting/deactivating the last active admin, and deactivating
-yourself.
-
-### User settings
-
-| procedure               | input                                        | output                             | other errors                     |
-| ----------------------- | -------------------------------------------- | ---------------------------------- | -------------------------------- |
-| `me.get`                | —                                            | `MyProfile` (`User` incl. `icsToken`, plus `hiveId`, `permanentDeskId`, `ownsHive`) | —      |
-| `me.updateSettings`     | `{ licensePlate?, preferredParkingSpotId?, preferredDeskId? }` | `User`                             | `NOT_FOUND`, `VALIDATION_FAILED` |
-| `me.regenerateIcsToken` | —                                            | `{ icsToken }`                     | —                                |
-
-`me.get` returns `icsToken`, because it's the caller's own token, and the
-settings screen builds the feed address from it.
-
-`me.updateSettings` is a partial update with **three** states per field:
-
-| value        | meaning                                         |
-| ------------ | ----------------------------------------------- |
-| field absent | don't change it                                 |
-| `null`       | clear it (no license plate / no preferred spot / no preferred desk) |
-| a value      | set it                                          |
-
-All three fields are nullable on the entity, so "clear" must be expressible;
-`.partial()` alone couldn't distinguish it from "don't change". `NOT_FOUND` is
-a nonexistent preferred spot; `VALIDATION_FAILED` targets a deactivated one.
-`preferredDeskId` likewise: `NOT_FOUND` for an unknown desk,
-`VALIDATION_FAILED` for an inactive one or one outside the caller's office. It
-is the first choice of `desk.previewBulk` only, and is cleared to `null` when
-an admin moves the user to another office or deactivates the desk or moves it
-to another office.
-
-`preferredParkingSpotId` is used **exclusively** as the first choice during a
-bulk reservation; it has no effect on a regular single-day reservation
-(`doc/decision/0004-*`).
+`me.regenerateIcsToken` declares no `CONFLICT`: the only collision is a unique-constraint hit on a fresh random token, which the handler retries internally.
 
 ### ICS feed
 
-The feed itself is **outside oRPC** — `plan.md` §Contract-first names it as
-the sole exception. Calendar clients (Outlook, Google) download a plain URL
-and can't be taught to send headers, so the feed can't ride the RPC transport
-or a session cookie. It's a plain `GET`, authenticated by an unguessable
-token in the path.
-
-The contract therefore doesn't own an endpoint, but **the URL's shape**, so
-`apps/sit-and-park/api` (which serves it) and `apps/sit-and-park/web` (which displays it) can't drift
-apart:
+The feed is outside oRPC: calendar clients cannot send headers, so it is a plain `GET` authenticated by an unguessable token in the path. The contract owns the URL shape so API and web cannot drift:
 
 ```ts
-ICS_FEED_BASE_PATH; // '/api/calendar'   (including apps/sit-and-park/api's global prefix)
-ICS_FEED_FILE_EXTENSION; // '.ics'
+ICS_FEED_BASE_PATH; // '/api/calendar'  (includes the API's global prefix)
 buildIcsFeedPath(token); // '/api/calendar/<token>.ics'
-buildIcsFeedUrl(base, token); // 'https://host/api/calendar/<token>.ics'
+buildIcsFeedUrl(base, token); // trims trailing slashes, percent-encodes the token; empty base or token throws
 ```
 
-`buildIcsFeedUrl` trims trailing slashes from `base` and percent-encodes the
-token. An empty token or an empty `base` throws — otherwise the URL would end
-up pointing at a collection instead of a user.
+`me.regenerateIcsToken` returns only the token; the client builds the URL from its own origin. Regenerating invalidates the old address immediately, which the UI must say.
 
-`me.regenerateIcsToken` returns **only the token**, not a URL: the contract
-doesn't know which origin the deployment is reachable at, and it shouldn't
-guess. The client assembles the URL with a helper. Regenerating immediately
-invalidates the old address, so the UI must tell the user they need to
-re-subscribe their calendar.
+### Reservation window and limits (admin)
 
-The procedure **does not declare `CONFLICT`**. The only conceivable collision
-is a unique constraint on a freshly generated random token, which isn't a
-state the client can do anything about — it's an instruction to retry.
-**Task 12 must therefore generate it in a retry loop inside the handler**,
-rather than surface an error the UI has no copy for. Reasoning:
-`doc/decision/0021-*`.
+| procedure                        | input                            | output                      | errors |
+| -------------------------------- | -------------------------------- | --------------------------- | ------ |
+| `admin.window.get`               | none                             | `ReservationWindowSettings` | none |
+| `admin.window.update`            | `{ openDaysBefore?, lockMode? }` | `ReservationWindowSettings` | `VALIDATION_FAILED`, `CONFLICT` |
+| `admin.window.months`            | `{ from, to }` (`YYYY-MM`)       | `{ months[], settings }`    | none |
+| `admin.reservationLimits.get`    | none                             | `ReservationLimitSettings`  | none |
+| `admin.reservationLimits.update` | `{ monthlyReservationCap? }`     | `ReservationLimitSettings`  | `VALIDATION_FAILED`, `CONFLICT` |
 
-### Reservation window (admin)
-
-| procedure             | input                            | output                      | other errors                    |
-| --------------------- | -------------------------------- | --------------------------- | ------------------------------- |
-| `admin.window.get`    | —                                | `ReservationWindowSettings` | —                               |
-| `admin.window.update` | `{ openDaysBefore?, lockMode? }` | `ReservationWindowSettings` | `VALIDATION_FAILED`, `CONFLICT` |
-| `admin.window.months` | `{ from, to }` (`YYYY-MM`)       | `{ months[], settings }`    | —                               |
-
-`admin.window.update` is a **replacement, not a patch**: the input is
-directly `reservationWindowSettingsSchema`, so an omitted field falls back to
-its **default** (`openDaysBefore: 7`, `lockMode: 'AUTO'`), not to the
-currently stored value. There are only two fields, and the admin form always
-renders both — "PUT replaces the resource" reads better than a patch whose
-result depends on invisible state. **Always send both.**
-
-`admin.window.months` returns months in ascending order along with the
-settings the states were derived under, so the admin tab can render both the
-table and the form from a single response. `from <= to` is checked in the
-schema — `YYYY-MM` sorts lexicographically, so no date arithmetic is needed
-for that. The range length is bounded by `MAX_MONTH_WINDOW_SPAN` (24 months),
-also in the schema, so the procedure doesn't declare `VALIDATION_FAILED` — it
-has no domain rule left that a structurally valid input could violate.
-
-A regular user calls none of these procedures; they get the window state for
-a specific day from `overview.day`.
-
-### Reservation limits (admin)
-
-| procedure                        | input                        | output                     | other errors                    |
-| -------------------------------- | ---------------------------- | -------------------------- | ------------------------------- |
-| `admin.reservationLimits.get`    | —                            | `ReservationLimitSettings` | —                               |
-| `admin.reservationLimits.update` | `{ monthlyReservationCap? }` | `ReservationLimitSettings` | `VALIDATION_FAILED`, `CONFLICT` |
-
-Same shape as the reservation window's pair, and deliberately so — a second
-settings surface built the same way rather than a variant
-(`doc/decision/0312-*`). `admin.reservationLimits.update` is a **replacement,
-not a patch**: the input is `reservationLimitSettingsSchema` itself, so an
-omitted field falls back to its default (`monthlyReservationCap: 5`), not to
-the value currently stored.
-
-A regular user calls neither procedure. The cap they need to render a correct
-grid rides along on `reservation.myMonth` / `admin.reservation.month` instead
-— see "Reservations" above.
-
-`admin.reservationLimits.update` declares `VALIDATION_FAILED` on the shared
-`authed` error builder, the same as `admin.window.update`, but — unlike
-`admin.window.update`, whose combination of fields can be rejected by
-`ReservationWindowService` — nothing in `ReservationLimitsService` currently
-throws it: the one field is a bounded integer the schema itself already
-guards (`MIN_MONTHLY_RESERVATION_CAP`–`MAX_MONTHLY_RESERVATION_CAP`), the same
-situation `admin.window.months` is in above. Worth checking against
-`doc/decision/0021-declared-error-must-have-a-reachable-trigger.md` — this
-documentation task does not change the contract, so it is left declared as
-written and flagged here rather than silently doc'd over.
+Both updates are replacements, not patches: the input is the settings schema itself, so an omitted field falls back to its default (`openDaysBefore` 7, `lockMode` `AUTO`, `monthlyReservationCap` 5), not to the stored value. Always send every field. `openDaysBefore` is bounded by `MIN/MAX_OPEN_DAYS_BEFORE` (1 to 31), the cap by `MIN/MAX_MONTHLY_RESERVATION_CAP` (1 to 31). `admin.window.months` returns months ascending with the settings they were derived under; `from <= to` is checked in the schema and the span is bounded by `MAX_MONTH_WINDOW_SPAN` (24). Regular users get window state from `overview.day` and the cap from `reservation.myMonth`.
 
 ### Timed reservations (admin)
 
-| procedure                       | input                                                                  | output                                        | other errors                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------- | ---------------------------------------------------------------------------------- |
+| procedure                       | input                                                                  | output                                        | errors |
+| ------------------------------- | ---------------------------------------------------------------------- | --------------------------------------------- | ------ |
 | `admin.timedReservation.create` | `{ parkingSpotId, date, startTime, endTime, guestName, licensePlate }` | `TimedReservation`                            | `NOT_FOUND`, `SPOT_ALREADY_RESERVED`, `PAST_DATE`, `VALIDATION_FAILED`, `CONFLICT` |
-| `admin.timedReservation.cancel` | `{ timedReservationId }`                                               | `{ timedReservationId, date, parkingSpotId }` | `NOT_FOUND`                                                                        |
+| `admin.timedReservation.cancel` | `{ timedReservationId }`                                               | `{ timedReservationId, date, parkingSpotId }` | `NOT_FOUND` |
 
-Admin-only, guest-only: a `TimedReservation` books a spot for a named guest on
-a half-hour-granular block of one day (`startTime`/`endTime` on the half-hour
-grid, half-open — `10:00`–`11:00` and `11:00`–`12:00` do not overlap), not the
-whole day. It is a separate row from `Reservation`, not a nullable time range
-on it, because every existing flow keyed on `Reservation`'s one-per-spot-per-
-day rule — the waitlist, promotion, the bulk allocator, the cap, the ICS
-feed, Slack — would otherwise have had to learn a second meaning for the
-same row (`doc/decision/0314-*`).
+A guest block is half-open on the half-hour grid (`10:00`-`11:00` and `11:00`-`12:00` do not overlap) and is a separate row from `Reservation`, so the waitlist, promotion, bulk allocator, cap, ICS feed and Slack never learn a second meaning for a reservation row. `SPOT_ALREADY_RESERVED` covers both a full-day reservation that day and an overlapping block; a database trigger enforces both. `PAST_DATE` and `VALIDATION_FAILED` (non-business day) come from the same policy guard as `reservation.create`; admins are exempt from the window, so `OUT_OF_HORIZON` and `RESERVATIONS_LOCKED` are not declared. A spot with guest blocks has no waitlist.
 
-`SPOT_ALREADY_RESERVED` covers two different refusals with one honest
-answer: the spot already has a full-day `Reservation` that day, or the
-requested block overlaps another `TimedReservation` on it. Both are enforced
-by a database trigger, not by a read-then-write check here, and the trigger
-does not distinguish the two cases either. `PAST_DATE` and
-`VALIDATION_FAILED` (a non-business day) come from the same
-`ReservationPolicy.assertMayTakeDay` guard `reservation.create` runs, so the
-admin window exemption applies here too and neither `OUT_OF_HORIZON` nor
-`RESERVATIONS_LOCKED` is reachable — the contract does not declare them.
+### Desks
 
-A spot with blocks has no waitlist: the queue is a `Reservation`-shaped
-concept, and nothing here gives a cell with guest blocks an equivalent.
+Rules are in `doc/desks.md`. All procedures declare `FORBIDDEN` via `authed`; the lists below give the other codes. `admin.*` is admin-only by router position.
 
-### Desks (desk merge)
+| procedure                         | input                                                                | errors |
+| --------------------------------- | -------------------------------------------------------------------- | ------ |
+| `desk.directory`                  | `{ date }`; office, zones, hives, desks with status, own reservation and pending request | `NO_OFFICE_ASSIGNED` |
+| `desk.previewSeries`              | `{ deskId, dates[1..20] }`, span at most 34 days; per-day `{ ok, reason }` | `NOT_FOUND`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED` |
+| `desk.reserve`                    | as `previewSeries`; `{ reserved[], skipped[{ date, reason }] }`      | the above plus `NO_FREE_DAY`, `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`, `CONFLICT` |
+| `desk.previewBulk`                | `{ dates[1..31] (one month), userIds?[1..50], deskIds?[1..500] }`; rows `ASSIGNED`, `UNASSIGNED` or `UNAVAILABLE`, plus free desks | `NOT_FOUND` |
+| `desk.confirmBulk`                | `{ assignments[{ userId, date, deskId }] }`, unique per person+day and desk+day | `NOT_FOUND`, `CONFLICT` |
+| `desk.cancel`                     | `{ reservationId }`                                                  | `NOT_FOUND`, `PAST_DATE` |
+| `desk.myReservations`, `desk.myRequests` | none; future plus the last 12 months                          | none |
+| `desk.requestApproval`            | `{ deskId, date }`                                                   | `NOT_FOUND`, `PAST_DATE`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `DESK_REQUEST_ALREADY_PENDING`, `VALIDATION_FAILED` |
+| `desk.cancelRequest`              | `{ requestId }`                                                      | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED` |
+| `desk.pendingRequests`            | none; requests awaiting the caller (hive owner or admin; not under `admin` because owners are not admins) | none |
+| `desk.decideRequest`              | `{ requestId, approve }`; `{ request, reservation \| null }`         | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED`, `PAST_DATE`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `VALIDATION_FAILED`, `CONFLICT` |
+| `desk.myReleases`                 | none; permanent desk plus releases, or `null`                        | none |
+| `desk.release`                    | `{ dates[1..60] }`; `{ added }`                                      | `NO_PERMANENT_DESK`, `PAST_DATE` |
+| `desk.cancelRelease`              | `{ releaseId }`                                                      | `NOT_FOUND`, `DESK_RELEASE_ALREADY_RESERVED` |
+| `admin.desk.list` / `.stats`      | `{ date, officeId? }`                                                | `.stats`: `NOT_FOUND` |
+| `admin.desk.update`               | `{ deskId, active?, hiveId?, zoneId?, officeId? }`                   | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT` |
+| `admin.desk.bulkUpdate`           | `{ deskIds[1..500], active?, hiveId? }`                              | `NOT_FOUND`, `CONFLICT` |
+| `admin.desk.setPermanentAssignee` | `{ deskId, userId \| null }`                                         | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT` |
+| `admin.desk.grants` / `.setGrant` | `{ deskId }` / `{ deskIds[1..500], userId, granted }`                | `NOT_FOUND` |
+| `admin.hive.list`                 | none                                                                 | none |
+| `admin.hive.create` / `.update`   | `{ name, color, ownerId }` / partial plus `hiveId`                   | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT` |
+| `admin.hive.delete`, `.setMembership` | `{ hiveId }` / `{ hiveId, userId, member }`                      | `NOT_FOUND` |
+| `admin.office.list` / `.create` / `.update` | none / `{ name, active }` / partial plus `officeId`        | create `CONFLICT`; update `NOT_FOUND`, `CONFLICT` |
+| `admin.zone.list` / `.create` / `.update` | `{ officeId }` / `{ officeId, key, name }` / `{ zoneId, name }` | create `NOT_FOUND`, `CONFLICT`; update `NOT_FOUND` |
+| `admin.employeeSync.get` / `.setLiveMode` | none / `{ liveMode }`; `{ liveMode, configured, runs[] }`    | none |
 
-Every procedure below carries a `.route({ description })` (asserted in
-`router.spec.ts`), so the contract can be exposed as MCP tools later. All
-declare `FORBIDDEN` through `authed`; the table lists the other codes.
-`admin.*` is admin-only by router position.
-
-| procedure                         | input                                         | output                                       | other errors                                                                                                                                                        |
-| --------------------------------- | --------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `desk.directory`                  | `{ date }`                                    | office, zones, hives, `desks[]` with status, `myReservationId`, `myPendingRequestId` | `NO_OFFICE_ASSIGNED`                                                                                                                                                |
-| `desk.previewSeries`              | `{ deskId, dates[1..20] }` (span ≤ 34 days)   | `{ days[{ date, ok, reason }] }`             | `NOT_FOUND`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED`                                                              |
-| `desk.reserve`                    | as `previewSeries`                            | `{ reserved[], skipped[{ date, reason }] }`  | previewSeries codes + `NO_FREE_DAY`, `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`, `CONFLICT`                                                          |
-| `desk.previewBulk`                | `{ dates[1..31] (one month), userIds?[1..50], deskIds?[1..500] }` | `{ month, people[], rows[ASSIGNED \| UNASSIGNED \| UNAVAILABLE], freeDesks[{ officeId, date, desks[] }] }` | `NOT_FOUND`                                                                                                                                                         |
-| `desk.confirmBulk`                | `{ assignments[{ userId, date, deskId }] }` (unique per person+day and desk+day) | `{ reserved[], skipped[{ userId, date, deskId, reason }] }` | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
-| `desk.cancel`                     | `{ reservationId }`                           | `{ reservationId, date, deskId }`            | `NOT_FOUND`, `PAST_DATE`                                                                                                                                            |
-| `desk.myReservations`             | —                                             | `{ reservations[] }`: future + last 12 months (`DESK_HISTORY_MONTHS`) | —                                                                                                                                                                   |
-| `desk.requestApproval`            | `{ deskId, date }`                            | `DeskApprovalRequest`                        | `NOT_FOUND`, `PAST_DATE`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `DESK_REQUEST_ALREADY_PENDING`, `VALIDATION_FAILED` |
-| `desk.cancelRequest`              | `{ requestId }`                               | `DeskApprovalRequest`                        | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED`                                                                                                                         |
-| `desk.myRequests`                 | —                                             | the caller's requests: future + last 12 months (`DESK_HISTORY_MONTHS`) | —                                                                                                                                                                   |
-| `desk.pendingRequests`            | —                                             | requests awaiting the caller (hive owner)    | —                                                                                                                                                                   |
-| `desk.decideRequest`              | `{ requestId, approve }`                      | `{ request, reservation \| null }`           | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED`, `PAST_DATE`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `VALIDATION_FAILED`, `CONFLICT` |
-| `desk.myReleases`                 | —                                             | permanent desk + releases, or `null`         | —                                                                                                                                                                   |
-| `desk.release`                    | `{ dates[1..60] }`                            | `{ added }`                                  | `NO_PERMANENT_DESK`, `PAST_DATE`                                                                                                                                    |
-| `desk.cancelRelease`              | `{ releaseId }`                               | `{ releaseId }`                              | `NOT_FOUND`, `DESK_RELEASE_ALREADY_RESERVED`                                                                                                                        |
-| `admin.desk.list`                 | `{ date, officeId? }`                         | `{ date, desks[] }`                          | —                                                                                                                                                                   |
-| `admin.desk.update`               | `{ deskId, active?, hiveId?, zoneId?, officeId? }` | `Desk`                                  | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
-| `admin.desk.bulkUpdate`           | `{ deskIds[1..500], active?, hiveId? }`       | `{ updated }`                                | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
-| `admin.desk.setPermanentAssignee` | `{ deskId, userId \| null }`                  | `Desk`                                       | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
-| `admin.desk.grants`               | `{ deskId }`                                  | `{ grants[] }`                               | `NOT_FOUND`                                                                                                                                                         |
-| `admin.desk.setGrant`             | `{ deskIds[1..500], userId, granted }`        | `{ updated }`                                | `NOT_FOUND`                                                                                                                                                         |
-| `admin.desk.stats`                | `{ date, officeId? }`                         | counts, `occupancyPercent`, by zone/office   | `NOT_FOUND`                                                                                                                                                         |
-| `admin.hive.list`                 | —                                             | hives with owner, members, desk count        | —                                                                                                                                                                   |
-| `admin.hive.create`/`update`      | `{ name, color, ownerId }` / partial + `hiveId` | `Hive`                                     | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
-| `admin.hive.delete`               | `{ hiveId }`                                  | `{ hiveId }`                                 | `NOT_FOUND`                                                                                                                                                         |
-| `admin.hive.setMembership`        | `{ userId, hiveId \| null }`                  | membership                                   | `NOT_FOUND`                                                                                                                                                         |
-| `admin.office.list`               | —                                             | `Office[]`                                   | —                                                                                                                                                                   |
-| `admin.office.create`             | `{ name, active }`                            | `Office`                                     | `CONFLICT`                                                                                                                                                          |
-| `admin.office.update`             | partial + `officeId`                          | `Office`                                     | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
-| `admin.zone.list`                 | `{ officeId }`                                | `Zone[]`                                     | —                                                                                                                                                                   |
-| `admin.zone.create`               | `{ officeId, key, name }`                     | `Zone`                                       | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
-| `admin.zone.update`               | `{ zoneId, name }`                            | `Zone`                                       | `NOT_FOUND`                                                                                                                                                         |
-| `admin.employeeSync.get`          | —                                             | `{ liveMode, configured, runs[≤12] }`        | —                                                                                                                                                                   |
-| `admin.employeeSync.setLiveMode`  | `{ liveMode }`                                | `{ liveMode }`                               | —                                                                                                                                                                   |
-
-The exact input/output shapes are the schemas in `api/desks.ts`,
-`api/desk-requests.ts`, `api/admin-desks.ts`, `api/hives.ts`,
-`api/offices.ts` and `api/employee-sync.ts`; the rules behind them are in
-`doc/desk-merge-plan.md`.
-
-New error codes: `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`,
-`DESK_NOT_AVAILABLE`, `PERMANENT_DESK_HOLDER`, `NO_OFFICE_ASSIGNED`,
-`NO_PERMANENT_DESK`, `DESK_RELEASE_ALREADY_RESERVED`,
-`DESK_REQUEST_ALREADY_PENDING`, `DESK_REQUEST_ALREADY_DECIDED`, `NO_FREE_DAY`
-(all 409) and `DESK_ACCESS_DENIED` (403). A series call skips blocked days
-with a `DeskSkipReason` instead of failing; `NO_FREE_DAY` means none was left.
-The sync itself (`POST /api/employee-sync`, bearer key) is outside oRPC.
-
----
+A series call skips blocked days with a `DeskSkipReason` instead of failing; `NO_FREE_DAY` means none was left. Desk-level blockers fail the whole call. The employee sync itself (`POST /api/employee-sync`, bearer key) is outside oRPC.
 
 ## Realtime (`@sit-and-park/contract/realtime`)
 
-The Socket.io half of the contract has its **own entry point**. That isn't
-cosmetic: `@sit-and-park/contract` pulls in `@orpc/contract`, and the RPC
-builder has no business on the realtime path — not in the browser bundle
-that only opens a socket, and not in the gateway. Rules:
+The Socket.io half has its own entry point so the RPC builder never reaches the browser socket bundle or the gateway. The root `index.ts` does not re-export it, and nothing under `src/realtime` imports `src/api`. `no-orpc.spec.ts` walks the actual module graph from `realtime/index.ts` and fails on any `@orpc/*` or `api/` file; the walker must also find `@orpc/contract` from `api/index.ts`, otherwise it would pass by not searching. `SOCKET_IO_PATH` (`/socket.io`) lives here as the one value server and client both use.
 
-- **Nothing under `src/realtime` imports from `src/api`.** Both branches take
-  their shared schemas from `src/schemas`; that's why `userSummarySchema` and
-  `publicReservationSchema` live there too.
-- **The root `src/index.ts` does not re-export realtime.** A single barrel
-  would undo that isolation in one line.
-- The proof is `src/realtime/no-orpc.spec.ts`: it walks the **actual module
-  graph** starting from `realtime/index.ts` and fails on any `@orpc/*` or on
-  any file from `api/`. ESLint alone couldn't guard this — `@orpc/contract`
-  is allowed for this lib and `@orpc/client` is installed in the repo. The
-  test has its own check built in: the same walker must **find**
-  `@orpc/contract` in `api/index.ts`, otherwise it would only pass because it
-  isn't actually searching.
+**Rooms.** One room per day, `day:YYYY-MM-DD`, from `roomForDate(date)`, which throws on an invalid date. The name is derived, never stored.
 
-### Rooms
+**Server to client events** go to the whole day room, only after the transaction commits.
 
-One room per day, `day:YYYY-MM-DD`, via `roomForDate(date)`. Everything the
-parking lot screen draws is bound to a single day; a room per spot would
-multiply the joins by the lot's size, and one global room would send every
-day's traffic to everyone. The name is **derived, never stored anywhere**, so
-the server and client can't drift apart. `roomForDate` is a pure function and
-**throws** on an invalid date — a room is a broadcast target, not a string to
-be taken on faith.
+| event                        | payload                                                                                   | when |
+| ---------------------------- | ----------------------------------------------------------------------------------------- | ---- |
+| `cell:locked`                | `{ date, parkingSpotId, lockedBy, expiresAt }`                                            | someone started editing a cell |
+| `cell:unlocked`              | `{ date, parkingSpotId }`                                                                 | the lock was released, expired or dropped with the socket |
+| `reservation:created`        | `{ date, parkingSpotId, reservation }`                                                    | a free spot is now occupied |
+| `reservation:cancelled`      | `{ date, parkingSpotId, reservationId }`                                                  | the spot is free and stays free |
+| `reservation:reassigned`     | `{ date, parkingSpotId, cause, previousReservationId, reservation, fromWaitlistEntryId }` | the holder changed within one transaction |
+| `waitlist:updated`           | `{ date, parkingSpotId, waitlistCount }`                                                  | a cell's waitlist got longer or shorter |
+| `timed-reservations:updated` | `{ date, parkingSpotId, timedReservations[] }`                                            | a guest block was created or cancelled |
+| `desk:reserved`              | `{ date, deskId, reservationId, userId, userName }`                                       | a desk reservation was created |
+| `desk:released`              | `{ date, deskId, reservationId }`                                                         | a desk reservation is gone (not a `DeskRelease`) |
 
-### Server → client events
+- Names are `<subject>:<past-participle>`: an event announces something already committed. Commands use the imperative (`cell:lock`), so direction reads from the name. `cell` is one (spot, date) cell of the grid; `cell:locked` has nothing to do with `MonthLockState.LOCKED`.
+- **One transaction, one event.** A cancellation that promotes the first waitlist entry sends `reservation:reassigned` instead of `reservation:cancelled`, never both, so clients do not flash the cell empty. `waitlist:updated` is not sent for that promotion: a non-null `fromWaitlistEntryId` means the cell's waitlist is one shorter and the client decrements locally or reloads.
+- `reservation:reassigned` is its own event because a promotion is a system action exempt from the window lock; `reservation:created` in a locked month would look like a violation. `cause` is from `RESERVATION_REASSIGN_CAUSES` (today only `WAITLIST_PROMOTION`).
+- `timed-reservations:updated` carries the whole current list, not a delta, so a client that missed an event self-heals on the next one.
 
-All of these are sent **only after** a transaction commits (Task 15) and go
-to the entire day room.
+**Client to server commands:**
 
-| event                        | payload                                                                                   | when                                                                       |
-| ---------------------------- | ----------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
-| `cell:locked`                | `{ date, parkingSpotId, lockedBy, expiresAt }`                                            | someone started editing a cell; the UI shows "currently being edited by …" |
-| `cell:unlocked`              | `{ date, parkingSpotId }`                                                                 | the lock was released, expired, or dropped with the socket                 |
-| `reservation:created`        | `{ date, parkingSpotId, reservation }`                                                    | a free spot is now occupied                                                |
-| `reservation:cancelled`      | `{ date, parkingSpotId, reservationId }`                                                  | the spot is free and **stays** free                                        |
-| `reservation:reassigned`     | `{ date, parkingSpotId, cause, previousReservationId, reservation, fromWaitlistEntryId }` | the spot changed holder within a single transaction                        |
-| `waitlist:updated`           | `{ date, parkingSpotId, waitlistCount }`                                                  | the waitlist on a cell got longer or shorter                               |
-| `timed-reservations:updated` | `{ date, parkingSpotId, timedReservations[] }`                                            | a guest half-hour block was created or cancelled on this cell              |
-| `desk:reserved`              | `{ date, deskId, reservationId, userId, userName }`                                       | a desk reservation was created                                             |
-| `desk:released`              | `{ date, deskId, reservationId }`                                                         | a desk reservation is gone (cancelled or freed) — not a `DeskRelease`      |
-
-**Names.** `<subject>:<past-participle>`, a colon, lowercase, subject in the
-singular. The past tense is information: an event announces something that
-has already happened and is committed. Commands in the opposite direction use
-the imperative (`cell:lock`), so direction is readable from the name. `cell`
-is the only non-domain subject and it's deliberate — the lock holds a pair
-(`parkingSpotId`, `date`), i.e. one **cell** of the day × spot grid, and
-`spot:locked` would read as "this spot is locked every day", which is
-something different and non-existent. `plan.md` and the Task 24 brief already
-call it "cell-lock".
-
-> **`cell:locked` has nothing to do with `MonthLockState.LOCKED`.** That's a
-> whole month's reservation window being closed; this is one user editing one
-> cell for about 30 seconds. No payload above carries the window state, and
-> **the window state is never broadcast** — see "What isn't broadcast".
-
-**One transaction = one event.** A cancellation that immediately promotes the
-first waitlist entry sends `reservation:reassigned` **instead of**
-`reservation:cancelled`, never both. A cancel + create pair would, for every
-client, first flash the cell empty.
-
-One consequence follows that's easy to forget: **a promotion shortened the
-waitlist, but `waitlist:updated` is not sent for it** — that would be a
-second event from the same transaction. A non-null `fromWaitlistEntryId`
-means "this cell's waitlist is one shorter"; the client either decrements
-`waitlistCount` locally, or reloads the day. Task 15 therefore does **not**
-emit `waitlist:updated` after a promotion.
-
-**`reservation:reassigned` is deliberately its own event** (ruling
-`window-1`): an automatic promotion is a system action, and the window lock
-doesn't apply to it, so `reservation:created` in a locked month would look
-like a window violation. That it wasn't a user action is said by the name;
-**which** system action it was is said by `cause`
-(`RESERVATION_REASSIGN_CAUSES` in `shared-types`, today a single value,
-`WAITLIST_PROMOTION` — see `doc/decision/0022-*`).
-
-**`timed-reservations:updated` carries the whole current list of blocks on
-that cell, not a delta** — the same reason `reservation:created` carries a
-full spot row rather than a diff: a client that missed one event self-heals
-on the next rather than drifting forever. No field on it is viewer-relative
-(a guest block has no `userId` and no queue position), so unlike the events
-above it is never followed by a refetch. Two near-simultaneous writes to the
-same cell can have their events arrive out of order; the next write — or a
-manual refetch — always lands the true list regardless (`doc/decision/0314-*`).
-
-### Client → server commands
-
-| command           | payload                   | ack                                                                                       |
-| ----------------- | ------------------------- | ----------------------------------------------------------------------------------------- |
-| `day:subscribe`   | `{ date }`                | —                                                                                         |
-| `day:unsubscribe` | `{ date }`                | —                                                                                         |
+| command           | payload                   | ack |
+| ----------------- | ------------------------- | --- |
+| `day:subscribe`   | `{ date }`                | none |
+| `day:unsubscribe` | `{ date }`                | none |
 | `cell:lock`       | `{ date, parkingSpotId }` | `{ result: 'ACQUIRED', expiresAt }` or `{ result: 'HELD_BY_OTHER', lockedBy, expiresAt }` |
-| `cell:unlock`     | `{ date, parkingSpotId }` | —                                                                                         |
+| `cell:unlock`     | `{ date, parkingSpotId }` | none |
 
-**The server always validates incoming client→server events.** The gateway
-(Task 15) looks up the event name in `CLIENT_TO_SERVER_EVENT_SCHEMAS`, runs
-the payload through `safeParse`, and **only then** lets the handler run; an
-invalid payload is dropped, and a name not in the registry isn't handled at
-all. For this to be a rule and not a wish, three things hold:
+The gateway looks the event up in `CLIENT_TO_SERVER_EVENT_SCHEMAS`, `safeParse`s the payload and only then runs the handler; invalid payloads are dropped and unknown names are not handled. The registries are what `ServerToClientEvents` / `ClientToServerEvents` are derived from, so a command without a schema cannot be declared. Inbound schemas are `strictObject` (unknown keys rejected; outbound stay lenient so a client tolerates a newer server) and use no `z.any`, `z.unknown`, `z.record` or passthrough. The socket carries subscriptions and the editing lock only: reservations are never created or cancelled over it. Re-sending `cell:lock` for a held cell extends the TTL (no separate heartbeat). The lock is a courtesy, not authorization; a client that skips it gets `CONFLICT` from `reservation.create`.
 
-1. The schema registry is also what `ClientToServerEvents`'s type is derived
-   from — a command without a schema can't be declared.
-2. No schema uses `z.any()`, `z.unknown()`, `z.record()`, or passthrough.
-   Inbound payloads are additionally `strictObject`: an unknown key is
-   **rejected**, not silently dropped. (Outbound events stay lenient — the
-   client must tolerate a server deployed ahead of it; the server has no such
-   obligation toward the client.)
-3. The surface is as small as possible. Four commands, two payload shapes,
-   **nothing domain-specific**: a reservation can't be created or cancelled
-   over the socket. The socket carries subscriptions and the editing lock;
-   mutations go through the API, where authorization and the window check
-   live.
+**Not broadcast:** anything relative to the viewer (queue position; clients reload), anything secret (users go out as `userSummarySchema`), who is on a waitlist (only a count), and the reservation-window state (the banner catches up on the next `overview.day`; a `window:updated` event would be added to the contract first). Gateway and lock behaviour are in `doc/integrations.md`.
 
-**A heartbeat isn't a separate command.** Resending `cell:lock` for a cell
-the caller already holds **extends** the TTL — it's idempotent, one fewer
-command on the surface, and a client that lost track of its own state can't
-corrupt the server's state.
+**Adding an event:** schema in `events.ts` (outbound) or `commands.ts` (inbound), derived from `schemas/` (`cellRefSchema` carries the date and spot pair); register it in `event-maps.ts`; add it to the expected list in `event-maps.spec.ts` with a payload test; describe it above.
 
-The lock is a **reservation of intent, not a reservation of a spot.** It
-books nothing; a reservation is still created through the API, which
-re-verifies everything. A client that skips the lock gets `CONFLICT` from
-`reservation.create` instead of a nicer message — the lock is a courtesy
-toward the other user, not an authorization step.
+## Adding to the contract
 
-### What isn't broadcast
+**A procedure:**
 
-- **Anything relative to the viewer.** An event goes to the whole room, so it
-  can't carry `viewerWaitlistPosition` or anything similar. A client whose own
-  queue position may have changed reloads the day.
-- **Anything secret.** Another user goes out exclusively as
-  `userSummarySchema` (`id`, `name`, `licensePlate`); `email`, `oktaId`, and
-  `icsToken` never reach the room.
-- **Who is on the waitlist.** `waitlist:updated` only carries a count, because
-  that's exactly how much another person learns about the waitlist from
-  `overview.day` too.
-- **The reservation-window state.** A change from `admin.window.update` isn't
-  broadcast in realtime; the banner catches up on the next `overview.day`.
-  This is a deliberate gap: an event nobody emits is the same mistake as an
-  undeclared code (`doc/decision/0021-*`), and the Task 15 brief has no
-  window broadcast. Once a few seconds of a stale banner turns out to matter,
-  `window:updated` gets added **to the contract first**.
+1. Input and output schemas as named constants in the domain file under `api/`, derived from entities (`.pick()`, `.omit()`, `.partial()`), never copied.
+2. Build on `authed` with `.input()`, `.output()`, `.errors(contractErrors(...))`; `noInputSchema` for no arguments.
+3. Wire it into `router.ts`, under `admin.` if it needs that role.
+4. Add a `*.spec.ts`: valid input, invalid input, what the output guarantees.
+5. Update `EXPECTED_PROCEDURES` and `EXPECTED_ERROR_CODES` in `api/router.spec.ts`. They are manual on purpose, so every change of the API surface shows in the diff.
+6. Describe it in this document.
 
-### How to add an event
+**A schema:** shared entities go in `schemas/entities.ts`, scalars in `schemas/primitives.ts`; a new enum value goes first into the tuple in `shared-types/src/lib/domain-constants.ts`, then into the Zod wrapper in `schemas/enums.ts`. Reuse `idSchema`, `dateOnlySchema`, `timestampSchema`; export the type via `z.infer` (plus `z.input` when there is a `.default()`); test valid, invalid and edge values (for an enum, the exact list); re-export from `schemas/index.ts`. Then `pnpm lint && pnpm typecheck && pnpm test`.
 
-1. The payload as a Zod schema, in `realtime/events.ts` (outbound) or
-   `realtime/commands.ts` (inbound). Derive it from `schemas/` —
-   `cellRefSchema` already carries the (`date`, `parkingSpotId`) pair.
-2. Register it in `realtime/event-maps.ts`. That also creates the entry in
-   `ServerToClientEvents` / `ClientToServerEvents`; those aren't hand-written,
-   they're mapped types over the registry.
-3. Add it to the expected list in `realtime/event-maps.spec.ts` and write a
-   payload test.
-4. Describe it in the table above.
+Never added: an ad-hoc error shape, database-dependent validation in a schema, a new error code that is undocumented here, a new audit action without extending `AUDIT_LOG_ACTIONS`, or an import from `@orpc/client` / `@orpc/server`.
 
----
+## Tooling notes
 
-## How to add a procedure
-
-1. **Input and output schemas** as named constants (`fooInputSchema`,
-   `fooOutputSchema`) in the file for that domain under `api/`. Derive from
-   entities (`.pick()`, `.omit()`, `.partial()`), never copy them by hand.
-   Derive the type via `z.infer`.
-2. **Build the procedure** on the `authed` builder (carries `FORBIDDEN`), add
-   `.input()`, `.output()`, and `.errors(contractErrors(...))`. **A procedure
-   with no declared errors is almost certainly wrong** — and so is a
-   procedure that declares a code whose trigger you can't name.
-   `.input()` is **never omitted**: an argument-less procedure gets
-   `noInputSchema`.
-3. **Wire it into `router.ts`** — under `admin.` if it requires that role.
-4. **A test alongside it** (`*.spec.ts`): valid input, invalid input, and
-   what the output must guarantee.
-5. **Update `EXPECTED_PROCEDURES` and `EXPECTED_ERROR_CODES` in
-   `api/router.spec.ts`.** Those two lists are deliberately manual — every
-   change to the API's surface then shows up in the diff.
-6. **Describe it here**, in the relevant section's table.
-
-What **does not** get added: a procedure returning an ad-hoc error shape,
-validation that needs data from the database (that belongs in the service
-layer), or any import from `@orpc/client` or `@orpc/server` — the contract
-must not reach for transport, and ESLint enforces that.
-
----
-
-## How to add a new schema
-
-1. **Figure out where it belongs.** A shared entity → `schemas/entities.ts`.
-   A new primitive (a scalar used in multiple places) → `schemas/primitives.ts`.
-   A new enum value → first a tuple in
-   `libs/sit-and-park/shared-types/src/lib/domain-constants.ts`, only then a Zod wrapper
-   in `schemas/enums.ts`.
-2. **Build on existing pieces.** Never rewrite `z.uuid()` or `z.iso.date()` –
-   use `idSchema`, `dateOnlySchema`, `timestampSchema`. Derive request shapes
-   from an entity (`.pick()`, `.omit()`, `.partial()`), don't write them
-   again.
-3. **Export the type via `z.infer`.** For a schema with `.default()`, also
-   export the `z.input`.
-4. **Write a test alongside it** (`*.spec.ts` in the same folder): a valid
-   input, an invalid input, edge values. For an enum, also test the exact
-   composition of the list — so extending it shows up in the diff.
-5. **Re-export** it from `schemas/index.ts` if you added a file.
-6. **Verify**: `pnpm lint && pnpm typecheck && pnpm test`.
-
-What **does not** get added: a new error code with no entry in this document,
-a new AuditLog action without extending `AUDIT_LOG_ACTIONS`, and any
-validation that needs data from the database — that belongs in the service
-layer.
-
----
-
-## What `libs/sit-and-park/shared-types` provides
-
-The contract builds on it, but the backend and `libs/shared/i18n` use it too.
-
-| area                  | functions                                                                                                                                                                                                                                                                |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| date-only             | `isDateOnly`, `assertDateOnly`, `parseDateOnly`, `formatDateOnly`, `addDays`, `addMonths`, `differenceInDays`, `compareDateOnly`, `isBefore/isAfter/isSameDay`, `startOfMonth`, `endOfMonth`, `toYearMonth`, `startOfYearMonth`, `dayOfWeek`, `isWeekend`, `daysInMonth` |
-| Europe/Prague         | `PRAGUE_TIME_ZONE`, `todayInPrague`, `toDateOnlyInPrague`, `startOfDayInPrague`, `endOfDayExclusiveInPrague`                                                                                                                                                             |
-| Czech public holidays | `czechPublicHolidayOn`, `isCzechPublicHoliday`, `isBusinessDay`, and the type `CzechHoliday`                                                                                                                                                                             |
-| enums and defaults    | `PARKING_GROUPS`, `USER_ROLES`, `RESERVATION_LOCK_MODES`, `MONTH_LOCK_STATES`, `DEFAULT_OPEN_DAYS_BEFORE`, `MIN/MAX_OPEN_DAYS_BEFORE`, `DEFAULT_RESERVATION_LOCK_MODE`                                                                                                   |
-| bulk reservation      | `BULK_DAY_OUTCOMES`, `BULK_UNAVAILABLE_REASONS`, `MAX_BULK_BOOKING_DAYS`                                                                                                                                                                                                 |
-| reservation window    | `isMonthOpen`, `monthLockState`, `reservationWindowRange`, `MAX_MONTH_WINDOW_SPAN`                                                                                                                                                                                       |
-| desks                 | `DESK_APPROVAL_STATUSES`, `EMPLOYEE_SYNC_MODES`, `EMPLOYEE_SYNC_STATUSES`, `DESK_STATUSES`, `DESK_ACCESS_LEVELS`, `DESK_SKIP_REASONS`, `FLOOR_PLANS`, `MAX_DESK_SERIES_DATES`, `MAX_DESK_SERIES_SPAN_DAYS`, `MAX_DESK_RELEASE_DATES`, `MAX_DESK_BULK_IDS`, `EMPLOYEE_SYNC_RUN_HISTORY`, `EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT` |
-| realtime              | `RESERVATION_REASSIGN_CAUSES`, `CELL_LOCK_RESULTS`                                                                                                                                                                                                                       |
-
-Arithmetic is calendar-based, and the timezone is resolved at a single
-boundary — see `doc/decision/0013-calendar-arithmetic-and-single-timezone-boundary.md`. Movable holidays (Good Friday, Easter
-Monday) are computed with the Meeus/Jones/Butcher algorithm, not from a
-table, so they never go stale.
-
-The holiday row is a **named** export list rather than a star, and it is
-shorter than the module behind it. The Easter arithmetic (`easterSunday`,
-`goodFriday`, `easterMonday`, `GOOD_FRIDAY_FIRST_YEAR`) and the year's holiday
-table (`czechPublicHolidays`, `CZECH_HOLIDAY_IDS`, `CzechHolidayId`) stay
-module-scoped: they are how the calendar is _computed_, not what a caller asks
-it, nothing outside the lib names any of them, and `czech-holidays.spec.ts`
-imports the module directly. The narrowness matters more here than elsewhere
-because this barrel is also `@sit-and-park/i18n`'s, re-exported wholesale under
-the same names (`doc/decision/0003-*`) — so a symbol published here is
-published to the browser bundle too.
-
----
-
-## Related decisions
-
-- `doc/decision/0003-date-helpers-in-shared-types.md` – why the date logic
-  isn't in `libs/shared/i18n`
-- `doc/decision/0004-mvp-scope-includes-design-features.md` – the reservation
-  window, bulk reservation, preferred spot
-- `doc/decision/0013-calendar-arithmetic-and-single-timezone-boundary.md`
-- `doc/decision/0014-dateonly-is-an-unbranded-string.md`
-- `doc/decision/0015-timestamps-in-contract-are-iso-strings.md`
-- `doc/decision/0016-closed-enums-and-uuid-in-contract.md` – why the UUID
-  version is unconstrained
-- `doc/decision/0018-mapping-error-contract-to-orpc.md` – `details` = oRPC
-  `data`, statuses
-- `doc/decision/0019-draft-and-confirm-bulk-reservation.md` – why the client
-  computes the diff
-- `doc/decision/0020-orpc-is-esm-only-jest-must-transpile-it.md` – the
-  required Jest configuration
-- `doc/decision/0021-declared-error-must-have-a-reachable-trigger.md` – why a
-  code with no trigger gets removed and the limit belongs in the schema
-- `doc/decision/0022-realtime-event-names-and-one-transaction-one-event.md`
-- `doc/decision/0023-realtime-is-a-separate-entry-point-and-maps-are-derived.md`
+- `@orpc/contract` is ESM-only and Jest runs CommonJS, so `jest.config.cts` transpiles the `@orpc` packages (`buildTransformIgnorePatterns` from the root `jest.preset.js`, an `.mjs` ts-jest transform, `mjs` in `moduleFileExtensions`, `allowJs` in `tsconfig.spec.json`). Any project importing the contract in a Jest test needs the same.
+- The API implements the contract with `@orpc/server` plus one Nest route per procedure delegating to a shared RPC handler, served under `/api/rpc/`; see `doc/backend.md`.

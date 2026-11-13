@@ -7,11 +7,10 @@
  *
  * It lives in `__fixtures__/` because `tsconfig.lib.json` excludes that folder:
  * being unreferenced was not enough, the file was still inside the library's
- * compilation program and would have been emitted into a build (Task 4 review,
- * N4). The spec tsconfig includes it explicitly.
+ * compilation program and would have been emitted into a build. The spec tsconfig includes it explicitly.
  */
 
-/** Valid UUIDs. The contract accepts any version (`doc/decision/0016-*`). */
+/** Valid UUIDs. The contract accepts any version. */
 export const UUID_A = '11111111-1111-4111-8111-111111111111';
 export const UUID_B = '22222222-2222-4222-8222-222222222222';
 export const UUID_C = '33333333-3333-4333-8333-333333333333';

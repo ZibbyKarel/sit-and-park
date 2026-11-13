@@ -153,7 +153,7 @@ export function useLotRealtime({ date, viewerUserId }: LotRealtimeOptions): void
  * **Why anything is needed at all.** The four handlers above patch the cache
  * from broadcasts. A broadcast published while the socket is down is not
  * queued anywhere — it is gone — and nothing else brings the entry back in
- * line: `libs/query` sets `refetchOnWindowFocus: false` and a 30 s
+ * line: the app's `QueryClient` sets `refetchOnWindowFocus: false` and a 30 s
  * `staleTime`, and TanStack's `refetchOnReconnect` keys off `navigator.onLine`,
  * which says nothing about a socket that dropped for a reason other than the
  * network (an API restart, a proxy idle timeout, a laptop resume). Without

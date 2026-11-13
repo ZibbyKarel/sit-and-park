@@ -4,8 +4,7 @@
  * while Jest runs here as CommonJS.
  *
  * The `transformIgnorePatterns` half of that fix now lives in
- * `jest.preset.js` — `doc/decision/0020-*` asked for the consolidation and
- * `doc/decision/0297-*` is where it happened. What stays local is the part that
+ * `jest.preset.js`. What stays local is the part that
  * cannot be shared:
  *
  * - the `.mjs` transform entry, because this project uses **ts-jest** (which

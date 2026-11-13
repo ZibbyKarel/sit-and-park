@@ -1,8 +1,8 @@
 /**
  * The races. Real transactions, real locks, real `P2002`s.
  *
- * Task 12's report named this the one thing the whole build had not proven:
- * *"two simultaneous requests, one winner" is unproven anywhere*. This file is
+ * Proof of "two simultaneous requests, one winner" against a real PostgreSQL.
+ * This file is
  * that proof, and it is written to be **falsifiable**: every case here fails
  * when the mechanism it covers is removed, and the task report records the
  * failure output from actually removing it.

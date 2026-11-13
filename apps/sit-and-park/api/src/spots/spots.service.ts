@@ -3,8 +3,7 @@
  *
  * The rule that shapes this whole file is that **a spot is never deleted**.
  * `Reservation` and `WaitlistEntry` reference it with `ON DELETE RESTRICT`, and
- * `AuditLog` entries name it by id, so retiring one is `active: false`
- * (`doc/decision/0027-*`). Everything else follows from that: `spot.list`
+ * `AuditLog` entries name it by id, so retiring one is `active: false`. Everything else follows from that: `spot.list`
  * filters on `active`, and `deactivate` has to refuse while the spot still holds
  * reservations — or queues — somebody is counting on.
  */
@@ -48,7 +47,7 @@ export class SpotsService implements OnModuleInit {
   /**
    * Ids of every hidden spot, for the realtime gateway, which decides per
    * broadcast — synchronously, on the way out — whether a non-admin may hear
-   * it (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`).
+   * it.
    *
    * ponytail: an in-process copy of `ParkingSpot.hidden`, loaded at boot and
    * kept current only by {@link update}. Correct for the single instance this
@@ -152,7 +151,7 @@ export class SpotsService implements OnModuleInit {
    * holding reservations for it. Hiding (`hidden`) is deliberately *not* held
    * to that rule: a hidden spot is still bookable by an admin and still shown
    * to whoever holds it. The EV charger flag is held to no rule at all: it is
-   * information about the bay (`doc/decision/0317-*`).
+   * information about the bay.
    */
   async update(input: UpdateSpotInput, actorUserId: string): Promise<ParkingSpot> {
     const { id, ...changes } = input;
@@ -299,12 +298,12 @@ export class SpotsService implements OnModuleInit {
    * unreachable by the person who queued, and never promotable, because nothing
    * will ever free a spot nobody can reserve. `ON DELETE RESTRICT` explains why
    * the *row* survives a retirement; it says nothing about why the *queue*
-   * should. See `doc/decision/0235-*`.
+   * should.
    *
    * **Guest half-hour blocks count too**, for the plainer reason: a guest is
    * booked to park there on a named day, and retiring the spot out from under
    * them is exactly the same mistake as retiring it out from under a full-day
-   * holder. `doc/decision/0314-*`.
+   * holder.
    */
   private async requireNoFutureCommitments(spotId: string): Promise<void> {
     const from = toDateColumn(todayInPrague());

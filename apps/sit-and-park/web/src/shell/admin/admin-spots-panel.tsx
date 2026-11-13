@@ -137,8 +137,7 @@ export function AdminSpotsPanel() {
    * rather than only the one about to run, because `writeError` reads whichever
    * of them is non-null. The screen calls this whenever its dialog changes: a
    * failure describes one attempt, and an attempt the admin has walked away
-   * from must not follow them into the next dialog and be read as its own. See
-   * `doc/decision/0167-*`.
+   * from must not follow them into the next dialog and be read as its own.
    *
    * Clearing the *error* is what matters, and it matters beyond the dialogs: a
    * mutation that failed keeps answering for every later write, so a create

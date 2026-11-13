@@ -29,7 +29,7 @@
  *   have nothing to exercise. At 31 days the *next* month is always open under
  *   the ordinary `AUTO` rule (its window starts on or before the first of the
  *   current month and ends on its last day), which is what the suite books
- *   into. See `doc/decision/0181-*`.
+ *   into.
  * - **Deletes every parking spot that is not one of the nine seeded ones**,
  *   together with any reservation or queue entry on it. That is a spot an
  *   interrupted run of the spot-administration spec created and did not clean
@@ -55,8 +55,7 @@
  * this script with whatever environment it inherited — while `DATABASE_URL`,
  * the variable that actually decides which database is emptied, was never
  * looked at. The final review found it as I-2. The guard now reads the
- * connection string; see
- * `doc/decision/0276-destructive-database-scripts-are-guarded-by-the-connection-string.md`.
+ * connection string.
  *
  * That guard is also what makes the un-restored reservation window below
  * defensible rather than merely acknowledged: the only databases this script
@@ -221,8 +220,8 @@ async function main(): Promise<void> {
     // contract, not an oversight.** The row is global and singular, so every
     // run leaves the database booking-open 31 days ahead until somebody
     // re-seeds. Three things make that acceptable rather than merely
-    // acknowledged: it is a value an admin can legitimately set through the UI
-    // (`doc/decision/0181-*`); a teardown that restored it would still be wrong
+    // acknowledged: it is a value an admin can legitimately set through the UI;
+    // a teardown that restored it would still be wrong
     // for anyone whose run was interrupted; and `assertDisposableDatabase`
     // above means the only databases reachable without an explicit override are
     // local ones whose settings nobody is entitled to rely on between runs.

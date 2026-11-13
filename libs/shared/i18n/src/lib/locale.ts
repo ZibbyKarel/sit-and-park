@@ -20,7 +20,7 @@ export type Locale = (typeof LOCALES)[number];
  * The locale used when nothing else is known — an absent header, an
  * unparseable one, or a header that asks for neither Czech nor anything else
  * specific. Czech, because this is a Czech company's internal app
- * (`CLAUDE.md`).
+ * (`AGENTS.md`).
  */
 export const DEFAULT_LOCALE: Locale = 'cs';
 

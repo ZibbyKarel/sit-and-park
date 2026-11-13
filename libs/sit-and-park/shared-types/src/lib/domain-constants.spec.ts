@@ -81,7 +81,7 @@ describe('bulk booking enumerations', () => {
 });
 
 describe('reservation window defaults', () => {
-  it('matches doc/decision/0004', () => {
+  it('matches the documented defaults', () => {
     expect(DEFAULT_OPEN_DAYS_BEFORE).toBe(7);
     expect(DEFAULT_RESERVATION_LOCK_MODE).toBe('AUTO');
     expect(MIN_OPEN_DAYS_BEFORE).toBe(1);
@@ -98,7 +98,6 @@ describe('realtime enumerations', () => {
   it('has exactly one reassignment cause, because only one thing emits one', () => {
     // An `ADMIN_REASSIGNMENT` member would be a cause nothing can produce: the
     // API contract has no procedure that moves a reservation between users.
-    // See doc/decision/0021-* and doc/decision/0022-*.
     expect(RESERVATION_REASSIGN_CAUSES).toEqual(['WAITLIST_PROMOTION']);
   });
 
@@ -132,7 +131,7 @@ describe('structural caps', () => {
 
   it('states all caps as positive integers the contract can enforce structurally', () => {
     // All exist so the limit lives in the schema instead of being discovered
-    // by rejection (doc/decision/0021-*).
+    // by rejection.
     for (const cap of [
       MAX_MONTH_WINDOW_SPAN,
       MAX_BULK_BOOKING_DAYS,

@@ -7,7 +7,7 @@
   "// targets": "to see all targets run: nx show project web --web",
   "targets": {
     "build": {
-      "// env": "Nx injects the workspace-root and project-root `.env` files into every target's environment. Both carry NODE_ENV=development (they are dev env files \u2014 see doc/decision/0009-*), which would otherwise leak into `next build` and produce a mixed development/production React resolution. Pin it here; see doc/decision/0028-*.",
+      "// env": "Nx injects the workspace-root and project-root `.env` files into every target's environment. Both carry NODE_ENV=development (they are dev env files), which would otherwise leak into `next build` and produce a mixed development/production React resolution. Pin it here.",
       "options": {
         "env": {
           "NODE_ENV": "production"
@@ -15,7 +15,7 @@
       }
     },
     "start": {
-      "// env": "The same `.env` injection the build target guards against reaches `next start` too, and Next.js says so out loud: `\u26a0 You are using a non-standard \"NODE_ENV\" value in your environment.` Serving a production build under NODE_ENV=development is exactly the mixed resolution doc/decision/0028-* is about \u2014 and `web:start` is what the e2e suite runs (doc/decision/0187-*), so without this pin the suite's claim to exercise the app production runs is only half true.",
+      "// env": "The same `.env` injection the build target guards against reaches `next start` too, and Next.js says so out loud: `\u26a0 You are using a non-standard \"NODE_ENV\" value in your environment.` Serving a production build under NODE_ENV=development is exactly the mixed React resolution \u2014 and `web:start` is what the e2e suite runs, so without this pin the suite's claim to exercise the app production runs is only half true.",
       "options": {
         "env": {
           "NODE_ENV": "production"

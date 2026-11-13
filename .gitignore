@@ -1,5 +1,4 @@
 # Project-specific
-plan.md
 .superpowers/
 .playwright-mcp/
 storage-state*.json

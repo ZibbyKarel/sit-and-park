@@ -3,7 +3,7 @@
  *
  * `src/realtime/index.ts` existing proves nothing on its own — the path alias in
  * `tsconfig.base.json` is what turns it into `@sit-and-park/contract/realtime`, and
- * a missing or misspelt alias would first surface in Task 15 or Task 24.
+ * a missing or misspelt alias would first surface in the gateway or the realtime client.
  *
  * This file cannot simply `import '@sit-and-park/contract/realtime'`: a project may
  * not reach its own sources through its own alias

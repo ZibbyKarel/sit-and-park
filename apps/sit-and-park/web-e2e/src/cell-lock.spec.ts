@@ -21,8 +21,7 @@
  * {@link waitForDayRoom} on the observing page. A `cell:locked` broadcast is
  * never replayed to a socket that joins afterwards, so taking the hold before
  * the observer is in the room is not a slow test — it is a test asking about an
- * event that was already sent to nobody. See `realtime.ts` and
- * `doc/decision/0187-*` for the measurement behind that.
+ * event that was already sent to nobody. See `realtime.ts`.
  */
 
 import { e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
@@ -45,7 +44,7 @@ const DATE = e2eDayForSlot(SPEC_DAY_SLOTS.cellLock);
  * hold over from the other, and the observed tile stops meaning what the
  * assertion says it means.
  *
- * Since `doc/decision/0220-*` a *release* also has to come from the connection
+ * A *release* also has to come from the connection
  * that holds the cell. That helps in one direction only: the test whose dialog
  * opened **first** can no longer drop the other's hold. The one that opened
  * second still can — its `cell:lock` re-keyed the hold onto its own socket, so

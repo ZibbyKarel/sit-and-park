@@ -40,8 +40,8 @@ body {
 }
 
 /*
- * Geometry of the parking-lot map (`doc/design/sit-and-park-design.dc.html`, the
- * `sc-for` over `group.spots`): a bay is a physical shape, not a step on a
+ * Geometry of the parking-lot map (the design's
+ * per-spot loop): a bay is a physical shape, not a step on a
  * spacing ramp.
  */
 :root {

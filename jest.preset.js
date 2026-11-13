@@ -6,13 +6,10 @@ const nxPreset = require('@nx/jest/preset').default;
  * here runs as CommonJS. Jest transforms nothing under `node_modules` by
  * default, so without this their `import` statements reach the CJS loader
  * untransformed and the suite dies on `Cannot use import statement outside a
- * module`. `doc/decision/0020-orpc-is-esm-only-jest-must-transpile-it.md`.
+ * module`.
  *
- * **Why it is here and not in each project.** 0020 said the third project to
- * need this block should move it into this file rather than copy it again. It
- * reached eleven copies before anyone was in a position to do it, because each
- * task that added one could only touch its own files. It is consolidated here
- * now (`doc/decision/0297-*`); the copies that remain are named there.
+ * **Why it is here and not in each project.** A project that needs this block uses it from this file rather than copying it;
+ * the few local copies that remain are named in their own configs.
  *
  * The list is the **union** across the workspace, not a per-project set, and
  * that costs nothing: `transformIgnorePatterns` only says a file *may* be

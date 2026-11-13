@@ -370,14 +370,14 @@ describe('createAuthConfig', () => {
   });
 
   it('sends one grant when two configurations renew the same token at once', async () => {
-    // The shape of the real deployment, and the defect `doc/decision/0245-*`
+    // The shape of the real deployment, and the defect the process-global refresh state
     // fixes: Next.js builds the proxy, the `/api/auth/*` handlers and the
     // server components separately, so `createAuthConfig` runs three times in
     // one `next start` — the same measurement `revokes across configurations`
     // below rests on. The proxy and the root layout then read the **same**
     // request cookie, so inside the renewal skew they present the same refresh
     // token. With an in-flight slot per closure they both exchanged it; the
-    // final review measured two grants where `doc/decision/0051-*` promised
+    // final review measured two grants where the design promised
     // one, and with rotation enabled on the authorization server the second
     // comes back `invalid_grant` and signs the user out mid-session.
     //

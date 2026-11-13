@@ -75,7 +75,7 @@ describe('the web app’s security headers', () => {
     //   would have every oRPC call and the socket handshake refused, in the
     //   browser, with nothing in a server log.
     //
-    // `doc/decision/0259-*` records both, and the nonce-in-middleware upgrade
+    // The nonce-in-middleware route is the upgrade
     // path. If someone adds either directive, this test is where they have to
     // come and say why.
     const csp = await headerValue('Content-Security-Policy');

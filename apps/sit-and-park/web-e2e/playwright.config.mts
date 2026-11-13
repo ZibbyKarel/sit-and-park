@@ -30,13 +30,13 @@ import { workspaceRoot } from '@nx/devkit';
  *    suite drives two and three concurrent sessions against one shared
  *    database, so running it three times over would triple the contention for
  *    no coverage: nothing here is browser-specific — no CSS assertions, no
- *    vendor-prefixed API. See `doc/decision/0182-*`.
+ *    vendor-prefixed API.
  * 4. **Whose server the tests are talking to.** The web server is started in a
  *    process group Playwright can actually kill, port 4200 is never reused,
  *    and `src/support/build-identity.setup.ts` refuses to let the suite run
  *    against a build other than the one Nx just produced. Before that, a run
  *    could — and measurably did — report 20 passed against the previous run's
- *    orphaned server. See `doc/decision/0285-*` and the `webServer` entry.
+ *    orphaned server. See the `webServer` entry.
  */
 const baseURL = process.env['BASE_URL'] ?? 'http://localhost:4200';
 
@@ -76,8 +76,8 @@ export default defineConfig({
       // block raising `THROTTLE_LIMIT` used to sit here and never applied —
       // measured, `X-RateLimit-Limit: 300` and strict `20`, the shipped
       // defaults — so it was removed rather than left looking effective.
-      // `doc/decision/0186-*` records what actually keeps the suite under the
-      // limit and what to do on the day it does not.
+      // What actually keeps the suite under the limit is the API throttle
+      // override in `webServer`/e2e env; revisit that on the day it is not enough.
       command: 'pnpm nx run api:serve',
       url: `${apiUrl}/health/ready`,
       // Unconditionally `true`, unlike the web server below: Nx's `dependsOn`
@@ -99,12 +99,11 @@ export default defineConfig({
       // second socket.io connection as a matter of course. A page with two
       // connections sits in the day room twice and hears its own `cell:locked`,
       // which the gateway broadcasts to everybody *except* the asking socket.
-      // `doc/decision/0187-*` has the packet traces and the measured rates.
       //
       // The built app does *not* have a second way of doing this, though that
       // was believed and recorded for a while: measured per document rather
       // than per page, it is one connection, 89 documents out of 89
-      // (`doc/decision/0221-*`, `src/realtime-connection.spec.ts`).
+      // (`src/realtime-connection.spec.ts`).
       //
       // **`next start` directly, not `pnpm nx run web:start`, and that is the
       // whole point of this line.** Nx's `run-commands` executor spawns its
@@ -117,7 +116,7 @@ export default defineConfig({
       // reaches the shell and `nx`, and nothing at all in the group Nx made.
       // The `next start` behind it was left running, reparented to PID 1, on
       // every run — measured: 20 passed, exit 0, and `next-server` still
-      // holding 4200 with PPID 1 afterwards. `doc/decision/0285-*`.
+      // holding 4200 with PPID 1 afterwards.
       //
       // Running `next start` under Playwright's own shell puts the server in
       // the group Playwright kills, so the port is free when the run ends.
@@ -129,7 +128,7 @@ export default defineConfig({
       // `web:build` and `web:start` both pin this, because Nx injects the
       // workspace `.env` (NODE_ENV=development) into every target and serving
       // a production build under it is the mixed React resolution
-      // `doc/decision/0028-*` is about. Playwright merges this over
+      // the repo guards against. Playwright merges this over
       // `process.env`, so the pin survives the move off `web:start`.
       env: { NODE_ENV: 'production' },
       url: `${baseURL}/api/health`,

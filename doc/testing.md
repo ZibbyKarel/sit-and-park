@@ -1,171 +1,80 @@
 # Testing
 
-Four test layers, three runners, one of them needing Docker. This page says
-what each layer is for, how to run it, and what has to be up first.
-
----
+Four test layers, three runners, and the last three layers need Docker or a database. This page says what each layer is for, how to run it, and what has to be up first. CI runs all of them (`.github/workflows/ci.yml`: `verify`, `database`, `e2e`, `images`; see `doc/workspace.md`).
 
 ## The layers
 
-| Layer | Where | Runner | Needs Docker |
-| --- | --- | --- | --- |
-| **Unit** | `**/*.spec.ts(x)` in every project except the two `*-e2e` apps | Jest, via `nx run <project>:test` | no |
-| **Database** | `apps/sit-and-park/api/**/*.db.spec.ts` | Jest, via `nx run api:test-db` | **yes** (PostgreSQL) |
-| **API end-to-end** | `apps/sit-and-park/api-e2e/src/**/*.spec.ts` | Jest + axios, via `nx run api-e2e:e2e` | **yes** (PostgreSQL) |
-| **Browser end-to-end** | `apps/sit-and-park/web-e2e/src/**/*.spec.ts` | Playwright, via `nx run web-e2e:e2e` | **yes** (PostgreSQL + the OIDC issuer) |
+| Layer                  | Where                                                           | Runner                           | Needs |
+| ---------------------- | --------------------------------------------------------------- | -------------------------------- | ----- |
+| **Unit**               | `**/*.spec.ts(x)` in every project except the two `*-e2e` apps  | Jest, `nx run <project>:test`    | nothing |
+| **Database**           | `apps/sit-and-park/api/**/*.db.spec.ts`                         | Jest, `nx run api:test-db`       | PostgreSQL, `DATABASE_URL` |
+| **API end-to-end**     | `apps/sit-and-park/api-e2e/src/**/*.spec.ts`                    | Jest + axios, `nx run api-e2e:e2e` | PostgreSQL, the OIDC issuer |
+| **Browser end-to-end** | `apps/sit-and-park/web-e2e/src/**/*.spec.ts`                    | Playwright, `nx run web-e2e:e2e` | PostgreSQL, the OIDC issuer |
 
-They are cumulative, not redundant. A rule of thumb for where a new test
-belongs:
+The layers are cumulative, not redundant. Put a test in the cheapest layer that can fail for the right reason:
 
-- **Unit** — a decision, a mapping, a rendering. No process, no socket, no
-  database. This is where most of the suite lives and where it should stay.
-- **Database** (`*.db.spec.ts`) — anything whose correctness *is* the database:
-  a unique constraint, `SELECT … FOR UPDATE`, a transaction's rollback, two
-  concurrent writers racing. These are excluded from `api:test` by
-  `apps/sit-and-park/api/jest.config.cts` and run under their own config, `--runInBand`.
-- **API end-to-end** — what the API does over real HTTP to a request a browser
-  would never send: no `Authorization` header, a token from another issuer, a
-  scheme that is not `Bearer`. `apps/sit-and-park/web-e2e` always arrives holding a valid
-  session, so it structurally cannot ask these questions.
-- **Browser end-to-end** — a whole user journey across both apps, the database
-  and the socket. Expensive; reserved for the journeys in `apps/sit-and-park/web-e2e/src/`,
-  one spec file each. What earns a file here is a claim no lower layer can
-  make: two people disagreeing over the same bay, a setting saved on one
-  screen changing another, a URL that stops answering. What does **not** is a
-  rule the lower layers already settle on their own — the monthly reservation
-  cap and the `FORCE_LOCKED` lockdown are both deliberately absent. The cap is
-  decided in `monthly-reservation-cap.ts` and the lockdown in
-  `reservation-policy.ts`; both are asserted in the unit and database layers,
-  the cap including each of its three writers driven with an
-  admin-configured number, and reproducing them here would cost a browser and a
-  shared-state collision to re-test arithmetic. The cap does now have screens —
-  the admin tab that sets it and the bulk-booking modal that renders it — and
-  neither has a browser spec; whether that fifth admin tab earns a file of its
-  own is an open question for this section, not a statement that the rule is
-  untested.
+- **Unit:** a decision, a mapping, a rendering. No process, no socket, no database. Most of the suite lives here.
+- **Database (`*.db.spec.ts`):** anything whose correctness is the database: a unique constraint, `SELECT ... FOR UPDATE`, a transaction's rollback, two concurrent writers racing, a trigger. Transactional logic is never tested against mocks, because faking protocol is how defects ship.
+- **API end-to-end:** what the API does over real HTTP to a request a browser would never send: no `Authorization` header, a token from another issuer, a scheme that is not `Bearer`, the ICS feed with a wrong token. `web-e2e` always arrives with a valid session, so it structurally cannot ask these questions.
+- **Browser end-to-end:** a whole user journey across both apps, the database and the socket. It is expensive and reserved for claims no lower layer can make: two people disagreeing over the same bay, a setting saved on one screen changing another, a URL that stops answering. A rule the lower layers already settle (the monthly cap arithmetic, the `FORCE_LOCKED` lockdown, decided in `monthly-reservation-cap.ts` and `reservation-policy.ts`) is not re-tested through a browser.
 
----
-
-## Writing a new browser spec
-
-Four constraints, each of which has already cost this suite a day:
-
-- **Take a day slot.** `support/dates.ts`'s `SPEC_DAY_SLOTS` hands each spec
-  file one business day of the target month. A reservation is unique per
-  `(spot, date)` and per `(user, date)`, so two files booking the same persona
-  on the same day fail each other intermittently. Never write a literal date:
-  it rots into a Saturday or 28 October, and `isReservableDay` then refuses
-  every write for a reason that has nothing to do with the test. The slots are
-  finite: twelve of them are taken, and the shortest possible target month has
-  about nineteen business days, so there is room for a handful more files and
-  then no more. `e2eDayForSlot` throws when a slot runs past the month rather
-  than wrapping onto a day another file owns — so the wall, when you reach it,
-  is a loud one, and the answer then is a second target month, not a literal
-  date.
-- **`fullyParallel` is on, so global state is shared.** The reservation-window
-  row is a singleton; the spot roster, the user roster and their roles are one
-  set of rows for the whole run. A spec may touch these, but only in ways no
-  other file can notice: `admin-window.spec.ts` moves between `AUTO` and
-  `FORCE_OPEN` and never to `FORCE_LOCKED` or a lower `openDaysBefore`, both
-  of which would close the month everybody else books into;
-  `admin-users.spec.ts` mutates only `Dev Inactive`, never one of the three
-  personas other files sign in as; `admin-spots.spec.ts` creates its own bay
-  rather than editing a seeded one. Restore what you change in `afterAll`, and
-  tolerate a leftover on the way in — a teardown cannot promise anything about
-  a run that was killed.
-- **Assert your own day, not "the feed" or "the list".** An assertion that
-  reads global state and expects to see only its own writes is a race with
-  every other spec. `ics-feed.spec.ts` failed exactly this way: it asserted
-  that no `SUMMARY:Parkování – E2.96` appeared anywhere in a personal calendar
-  feed, while `admin-bulk-reservation.spec.ts` legitimately held an E2.96
-  reservation for the same person on another day (E2.96 is Dev User's seeded
-  preferred spot, and the bulk allocator prefers it). Scope to the date, the
-  row, the spot you own.
-- **Address the UI the way a person does.** Role plus the Czech accessible
-  name the app actually renders, read out of `apps/sit-and-park/web/messages/cs.json` —
-  there are no `data-testid` hooks in this application and none are to be
-  added. Every wait is on a condition; a `waitForTimeout` passes on an idle
-  laptop and fails on a busy one.
-
----
+Also guarded by unit specs and worth knowing: the Czech/English message parity (`apps/sit-and-park/web/messages/messages.spec.ts`), the contract's procedure and error-code lists (`libs/sit-and-park/contract/src/api/router.spec.ts`), the oRPC route parity spec in the API (`orpc-route-parity.spec.ts`: every procedure has a route, every admin route a guard), and `no-orpc.spec.ts` in the realtime contract (`doc/contract.md`).
 
 ## What has to be running
 
 ```bash
-docker compose --profile dev up -d
-```
-
-starts three containers (`docker-compose.yml`):
-
-- **PostgreSQL 17** on `5432` — every layer below "unit" needs it,
-- **`mock-oauth2-server`** on `8080` — the OIDC issuer the browser suite signs
-  in against,
-- **adminer** on `8081` — a database UI, convenience only.
-
-Then, once:
-
-```bash
-cp .env.example .env            # if you have not already
+docker compose --profile dev up -d     # PostgreSQL 17 (5432), mock-oauth2-server (8080), adminer (8081)
+cp .env.example .env
 cp .env.example apps/sit-and-park/web/.env   # Next.js reads its own directory
 pnpm exec prisma migrate deploy
 pnpm exec prisma db seed
 ```
 
-`.env` is git-ignored and **does not travel with a git worktree**. If you are
-working in one, copy it across — a missing `DATABASE_URL` is the usual cause of
-a mysterious `P1000`.
+`.env` is git-ignored and does not travel with a git worktree: copy it in. A missing or wrong `DATABASE_URL` is the usual cause of a `P1000` from anything Prisma. In a worktree also run `pnpm install` first. `prisma migrate reset` destroys the database and is not part of any routine; if the schema is behind, `prisma migrate deploy` is the command.
 
-Ports, because they are not free choices:
-
-| Port | What |
-| --- | --- |
+| Port   | What |
+| ------ | ---- |
 | `3000` | the API (`PORT` in `.env`; Nx injects it into every target) |
-| `4200` | the web app — `apps/sit-and-park/web/project.json` pins `next dev --port 4200`, because `CORS_ALLOWED_ORIGINS` and the OIDC redirect URI both name it |
+| `4200` | the web app. `web:dev` is pinned to `--port 4200` because `CORS_ALLOWED_ORIGINS` and the OIDC redirect URI name it |
 | `5432` | PostgreSQL |
 | `8080` | `mock-oauth2-server` |
 
-The API's probes are at **`/health/live`** and **`/health/ready`** — *not*
-under `/api`; `configure-app.ts` excludes them from `setGlobalPrefix`. The oRPC
-transport is at **`/api/rpc/…`**, not `/api/…`.
-
----
+The API's probes are `/health/live` and `/health/ready`, not under `/api`; the oRPC transport is at `/api/rpc/...`.
 
 ## Running each layer
 
-### Unit tests
+### Unit
 
 ```bash
-pnpm nx run-many -t test              # everything
-pnpm nx run web:test                  # one project
-pnpm nx run web:test -- lot-view      # one file, by name pattern
-pnpm nx run web:test -- --coverage    # with coverage
+pnpm test                              # nx run-many -t test, everything
+pnpm nx run web:test                   # one project
+pnpm nx run web:test -- lot-view       # one file, by name pattern
+pnpm nx run web:test -- --coverage
 ```
 
-No Docker. This is what `nx run-many -t lint,typecheck,test,build` runs, and
-what CI gates on.
+No Docker. `api:test` excludes `*.db.spec.ts` (`apps/sit-and-park/api/jest.config.cts`), so `pnpm test` does not exercise the database suites: a change to `SELECT ... FOR UPDATE`, transaction isolation or waitlist promotion is untested until `api:test-db` has run. Jest environments by project: `node` for the API and most libs; `jsdom` for `libs/shared/form`, `libs/shared/i18n` and `libs/sit-and-park/realtime-client`; the web app uses its own `jest-environment-web.cjs` through `next/jest`.
 
-### Database tests
+ESM-only packages (`@orpc/*`, `@nestjs/config`, `@nestjs/passport`, `jose`, `next-intl`) are transpiled through `buildTransformIgnorePatterns` in the root `jest.preset.js`; a plain `/node_modules/(?!pkg/)` pattern never matches pnpm's nested `.pnpm/<name>@<version>/node_modules/<name>` layout. The web app overwrites Next's resolved `transformIgnorePatterns` because the array is a union that Next's own entry already makes match everything but `geist`.
+
+### Database
 
 ```bash
 pnpm nx run api:test-db
 ```
 
-Sixteen `*.db.spec.ts` suites, 233 tests (measured on the desk-merge branch, all
-passing). The desk merge added four: `desks/desks.db.spec.ts` (series booking and
-skip reasons, the unique indexes and the desk/user locks under races, permanent
-desks and releases, cancel rules, directory, approval requests),
-`desk-admin/desk-admin.db.spec.ts` (the orphan cascades of a desk, hive or holder
-change, bulk edits, races with a booking or a request), `employee-sync/employee-sync.db.spec.ts`
-(live and dry run, shrink protection, deactivation clean-up for desks and parking,
-the e-mail lower-casing migration) and `reservations/parking-offices.db.spec.ts`
-(parking scoped to the user's office). What they cover is described in
-`doc/desks.md` §Concurrency.
+This runs the `*.db.spec.ts` suites under `apps/sit-and-park/api/jest.database.config.cts` with `--runInBand` (`maxWorkers: 1`, 20 s test timeout). It needs PostgreSQL up and `DATABASE_URL` set. In the repository root Nx supplies `DATABASE_URL` from `.env`; in a worktree `.env` is not there, so copy it in or pass the one variable:
 
-Needs PostgreSQL up and `DATABASE_URL` set. They run against the **real dev
-database**, `--runInBand`, and clean up after themselves.
+```bash
+DATABASE_URL=$(grep '^DATABASE_URL=' /path/to/main-checkout/.env | sed 's/^DATABASE_URL=//') pnpm nx run api:test-db
+```
 
-`prisma migrate reset` is not part of any of this and should not be reached for:
-if the schema is behind, `pnpm exec prisma migrate deploy` is the command.
+The target does not skip itself: without `DATABASE_URL` it fails before reaching a test, which is what makes an unreachable Postgres fail CI instead of silently passing.
+
+**The suites never touch the seeded dev database.** `globalSetup` (`src/testing/database/global-setup.ts`) creates a throwaway database named `sit_and_park_dbspec_<id>`, applies the committed migrations to it as plain SQL (the real files, so a schema change that would break production breaks this suite), and repoints `DATABASE_URL` at it; `globalTeardown` drops it. Concurrency tests must really commit, or there is no race, and the residue of committing cannot be cleaned (the `AuditLog` table rejects `DELETE` by trigger and fixture users are pinned by `ON DELETE RESTRICT`), hence a whole database rather than a rollback. A run killed mid-way leaves its database behind; the next run drops leftovers with the prefix that are old enough that no live run could be using them.
+
+Areas covered: reservations, waitlist and promotion, bulk allocation and its deadlock ordering, the monthly cap, timed reservations, desks (series, unique indexes and locks under races, permanent desks and releases, approval requests, bulk), desk admin cascades, employee sync (live and dry run, shrink protection, clean-up on deactivation, the email lower-casing migration), parking scoped to the user's office, Slack delivery, calendar, and the database contract itself.
+
+`nx run database:check-schema` (CI's `database` job) guards `schema.prisma`: it runs `prisma migrate status`, `prisma migrate diff ... --exit-code`, `prisma generate` and `git diff --exit-code` on the generated client, because the parity specs compare artefacts derived from the schema and would otherwise pass against a stale generation.
 
 ### API end-to-end
 
@@ -173,314 +82,97 @@ if the schema is behind, `pnpm exec prisma migrate deploy` is the command.
 pnpm nx run api-e2e:e2e
 ```
 
-Starts its own API (`dependsOn: ["api:build", "api:serve"]`), waits for the
-port, runs the specs, and then **kills whatever is listening on port 3000** —
-its `globalTeardown` calls `killPort`. Two consequences worth knowing:
+Runs `jest --runInBand` in `apps/sit-and-park/api-e2e` after `api:build` and `api:serve` (Nx starts the API and waits for the port). There is deliberately no `--passWithNoTests`: a suite that only asserts refusals cannot be trusted to notice its own files stopping matching. The specs mint real tokens from the mock issuer (`src/support/oidc-token.ts`). The `globalTeardown` calls `killPort(3000)`, so:
 
-- If you already have `nx run api:serve` up, this target will take it down with
-  it when it finishes. Expect to restart your dev API afterwards.
-- If an `api:serve` from another Nx invocation is already holding the target
-  lock, this run will sit at *"Waiting for api:serve:development in another nx
-  process"* and eventually fail in `globalSetup` with `[AggregateError]` from
-  `waitForPortOpen`. Stop the other one first — and note that killing the
-  *process* is not always enough: a serve whose Nx wrapper died untidily leaves
-  the lock behind, and `pnpm nx reset` is what clears it.
+- an `api:serve` you already have running is taken down when this target finishes;
+- if another Nx invocation holds the `api:serve` lock, the run sits at "Waiting for api:serve in another nx process" and eventually fails in `globalSetup` with an `AggregateError` from `waitForPortOpen`. Stop the other one; if its Nx wrapper died untidily, `pnpm nx reset` clears the lock.
 
-To run the specs against an API you are already serving, skip the target and
-run Jest directly from the project directory — same caveat about the teardown:
-
-```bash
-cd apps/sit-and-park/api-e2e && pnpm exec jest --runInBand
-```
+To run against an API you are already serving, run Jest directly (same teardown caveat): `cd apps/sit-and-park/api-e2e && pnpm exec jest --runInBand`.
 
 ### Browser end-to-end
 
 ```bash
 pnpm nx run web-e2e:e2e                              # the whole suite
 pnpm nx run web-e2e:e2e -- src/cell-lock.spec.ts     # one spec
-pnpm nx run web-e2e:e2e -- --headed --debug          # watch it happen
+pnpm nx run web-e2e:e2e -- --headed --debug
+CI=true pnpm nx run web-e2e:e2e --skip-nx-cache      # what CI runs
 ```
 
-Everything it needs, it arranges:
+In a worktree the whole `.env` must be copied in, not just `DATABASE_URL`, or the API exits on its own env schema before a test runs. `nxE2EPreset` sets `workers: process.env.CI ? 1 : undefined`, so a local run is parallel and CI's is serial; the second command reproduces CI. Everything the suite needs it arranges:
 
-1. **`globalSetup`** runs `prisma db seed` and then
-   `libs/sit-and-park/database/src/scripts/reset-e2e.ts`, as subprocesses — the module
-   boundary keeps `scope:web` out of `libs/sit-and-park/database` (`doc/decision/0184-*`).
-   The reset clears next month's reservations and queue entries and sets the
-   reservation window to `AUTO` at 31 days, so that the month the suite books
-   into is genuinely open (`doc/decision/0181-*`). **It leaves that setting
-   behind**; `pnpm exec prisma db seed` puts it back to 7 days.
-2. **The servers.** These come from two different places, which matters more
-   than it sounds:
-   - **The API is started by Nx**, not by Playwright. `@nx/playwright` reads the
-     `webServer` command naming `api:serve` and turns it into a real task
-     dependency, so Nx runs it first and Playwright adopts the result. Nothing
-     set in `playwright.config.mts` reaches that process — see the throttle
-     entry under "When it goes wrong".
-   - **The web app is started by Playwright**, as `pnpm exec next start --port 4200`
-     in `apps/sit-and-park/web`: the **built** app, not `next dev`. `next dev` runs React
-     `StrictMode`, which mounts every effect twice and gives each page a second
-     socket.io connection; the built app does that far less
-     (`doc/decision/0187-*`). The build is a real Nx dependency of `e2e`
-     (`apps/sit-and-park/web-e2e/project.json`), Nx-cached, about six seconds cold.
+1. **`globalSetup`** (`src/support/global-setup.ts`) throws without `DATABASE_URL`, then runs `prisma db seed` and `libs/sit-and-park/database/src/scripts/reset-e2e.ts` as subprocesses (the module boundary keeps `scope:web` out of `libs/sit-and-park/database`). The reset clears next month's reservations and queue entries and sets the reservation window to `AUTO` at 31 days (`MAX_OPEN_DAYS_BEFORE`), so the month the suite books into is genuinely open. It leaves that setting behind; `pnpm exec prisma db seed` puts it back to 7 days.
+2. **The servers come from two places.** The API is started by Nx: `@nx/playwright` turns the `webServer` command naming `api:serve` into a task dependency, and Playwright adopts it (`reuseExistingServer: true`). Nothing set in `playwright.config.mts` reaches that process. The web app is started by Playwright as `pnpm exec next start --port 4200` in `apps/sit-and-park/web`, the built app, not `next dev` (`StrictMode` mounts effects twice and gives each page a second socket). The web build is an explicit `dependsOn` of `web-e2e:e2e`. `reuseExistingServer` is `false` for the web server, so an occupied 4200 stops the run with "is already used" instead of testing whatever is there.
+3. **The `setup` project** signs three personas in through the real OIDC redirect (`support/auth.setup.ts`, `support/oidc-login.ts`) and caches their sessions in `apps/sit-and-park/web-e2e/.auth/` (git-ignored, rewritten each run). `build-identity.setup.ts` fails the run when the app answering on the base URL is not the build the workspace just produced (it compares `.next/BUILD_ID` with the served one).
 
-   The API is adopted if port 3000 is already answering — Nx has by then
-   started it. **The web app is not.** `reuseExistingServer` is `false` for it,
-   so an occupied 4200 stops the run with *"is already used"* rather than
-   letting the suite test whatever is there. It used to go through
-   `nx run web:start`, which leaked a detached `next start` past Playwright's
-   teardown and made the *next* run adopt it — 20 passed, exit 0, against the
-   previous run's build, with no build having run at all
-   (`doc/decision/0285-*`).
-3. **The `setup` project** signs all three personas in through the real OIDC
-   redirect and caches the sessions in `apps/sit-and-park/web-e2e/.auth/` — git-ignored, and
-   rewritten on every run (`doc/decision/0185-*`; the path was
-   `apps/sit-and-park/web-e2e/apps/sit-and-park/web-e2e/.auth/` until `doc/decision/0287-*`, which is why
-   two `.dockerignore` rules written for it excluded nothing).
+Config facts (`apps/sit-and-park/web-e2e/playwright.config.mts`): Chromium only; `retries: 0` on purpose (a scenario that only passes on the second attempt is a bug report); `forbidOnly` in CI; locale `cs-CZ`, timezone `Europe/Prague`; `fullyParallel` from the preset, so tests inside one file run concurrently in separate workers.
 
-   It also runs `build-identity.setup.ts`, which fails the whole run when the
-   app answering on the base URL is not the build this workspace just produced.
+**Exit 1 after a passing summary line is not a test failure.** Nx writes task history to a SQLite database under `.nx/`, and concurrent runs from several worktrees corrupt that write. Read the suite's own summary, not just `$?`.
 
-Only Chromium runs (`doc/decision/0182-*`), and `retries` is `0` on purpose: a
-scenario that only passes on the second attempt is a bug report, not a nuisance.
-
-`fullyParallel` is on (from `nxE2EPreset`), so **the tests inside one file run
-concurrently in separate workers**. That is easy to forget and it has bitten
-this suite once already: two tests in `cell-lock.spec.ts` shared a bay, and
-because a cell lock is *acquired* per user, each test's dialog was renewing the
-other's hold and each `closeDialog` was dropping it. A test that mutates shared
-state needs its own bay — see `SPOTS` in that file, and `SPEC_DAY_SLOTS` in
-`support/dates.ts` for the same discipline between files. (Since
-`doc/decision/0220-*` a release also has to come from the *connection* that
-holds the cell, which narrows that particular collision but does not remove the
-rule: two tests on one bay still contend for it.)
-
-To see what the sockets are actually doing, set `E2E_TRACE_REALTIME=1`. Every
-`day:*` and `cell:*` packet each page sends or receives is printed with a short
-clock and a label identifying the **page** — `w3/user#1`, worker and ordinal —
-along with every WebSocket that page opens (`OPEN`), every document it loads
-(`LOAD`) and, per document, one `DOC <id> #<n>` line per socket that document
-constructed. Labelling by persona alone is what made two concurrent pages read
-as one page with two sockets, so the ordinal is load-bearing — and counting
-`OPEN` per *page* rather than per *document* is what made an ordinary reload
-read as a duplicate connection, which is what the `DOC` lines exist to stop
-(`doc/decision/0221-*`). Nothing else is printed, deliberately: the socket.io
-handshake carries the access token and matches neither name.
-
----
-
-## The desk journeys
-
-Desk specs under `apps/sit-and-park/web-e2e/src/` (written alongside this document; pass
-counts are in `CLAUDE.md`, not here): `desks.spec.ts`, `desk-series.spec.ts`,
-`desk-approval.spec.ts`, `desk-release.spec.ts`, `desk-admin.spec.ts`, with the page
-object `support/desk-page.ts`. Each has its own entry in `SPEC_DAY_SLOTS`
-(`deskBooking`, `deskSeries`, `deskSeriesSecondDay`, `deskApproval`, `deskAdmin`,
-`deskRelease`).
-
-## The seven journeys
-
-| Spec | What it proves |
-| --- | --- |
-| `login.spec.ts` | An unauthenticated visitor is bounced to `/login`; the button starts a real authorization-code flow (PKCE, `state`, `scope=…email…`) at the issuer; the session that comes back is one the **API** accepts; signing out re-protects the lot. |
-| `identity.spec.ts` | Each persona is the seeded person — name, email, and role. The role is a database column; nothing in the token grants it. |
-| `reservation.spec.ts` | A user reserves a free bay and sees their name and their profile's plate on it; the reservation survives a reload; the holder cancels it and the bay is free again. |
-| `waitlist-promotion.spec.ts` | Two users: one books, the other queues and is told their position, the first cancels — and the bay is handed to the queue with nobody clicking anything. |
-| `cell-lock.spec.ts` | Two users on one day: one opens a bay's dialog and the other's tile hatches over as *"právě upravuje Dev User"* and stops being clickable, live over the socket; closing releases it; the holder never sees their own hold. |
-| `admin-reservation.spec.ts` | An admin opens someone else's bay from the `⋯` affordance, gets the admin dialog, and cancels it — and the bay is free for its former holder too. An ordinary user gets no `⋯`. |
-| `ics-feed.spec.ts` | The calendar URL is read out of the Nastavení modal, fetched by a request context that has never signed in, and contains the reservation; a wrong token is a 404 that looks like any other 404; cancelling removes the event. |
-| `realtime-connection.spec.ts` | One document, one socket.io connection — asserted in the **built** app, after a day walk and an open editing form, and again on the document a reload produces. The claim `doc/decision/0221-*` had to measure because `doc/decision/0187-*` had counted it per page. |
-
-Each spec books its **own** business day of the target month
-(`SPEC_DAY_SLOTS` in `src/support/dates.ts`), so specs can run in parallel
-without colliding on the one-reservation-per-user-per-day rule. Add a spec, add
-a slot.
-
----
-
-## When it goes wrong
-
-### Before anything else: kill 3000 and 4200
+**A run leaves ports 3000 and 4200 free.** If 4200 is still held afterwards, that is a regression in the teardown, not housekeeping. Before a run:
 
 ```bash
 lsof -ti tcp:3000 tcp:4200 | xargs kill -9
 ```
 
-**This is now enforced rather than remembered, and the paragraphs below are
-kept because they are the reason.** For a long time `reuseExistingServer` was
-`!process.env['CI']` — `true` on every path that existed, since CI ran no e2e
-job at all — so Playwright **adopted** whatever was already listening instead
-of starting its own. A `next start` left over from an earlier run serves the
-**previous build**, so a change you just made to application source is not in
-the app the browsers are driving.
+### Personas
 
-This is not hypothetical, twice over. During review of this suite, a
-falsification — `OKTA_SCOPES` with `email` removed — came back **green with the
-mutation in place**, because a stale server was serving an unmutated bundle.
-And the suite was leaving that server behind itself: `nx run web:start` put
-`next start` in a process group Playwright's teardown could not reach, so run 2
-adopted run 1's server, reported 20 passed, and never ran a build
-(`doc/decision/0285-*`).
+Defined in `src/support/personas.ts`; the role is a database column and nothing in the token grants it. The mock issuer mints no `email`, so the login types the claims into its "Optional claims JSON" field (`doc/auth.md`).
 
-Both halves are closed. The web server is started so that it dies with the run,
-`reuseExistingServer` is `false` for it, and `build-identity.setup.ts` fails
-the run if the app answering is not the build just produced. An occupied 4200
-now stops the run with *"is already used"*, which is what the command above is
-for. **Nothing in a suite's output tells you it tested the wrong server — so
-prefer the mechanism to the memory, and keep killing the ports before believing
-any result that surprises you.**
+| key        | email               | seeded as      | role  |
+| ---------- | ------------------- | -------------- | ----- |
+| `admin`    | `admin@example.com` | Dev Admin      | ADMIN |
+| `user`     | `user@example.com`  | Dev User       | USER  |
+| `user-two` | `user2@example.com` | Dev User Two   | USER  |
 
-The same applies to the API, for a different reason — see the throttle entry
-below: Nx starts it, not Playwright, so an API left running keeps whatever
-environment it was started with.
+The seed also creates a `Dev Inactive` user, which the admin-users spec is allowed to mutate.
 
-**Everything 401s, with `The token does not identify a provisionable user.`**
-The token reaching the API has no `email` claim. The e2e login types one into
-`mock-oauth2-server`'s *Optional claims JSON* field — see
-`doc/decision/0180-*`. If you are signing in by hand, type
-`{"email":"user@example.com","name":"Dev User"}` into that box too.
+## Writing a browser spec
 
-**Everything 401s, with a bare `Unauthorized` and no message.** The API has
-cached a JWKS key that the issuer no longer has. `mock-oauth2-server` re-mints
-its keys when its container starts, so this follows a
-`docker compose restart mock-oauth2-server`. **Restart the API.**
+- **Take a day slot.** `support/dates.ts`'s `SPEC_DAY_SLOTS` gives each spec file one business day of the e2e target month (next month). A reservation is unique per `(spot, date)` and per `(user, date)`, so two files booking the same persona on the same day fail each other intermittently. Add an entry rather than reusing one. The slots are finite (the shortest target month has about nineteen business days); `e2eDayForSlot` throws when a slot runs past the month rather than wrapping onto a day another file owns, so the answer then is a second target month. Never write a literal date: it rots into a Saturday or a public holiday and every write is refused for a reason that has nothing to do with the test. Date arithmetic lives in `support/dates.ts`.
+- **Global state is shared.** The reservation-window row is a singleton and the spot and user rosters are one set of rows for the whole run. A spec may touch them only in ways no other file can notice: `admin-window.spec.ts` moves between `AUTO` and `FORCE_OPEN` and never to `FORCE_LOCKED` or a lower `openDaysBefore`; `admin-users.spec.ts` mutates only `Dev Inactive`; `admin-spots.spec.ts` creates its own bay. Restore what you change in `afterAll` and tolerate a leftover on the way in, since a killed run skips teardown.
+- **Tests within a file run concurrently**, so a test that mutates shared state needs its own bay (see `SPOTS` in `cell-lock.spec.ts`). A cell lock is acquired per user, so two tests on one bay renew and drop each other's hold.
+- **Assert your own day, not "the feed" or "the list".** An assertion that reads global state and expects only its own writes races every other spec. Scope to the date, the row, the spot you own.
+- **Address the UI as a person does:** role plus the Czech accessible name, read from `apps/sit-and-park/web/messages/cs.json`. There are no `data-testid` hooks and none are to be added.
+- **Never wait on a clock.** Every wait is on a condition (`waitForURL`, `toPass`, retrying assertions); `waitForTimeout` passes on an idle laptop and fails on a busy one. The first visit to a route against a dev server compiles on demand, so `lot-page.ts` exports `FIRST_ROUTE_VISIT_TIMEOUT_MS` (30 s); reuse it.
 
-**Several unrelated specs fail with `Skupina IT` missing, or a bay that never
-shows its holder.** Look for `"statusCode":429` on `/api/rpc/overview/day` in
-the API's log. The suite issues ~200 requests from one address per run, and the
-default throttle is 300 per rolling minute — so runs stacked back to back can
-trip it, and the lot screen renders a throttled day query as its error state.
+### Journeys
 
-**The suite cannot raise those limits for you, and does not pretend to.** `nx
-show project web-e2e --json` shows `dependsOn: [{projects: ['api'], target:
-'serve'}]` — inferred by `@nx/playwright` from the `webServer` command in
-`playwright.config.mts`. So **Nx** starts the API, with Nx's environment, and
-Playwright adopts it; an `env` block in the Playwright config never reaches it.
-Verified against a running suite: `X-RateLimit-Limit: 300`, strict `20` — the
-shipped defaults. (`doc/decision/0186-*` records the measurement and why the
-inert `env` block was removed rather than left looking effective.)
+| Spec | What it proves |
+| ---- | -------------- |
+| `login`, `identity` | an unauthenticated visitor is bounced to `/login`; the button starts a real authorization-code flow; the session is one the API accepts; sign-out re-protects the app, including that a session cookie kept from before sign-out is refused afterwards; each persona is the seeded person with the right role |
+| `reservation`, `reservation-detail` | reserve a free bay, see own name and plate, survive a reload, cancel it; the detail view |
+| `waitlist-promotion`, `waitlist-queue` | one books, another queues and sees a position, the first cancels and the bay is handed over with nobody clicking; queue behaviour |
+| `cell-lock` | two users on one day: one opens a bay dialog and the other's tile hatches over live and stops being clickable; closing releases it; the holder never sees their own hold |
+| `realtime-connection` | one document, one socket.io connection, asserted in the built app |
+| `admin-reservation`, `admin-bulk-reservation` | an admin acts on someone else's bay and books in bulk on their behalf; a user gets no admin affordance |
+| `admin-spots`, `admin-users`, `admin-window` | the admin tabs |
+| `settings-profile`, `locale` | profile settings and the Czech/English switch |
+| `ics-feed` | the calendar URL from the settings modal is fetched by a context that never signed in and contains the reservation; a wrong token is a 404 like any other; cancelling removes the event |
+| `desks`, `desk-series`, `desk-approval`, `desk-release`, `desk-admin` | desk booking, series, approval requests, releases and desk admin, with the page object `support/desk-page.ts` |
 
-The remedy is to start the API yourself, before the suite, with limits that suit
-a machine driving browsers — Playwright will adopt that one:
+## When it goes wrong
 
-```bash
-lsof -ti tcp:3000 | xargs kill -9
-THROTTLE_LIMIT=10000 THROTTLE_STRICT_LIMIT=1000 pnpm nx run api:serve
-```
+- **A stale server.** `reuseExistingServer` was once permissive and a `next start` left behind served the previous build, so a mutation of application source stayed green. It is now enforced by the web server's `reuseExistingServer: false` and the build-identity check. Nothing in a suite's output says it tested the wrong server, so kill 3000 and 4200 before believing a surprising result. The API is different: Nx starts it, so an API left running keeps the environment it was started with.
+- **Everything 401s with `The token does not identify a provisionable user.`** The token has no `email` claim. The e2e login types one in; when signing in by hand type `{"email":"user@example.com","name":"Dev User"}` into the "Optional claims JSON" box.
+- **Everything 401s with a bare `Unauthorized`.** The API cached a JWKS key the issuer no longer has. `mock-oauth2-server` re-mints its keys on container start, so after `docker compose restart mock-oauth2-server` restart the API.
+- **Several unrelated specs fail with `Skupina IT` missing, or a bay never shows its holder.** Look for `"statusCode":429` on `/api/rpc/overview/day` in the API log. A run issues about 200 requests from one address and the default throttle is 300 per rolling minute (strict tier 20), so back-to-back runs can trip it. Nx starts the API, so an `env` block in the Playwright config cannot raise the limits. Start the API yourself first, and Playwright adopts it:
 
-Or simply wait a minute between runs; a single run fits inside 300.
+  ```bash
+  lsof -ti tcp:3000 | xargs kill -9
+  THROTTLE_LIMIT=10000 THROTTLE_STRICT_LIMIT=1000 pnpm nx run api:serve
+  ```
 
-**`cell-lock.spec.ts` fails, saying a tile still reads `Volné`.** Something
-released the hold while the dialog was still open. A hold is *acquired* per
-user, so anything asking for the same cell as the same user takes it over — and
-until `doc/decision/0220-*` any of that user's connections could also drop it.
+  Or wait a minute between runs.
+- **`cell-lock.spec.ts` fails because a tile reads `Volné`.** Something released the hold while the dialog was open. In order of likelihood: a test in that file shares a bay with another (use one bay per test); you are running against a dev server, whose `StrictMode` gives each page a second socket in the same room (let the suite start `next start`); another tab or a reloaded page of the same persona, because acquisition is per user and the connection that opened second can still release the hold (`doc/integrations.md`). Count `DOC` lines, not `OPEN` lines, in the realtime trace.
+- **The sign-out test fails on its second `toHaveURL` with the app root.** A regression, not a known flake. Sign-out revokes the session server-side (`doc/auth.md`), and the deterministic spec "a session cookie kept from before sign-out is refused afterwards" is the one to look at first.
+- **`auth.setup.ts` times out on `sign in as <persona>`.** The setup project signs three personas in concurrently against one mock issuer and the whole sign-in must fit in Playwright's 30 s test timeout. Try `--workers=1` on the setup project to see whether concurrency is the cause.
+- **`P1000` from Prisma.** `DATABASE_URL` is missing or wrong (the git-ignored `.env`).
 
-In order of likelihood:
+Diagnostics, both off by default: `E2E_TRACE_REALTIME=1` prints every `day:*` and `cell:*` packet each page sends or receives with a label for the page (worker and ordinal), plus every WebSocket it opens (`OPEN`), each document it loads (`LOAD`), and one `DOC <id> #<n>` line per socket a document constructed (a `DOC <id> #2` is a real duplicate connection; two `OPEN`s under one page are usually two page loads). The handshake token is not printed. `E2E_AUTH_LOG_DIR=/some/dir` makes `support/auth-network-log.ts` write the cookie names and a one-way digest of each value in order, never a token.
 
-- **A new test in that file shares a bay with an existing one.** `fullyParallel:
-  true` runs the tests of one file in separate workers at the same time, so one
-  test's `closeDialog` releases the other's hold. This is what the `SPOTS` map
-  at the top of the spec exists to prevent — one bay per test. Measured during
-  review, before the split: 4 failures in 14 runs at default parallelism, 0 in 8
-  at `--workers=1`, 0 in 10 with distinct bays. **It does not reproduce on
-  demand**, though: putting both tests back on one bay and running it again gave
-  22 green runs in a row. The window is small; a green run proves nothing about
-  sharing a bay.
-- **You are running against a dev server.** `StrictMode` gives every page a
-  second socket.io connection, which sits in the same day room. Measured at 5
-  failures in 20 runs against `web:dev`. Kill 4200 and let the suite start
-  `web:start` itself.
-- **Another tab, or a page that reloaded.** One user with two live connections
-  on one cell is ordinary use, and it was the whole of the exposure the
-  "duplicate connection" scare was standing in for. Since `doc/decision/0220-*`
-  the connection that opened **first** can no longer release the hold — but the
-  one that opened **second** still can, because its `cell:lock` re-keyed the
-  hold onto itself and acquisition is per user by design. If a tile drops to
-  `Volné` under an open dialog, look for a second connection of the same
-  persona before looking anywhere else. `doc/realtime.md` §"Known residual".
+## Writing any test
 
-*Not* a cause, despite an earlier version of this section: "about one page in
-three opens a second socket.io connection against the built app". That number
-counted sockets per Playwright `Page`, and six of this suite's pages load a
-second document. Per document it is one socket, 89 times out of 89
-(`doc/decision/0221-*`).
-
-Reproduce any of them with `E2E_TRACE_REALTIME=1`. Count `DOC` lines, not `OPEN`
-lines: a `DOC <id> #2` is a document that opened two sockets and is a real
-finding, whereas two `OPEN` lines under one page label are usually just two page
-loads — compare them against that page's `LOAD` lines.
-
-There is no retry configured, and there should not be: this failure is a bug
-report.
-
-**`login.spec.ts` fails on the *second* `toHaveURL` of the sign-out test, with
-`Received string: "http://localhost:4200/"`.** This **was** a known open defect —
-sign-out was not reliably durable, measured at 3 failures in 35 full-suite runs.
-**It is fixed** (`doc/decision/0230-*`): sign-out now revokes the session
-server-side, so a cookie that survives the clear is refused and deleted on its
-next use.
-
-If you see it again, it is a regression, not the known flake. What was measured,
-so you can tell them apart: `/api/auth/session` is never requested **on the
-sign-out path** — the hypothesis in the original record was wrong — and the
-cookie came back because **every render that reads the session re-issues it**,
-so the sign-out clear was racing concurrent `?_rsc` prefetches. The fix does not
-depend on winning that race: it revokes the session's subject, and re-encoding
-never changes that subject.
-
-The property is now also asserted deterministically, by *a session cookie kept
-from before sign-out is refused afterwards* in the same spec: it takes the
-cookie while signed in, signs out through the menu, puts the cookie back and
-expects a redirect. That one needs no load and fails every time on a
-cookie-deletion-only sign-out, so it — not the racy one — is the test to look at
-first when this area breaks.
-
-To capture cookie traffic while diagnosing anything in this area, set
-`E2E_AUTH_LOG_DIR=/some/tmp/dir`; `src/support/auth-network-log.ts` writes the
-request and response cookie **names** and a one-way digest of each value, in
-order, and never a token (`doc/decision/0232-*`).
-
-**A spec times out on the first visit to a route.** Same cause as above, seen
-from a different angle: `next dev` compiles a route on demand — `/settings` has
-been measured at 4.9 s, past Playwright's 5 s default. `openSettings()` in
-`src/support/lot-page.ts` carries a 30 s allowance for exactly this
-(`doc/decision/0183-*`); a new spec visiting a new route against a reused dev
-server should use the same constant rather than inventing a number.
-
-**`auth.setup.ts` times out on `sign in as <persona>`.** Seen once during review
-of this suite, and **not reproduced since: 0 failures in 105 sign-ins** (35
-full-suite runs × 3 personas). So there is no diagnosis here, only the shape of
-the thing: the `setup` project signs all three personas in *concurrently*
-against a single `mock-oauth2-server` container, and the whole sign-in — two
-redirects, a form, a code exchange and a first render of the lot — has to fit
-inside Playwright's 30 s test timeout. If it comes back, that concurrency and
-that budget are where to look first; `--workers=1` on the `setup` project alone
-would tell you which.
-
-**`P1000` from anything Prisma.** `DATABASE_URL` is missing or wrong. It lives
-in the git-ignored `.env` at the repo root, which does not travel with a
-worktree.
-
-**Port 3000 goes away in the middle of something.** `nx run api-e2e:e2e`'s
-teardown kills it. See the API end-to-end section above.
-
----
-
-## Writing a new test
-
-- **Write it with the code it covers**, not afterwards — `plan.md`, §Working
-  style.
-- **Then break the thing it names and watch it go red.** A test that would
-  still pass with its subject deleted reports coverage that does not exist,
-  which is worse than no test at all. Every scenario in `apps/sit-and-park/web-e2e` was
-  falsified this way before it was committed; the mutation table is in the
-  task report.
-- **Never wait on a clock.** `page.waitForTimeout(2000)` passes on an idle
-  laptop and fails on a busy one. Playwright's assertions retry; `waitForURL`
-  and `toPass` exist. Two specs in this repository have already had to be
-  rewritten for exactly this.
-- **A flake is a bug.** Isolate it, run it twenty times, find the cause. The
-  throttle finding above started as "four unrelated specs failed once". Do not
-  add a retry.
-- **Reach for the cheapest layer that can fail for the right reason.** A rule
-  belongs in a unit test; only a journey belongs in Playwright.
+- **Write it with the code it covers**, not afterwards. Jest for units on the API and the web, Playwright for journeys.
+- **Break the thing it names and watch it go red.** A test that would still pass with its subject deleted reports coverage that does not exist. A guarantee asserted in three places and exercised by none (a redaction nobody reads the log of, a retry nobody removes) is the defect class to look for.
+- **A flake is a bug.** Isolate it, run it twenty times, find the cause. Do not add a retry.
+- **Reach for the cheapest layer** that can fail for the right reason. A rule belongs in a unit test; only a journey belongs in Playwright.

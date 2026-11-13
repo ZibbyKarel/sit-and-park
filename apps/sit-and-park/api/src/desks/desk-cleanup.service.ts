@@ -1,8 +1,7 @@
 /**
  * Clean-up other modules run inside their own transaction when a desk, a hive,
- * an office or a user changes under existing bookings (`doc/desk-merge-plan.md`
- * §"Defects of the source that are fixed"): admin desk edits (stage 4B) and
- * employee deactivation (stage 5) reuse these instead of re-implementing them.
+ * an office or a user changes under existing bookings (`doc/desks.md`): admin desk edits and
+ * employee deactivation reuse these instead of re-implementing them.
  *
  * Both methods write through the caller's `tx` and never publish: the caller
  * passes the returned events to {@link DeskCleanupService.publish} **after**

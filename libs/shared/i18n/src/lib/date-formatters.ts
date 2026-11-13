@@ -5,8 +5,7 @@
  * existed, option object for option object — Czech declines month names, and
  * `Intl`'s `cs-CZ` data produces the genitive (`25. srpna`) only when `day` is
  * part of the same format call and the nominative (`srpen`) only when it is
- * not, so the two option objects stay separate on purpose. See
- * `doc/decision/0024-czech-month-declension-genitive-vs-nominative.md`; do not
+ * not, so the two option objects stay separate on purpose; do not
  * merge them.
  *
  * Every input is a `DateOnly` (`YYYY-MM-DD`), never an instant, so each

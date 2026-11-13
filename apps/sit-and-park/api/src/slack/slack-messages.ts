@@ -2,7 +2,7 @@
  * The Czech copy of every Slack notification.
  *
  * A Slack message is **UI copy**: a real person reads it in their client, so it
- * is Czech like the rest of the interface (`doc/decision/0029-*`), while every
+ * is Czech like the rest of the interface, while every
  * comment and identifier around it stays English.
  *
  * ## Why it is not in `libs/shared/i18n`
@@ -10,11 +10,8 @@
  * `libs/shared/i18n` is tagged `scope:web` and `apps/sit-and-park/api` is `scope:api`;
  * `@nx/enforce-module-boundaries` refuses the dependency, and it is right to —
  * `libs/shared/i18n` wraps `next-intl`, a React package with no business in a Nest
- * process. `doc/decision/0082-*` hit this first with the ICS feed's three
- * strings and said explicitly: *"If a second one appears (Slack notifications,
- * Task 16), that is the moment to reconsider option 2 with two real call sites
- * in view."* That reconsideration happened and is recorded in
- * `doc/decision/0131-*`; the short version is that a shared backend catalog
+ * process. The ICS feed's three strings live next to
+ * their code for the same reason; the Slack messages follow suit, because a shared backend catalog
  * would hold two sets of strings with no word in common, so it would be a
  * folder, not an abstraction.
  *
@@ -29,7 +26,7 @@
  *
  * ## Style
  *
- * Plain `text`, no Block Kit. `plan.md`'s scope boundary is outbound
+ * Plain `text`, no Block Kit. The scope boundary is outbound
  * `chat.postMessage` only: no blocks, no attachments, no buttons, nothing a
  * user could interact with — because there is no handler on the other side to
  * receive an interaction, and shipping a button that does nothing is worse

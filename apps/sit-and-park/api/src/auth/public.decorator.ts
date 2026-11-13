@@ -17,7 +17,7 @@
  * `Authorization` header:
  *
  * - the orchestrator's liveness and readiness probes (`HealthController`);
- * - the personal ICS feed (Task 12), which calendar clients fetch with no
+ * - the personal ICS feed, which calendar clients fetch with no
  *   header at all and which authenticates on the secret in its own URL —
  *   and which therefore also carries `@StrictThrottle()`.
  *

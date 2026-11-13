@@ -21,14 +21,13 @@ import type * as Prisma from "../internal/prismaNamespace"
  * day, whereas `Reservation` is one-per-spot-per-day. Storage is minutes
  * since local midnight (`[startMinute, endMinute)`, half-open, multiples of
  * 30, `endMinute` up to `1440`), not the contract's `HH:MM` strings — see
- * `doc/database.md` (§"Where storage differs from the contract").
+ * `doc/backend.md`.
  * 
  * One (spot, day) is either one full-day `Reservation` or any number of
  * non-overlapping `TimedReservation` blocks, never both. Prisma's schema
  * language cannot express that exclusivity rule or the half-open-range
  * `CHECK`, so both live in the migration as hand-written SQL: a `CHECK` on
- * this table and a pair of triggers spanning both tables. See
- * `doc/decision/0314-*`.
+ * this table and a pair of triggers spanning both tables. See `doc/backend.md`.
  */
 export type TimedReservationModel = runtime.Types.Result.DefaultSelection<Prisma.$TimedReservationPayload>
 

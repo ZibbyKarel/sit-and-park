@@ -25,9 +25,8 @@ export interface SeedParkingSpot {
  * literals used to sit in this file, and the final review raised them as its
  * single Critical. `src/scripts/seed.ts` now mints one per account with
  * `generateSeedIcsToken()` (`./ics-token.ts`) and prints the feed URLs, and
- * `seed-data.spec.ts` fails if a literal ever comes back. See
- * `doc/decision/0275-the-development-seed-generates-its-ics-tokens.md`.
- */
+ * `seed-data.spec.ts` fails if a literal ever comes back.
+ * */
 export interface SeedUser {
   /** Natural key the seed upserts on. */
   email: string;
@@ -36,7 +35,7 @@ export interface SeedUser {
   role: UserRole;
   /**
    * `sub` claim the mock OIDC server will issue for this person. See the note
-   * in `doc/database.md` — `mock-oauth2-server` runs without a `JSON_CONFIG`,
+   * in `doc/backend.md` — `mock-oauth2-server` runs without a `JSON_CONFIG`,
    * so its login form accepts any subject; these are the values a developer is
    * expected to type in order to land on a seeded account.
    */
@@ -128,7 +127,7 @@ export const SEED_USERS: readonly SeedUser[] = [
 ];
 
 /**
- * Defaults from `doc/decision/0004-mvp-scope-includes-design-features.md`.
+ * Defaults for the reservation window (`doc/parking.md`).
  * The init migration already inserts this row (the table must never be empty);
  * the seed re-asserts it so a hand-edited dev database returns to a known state.
  */
@@ -137,7 +136,7 @@ export const SEED_RESERVATION_WINDOW_SETTINGS: SeedReservationWindowSettings = {
   lockMode: 'AUTO',
 };
 
-/** Fixed primary key of the settings singleton — see `doc/database.md`. */
+/** Fixed primary key of the settings singleton — see `doc/backend.md`. */
 export const RESERVATION_WINDOW_SETTINGS_ID = 1;
 
 /**
@@ -149,7 +148,7 @@ export const SEED_RESERVATION_LIMIT_SETTINGS: SeedReservationLimitSettings = {
   monthlyReservationCap: 5,
 };
 
-/** Fixed primary key of the limits singleton — see `doc/database.md`. */
+/** Fixed primary key of the limits singleton — see `doc/backend.md`. */
 export const RESERVATION_LIMIT_SETTINGS_ID = 1;
 
 /**

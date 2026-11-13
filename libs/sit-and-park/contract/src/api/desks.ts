@@ -2,7 +2,7 @@
  * Desk booking for the caller: the day's directory, series booking, the
  * caller's reservations, and a permanent holder's releases.
  *
- * Rules are the ones in `doc/desk-merge-plan.md` §"Rules carried over". Every
+ * Rules are the ones in `doc/desks.md`. Every
  * procedure here carries a `.route({ description })`: the contract is kept
  * MCP-friendly — a description per procedure, flat inputs, and no implicit
  * state beyond the caller's identity.

@@ -117,7 +117,7 @@ Good interfaces make testing natural:
 
 ## Applying this in shoptet-partner-cli
 
-This repo's own rule (see `CLAUDE.md`) is: split a file when it holds more than one _responsibility_ — not when it crosses a line count (that's ESLint's job, not this skill's). Concretely:
+This repo's own rule (see `AGENTS.md`) is: split a file when it holds more than one _responsibility_ — not when it crosses a line count (that's ESLint's job, not this skill's). Concretely:
 
 - A cluster of types/interfaces that describe data shape, independent of the logic that builds it → its own `types.ts`, next to the file that used to hold them.
 - A lookup table or fixed set of literals (message-key maps, status enums) → its own `constants.ts`.
