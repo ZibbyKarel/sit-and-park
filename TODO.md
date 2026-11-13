@@ -11,7 +11,7 @@
 9. [x] V dialogu hromadné rezervace, stolů i parkovacích míst i vybíráku datumu chceme vždy zvýraznit dnešní datum. Stačí nějaký border okolo aktuálního data v kalendáři. Stejně tak zvýrazíme i dnešní datum na stránce moje rezervace v kalendářovém zobrazení. (main@2bfdc58)
 10. [ ] V dialogu návrh rozvrhu by měl mít admin vždy možnost vygenerovaný stůl změnit. To znamená, že vždy tam zobrazím vybíráko stolů s předvyplněnou hodnou. A pokud je přihlášený uživatel admin, měli mít možnost to změnit. stejně tak i pro návrh rozvrhu pro parkovací místa
 11. [ ] Dialogy nejdou zavřít klikem vně a nemají close button.
-12. [ ] Sjednoť tlačitka na otevření dialogů hromadných rezervací pro parkování i pro stoly ať vypadají stejně.
+12. [x] Sjednoť tlačitka na otevření dialogů hromadných rezervací pro parkování i pro stoly ať vypadají stejně. (main@c0aa090)
 13. [x] korunka v dropdownu uživatele v prabo nahoře v topBaru má být nad kruhem s avatarem uživatele (resp jeho iniciály) a né až za jménem (main@8c9cb8c)
 14. [ ] Uklidit v repu MD soubory stejným způsobem jakým jsme to dělali v session 0a229e9c-c44e-4f1b-a96f-a7729cc55945
 15. [ ] Stránka moje rezervace má jiný přepínač na měsíce než máme jinde v aplikaci. Sjednoč to tak, jak to máme všude jinde v aplikaci, aby komponenty byly stejné. Také se tady musí zobrazovat tlačítko dnes, které automaticky uživatelé přesměruje na aktuální datum, tedy v případě kalendářového zobrazení stránky moje rezervace na aktuální měsíc.
