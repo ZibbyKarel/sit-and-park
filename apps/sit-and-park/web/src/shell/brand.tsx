@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The logo lockup: a blue rounded tile carrying a `P`, next to the wordmark.
+ * The logo lockup: the Sit & Park pin symbol, next to the wordmark.
  *
  * Drawn twice in the design at two sizes — 52 px on the login canvas
  * (`doc/design/screens/canvas-default.png`) and 30 px in the top bar
@@ -12,7 +12,6 @@
 
 import { H1, Stack, Text } from '@shoptet/ui';
 import { useTranslations } from '@sit-and-park/i18n';
-import { IconCircle } from '../ui/icon-circle/icon-circle';
 import styles from './brand.module.css';
 
 export type BrandSize = 'sm' | 'lg';
@@ -21,14 +20,13 @@ export type BrandSize = 'sm' | 'lg';
 const SIZE_CONFIG: Record<
   BrandSize,
   {
-    readonly tileSize: 'md' | 'lg';
-    readonly tileFontSize: 'md' | '2xl';
+    readonly symbolPx: number;
     readonly wordmarkAppearance: 'strong-md' | 'strong-lg';
     readonly gap: 'sm' | 'md';
   }
 > = {
-  sm: { tileSize: 'md', tileFontSize: 'md', wordmarkAppearance: 'strong-md', gap: 'sm' },
-  lg: { tileSize: 'lg', tileFontSize: '2xl', wordmarkAppearance: 'strong-lg', gap: 'md' },
+  sm: { symbolPx: 30, wordmarkAppearance: 'strong-md', gap: 'sm' },
+  lg: { symbolPx: 52, wordmarkAppearance: 'strong-lg', gap: 'md' },
 };
 
 export interface BrandProps {
@@ -50,16 +48,9 @@ export function Brand({ size = 'sm', asHeading = false }: BrandProps) {
 
   return (
     <Stack orientation="horizontal" align="center" gap={config.gap}>
-      <IconCircle
-        aria-hidden="true"
-        shape="square"
-        tone="blue"
-        size={config.tileSize}
-        fontSize={config.tileFontSize}
-        weight="bold"
-      >
-        P
-      </IconCircle>
+      {/* Decorative: the wordmark beside it carries the name. Plain <img>: a static SVG gains nothing from next/image. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/sit-and-park-symbol.svg" alt="" width={config.symbolPx} height={config.symbolPx} />
       <span className={styles.wordmark} data-size={size}>
         {asHeading ? (
           <H1 appearance={config.wordmarkAppearance}>{t('brand')}</H1>
