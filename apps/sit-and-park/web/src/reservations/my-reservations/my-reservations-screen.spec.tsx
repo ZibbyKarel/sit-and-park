@@ -522,6 +522,15 @@ describe('MyReservationsScreen calendar', () => {
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     expect(within(grid).getAllByText('P-09').length).toBeGreaterThan(0);
     expect(within(grid).getByText('eventReleased: code=P-09')).toBeInTheDocument();
+    expect(within(grid).getByText('eventReleased: code=P-09').closest('li')).toHaveAttribute(
+      'data-type',
+      'desk'
+    );
+    for (const li of within(grid)
+      .getAllByText('P-09')
+      .map((el) => el.closest('li'))) {
+      expect(li).toHaveAttribute('data-type', 'desk');
+    }
     expect(within(grid).getAllByRole('img', { name: 'kindDesk' }).length).toBeGreaterThan(0);
     expect(within(grid).queryByText(/^eventPermanent/)).not.toBeInTheDocument();
   });

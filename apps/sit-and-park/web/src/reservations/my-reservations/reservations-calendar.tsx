@@ -44,7 +44,16 @@ const WEEKDAY_KEYS = [
 ] as const;
 
 function eventType(event: CalendarEvent): 'parking' | 'desk' {
-  return event.kind === 'parking' || event.kind === 'waitlist' ? 'parking' : 'desk';
+  switch (event.kind) {
+    case 'parking':
+    case 'waitlist':
+      return 'parking';
+    case 'desk':
+    case 'permanent':
+    case 'released':
+    case 'request':
+      return 'desk';
+  }
 }
 
 export function ReservationsCalendar() {
