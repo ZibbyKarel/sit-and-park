@@ -31,7 +31,7 @@
  * half, and the two do not overlap.
  */
 
-import { useRouter } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { signOut, useRequireAuth } from '@garage/auth/client';
 import { DEFAULT_LOCALE, isLocale, useLocale } from '@garage/i18n';
 import { LOGIN_ROUTE } from '../routes';
@@ -42,6 +42,7 @@ import { useCurrentUser } from './use-current-user';
 
 export function AppTopBar() {
   const router = useRouter();
+  const pathname = usePathname();
   // Both the read and the guard: `useRequireAuth` wraps `useSession` and
   // returns the same session, so there is no second subscription and no way
   // for a caller to take the read without the guard.
@@ -60,6 +61,7 @@ export function AppTopBar() {
   // very first paint, which is what the fallbacks are for.
   return (
     <TopBar
+      pathname={pathname}
       name={profile?.name ?? session?.user?.name ?? ''}
       email={profile?.email ?? session?.user?.email ?? ''}
       role={profile?.role}

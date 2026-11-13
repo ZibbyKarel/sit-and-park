@@ -26,7 +26,14 @@ import {
 } from '../testing/database/reservation-harness';
 
 /** Nothing in this suite asserts on published events; a plain no-op stands in. */
-const noopPublisher: DomainEventPublisher = { publish: jest.fn(), notifyPromotions: jest.fn() };
+const noopPublisher: DomainEventPublisher = {
+  publish: jest.fn(),
+  notifyPromotions: jest.fn(),
+  deskReserved: jest.fn(),
+  deskReleased: jest.fn(),
+  deskApprovalRequested: jest.fn(),
+  deskApprovalDecided: jest.fn(),
+};
 
 function authenticated(id: string): AuthenticatedUser {
   return {

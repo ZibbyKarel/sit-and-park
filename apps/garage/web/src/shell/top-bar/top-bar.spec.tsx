@@ -1,10 +1,10 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { IntlProvider } from '@garage/i18n';
 import cs from '../../../messages/cs.json';
 import type { UserRole } from '@garage/contract';
 import type { Locale } from '@garage/i18n';
-import { ADMIN_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import { ADMIN_ROUTE, DESKS_ROUTE, MY_DESKS_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { TopBar } from './top-bar';
 
 /**
@@ -19,6 +19,7 @@ function renderTopBar(
     email?: string;
     role?: UserRole | undefined;
     locale?: Locale;
+    pathname?: string;
   } = {}
 ) {
   const onNavigate = jest.fn();
@@ -28,6 +29,7 @@ function renderTopBar(
   render(
     <IntlProvider locale="cs" messages={cs}>
       <TopBar
+        pathname={overrides.pathname ?? '/'}
         name={overrides.name ?? 'Karel Zíbar'}
         email={overrides.email ?? 'karel.zibar@firma.cz'}
         role={overrides.role}
@@ -174,6 +176,28 @@ describe('TopBar', () => {
 
   it('links the logo to the parking overview', () => {
     renderTopBar();
-    expect(screen.getByRole('link')).toHaveAttribute('href', '/');
+    expect(screen.getByRole('link', { name: 'brand' })).toHaveAttribute('href', '/');
+  });
+
+  describe('the primary navigation', () => {
+    it('links parking, desks and my desks', () => {
+      renderTopBar();
+      const nav = screen.getByRole('navigation', { name: 'primary' });
+
+      expect(within(nav).getByRole('link', { name: 'parking' })).toHaveAttribute('href', '/');
+      expect(within(nav).getByRole('link', { name: 'desks' })).toHaveAttribute('href', DESKS_ROUTE);
+      expect(within(nav).getByRole('link', { name: 'myDesks' })).toHaveAttribute(
+        'href',
+        MY_DESKS_ROUTE
+      );
+    });
+
+    it('marks exactly the current section', () => {
+      renderTopBar({ pathname: DESKS_ROUTE });
+
+      expect(screen.getByRole('link', { name: 'desks' })).toHaveAttribute('aria-current', 'page');
+      expect(screen.getByRole('link', { name: 'parking' })).not.toHaveAttribute('aria-current');
+      expect(screen.getByRole('link', { name: 'myDesks' })).not.toHaveAttribute('aria-current');
+    });
   });
 });

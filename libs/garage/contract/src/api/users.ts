@@ -39,9 +39,9 @@ import { authed, contractErrors } from './builder';
  * `userSchema` — this one and `userSummarySchema` — allowlists, which is the
  * rule this file now states rather than a coincidence.
  *
- * The field set is **unchanged** by the switch: this is the same ten keys the
- * `omit` produced, so no response shape moves. Recorded in
- * `doc/decision/0247-*`.
+ * The switch itself moved no response shape (the same ten keys the `omit`
+ * produced; `doc/decision/0247-*`). The desk merge then widened it on purpose
+ * by the four non-secret columns it added to `User`.
  */
 export const ADMIN_USER_FIELDS = {
   id: true,
@@ -52,6 +52,10 @@ export const ADMIN_USER_FIELDS = {
   oktaId: true,
   active: true,
   preferredParkingSpotId: true,
+  officeId: true,
+  hibobId: true,
+  manualAccount: true,
+  deactivatedAt: true,
   createdAt: true,
   updatedAt: true,
 } as const;
@@ -89,17 +93,18 @@ export const adminListUsersContract = authed
   .output(adminListUsersOutputSchema);
 
 /**
- * Partial update: an omitted field is left alone. Only these two fields are an
- * admin's to change — a name, an email and a licence plate belong to the user.
+ * Partial update: an omitted field is left alone; `officeId: null` clears the
+ * office. Only these fields are an admin's to change — a name, an email and a
+ * licence plate belong to the user.
  */
 export const adminUpdateUserInputSchema = userSchema
-  .pick({ role: true, active: true })
+  .pick({ role: true, active: true, officeId: true, manualAccount: true })
   .partial()
   .extend({ id: idSchema });
 export type AdminUpdateUserInput = z.infer<typeof adminUpdateUserInputSchema>;
 
 /**
- * `CONFLICT` guards the two ways an admin can lock the system: demoting or
+ * `NOT_FOUND` is an unknown user or office. `CONFLICT` guards the two ways an admin can lock the system: demoting or
  * deactivating the last remaining active admin, and deactivating themselves.
  */
 export const adminUpdateUserContract = authed

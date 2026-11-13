@@ -101,6 +101,22 @@ export const icsCalendarEntrySchema = reservationSchema
 export type IcsCalendarEntry = z.infer<typeof icsCalendarEntrySchema>;
 
 /**
+ * One desk reservation, as it enters the calendar. Same rules as
+ * {@link icsCalendarEntrySchema}: no user id, no desk id, `createdAt` is the `DTSTAMP`.
+ */
+export const icsDeskCalendarEntrySchema = icsCalendarEntrySchema
+  .pick({ date: true, createdAt: true })
+  .extend({
+    /** The desk reservation's own id. Becomes the stable `UID` (kind-prefixed). */
+    deskReservationId: reservationSchema.shape.id,
+    /** Desk code, e.g. `D-014`. */
+    deskCode: z.string().min(1),
+    /** Display name of the desk's zone. */
+    zoneName: z.string().min(1),
+  });
+export type IcsDeskCalendarEntry = z.infer<typeof icsDeskCalendarEntrySchema>;
+
+/**
  * Everything the calendar renderer is given.
  *
  * A wrapper object rather than a bare array, because the feed grows options
@@ -109,5 +125,7 @@ export type IcsCalendarEntry = z.infer<typeof icsCalendarEntrySchema>;
  */
 export const icsFeedSchema = z.object({
   entries: z.array(icsCalendarEntrySchema),
+  /** The user's desk reservations; absent means none, so parking-only callers are unchanged. */
+  deskEntries: z.array(icsDeskCalendarEntrySchema).optional(),
 });
 export type IcsFeed = z.infer<typeof icsFeedSchema>;

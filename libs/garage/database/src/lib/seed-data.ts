@@ -105,6 +105,18 @@ export const SEED_USERS: readonly SeedUser[] = [
     preferredParkingSpotLabel: null,
   },
   {
+    // Not a web-e2e persona, on purpose: this account holds the seeded
+    // permanent desk, and a permanent holder cannot book any other desk —
+    // giving one to a persona would block that persona's desk journeys.
+    email: 'desk@example.com',
+    name: 'Dev Desk Holder',
+    licensePlate: null,
+    role: 'USER',
+    oktaId: 'dev-desk-holder',
+    active: true,
+    preferredParkingSpotLabel: null,
+  },
+  {
     email: 'inactive@example.com',
     name: 'Dev Inactive',
     licensePlate: null,
@@ -139,3 +151,70 @@ export const SEED_RESERVATION_LIMIT_SETTINGS: SeedReservationLimitSettings = {
 
 /** Fixed primary key of the limits singleton — see `doc/database.md`. */
 export const RESERVATION_LIMIT_SETTINGS_ID = 1;
+
+/**
+ * The office every seeded user and spot belongs to. Created, with its zones and
+ * desks, by the migration `20261112120200_praha_office`, not by the seed: the
+ * seed only looks it up.
+ */
+export const SEED_OFFICE_NAME = 'Praha';
+
+export interface SeedHive {
+  /** Natural key the seed upserts on. */
+  name: string;
+  color: string;
+  ownerEmail: string;
+  /** Zone all of `deskCodes` lie in; asserted against the floor plan. */
+  zoneKey: string;
+  deskCodes: readonly string[];
+  memberEmails: readonly string[];
+}
+
+/**
+ * Two hives, so a developer sees both sides of the access rule: `dev-user`
+ * is in neither and has to request an Engineering desk (except the one it has
+ * a grant for), `dev-user-2` books Engineering desks directly.
+ */
+export const SEED_HIVES: readonly SeedHive[] = [
+  {
+    name: 'Engineering',
+    color: '#FF9DA7',
+    ownerEmail: 'admin@example.com',
+    zoneKey: 'engineering1',
+    deskCodes: ['D-037', 'D-038', 'D-039', 'D-040', 'D-041', 'D-042'],
+    memberEmails: ['admin@example.com', 'user2@example.com'],
+  },
+  {
+    name: 'Sales',
+    color: '#86BCB6',
+    ownerEmail: 'desk@example.com',
+    zoneKey: 'sales1',
+    deskCodes: ['D-013', 'D-014', 'D-015', 'D-016', 'D-017', 'D-018'],
+    memberEmails: ['desk@example.com'],
+  },
+];
+
+export interface SeedDeskUser {
+  deskCode: string;
+  userEmail: string;
+}
+
+/** Permanent desks. Never an e2e persona — see `desk@example.com` above. */
+export const SEED_PERMANENT_DESKS: readonly SeedDeskUser[] = [
+  { deskCode: 'D-013', userEmail: 'desk@example.com' },
+];
+
+/** Direct grants: `dev-user` books this Engineering desk without approval. */
+export const SEED_DESK_GRANTS: readonly SeedDeskUser[] = [
+  { deskCode: 'D-042', userEmail: 'user@example.com' },
+];
+
+/** Fixed primary key of the employee-sync settings singleton. */
+export const EMPLOYEE_SYNC_SETTINGS_ID = 1;
+
+/**
+ * The migration already inserts this row; the seed re-asserts it, like the
+ * other singletons. Dry run: the dev database never takes live sync writes
+ * unless a developer switches it on.
+ */
+export const SEED_EMPLOYEE_SYNC_SETTINGS = { liveMode: false } as const;

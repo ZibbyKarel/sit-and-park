@@ -1,7 +1,7 @@
 'use client';
 
 import * as z from 'zod';
-import type { ParkingSpot } from '@garage/contract';
+import type { AdminOffice, ParkingSpot } from '@garage/contract';
 import { FormField, FormProvider, useAppForm } from '@garage/form';
 import { Button, CheckboxField, Modal, SingleSelectField, Stack } from '@shoptet/ui';
 import { TextField } from '../../../ui/text-field/text-field';
@@ -15,6 +15,7 @@ const spotFormSchema = z.object({
   label: z.string().trim().min(1),
   group: z.enum(PARKING_GROUPS),
   evCharger: z.boolean(),
+  officeId: z.string().min(1),
 });
 type SpotFormValues = z.infer<typeof spotFormSchema>;
 
@@ -24,7 +25,10 @@ export interface SpotFormDialogProps {
    * three fields the form edits, so the dialog cannot start reading
    * `active` or an id it has no business acting on.
    */
-  readonly spot: Pick<ParkingSpot, 'label' | 'group' | 'evCharger'> | null;
+  readonly spot: Pick<ParkingSpot, 'label' | 'group' | 'evCharger' | 'officeId'> | null;
+  /** The offices a spot can be in. */
+  readonly offices: readonly (Pick<AdminOffice, 'id' | 'name'> &
+    Partial<Pick<AdminOffice, 'active'>>)[];
   readonly errorMessage: string | null;
   readonly saving: boolean;
   readonly onCancel: () => void;
@@ -34,6 +38,7 @@ export interface SpotFormDialogProps {
 /** Add / edit, in the same `Modal` the settings screen uses. */
 export function SpotFormDialog({
   spot,
+  offices,
   errorMessage,
   saving,
   onCancel,
@@ -47,6 +52,8 @@ export function SpotFormDialog({
       label: spot?.label ?? '',
       group: spot?.group ?? PARKING_GROUPS[0],
       evCharger: spot?.evCharger ?? false,
+      // The first active office; an inactive one cannot take a booking.
+      officeId: spot?.officeId ?? (offices.find((o) => o.active !== false) ?? offices[0])?.id ?? '',
     },
   });
 
@@ -96,6 +103,22 @@ export function SpotFormDialog({
                       field.onChange(group);
                     }
                   }}
+                />
+              )}
+            />
+            <FormField
+              name="officeId"
+              render={({ field, error: fieldError }) => (
+                <SingleSelectField
+                  label={t('spotsOfficeField')}
+                  {...(fieldError ? { error: t('spotsOfficeRequired') } : {})}
+                  options={[...offices]}
+                  getOptionValue={(office) => office.id}
+                  getOptionLabel={(office) => office.name}
+                  name={field.name}
+                  ref={field.ref}
+                  value={field.value === '' ? null : field.value}
+                  onChange={(officeId) => field.onChange(officeId ?? '')}
                 />
               )}
             />

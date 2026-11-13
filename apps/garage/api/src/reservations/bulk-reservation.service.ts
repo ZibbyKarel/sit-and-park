@@ -150,6 +150,7 @@ import { ReservationPolicy } from './reservation-policy';
 import { MAX_CANCEL_ATTEMPTS } from './reservations.service';
 import { RESERVATION_TRANSACTION_OPTIONS } from './transaction-options';
 import { WAITLIST_ORDER } from './waitlist-order';
+import { seesParkingOffice } from '../common/office-scope';
 
 /**
  * The reservation fields a created row has to give back.
@@ -529,14 +530,20 @@ export class BulkReservationService {
         // (`doc/decision/0316-*`) — a preferred spot that is hidden simply
         // misses, and the allocator falls back as for a taken one.
         where: { active: true, hidden: false },
-        select: { id: true, label: true, group: true },
+        select: { id: true, label: true, group: true, officeId: true },
       }),
       // `preferredParkingSpotId` and the plate are row facts, not token claims —
       // `AuthenticatedUser` carries neither, exactly as `reservation.create`
       // found when it needed the plate for its broadcast.
       client.user.findUniqueOrThrow({
         where: { id: holderId },
-        select: { id: true, name: true, licensePlate: true, preferredParkingSpotId: true },
+        select: {
+          id: true,
+          name: true,
+          licensePlate: true,
+          preferredParkingSpotId: true,
+          officeId: true,
+        },
       }),
       client.reservation.findMany({
         where: { date: { in: dateColumns } },
@@ -596,7 +603,12 @@ export class BulkReservationService {
     }
 
     return {
-      spots,
+      // Only the holder's office (`../common/office-scope.ts`; `null` = every
+      // office), whoever asks: a batch an admin runs for somebody lands where
+      // that person parks.
+      spots: spots
+        .filter((spot) => seesParkingOffice(holder.officeId, spot.officeId))
+        .map(({ id, label, group }) => ({ id, label, group })),
       holder,
       preferredParkingSpotId: holder.preferredParkingSpotId,
       stateByDate,

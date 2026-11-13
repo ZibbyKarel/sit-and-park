@@ -30,6 +30,7 @@ import type {
 import type { DateOnly } from '@garage/shared-types';
 import { compareDateOnly, isBusinessDay, isMonthOpen, todayInPrague } from '@garage/shared-types';
 import type { AuthenticatedUser } from '../auth/authenticated-user';
+import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 import {
   toDateColumn,
   toPublicReservation,
@@ -55,23 +56,25 @@ export class DayOverviewService {
   ): Promise<DayOverviewOutput> {
     const dateColumn = toDateColumn(input.date);
 
-    const [spots, settings, reservations, waitlist, timedReservations] = await Promise.all([
-      this.spots.listActive(),
-      this.window.getSettings(),
-      this.prisma.client.reservation.findMany({
-        where: { date: dateColumn },
-        include: { user: { select: { id: true, name: true, licensePlate: true } } },
-      }),
-      this.prisma.client.waitlistEntry.findMany({
-        where: { date: dateColumn },
-        orderBy: WAITLIST_ORDER,
-        select: { id: true, parkingSpotId: true, userId: true },
-      }),
-      this.prisma.client.timedReservation.findMany({
-        where: { date: dateColumn },
-        orderBy: { startMinute: 'asc' },
-      }),
-    ]);
+    const [spots, settings, reservations, waitlist, timedReservations, viewerOffice] =
+      await Promise.all([
+        this.spots.listActive(),
+        this.window.getSettings(),
+        this.prisma.client.reservation.findMany({
+          where: { date: dateColumn },
+          include: { user: { select: { id: true, name: true, licensePlate: true } } },
+        }),
+        this.prisma.client.waitlistEntry.findMany({
+          where: { date: dateColumn },
+          orderBy: WAITLIST_ORDER,
+          select: { id: true, parkingSpotId: true, userId: true },
+        }),
+        this.prisma.client.timedReservation.findMany({
+          where: { date: dateColumn },
+          orderBy: { startMinute: 'asc' },
+        }),
+        parkingOfficeOf(this.prisma.client, viewer.id),
+      ]);
 
     const reservationBySpot = new Map(reservations.map((row) => [row.parkingSpotId, row]));
     const queueBySpot = new Map<string, { id: string; userId: string }[]>();
@@ -87,18 +90,19 @@ export class DayOverviewService {
       timedReservationsBySpot.set(row.parkingSpotId, blocks);
     }
 
-    // Hidden spots are the admins' (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`).
-    // A normal user still gets one they hold or are queued for that day — it
-    // is their booking, and the tile is where they cancel or leave it.
-    const visibleSpots =
-      viewer.role === 'ADMIN'
-        ? spots
-        : spots.filter(
-            (spot) =>
-              !spot.hidden ||
-              reservationBySpot.get(spot.id)?.userId === viewer.id ||
-              (queueBySpot.get(spot.id) ?? []).some((entry) => entry.userId === viewer.id)
-          );
+    // Hidden spots are the admins' (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`),
+    // and a spot of another office is nobody's here — admins included, this is
+    // the user-facing grid (`../common/office-scope.ts`; `null` = every office).
+    // A viewer still gets a spot they hold or are queued for that day either
+    // way — it is their booking (made before a move, say), and the tile is
+    // where they cancel or leave it.
+    const visibleSpots = spots.filter(
+      (spot) =>
+        (seesParkingOffice(viewerOffice, spot.officeId) &&
+          (viewer.role === 'ADMIN' || !spot.hidden)) ||
+        reservationBySpot.get(spot.id)?.userId === viewer.id ||
+        (queueBySpot.get(spot.id) ?? []).some((entry) => entry.userId === viewer.id)
+    );
 
     const spotOverviews: DaySpotOverview[] = visibleSpots.map((spot) => {
       const reservation = reservationBySpot.get(spot.id);

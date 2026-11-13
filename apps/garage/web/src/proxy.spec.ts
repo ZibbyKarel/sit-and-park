@@ -32,6 +32,10 @@ describe('proxy matcher', () => {
     ['the parking overview', '/'],
     ['the settings screen', '/settings'],
     ['the administration screen', '/admin'],
+    ['the desks screen', '/desks'],
+    ['my desks', '/desks/my'],
+    // Served only to a session: the image request carries the same cookie.
+    ['the bundled floor plan', '/floorplans/praha.svg'],
     ['an unknown path', '/whatever'],
   ])('protects %s (%s)', (_label, pathname) => {
     expect(matches(pathname)).toBe(true);

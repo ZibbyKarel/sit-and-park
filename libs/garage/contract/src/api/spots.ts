@@ -36,28 +36,30 @@ export const adminListSpotsContract = authed
 /**
  * `id`, `active`, `hidden`, `createdAt` and `updatedAt` are the server's to
  * assign — a new spot is always active and visible. `evCharger` is the
- * admin's to say at creation; omitted, the spot has no charger.
+ * admin's to say at creation; omitted, the spot has no charger. `officeId`
+ * omitted puts the spot in the default office (the only one today).
  */
 export const createSpotInputSchema = parkingSpotSchema
-  .pick({ label: true, group: true, evCharger: true })
-  .partial({ evCharger: true });
+  .pick({ label: true, group: true, evCharger: true, officeId: true })
+  .partial({ evCharger: true, officeId: true });
 export type CreateSpotInput = z.infer<typeof createSpotInputSchema>;
 
 /**
  * `CONFLICT` is the duplicate label: `label` is unique across the lot, and the
- * database constraint is what actually enforces it.
+ * database constraint is what actually enforces it. `NOT_FOUND` is an unknown
+ * office.
  */
 export const createSpotContract = authed
   .input(createSpotInputSchema)
   .output(parkingSpotSchema)
-  .errors(contractErrors('CONFLICT', 'VALIDATION_FAILED'));
+  .errors(contractErrors('NOT_FOUND', 'CONFLICT', 'VALIDATION_FAILED'));
 
 /**
  * Partial update. An omitted field is left alone; there is no field here that
  * can be cleared, so no `null` has a meaning.
  */
 export const updateSpotInputSchema = parkingSpotSchema
-  .pick({ label: true, group: true, active: true, hidden: true, evCharger: true })
+  .pick({ label: true, group: true, active: true, hidden: true, evCharger: true, officeId: true })
   .partial()
   .extend({ id: idSchema });
 export type UpdateSpotInput = z.infer<typeof updateSpotInputSchema>;

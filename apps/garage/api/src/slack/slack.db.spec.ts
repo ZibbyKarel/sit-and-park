@@ -253,6 +253,85 @@ describe('Slack over a real database', () => {
     });
   });
 
+  describe('desk approvals', () => {
+    async function seedDesk(ownerId: string) {
+      const office = await client.office.findUniqueOrThrow({
+        where: { name: 'Praha' },
+        include: { zones: { take: 1 } },
+      });
+      const zone = office.zones[0];
+      if (zone === undefined) {
+        throw new Error('The migrations created no zone for Praha.');
+      }
+      const hive = await client.hive.create({
+        data: { name: `Hive ${Date.now()}-${Math.random()}`, color: '#2563EB', ownerId },
+      });
+      return client.desk.create({
+        data: {
+          officeId: office.id,
+          zoneId: zone.id,
+          code: `SL-${Math.random().toString(36).slice(2, 8)}`,
+          hiveId: hive.id,
+          x: 0,
+          y: 0,
+          width: 10,
+          height: 10,
+        },
+        include: { hive: true },
+      });
+    }
+
+    it('DMs the hive owner who asks, for which desk and hive', async () => {
+      const owner = await seedUser(client);
+      const requester = await seedUser(client, { name: 'Jana Žádá' });
+      const desk = await seedDesk(owner.id);
+      server.respondWith((attempt) =>
+        attempt === 1 ? { status: 200, body: { ok: true, user: { id: 'U0OWNER' } } } : SLACK_OK
+      );
+
+      await expect(
+        notifications.notifyDeskApprovalRequested({
+          requestId: 'q-1',
+          deskId: desk.id,
+          deskCode: desk.code,
+          date: FUTURE_BUSINESS_DAY,
+          requesterId: requester.id,
+          hiveOwnerId: owner.id,
+          status: 'PENDING',
+        })
+      ).resolves.toBe('delivered');
+
+      expect(new URLSearchParams(server.requests[0]?.body).get('email')).toBe(owner.email);
+      expect(sentChannel(1)).toBe('U0OWNER');
+      expect(sentText(1)).toBe(
+        `Jana Žádá žádá o stůl ${desk.code} (${desk.hive?.name}) na pondělí 5. ledna 2099. Žádost vyřídíte v aplikaci v části Moje stoly.`
+      );
+    });
+
+    it('DMs the requester the decision, and skips a desk without a hive owner', async () => {
+      const requester = await seedUser(client);
+      server.respondWith((attempt) =>
+        attempt === 1 ? { status: 200, body: { ok: true, user: { id: 'U0REQ' } } } : SLACK_OK
+      );
+      const notice = {
+        requestId: 'q-2',
+        deskId: 'x',
+        deskCode: 'D-9',
+        date: FUTURE_BUSINESS_DAY,
+        requesterId: requester.id,
+        hiveOwnerId: null,
+        status: 'REJECTED' as const,
+      };
+
+      await expect(notifications.notifyDeskApprovalRequested(notice)).resolves.toBe('skipped');
+      expect(server.requests).toHaveLength(0);
+
+      await expect(notifications.notifyDeskApprovalDecided(notice)).resolves.toBe('delivered');
+      expect(sentChannel(1)).toBe('U0REQ');
+      expect(sentText(1)).toBe('Vaše žádost o stůl D-9 na pondělí 5. ledna 2099 byla zamítnuta.');
+    });
+  });
+
   describe('postDailySummary', () => {
     it('counts the day from the database and lists the free spots by label', async () => {
       server.respondWith(() => SLACK_OK);

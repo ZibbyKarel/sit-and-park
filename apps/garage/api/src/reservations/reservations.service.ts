@@ -103,6 +103,7 @@ import { DomainEventPublisher } from './reservation-events';
 import { ReservationPolicy } from './reservation-policy';
 import { RESERVATION_TRANSACTION_OPTIONS } from './transaction-options';
 import { WaitlistPromotionService } from './waitlist-promotion.service';
+import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 
 /**
  * How many times a cancellation may lose the promotion race before answering
@@ -175,11 +176,19 @@ export class ReservationsService {
 
     const spot = await this.prisma.client.parkingSpot.findUnique({
       where: { id: input.parkingSpotId },
-      select: { id: true, active: true, hidden: true },
+      select: { id: true, active: true, hidden: true, officeId: true },
     });
     // A hidden spot is the admins' (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`):
     // to anybody else it does not exist, hence the same answer as a retired one.
-    if (spot === null || !spot.active || (spot.hidden && actor.role !== 'ADMIN')) {
+    // A spot of another office is likewise not there for a non-admin
+    // (`../common/office-scope.ts`); an admin books across offices.
+    if (
+      spot === null ||
+      !spot.active ||
+      (actor.role !== 'ADMIN' &&
+        (spot.hidden ||
+          !seesParkingOffice(await parkingOfficeOf(this.prisma.client, actor.id), spot.officeId)))
+    ) {
       throw new DomainError('NOT_FOUND', { message: 'No such active parking spot.' });
     }
 

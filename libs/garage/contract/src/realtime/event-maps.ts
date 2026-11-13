@@ -21,6 +21,8 @@ import { cellLockAckSchema, cellLockCommandSchema, dayRoomCommandSchema } from '
 import {
   cellLockedEventSchema,
   cellUnlockedEventSchema,
+  deskReleasedEventSchema,
+  deskReservedEventSchema,
   reservationCancelledEventSchema,
   reservationCreatedEventSchema,
   reservationReassignedEventSchema,
@@ -42,6 +44,8 @@ export const SERVER_TO_CLIENT_EVENT_SCHEMAS = {
   'reservation:reassigned': reservationReassignedEventSchema,
   'timed-reservations:updated': timedReservationsUpdatedEventSchema,
   'waitlist:updated': waitlistUpdatedEventSchema,
+  'desk:reserved': deskReservedEventSchema,
+  'desk:released': deskReleasedEventSchema,
 } as const;
 
 /**

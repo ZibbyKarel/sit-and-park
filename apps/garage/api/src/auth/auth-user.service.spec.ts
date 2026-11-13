@@ -12,7 +12,7 @@ import type { PinoLogger } from 'nestjs-pino';
 import { DomainError } from '../common/errors/domain-error';
 import type { PrismaService } from '../database/prisma.service';
 import { AuthUserService, generateIcsToken, ICS_TOKEN_BYTES } from './auth-user.service';
-import { InMemoryUserStore } from './testing/in-memory-user-store';
+import { IN_MEMORY_OFFICE_ID, InMemoryUserStore } from './testing/in-memory-user-store';
 import type { UserSeed } from './testing/in-memory-user-store';
 
 const silentLogger = {
@@ -66,6 +66,23 @@ describe('AuthUserService', () => {
       });
       const [row] = store.all();
       expect(row?.icsToken).toMatch(/^[A-Za-z0-9_-]{20,}$/);
+    });
+
+    it('puts a new user in the oldest active office', async () => {
+      const { service, store } = build();
+
+      await service.resolve({ sub: 'okta-1', email: 'alice@example.com' });
+
+      expect(store.all()[0]?.officeId).toBe(IN_MEMORY_OFFICE_ID);
+    });
+
+    it('provisions a user without an office when no office is active', async () => {
+      const { service, store } = build();
+      store.defaultOfficeId = null;
+
+      await service.resolve({ sub: 'okta-1', email: 'alice@example.com' });
+
+      expect(store.all()[0]?.officeId).toBeNull();
     });
 
     it('falls back to the email when the token carries no name', async () => {
@@ -161,6 +178,25 @@ describe('AuthUserService', () => {
       expect(user.role).toBe('ADMIN');
       expect(store.createCount).toBe(0);
       expect(store.all()).toHaveLength(1);
+    });
+
+    it('matches a lower-cased row whatever the case of the email claim', async () => {
+      const { service, store } = build([
+        { oktaId: 'hibob:1', email: 'jane.doe@team.blue', name: 'Jane Doe' },
+      ]);
+
+      const user = await service.resolve({ sub: 'okta-jane', email: ' Jane.Doe@Team.Blue ' });
+
+      expect(user).toMatchObject({ oktaId: 'okta-jane', email: 'jane.doe@team.blue' });
+      expect(store.createCount).toBe(0);
+    });
+
+    it('stores a new user’s email lower-cased', async () => {
+      const { service, store } = build();
+
+      await service.resolve({ sub: 'okta-1', email: 'Alice@Example.com', name: 'Alice' });
+
+      expect(store.all()[0]?.email).toBe('alice@example.com');
     });
   });
 

@@ -7,6 +7,8 @@
 import type { DateOnly } from '@garage/shared-types';
 import {
   dailySummaryMessage,
+  deskApprovalDecidedMessage,
+  deskApprovalRequestedMessage,
   formatCzechFullDate,
   spotFreedMessage,
   waitlistPromotedMessage,
@@ -65,6 +67,27 @@ describe('waitlistPromotedMessage', () => {
     expect(waitlistPromotedMessage('<A&B>', MONDAY)).toBe(
       'Máte parkovací místo &lt;A&amp;B&gt; na pondělí 28. září 2026. Uvolnilo se a byli jste první ve frontě.'
     );
+  });
+});
+
+describe('desk approval messages', () => {
+  it('tells the owner who asks, for which desk, hive and day', () => {
+    expect(deskApprovalRequestedMessage('Jan Novák', 'D-014', 'Backend', MONDAY)).toBe(
+      'Jan Novák žádá o stůl D-014 (Backend) na pondělí 28. září 2026. Žádost vyřídíte v aplikaci v části Moje stoly.'
+    );
+  });
+
+  it('tells the requester the decision', () => {
+    expect(deskApprovalDecidedMessage('D-014', MONDAY, true)).toBe(
+      'Vaše žádost o stůl D-014 na pondělí 28. září 2026 byla schválena.'
+    );
+    expect(deskApprovalDecidedMessage('D-014', MONDAY, false)).toBe(
+      'Vaše žádost o stůl D-014 na pondělí 28. září 2026 byla zamítnuta.'
+    );
+  });
+
+  it('escapes Slack markup characters in the name', () => {
+    expect(deskApprovalRequestedMessage('<A&B>', 'D-1', 'H', MONDAY)).toContain('&lt;A&amp;B&gt;');
   });
 });
 

@@ -23,15 +23,35 @@
 
 import type {
   AuditLog as ContractAuditLog,
+  Desk as ContractDesk,
+  DeskApprovalRequest as ContractDeskApprovalRequest,
+  DeskGrant as ContractDeskGrant,
+  DeskRelease as ContractDeskRelease,
+  DeskReservation as ContractDeskReservation,
+  EmployeeSyncRun as ContractEmployeeSyncRun,
+  Hive as ContractHive,
+  HiveMembership as ContractHiveMembership,
+  Office as ContractOffice,
   ParkingSpot as ContractParkingSpot,
   Reservation as ContractReservation,
   TimedReservation as ContractTimedReservation,
   User as ContractUser,
   WaitlistEntry as ContractWaitlistEntry,
+  Zone as ContractZone,
 } from '@garage/contract';
 import {
   AUDIT_LOG_ACTIONS,
   auditLogSchema,
+  deskApprovalRequestSchema,
+  deskGrantSchema,
+  deskReleaseSchema,
+  deskReservationSchema,
+  deskSchema,
+  employeeSyncRunSchema,
+  employeeSyncSettingsSchema,
+  hiveMembershipSchema,
+  hiveSchema,
+  officeSchema,
   parkingSpotSchema,
   reservationLimitSettingsSchema,
   reservationSchema,
@@ -39,19 +59,40 @@ import {
   timedReservationSchema,
   userSchema,
   waitlistEntrySchema,
+  zoneSchema,
 } from '@garage/contract';
-import { PARKING_GROUPS, RESERVATION_LOCK_MODES, USER_ROLES } from '@garage/shared-types';
+import {
+  DESK_APPROVAL_STATUSES,
+  EMPLOYEE_SYNC_MODES,
+  EMPLOYEE_SYNC_STATUSES,
+  PARKING_GROUPS,
+  RESERVATION_LOCK_MODES,
+  USER_ROLES,
+} from '@garage/shared-types';
 import type {
   AuditLog as PrismaAuditLog,
+  Desk as PrismaDesk,
+  DeskApprovalRequest as PrismaDeskApprovalRequest,
+  DeskGrant as PrismaDeskGrant,
+  DeskRelease as PrismaDeskRelease,
+  DeskReservation as PrismaDeskReservation,
+  EmployeeSyncRun as PrismaEmployeeSyncRun,
+  Hive as PrismaHive,
+  HiveMembership as PrismaHiveMembership,
+  Office as PrismaOffice,
   ParkingSpot as PrismaParkingSpot,
   Reservation as PrismaReservation,
   TimedReservation as PrismaTimedReservation,
   User as PrismaUser,
   WaitlistEntry as PrismaWaitlistEntry,
+  Zone as PrismaZone,
 } from '../generated/prisma/client';
 import { Prisma } from '../generated/prisma/client';
 import {
   AuditLogAction,
+  DeskApprovalStatus,
+  EmployeeSyncMode,
+  EmployeeSyncStatus,
   ParkingGroup,
   ReservationLockMode,
   UserRole,
@@ -97,7 +138,40 @@ const nullabilityMatches: [
       NullableKeys<Omit<ContractTimedReservation, 'startTime' | 'endTime'>>
     >
   >,
-] = [true, true, true, true, true, true];
+  Expect<Equal<NullableKeys<PrismaOffice>, NullableKeys<ContractOffice>>>,
+  Expect<Equal<NullableKeys<PrismaZone>, NullableKeys<ContractZone>>>,
+  Expect<Equal<NullableKeys<PrismaHive>, NullableKeys<ContractHive>>>,
+  Expect<Equal<NullableKeys<PrismaHiveMembership>, NullableKeys<ContractHiveMembership>>>,
+  Expect<Equal<NullableKeys<PrismaDesk>, NullableKeys<ContractDesk>>>,
+  Expect<Equal<NullableKeys<PrismaDeskGrant>, NullableKeys<ContractDeskGrant>>>,
+  Expect<Equal<NullableKeys<PrismaDeskReservation>, NullableKeys<ContractDeskReservation>>>,
+  Expect<Equal<NullableKeys<PrismaDeskRelease>, NullableKeys<ContractDeskRelease>>>,
+  Expect<Equal<NullableKeys<PrismaDeskApprovalRequest>, NullableKeys<ContractDeskApprovalRequest>>>,
+  // `summary` excluded for the same JSON-null reason as `AuditLog.payload`.
+  Expect<
+    Equal<
+      NullableKeys<Omit<PrismaEmployeeSyncRun, 'summary'>>,
+      NullableKeys<Omit<ContractEmployeeSyncRun, 'summary'>>
+    >
+  >,
+] = [
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+  true,
+];
 
 // --- runtime parity ---------------------------------------------------------
 
@@ -117,6 +191,18 @@ describe('Prisma enums mirror the domain enumerations', () => {
   it('AuditLogAction matches the closed list from decision 0016', () => {
     expect(Object.values(AuditLogAction)).toEqual([...AUDIT_LOG_ACTIONS]);
   });
+
+  it('DeskApprovalStatus', () => {
+    expect(Object.values(DeskApprovalStatus)).toEqual([...DESK_APPROVAL_STATUSES]);
+  });
+
+  it('EmployeeSyncMode', () => {
+    expect(Object.values(EmployeeSyncMode)).toEqual([...EMPLOYEE_SYNC_MODES]);
+  });
+
+  it('EmployeeSyncStatus', () => {
+    expect(Object.values(EmployeeSyncStatus)).toEqual([...EMPLOYEE_SYNC_STATUSES]);
+  });
 });
 
 describe('Prisma models mirror the contract entities', () => {
@@ -126,13 +212,24 @@ describe('Prisma models mirror the contract entities', () => {
     ['Reservation', Prisma.ReservationScalarFieldEnum, reservationSchema],
     ['WaitlistEntry', Prisma.WaitlistEntryScalarFieldEnum, waitlistEntrySchema],
     ['AuditLog', Prisma.AuditLogScalarFieldEnum, auditLogSchema],
+    ['Office', Prisma.OfficeScalarFieldEnum, officeSchema],
+    ['Zone', Prisma.ZoneScalarFieldEnum, zoneSchema],
+    ['Hive', Prisma.HiveScalarFieldEnum, hiveSchema],
+    ['HiveMembership', Prisma.HiveMembershipScalarFieldEnum, hiveMembershipSchema],
+    ['Desk', Prisma.DeskScalarFieldEnum, deskSchema],
+    ['DeskGrant', Prisma.DeskGrantScalarFieldEnum, deskGrantSchema],
+    ['DeskReservation', Prisma.DeskReservationScalarFieldEnum, deskReservationSchema],
+    ['DeskRelease', Prisma.DeskReleaseScalarFieldEnum, deskReleaseSchema],
+    ['DeskApprovalRequest', Prisma.DeskApprovalRequestScalarFieldEnum, deskApprovalRequestSchema],
+    ['EmployeeSyncRun', Prisma.EmployeeSyncRunScalarFieldEnum, employeeSyncRunSchema],
   ] as const)('%s stores exactly the contract fields', (_name, scalarFields, schema) => {
     expect(Object.keys(scalarFields).sort()).toEqual(Object.keys(schema.shape).sort());
   });
 
   it('the nullable columns are the ones the contract marks nullable', () => {
     // Enforced by `tsc`; asserted here so the check is visible in the run.
-    expect(nullabilityMatches).toEqual([true, true, true, true, true, true]);
+    expect(nullabilityMatches.every((matches) => matches)).toBe(true);
+    expect(nullabilityMatches).toHaveLength(16);
   });
 
   it('TimedReservation stores the contract fields, minutes where the contract stores HH:MM', () => {
@@ -165,9 +262,26 @@ describe('Prisma models mirror the contract entities', () => {
     );
   });
 
+  it('EmployeeSyncSettings adds only storage-local columns', () => {
+    // The third settings singleton, same arrangement as the two above.
+    expect(Object.keys(Prisma.EmployeeSyncSettingsScalarFieldEnum).sort()).toEqual(
+      [...Object.keys(employeeSyncSettingsSchema.shape), 'id', 'updatedAt'].sort()
+    );
+  });
+
   it('has no models beyond the ones the contract knows about', () => {
     expect(Object.values(Prisma.ModelName).sort()).toEqual([
       'AuditLog',
+      'Desk',
+      'DeskApprovalRequest',
+      'DeskGrant',
+      'DeskRelease',
+      'DeskReservation',
+      'EmployeeSyncRun',
+      'EmployeeSyncSettings',
+      'Hive',
+      'HiveMembership',
+      'Office',
       'ParkingSpot',
       'Reservation',
       'ReservationLimitSettings',
@@ -175,11 +289,17 @@ describe('Prisma models mirror the contract entities', () => {
       'TimedReservation',
       'User',
       'WaitlistEntry',
+      'Zone',
     ]);
   });
 });
 
 describe('storage types that are deliberately not the wire types', () => {
+  it('EmployeeSyncRun.summary is JSON in storage and a strict object on the wire', () => {
+    const summaryIsJson: Expect<Equal<PrismaEmployeeSyncRun['summary'], Prisma.JsonValue>> = true;
+    expect(summaryIsJson).toBe(true);
+  });
+
   it('AuditLog.payload is JSON, not a structured column', () => {
     // `Prisma.JsonValue` on the storage side, `Record<string, unknown>` on the
     // wire — the known, documented divergence (doc/database.md).
@@ -196,8 +316,12 @@ describe('storage types that are deliberately not the wire types', () => {
       Expect<Equal<PrismaWaitlistEntry['date'], Date>>,
       Expect<Equal<ContractReservation['date'], string>>,
       Expect<Equal<ContractWaitlistEntry['date'], string>>,
-    ] = [true, true, true, true];
-    expect(storage).toEqual([true, true, true, true]);
+      Expect<Equal<PrismaDeskReservation['date'], Date>>,
+      Expect<Equal<PrismaDeskRelease['date'], Date>>,
+      Expect<Equal<PrismaDeskApprovalRequest['date'], Date>>,
+      Expect<Equal<ContractDeskReservation['date'], string>>,
+    ] = [true, true, true, true, true, true, true, true];
+    expect(storage).toEqual([true, true, true, true, true, true, true, true]);
   });
 
   it('timestamps are Date in storage and ISO strings on the wire (decision 0015)', () => {

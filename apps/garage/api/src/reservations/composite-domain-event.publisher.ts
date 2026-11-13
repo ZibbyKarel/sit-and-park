@@ -97,10 +97,22 @@
  * no JWT can appear in that line, because none of the fields is one.
  */
 
+import type { DeskReleasedEvent, DeskReservedEvent } from '@garage/contract/realtime';
 import { Inject, Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import type { DomainEvent, WaitlistPromotionNotice } from './reservation-events';
+import type {
+  DeskApprovalNotice,
+  DomainEvent,
+  WaitlistPromotionNotice,
+} from './reservation-events';
 import { DomainEventPublisher } from './reservation-events';
+
+/** The publisher methods a failure is logged under. */
+type PublisherMethod = {
+  [K in keyof DomainEventPublisher]: DomainEventPublisher[K] extends (...args: never[]) => void
+    ? K
+    : never;
+}[keyof DomainEventPublisher];
 
 /**
  * The implementations {@link CompositeDomainEventPublisher} fans out to, in
@@ -156,6 +168,34 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
     }
   }
 
+  deskReserved(payload: DeskReservedEvent): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskReserved', 'desk:reserved', () => delegate.deskReserved(payload));
+    }
+  }
+
+  deskReleased(payload: DeskReleasedEvent): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskReleased', 'desk:released', () => delegate.deskReleased(payload));
+    }
+  }
+
+  deskApprovalRequested(notice: DeskApprovalNotice): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskApprovalRequested', 'desk-approval', () =>
+        delegate.deskApprovalRequested(notice)
+      );
+    }
+  }
+
+  deskApprovalDecided(notice: DeskApprovalNotice): void {
+    for (const delegate of this.delegates) {
+      this.forward(delegate, 'deskApprovalDecided', 'desk-approval', () =>
+        delegate.deskApprovalDecided(notice)
+      );
+    }
+  }
+
   /**
    * One forward, one failure domain. Never rethrows and never blocks: see the
    * class comment for why a broadcast failure must not reach the user who
@@ -170,7 +210,7 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
    */
   private forward(
     delegate: DomainEventPublisher,
-    method: 'publish' | 'notifyPromotions',
+    method: PublisherMethod,
     subject: string,
     call: () => unknown
   ): void {
@@ -189,7 +229,7 @@ export class CompositeDomainEventPublisher extends DomainEventPublisher {
   /** The one log line a delegate failure produces, sync or async. */
   private log(
     delegate: DomainEventPublisher,
-    method: 'publish' | 'notifyPromotions',
+    method: PublisherMethod,
     subject: string,
     error: unknown
   ): void {

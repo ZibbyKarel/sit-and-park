@@ -40,6 +40,11 @@ function renderAdminScreen(
           spots: <p>panel-mista</p>,
           window: <p>panel-okno</p>,
           limits: <p>panel-limity</p>,
+          hives: <p>panel-hivy</p>,
+          offices: <p>panel-kancelare</p>,
+          sync: <p>panel-sync</p>,
+          desks: <p>panel-stoly</p>,
+          deskStats: <p>panel-statistiky-stolu</p>,
         }}
       />
     </IntlProvider>
@@ -76,6 +81,11 @@ describe('AdminScreen', () => {
       'tabSpots',
       'tabWindow',
       'tabLimits',
+      'tabHives',
+      'tabOffices',
+      'tabSync',
+      'tabDesks',
+      'tabDeskStats',
     ]);
   });
 
@@ -94,6 +104,11 @@ describe('AdminScreen', () => {
     ['tabSpots', 'panel-mista'],
     ['tabWindow', 'panel-okno'],
     ['tabLimits', 'panel-limity'],
+    ['tabHives', 'panel-hivy'],
+    ['tabOffices', 'panel-kancelare'],
+    ['tabSync', 'panel-sync'],
+    ['tabDesks', 'panel-stoly'],
+    ['tabDeskStats', 'panel-statistiky-stolu'],
   ])('shows the %s panel when its tab is chosen', async (tab, body) => {
     const { user } = renderAdminScreen({ role: 'ADMIN' });
 

@@ -72,6 +72,22 @@ describe('validateApiEnv', () => {
     expect(env.HEALTH_DB_TIMEOUT_MS).toBe(250);
   });
 
+  it('accepts EMPLOYEE_SYNC_KEY_SHA256 as 64 hex characters, normalised to lower case', () => {
+    const hash = 'A'.repeat(64);
+    expect(
+      validateApiEnv(validEnv({ EMPLOYEE_SYNC_KEY_SHA256: hash })).EMPLOYEE_SYNC_KEY_SHA256
+    ).toBe('a'.repeat(64));
+  });
+
+  it.each(['abc', 'g'.repeat(64), 'a'.repeat(65)])(
+    'rejects EMPLOYEE_SYNC_KEY_SHA256=%s without echoing it',
+    (value) => {
+      expect(() => validateApiEnv(validEnv({ EMPLOYEE_SYNC_KEY_SHA256: value }))).toThrow(
+        /EMPLOYEE_SYNC_KEY_SHA256: must be a SHA-256/
+      );
+    }
+  );
+
   it('rejects a BODY_LIMIT without a unit, because body-parser would read it as bytes', () => {
     expect(() => validateApiEnv(validEnv({ BODY_LIMIT: '100' }))).toThrow(/BODY_LIMIT/);
   });

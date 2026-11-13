@@ -219,6 +219,8 @@ services:
       - SLACK_REQUEST_TIMEOUT_MS
       - SLACK_RETRY_ATTEMPTS
       - SLACK_RETRY_BASE_DELAY_MS
+      # Only the key's hash; unset = the sync endpoint answers 503.
+      - EMPLOYEE_SYNC_KEY_SHA256
     ports:
       - '3000:3000'
     depends_on:

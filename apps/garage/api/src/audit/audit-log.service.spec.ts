@@ -29,6 +29,28 @@ describe('AuditLogService', () => {
     });
   });
 
+  it('records a desk action with its pinned entity type and payload', async () => {
+    await audit.record({
+      actorUserId: 'actor-1',
+      action: 'DESK_RESERVATION_CANCELLED',
+      entityType: 'DeskReservation',
+      entityId: 'res-1',
+      payload: {
+        deskId: 'desk-1',
+        deskCode: 'D-001',
+        userId: 'user-1',
+        date: '2026-09-01',
+        reason: 'DESK_DEACTIVATED',
+      },
+    });
+
+    expect(double.auditLogs[0]).toMatchObject({
+      action: 'DESK_RESERVATION_CANCELLED',
+      entityType: 'DeskReservation',
+      payload: { reason: 'DESK_DEACTIVATED' },
+    });
+  });
+
   it('appends rather than replaces — the log is a history, not a latest-value', async () => {
     await audit.record({
       actorUserId: 'actor-1',

@@ -69,7 +69,11 @@
 
 import { Injectable } from '@nestjs/common';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
-import type { DomainEvent, WaitlistPromotionNotice } from '../reservations/reservation-events';
+import type {
+  DeskApprovalNotice,
+  DomainEvent,
+  WaitlistPromotionNotice,
+} from '../reservations/reservation-events';
 import { DomainEventPublisher } from '../reservations/reservation-events';
 import { GracefulShutdownService } from '../shutdown/graceful-shutdown.service';
 import { SlackNotificationService } from './slack-notification.service';
@@ -100,6 +104,29 @@ export class SlackDomainEventPublisher extends DomainEventPublisher {
         this.notifications.notifySpotFreed({ parkingSpotId, date, reservationId })
       );
     }
+  }
+
+  /** Desk traffic is realtime-only; Slack has nothing to say about it. */
+  deskReserved(): void {
+    // Intentionally empty.
+  }
+
+  deskReleased(): void {
+    // Intentionally empty.
+  }
+
+  /** DM to the hive owner. Cancellations and sync-driven rejections do not notify. */
+  deskApprovalRequested(notice: DeskApprovalNotice): void {
+    this.detach('desk-approval-requested', () =>
+      this.notifications.notifyDeskApprovalRequested(notice)
+    );
+  }
+
+  /** DM to the requester. */
+  deskApprovalDecided(notice: DeskApprovalNotice): void {
+    this.detach('desk-approval-decided', () =>
+      this.notifications.notifyDeskApprovalDecided(notice)
+    );
   }
 
   notifyPromotions(notices: readonly WaitlistPromotionNotice[]): void {

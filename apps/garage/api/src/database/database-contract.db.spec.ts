@@ -31,7 +31,7 @@
 import { Prisma } from '@garage/database';
 import type { PrismaClient } from '@garage/database';
 import { createPrismaClient } from '@garage/database';
-import { requireDatabaseUrl, unique } from '../testing/database/test-database';
+import { IN_PRAHA, requireDatabaseUrl, unique } from '../testing/database/test-database';
 import {
   isTimedReservationConflict,
   isWriteConflict,
@@ -89,7 +89,7 @@ async function seedUser(tx: Prisma.TransactionClient) {
 }
 
 async function seedSpot(tx: Prisma.TransactionClient) {
-  return tx.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT' } });
+  return tx.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA } });
 }
 
 describe('what PostgreSQL actually does', () => {
@@ -233,7 +233,7 @@ describe('what PostgreSQL actually does', () => {
     it('ParkingSpot(label) degrades to the vague CONFLICT, which is correct', async () => {
       const error = await rejectedBy(prisma, async (tx) => {
         const spot = await seedSpot(tx);
-        return tx.parkingSpot.create({ data: { label: spot.label, group: 'SHARED' } });
+        return tx.parkingSpot.create({ data: { label: spot.label, group: 'SHARED', ...IN_PRAHA } });
       });
 
       const known = error as Prisma.PrismaClientKnownRequestError;
@@ -305,8 +305,8 @@ describe('what PostgreSQL actually does', () => {
      */
     it('is P2034 carrying the driver’s own 40P01', async () => {
       const [first, second] = await Promise.all([
-        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT' } }),
-        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT' } }),
+        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA } }),
+        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA } }),
       ]);
 
       // `try/finally` around everything after the two rows exist. The cleanup
@@ -375,8 +375,8 @@ describe('what PostgreSQL actually does', () => {
      */
     it('is P2010 wrapping the driver’s 40P01 when the victim is a raw statement', async () => {
       const [first, second] = await Promise.all([
-        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT' } }),
-        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT' } }),
+        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA } }),
+        prisma.parkingSpot.create({ data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA } }),
       ]);
 
       try {
@@ -583,7 +583,7 @@ describe('what PostgreSQL actually does', () => {
 
     it('concurrent overlapping blocks: exactly one commits, the loser is SPOT_ALREADY_RESERVED', async () => {
       const spot = await prisma.parkingSpot.create({
-        data: { label: unique('SPOT'), group: 'IT' },
+        data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA },
       });
       try {
         const holdsLock = resolvable();
@@ -648,7 +648,7 @@ describe('what PostgreSQL actually does', () => {
 
     it('a block vs. a full-day reservation, concurrently: the reservation waits and loses', async () => {
       const spot = await prisma.parkingSpot.create({
-        data: { label: unique('SPOT'), group: 'IT' },
+        data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA },
       });
       const user = await prisma.user.create({
         data: {
@@ -721,7 +721,7 @@ describe('what PostgreSQL actually does', () => {
      */
     it('a full-day reservation vs. a block, concurrently: the block waits and loses', async () => {
       const spot = await prisma.parkingSpot.create({
-        data: { label: unique('SPOT'), group: 'IT' },
+        data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA },
       });
       const user = await prisma.user.create({
         data: {
@@ -793,7 +793,7 @@ describe('what PostgreSQL actually does', () => {
      */
     it('a create arriving between a delete and a re-insert of the same cell loses cleanly, without a deadlock', async () => {
       const spot = await prisma.parkingSpot.create({
-        data: { label: unique('SPOT'), group: 'IT' },
+        data: { label: unique('SPOT'), group: 'IT', ...IN_PRAHA },
       });
       const users = [];
       for (let index = 0; index < 3; index += 1) {

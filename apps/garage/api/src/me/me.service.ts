@@ -16,6 +16,7 @@ import { DomainError } from '../common/errors/domain-error';
 import { isUniqueConstraintViolation } from '../common/errors/prisma-error-mapping';
 import { toContractUser } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
+import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 
 /**
  * How many times a fresh `icsToken` is retried after a unique-constraint
@@ -38,7 +39,22 @@ export class MeService {
   ) {}
 
   async getProfile(userId: string): Promise<MyProfile> {
-    return toContractUser(await this.requireUser(userId));
+    return this.toProfile(await this.requireUser(userId));
+  }
+
+  /** The user row plus the three desk-side fields `MyProfile` adds (hive, permanent desk, ownership). */
+  private async toProfile(row: UserRow): Promise<MyProfile> {
+    const [membership, permanentDesk, ownedHive] = await Promise.all([
+      this.prisma.client.hiveMembership.findUnique({ where: { userId: row.id } }),
+      this.prisma.client.desk.findUnique({ where: { permanentAssigneeId: row.id } }),
+      this.prisma.client.hive.findFirst({ where: { ownerId: row.id }, select: { id: true } }),
+    ]);
+    return {
+      ...toContractUser(row),
+      hiveId: membership?.hiveId ?? null,
+      permanentDeskId: permanentDesk?.id ?? null,
+      ownsHive: ownedHive !== null,
+    };
   }
 
   /**
@@ -53,7 +69,7 @@ export class MeService {
     const existing = await this.requireUser(userId);
 
     if (input.preferredParkingSpotId !== undefined && input.preferredParkingSpotId !== null) {
-      await this.requireSelectableSpot(input.preferredParkingSpotId);
+      await this.requireSelectableSpot(input.preferredParkingSpotId, userId);
     }
 
     const data: Prisma.UserUpdateInput = {
@@ -89,7 +105,7 @@ export class MeService {
       },
     });
 
-    return toContractUser(row);
+    return this.toProfile(row);
   }
 
   /**
@@ -157,10 +173,16 @@ export class MeService {
    * hidden spot answers as a missing one: bulk booking never assigns it, and
    * to a normal user it does not exist (`doc/decision/0316-*`).
    */
-  private async requireSelectableSpot(spotId: string): Promise<void> {
+  private async requireSelectableSpot(spotId: string, userId: string): Promise<void> {
     const spot = await this.prisma.client.parkingSpot.findUnique({ where: { id: spotId } });
 
-    if (spot === null || spot.hidden) {
+    // A spot of another office is one the user cannot see either
+    // (`../common/office-scope.ts`).
+    if (
+      spot === null ||
+      spot.hidden ||
+      !seesParkingOffice(await parkingOfficeOf(this.prisma.client, userId), spot.officeId)
+    ) {
       throw new DomainError('NOT_FOUND', { message: 'No such parking spot.' });
     }
     if (!spot.active) {

@@ -95,7 +95,9 @@ import { WaitlistService } from './waitlist.service';
   // reuse this module's day-eligibility rule and its one after-commit
   // publisher instance, instead of importing `RealtimeModule`/`SlackModule`
   // itself and standing up a second `CompositeDomainEventPublisher` that would
-  // never reach either delegate.
-  exports: [ReservationPolicy, DomainEventPublisher],
+  // never reach either delegate. `ReservationsService` is exported for user
+  // deactivation (`employee-sync/user-deactivation.service.ts`), which cancels
+  // a leaver's future reservations through the same path, promotion included.
+  exports: [ReservationPolicy, DomainEventPublisher, ReservationsService],
 })
 export class ReservationsModule {}

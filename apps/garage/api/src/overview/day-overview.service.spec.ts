@@ -69,6 +69,47 @@ describe('DayOverviewService', () => {
     expect(result.spots[1]?.viewerWaitlistPosition).toBe(1);
   });
 
+  describe('offices', () => {
+    const OTHER_OFFICE = '0190a000-0000-7000-8000-0000000000ff';
+
+    it('shows only the viewer’s office, to an admin too', async () => {
+      double.seedSpot({ label: 'HERE' });
+      double.seedSpot({ label: 'THERE', officeId: OTHER_OFFICE });
+      const user = double.seedUser();
+      const admin = double.seedUser({ role: 'ADMIN' });
+
+      const asUser = await overview.getDay({ date: TODAY }, authenticated(user.id), TODAY);
+      const asAdmin = await overview.getDay(
+        { date: TODAY },
+        authenticated(admin.id, 'ADMIN'),
+        TODAY
+      );
+
+      expect(asUser.spots.map((row) => row.spot.label)).toEqual(['HERE']);
+      expect(asAdmin.spots.map((row) => row.spot.label)).toEqual(['HERE']);
+    });
+
+    it('shows a user without an office every office’s spots', async () => {
+      double.seedSpot({ label: 'HERE' });
+      double.seedSpot({ label: 'THERE', officeId: OTHER_OFFICE });
+      const viewer = double.seedUser({ officeId: null });
+
+      const result = await overview.getDay({ date: TODAY }, authenticated(viewer.id), TODAY);
+
+      expect(result.spots).toHaveLength(2);
+    });
+
+    it('still shows a spot of another office the viewer holds that day', async () => {
+      const there = double.seedSpot({ label: 'THERE', officeId: OTHER_OFFICE });
+      const viewer = double.seedUser();
+      double.seedReservation({ parkingSpotId: there.id, userId: viewer.id, date: TODAY });
+
+      const result = await overview.getDay({ date: TODAY }, authenticated(viewer.id), TODAY);
+
+      expect(result.spots.map((row) => row.spot.label)).toEqual(['THERE']);
+    });
+  });
+
   it('attaches the holder of each reserved spot, and nothing else about them', async () => {
     const spot = double.seedSpot({ label: 'A1' });
     const holder = double.seedUser({ name: 'Alice', licensePlate: '1AB 2345' });

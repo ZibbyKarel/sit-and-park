@@ -145,7 +145,8 @@ The backend never returns an ad-hoc error shape. Everything goes through
 { code: ErrorCode, message: string, details?: Record<string, unknown> }
 ```
 
-`ERROR_CODES` is a closed enum of twelve codes. The frontend branches on
+`ERROR_CODES` is a closed enum of twenty-three codes (twelve parking, eleven
+added by the desk merge — see "Desks" below). The frontend branches on
 `code`; `message` is detail for logs and unexpected cases, and the Czech UI
 copy is keyed by code (`libs/shared/i18n`).
 
@@ -386,7 +387,7 @@ service layer, same as the window (ruling window-2).
 | ----------------------- | ------------------------------------------------------ | ------------- | -------------------------------------------- |
 | `spot.list`             | —                                                      | `{ spots[] }` | —                                            |
 | `admin.spot.list`       | `{ includeInactive = false, group? }`                  | `{ spots[] }` | —                                            |
-| `admin.spot.create`     | `{ label, group, evCharger? }`                         | `ParkingSpot` | `CONFLICT`, `VALIDATION_FAILED`              |
+| `admin.spot.create`     | `{ label, group, evCharger?, officeId? }`              | `ParkingSpot` | `CONFLICT`, `VALIDATION_FAILED`, `NOT_FOUND` |
 | `admin.spot.update`     | `{ id, label?, group?, active?, hidden?, evCharger? }` | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
 | `admin.spot.deactivate` | `{ id }`                                               | `ParkingSpot` | `NOT_FOUND`, `CONFLICT`                      |
 
@@ -405,7 +406,7 @@ the audit log.
 | procedure           | input                         | output        | other errors                                 |
 | ------------------- | ----------------------------- | ------------- | -------------------------------------------- |
 | `admin.user.list`   | `{ role?, active?, search? }` | `{ users[] }` | —                                            |
-| `admin.user.update` | `{ id, role?, active? }`      | `AdminUser`   | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
+| `admin.user.update` | `{ id, role?, active?, officeId?, manualAccount? }` | `AdminUser` | `NOT_FOUND`, `CONFLICT`, `VALIDATION_FAILED` |
 
 Users **aren't created** through the API (provisioning happens from the Okta
 token on first login) or deleted (offboarding is `active: false`).
@@ -425,7 +426,7 @@ yourself.
 
 | procedure               | input                                        | output                             | other errors                     |
 | ----------------------- | -------------------------------------------- | ---------------------------------- | -------------------------------- |
-| `me.get`                | —                                            | `User` (own, including `icsToken`) | —                                |
+| `me.get`                | —                                            | `MyProfile` (`User` incl. `icsToken`, plus `hiveId`, `permanentDeskId`, `ownsHive`) | —      |
 | `me.updateSettings`     | `{ licensePlate?, preferredParkingSpotId? }` | `User`                             | `NOT_FOUND`, `VALIDATION_FAILED` |
 | `me.regenerateIcsToken` | —                                            | `{ icsToken }`                     | —                                |
 
@@ -568,6 +569,61 @@ admin window exemption applies here too and neither `OUT_OF_HORIZON` nor
 A spot with blocks has no waitlist: the queue is a `Reservation`-shaped
 concept, and nothing here gives a cell with guest blocks an equivalent.
 
+### Desks (desk merge)
+
+Every procedure below carries a `.route({ description })` (asserted in
+`router.spec.ts`), so the contract can be exposed as MCP tools later. All
+declare `FORBIDDEN` through `authed`; the table lists the other codes.
+`admin.*` is admin-only by router position.
+
+| procedure                         | input                                         | output                                       | other errors                                                                                                                                                        |
+| --------------------------------- | --------------------------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `desk.directory`                  | `{ date }`                                    | office, zones, hives, `desks[]` with status, `myReservationId`, `myPendingRequestId` | `NO_OFFICE_ASSIGNED`                                                                                                                                                |
+| `desk.previewSeries`              | `{ deskId, dates[1..20] }` (span ≤ 34 days)   | `{ days[{ date, ok, reason }] }`             | `NOT_FOUND`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED`                                                              |
+| `desk.reserve`                    | as `previewSeries`                            | `{ reserved[], skipped[{ date, reason }] }`  | previewSeries codes + `NO_FREE_DAY`, `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`, `CONFLICT`                                                          |
+| `desk.cancel`                     | `{ reservationId }`                           | `{ reservationId, date, deskId }`            | `NOT_FOUND`, `PAST_DATE`                                                                                                                                            |
+| `desk.myReservations`             | —                                             | `{ reservations[] }`: future + last 12 months (`DESK_HISTORY_MONTHS`) | —                                                                                                                                                                   |
+| `desk.requestApproval`            | `{ deskId, date }`                            | `DeskApprovalRequest`                        | `NOT_FOUND`, `PAST_DATE`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `DESK_REQUEST_ALREADY_PENDING`, `VALIDATION_FAILED` |
+| `desk.cancelRequest`              | `{ requestId }`                               | `DeskApprovalRequest`                        | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED`                                                                                                                         |
+| `desk.myRequests`                 | —                                             | the caller's requests: future + last 12 months (`DESK_HISTORY_MONTHS`) | —                                                                                                                                                                   |
+| `desk.pendingRequests`            | —                                             | requests awaiting the caller (hive owner)    | —                                                                                                                                                                   |
+| `desk.decideRequest`              | `{ requestId, approve }`                      | `{ request, reservation \| null }`           | `NOT_FOUND`, `DESK_REQUEST_ALREADY_DECIDED`, `PAST_DATE`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `VALIDATION_FAILED`, `CONFLICT` |
+| `desk.myReleases`                 | —                                             | permanent desk + releases, or `null`         | —                                                                                                                                                                   |
+| `desk.release`                    | `{ dates[1..60] }`                            | `{ added }`                                  | `NO_PERMANENT_DESK`, `PAST_DATE`                                                                                                                                    |
+| `desk.cancelRelease`              | `{ releaseId }`                               | `{ releaseId }`                              | `NOT_FOUND`, `DESK_RELEASE_ALREADY_RESERVED`                                                                                                                        |
+| `admin.desk.list`                 | `{ date, officeId? }`                         | `{ date, desks[] }`                          | —                                                                                                                                                                   |
+| `admin.desk.update`               | `{ deskId, active?, hiveId?, zoneId?, officeId? }` | `Desk`                                  | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
+| `admin.desk.bulkUpdate`           | `{ deskIds[1..500], active?, hiveId? }`       | `{ updated }`                                | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
+| `admin.desk.setPermanentAssignee` | `{ deskId, userId \| null }`                  | `Desk`                                       | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
+| `admin.desk.grants`               | `{ deskId }`                                  | `{ grants[] }`                               | `NOT_FOUND`                                                                                                                                                         |
+| `admin.desk.setGrant`             | `{ deskIds[1..500], userId, granted }`        | `{ updated }`                                | `NOT_FOUND`                                                                                                                                                         |
+| `admin.desk.stats`                | `{ date, officeId? }`                         | counts, `occupancyPercent`, by zone/office   | `NOT_FOUND`                                                                                                                                                         |
+| `admin.hive.list`                 | —                                             | hives with owner, members, desk count        | —                                                                                                                                                                   |
+| `admin.hive.create`/`update`      | `{ name, color, ownerId }` / partial + `hiveId` | `Hive`                                     | `NOT_FOUND`, `VALIDATION_FAILED`, `CONFLICT`                                                                                                                        |
+| `admin.hive.delete`               | `{ hiveId }`                                  | `{ hiveId }`                                 | `NOT_FOUND`                                                                                                                                                         |
+| `admin.hive.setMembership`        | `{ userId, hiveId \| null }`                  | membership                                   | `NOT_FOUND`                                                                                                                                                         |
+| `admin.office.list`               | —                                             | `Office[]`                                   | —                                                                                                                                                                   |
+| `admin.office.create`             | `{ name, active }`                            | `Office`                                     | `CONFLICT`                                                                                                                                                          |
+| `admin.office.update`             | partial + `officeId`                          | `Office`                                     | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
+| `admin.zone.list`                 | `{ officeId }`                                | `Zone[]`                                     | —                                                                                                                                                                   |
+| `admin.zone.create`               | `{ officeId, key, name }`                     | `Zone`                                       | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
+| `admin.zone.update`               | `{ zoneId, name }`                            | `Zone`                                       | `NOT_FOUND`                                                                                                                                                         |
+| `admin.employeeSync.get`          | —                                             | `{ liveMode, configured, runs[≤12] }`        | —                                                                                                                                                                   |
+| `admin.employeeSync.setLiveMode`  | `{ liveMode }`                                | `{ liveMode }`                               | —                                                                                                                                                                   |
+
+The exact input/output shapes are the schemas in `api/desks.ts`,
+`api/desk-requests.ts`, `api/admin-desks.ts`, `api/hives.ts`,
+`api/offices.ts` and `api/employee-sync.ts`; the rules behind them are in
+`doc/desk-merge-plan.md`.
+
+New error codes: `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`,
+`DESK_NOT_AVAILABLE`, `PERMANENT_DESK_HOLDER`, `NO_OFFICE_ASSIGNED`,
+`NO_PERMANENT_DESK`, `DESK_RELEASE_ALREADY_RESERVED`,
+`DESK_REQUEST_ALREADY_PENDING`, `DESK_REQUEST_ALREADY_DECIDED`, `NO_FREE_DAY`
+(all 409) and `DESK_ACCESS_DENIED` (403). A series call skips blocked days
+with a `DeskSkipReason` instead of failing; `NO_FREE_DAY` means none was left.
+The sync itself (`POST /api/employee-sync`, bearer key) is outside oRPC.
+
 ---
 
 ## Realtime (`@garage/contract/realtime`)
@@ -614,6 +670,8 @@ to the entire day room.
 | `reservation:reassigned`     | `{ date, parkingSpotId, cause, previousReservationId, reservation, fromWaitlistEntryId }` | the spot changed holder within a single transaction                        |
 | `waitlist:updated`           | `{ date, parkingSpotId, waitlistCount }`                                                  | the waitlist on a cell got longer or shorter                               |
 | `timed-reservations:updated` | `{ date, parkingSpotId, timedReservations[] }`                                            | a guest half-hour block was created or cancelled on this cell              |
+| `desk:reserved`              | `{ date, deskId, reservationId, userId, userName }`                                       | a desk reservation was created                                             |
+| `desk:released`              | `{ date, deskId, reservationId }`                                                         | a desk reservation is gone (cancelled or freed) — not a `DeskRelease`      |
 
 **Names.** `<subject>:<past-participle>`, a colon, lowercase, subject in the
 singular. The past tense is information: an event announces something that
@@ -795,6 +853,7 @@ The contract builds on it, but the backend and `libs/shared/i18n` use it too.
 | enums and defaults    | `PARKING_GROUPS`, `USER_ROLES`, `RESERVATION_LOCK_MODES`, `MONTH_LOCK_STATES`, `DEFAULT_OPEN_DAYS_BEFORE`, `MIN/MAX_OPEN_DAYS_BEFORE`, `DEFAULT_RESERVATION_LOCK_MODE`                                                                                                   |
 | bulk reservation      | `BULK_DAY_OUTCOMES`, `BULK_UNAVAILABLE_REASONS`, `MAX_BULK_BOOKING_DAYS`                                                                                                                                                                                                 |
 | reservation window    | `isMonthOpen`, `monthLockState`, `reservationWindowRange`, `MAX_MONTH_WINDOW_SPAN`                                                                                                                                                                                       |
+| desks                 | `DESK_APPROVAL_STATUSES`, `EMPLOYEE_SYNC_MODES`, `EMPLOYEE_SYNC_STATUSES`, `DESK_STATUSES`, `DESK_ACCESS_LEVELS`, `DESK_SKIP_REASONS`, `FLOOR_PLANS`, `MAX_DESK_SERIES_DATES`, `MAX_DESK_SERIES_SPAN_DAYS`, `MAX_DESK_RELEASE_DATES`, `MAX_DESK_BULK_IDS`, `EMPLOYEE_SYNC_RUN_HISTORY`, `EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT` |
 | realtime              | `RESERVATION_REASSIGN_CAUSES`, `CELL_LOCK_RESULTS`                                                                                                                                                                                                                       |
 
 Arithmetic is calendar-based, and the timezone is resolved at a single

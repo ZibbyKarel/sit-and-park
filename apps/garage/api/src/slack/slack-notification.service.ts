@@ -39,11 +39,20 @@ import type { DateOnly } from '@garage/shared-types';
 import { InjectPinoLogger, PinoLogger } from 'nestjs-pino';
 import { toDateColumn } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
-import type { WaitlistPromotionNotice } from '../reservations/reservation-events';
+import type {
+  DeskApprovalNotice,
+  WaitlistPromotionNotice,
+} from '../reservations/reservation-events';
 import type { SlackDeliveryOutcome } from './slack-client.service';
 import { SlackClient } from './slack-client.service';
 import type { DailySummary } from './slack-messages';
-import { dailySummaryMessage, spotFreedMessage, waitlistPromotedMessage } from './slack-messages';
+import {
+  dailySummaryMessage,
+  deskApprovalDecidedMessage,
+  deskApprovalRequestedMessage,
+  spotFreedMessage,
+  waitlistPromotedMessage,
+} from './slack-messages';
 
 /** The `reservation:cancelled` facts this service needs, and no more. */
 export interface SpotFreedNotice {
@@ -142,6 +151,69 @@ export class SlackNotificationService {
     }
 
     return this.slack.postDirectMessage(slackUserId, waitlistPromotedMessage(label, notice.date));
+  }
+
+  /** A desk request was filed: DM the hive owner, naming who asks. */
+  async notifyDeskApprovalRequested(notice: DeskApprovalNotice): Promise<SlackNotificationOutcome> {
+    if (notice.hiveOwnerId === null) {
+      return 'skipped';
+    }
+    const [requester, desk] = await Promise.all([
+      this.prisma.client.user.findUnique({
+        where: { id: notice.requesterId },
+        select: { name: true },
+      }),
+      this.prisma.client.desk.findUnique({
+        where: { id: notice.deskId },
+        select: { hive: { select: { name: true } } },
+      }),
+    ]);
+    if (requester === null || desk?.hive == null) {
+      this.logger.warn(
+        { requestId: notice.requestId },
+        'Desk request requester or hive has no row; Slack DM skipped'
+      );
+      return 'skipped';
+    }
+    return this.directMessage(
+      notice.hiveOwnerId,
+      deskApprovalRequestedMessage(requester.name, notice.deskCode, desk.hive.name, notice.date),
+      notice.requestId
+    );
+  }
+
+  /** A desk request was approved or rejected: DM the requester. */
+  async notifyDeskApprovalDecided(notice: DeskApprovalNotice): Promise<SlackNotificationOutcome> {
+    return this.directMessage(
+      notice.requesterId,
+      deskApprovalDecidedMessage(notice.deskCode, notice.date, notice.status === 'APPROVED'),
+      notice.requestId
+    );
+  }
+
+  /** DM a user by the email the database holds; `'skipped'` without a Slack account. */
+  private async directMessage(
+    userId: string,
+    text: string,
+    requestId: string
+  ): Promise<SlackNotificationOutcome> {
+    const user = await this.prisma.client.user.findUnique({
+      where: { id: userId },
+      select: { email: true },
+    });
+    if (user === null) {
+      this.logger.warn({ requestId }, 'Desk request recipient has no row; Slack DM skipped');
+      return 'skipped';
+    }
+    const slackUserId = await this.slack.lookupUserIdByEmail(user.email);
+    if (slackUserId === undefined) {
+      this.logger[this.slack.enabled ? 'warn' : 'debug'](
+        { requestId },
+        'No Slack user for the desk request recipient; DM skipped'
+      );
+      return this.slack.enabled ? 'skipped' : 'disabled';
+    }
+    return this.slack.postDirectMessage(slackUserId, text);
   }
 
   /** Posts the summary for one Prague calendar day to the shared channel. */

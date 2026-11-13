@@ -35,6 +35,9 @@
  *   interrupted run of the spot-administration spec created and did not clean
  *   up, and nothing else would ever remove it: the seed is upserts on the
  *   natural key, so it restores the nine and is silent about a tenth.
+ * - **Desks**: deletes the month's desk reservations, releases and approval
+ *   requests, and removes every hive, membership, grant, permanent assignment
+ *   and desk-to-hive link the seed does not create; reactivates every desk.
  * - Touches **no seeded spot, and no user or role**: `prisma db seed` owns
  *   those, is idempotent, and `globalSetup` runs it first — so a role or an
  *   `active` flag an admin spec changed heals itself before the next run.
@@ -81,7 +84,13 @@ import {
 } from '@garage/shared-types';
 import { createPrismaClient } from '../lib/create-prisma-client';
 import { assertDisposableDatabase } from '../lib/disposable-database';
-import { RESERVATION_WINDOW_SETTINGS_ID, SEED_PARKING_SPOTS } from '../lib/seed-data';
+import {
+  RESERVATION_WINDOW_SETTINGS_ID,
+  SEED_DESK_GRANTS,
+  SEED_HIVES,
+  SEED_PARKING_SPOTS,
+  SEED_PERMANENT_DESKS,
+} from '../lib/seed-data';
 
 /**
  * The month the e2e suite books into: the one after today's.
@@ -161,6 +170,52 @@ async function main(): Promise<void> {
           `${strayWaitlist.count} queue entrie(s) on them.`
       );
     }
+
+    // **Desks.** Date-bound rows of the month go the way parking's do. The
+    // configuration the desk specs change (a desk deactivated, a user moved
+    // between hives, a permanent desk handed out) is put back to what the seed
+    // and the Praha migration create: `prisma db seed` has just restored every
+    // seeded hive, membership, permanent desk and grant, so what is left here
+    // is removing whatever is *not* seeded — the seed upserts and is silent
+    // about extras, exactly as with parking spots above.
+    const deskRequests = await prisma.deskApprovalRequest.deleteMany({ where: { date: range } });
+    const deskReleases = await prisma.deskRelease.deleteMany({ where: { date: range } });
+    const deskReservations = await prisma.deskReservation.deleteMany({ where: { date: range } });
+    const seededHiveNames = SEED_HIVES.map((hive) => hive.name);
+    const seededHiveDesks = SEED_HIVES.flatMap((hive) => hive.deskCodes);
+    const seededMembers = SEED_HIVES.flatMap((hive) => hive.memberEmails);
+    // Memberships cascade with their hive; desks of a deleted hive are set null.
+    await prisma.hive.deleteMany({ where: { name: { notIn: seededHiveNames } } });
+    await prisma.hiveMembership.deleteMany({
+      where: { user: { email: { notIn: seededMembers } } },
+    });
+    await prisma.desk.updateMany({
+      where: { code: { notIn: seededHiveDesks }, hiveId: { not: null } },
+      data: { hiveId: null },
+    });
+    await prisma.desk.updateMany({
+      where: {
+        code: { notIn: SEED_PERMANENT_DESKS.map((desk) => desk.deskCode) },
+        permanentAssigneeId: { not: null },
+      },
+      data: { permanentAssigneeId: null },
+    });
+    await prisma.desk.updateMany({ where: { active: false }, data: { active: true } });
+    await prisma.deskGrant.deleteMany({
+      where: {
+        NOT: {
+          OR: SEED_DESK_GRANTS.map(({ deskCode, userEmail }) => ({
+            desk: { code: deskCode },
+            user: { email: userEmail },
+          })),
+        },
+      },
+    });
+    console.log(
+      `Reset desks ${from}..${to}: deleted ${deskReservations.count} reservation(s), ` +
+        `${deskReleases.count} release(s), ${deskRequests.count} approval request(s); ` +
+        `hives, memberships, permanent desks, grants and desk flags are back to the seed.`
+    );
 
     // **Not restored afterwards, and that is a stated term of this script's
     // contract, not an oversight.** The row is global and singular, so every

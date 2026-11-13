@@ -44,6 +44,12 @@ export {
   type ConfirmBulkOutput,
 } from './bulk';
 export * from './spots';
+export * from './desks';
+export * from './desk-requests';
+export * from './admin-desks';
+export * from './hives';
+export * from './offices';
+export * from './employee-sync';
 export * from './timed-reservations';
 export * from './users';
 export * from './me';

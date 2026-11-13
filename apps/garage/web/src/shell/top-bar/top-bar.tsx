@@ -21,7 +21,7 @@ import { Avatar, Icon, Menu, Stack, Tag, Text } from '@shoptet/ui';
 import type { UserRole } from '@garage/contract';
 import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@garage/i18n';
 import NextLink from 'next/link';
-import { ADMIN_ROUTE, LOT_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import { ADMIN_ROUTE, DESKS_ROUTE, LOT_ROUTE, MY_DESKS_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import { Brand } from '../brand';
 import styles from './top-bar.module.css';
@@ -34,7 +34,19 @@ export const MENU_SIGN_OUT = 'sign-out';
 /** Prefix of the menu item id for a language choice: `locale:cs`, `locale:en`. */
 export const MENU_LOCALE_PREFIX = 'locale:';
 
+/**
+ * The primary sections, in bar order. Admin screens for desks are tabs of
+ * `ADMIN_ROUTE`, reached from the menu's `Správa` entry, not items here.
+ */
+const NAV_ITEMS = [
+  { route: LOT_ROUTE, key: 'parking' },
+  { route: DESKS_ROUTE, key: 'desks' },
+  { route: MY_DESKS_ROUTE, key: 'myDesks' },
+] as const;
+
 export interface TopBarProps {
+  /** The current path, so the active section is marked with `aria-current`. */
+  readonly pathname: string;
   /** Display name. Empty while neither the session nor the profile has one. */
   readonly name: string;
   /** Shown under the name inside the menu. */
@@ -58,6 +70,7 @@ export interface TopBarProps {
 }
 
 export function TopBar({
+  pathname,
   name,
   email,
   role,
@@ -94,6 +107,19 @@ export function TopBar({
         <Brand />
       </NextLink>
 
+      <nav aria-label={t('primary')} className={styles.nav}>
+        {NAV_ITEMS.map((item) => (
+          <NextLink
+            key={item.route}
+            href={item.route}
+            className={styles.navLink}
+            aria-current={pathname === item.route ? 'page' : undefined}
+          >
+            {t(item.key)}
+          </NextLink>
+        ))}
+      </nav>
+
       <Stack orientation="horizontal" align="center" gap="md">
         {isAdmin ? (
           <span className={styles.adminBadge}>
@@ -121,6 +147,7 @@ export function TopBar({
           </Menu.Item>
           <Menu.Divider />
           <Menu.Item onAction={() => onSelect(MENU_SETTINGS)}>{t('settings')}</Menu.Item>
+          {/* Desk administration lives in the admin screen's tabs; this one entry reaches it. */}
           {isAdmin ? (
             <Menu.Item onAction={() => onSelect(MENU_ADMIN)}>
               <span className={styles.entry}>

@@ -58,6 +58,15 @@ export const AUDIT_ENTITY_TYPES = [
   'ReservationWindowSettings',
   'ReservationLimitSettings',
   'TimedReservation',
+  'DeskReservation',
+  'DeskRelease',
+  'DeskApprovalRequest',
+  'Desk',
+  'Hive',
+  'Office',
+  'Zone',
+  'EmployeeSyncRun',
+  'EmployeeSyncSettings',
 ] as const;
 
 export type AuditEntityType = (typeof AUDIT_ENTITY_TYPES)[number];
@@ -86,6 +95,20 @@ type AuditEntityTypeFor = {
   WAITLIST_JOINED_BY_ADMIN: 'WaitlistEntry';
   TIMED_RESERVATION_CREATED: 'TimedReservation';
   TIMED_RESERVATION_CANCELLED: 'TimedReservation';
+  DESK_RESERVATION_CREATED: 'DeskReservation';
+  DESK_RESERVATION_CANCELLED: 'DeskReservation';
+  DESK_RESERVATION_CANCELLED_BY_ADMIN: 'DeskReservation';
+  DESK_RELEASED: 'DeskRelease';
+  DESK_RELEASE_CANCELLED: 'DeskRelease';
+  DESK_APPROVAL_REQUESTED: 'DeskApprovalRequest';
+  DESK_APPROVAL_DECIDED: 'DeskApprovalRequest';
+  DESK_UPDATED: 'Desk';
+  HIVE_UPDATED: 'Hive';
+  OFFICE_UPDATED: 'Office';
+  ZONE_UPDATED: 'Zone';
+  EMPLOYEE_SYNC_APPLIED: 'EmployeeSyncRun';
+  EMPLOYEE_SYNC_SETTINGS_UPDATED: 'EmployeeSyncSettings';
+  USER_DEACTIVATED: 'User';
 } & Record<AuditLogAction, AuditEntityType>;
 
 /**

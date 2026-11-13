@@ -21,6 +21,7 @@ function aSpot(overrides: Partial<ParkingSpot> & { id: string; label: string }):
     active: true,
     hidden: false,
     evCharger: false,
+    officeId: 'office-1',
     createdAt: TIMESTAMP,
     updatedAt: TIMESTAMP,
     ...overrides,
@@ -70,6 +71,10 @@ function makeProps({ spots, spotsState, ...overrides }: Overrides = {}) {
       data: { spots: [...(spots ?? [TAKEN, FREE, SHARED, RETIRED, HIDDEN])] },
     },
     todayBySpotId: TODAY,
+    offices: [
+      { id: 'office-1', name: 'Praha' },
+      { id: 'office-2', name: 'Brno' },
+    ],
     pendingSpotId: null,
     isSaving: false,
     writeFailure: null,
@@ -227,6 +232,15 @@ describe('AdminSpotsScreen', () => {
       expect(screen.getByText('spotsCategoriesFixed')).toBeInTheDocument();
       expect(screen.queryByRole('button', { name: /Přidat kategorii/u })).not.toBeInTheDocument();
       expect(screen.queryByPlaceholderText(/Nová kategorie/u)).not.toBeInTheDocument();
+    });
+  });
+
+  describe('the office column', () => {
+    it('names the office of each spot', () => {
+      renderScreen({ spots: [TAKEN, aSpot({ id: 's7', label: 'B1.02', officeId: 'office-2' })] });
+
+      expect(within(rowOf(TAKEN)).getByText('Praha')).toBeInTheDocument();
+      expect(within(rowOf({ ...TAKEN, id: 's7' })).getByText('Brno')).toBeInTheDocument();
     });
   });
 
@@ -394,7 +408,42 @@ describe('AdminSpotsScreen', () => {
       await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
 
       await waitFor(() =>
-        expect(onCreate).toHaveBeenCalledWith({ label: 'E2.10', group: 'SHARED', evCharger: false })
+        expect(onCreate).toHaveBeenCalledWith({
+          label: 'E2.10',
+          group: 'SHARED',
+          evCharger: false,
+          officeId: 'office-1',
+        })
+      );
+    });
+
+    it('defaults a new spot to the first active office, not an inactive one', async () => {
+      const { onCreate, user } = renderScreen({
+        offices: [
+          { id: 'office-0', name: 'Archiv', active: false },
+          { id: 'office-1', name: 'Praha', active: true },
+        ],
+      });
+
+      await user.click(screen.getByRole('button', { name: 'spotsAdd' }));
+      await user.type(inDialog().getByLabelText('spotsLabelField'), 'B1.02');
+      await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
+
+      await waitFor(() =>
+        expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ officeId: 'office-1' }))
+      );
+    });
+
+    it('sends the office that was picked', async () => {
+      const { onCreate, user } = renderScreen();
+
+      await user.click(screen.getByRole('button', { name: 'spotsAdd' }));
+      await user.type(inDialog().getByLabelText('spotsLabelField'), 'B1.01');
+      await selectOption(user, 'spotsOfficeField', 'Brno');
+      await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
+
+      await waitFor(() =>
+        expect(onCreate).toHaveBeenCalledWith(expect.objectContaining({ officeId: 'office-2' }))
       );
     });
 
@@ -415,7 +464,12 @@ describe('AdminSpotsScreen', () => {
       await user.click(inDialog().getByRole('button', { name: 'spotsSave' }));
 
       await waitFor(() =>
-        expect(onCreate).toHaveBeenCalledWith({ label: 'E2.11', group: 'IT', evCharger: true })
+        expect(onCreate).toHaveBeenCalledWith({
+          label: 'E2.11',
+          group: 'IT',
+          evCharger: true,
+          officeId: 'office-1',
+        })
       );
     });
 
@@ -486,6 +540,7 @@ describe('AdminSpotsScreen', () => {
           label: 'E2.97',
           group: 'SHARED',
           evCharger: SHARED.evCharger,
+          officeId: 'office-1',
         })
       );
     });
@@ -506,6 +561,7 @@ describe('AdminSpotsScreen', () => {
           label: 'E2.95',
           group: CHARGED.group,
           evCharger: true,
+          officeId: 'office-1',
         })
       );
     });

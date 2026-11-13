@@ -25,6 +25,9 @@ import { Prisma } from '@garage/database';
 
 const CLIENT_VERSION = '7.10.0';
 
+/** The one office the store knows, as JIT provisioning sees it. */
+export const IN_MEMORY_OFFICE_ID = '0190a000-0000-7000-8000-0000000000aa';
+
 /** Columns that are `@unique` on `model User`. */
 const UNIQUE_COLUMNS = ['oktaId', 'email', 'icsToken'] as const;
 type UniqueColumn = (typeof UNIQUE_COLUMNS)[number];
@@ -90,6 +93,10 @@ export class InMemoryUserStore {
         active: seed.active ?? true,
         icsToken: seed.icsToken ?? randomUUID(),
         preferredParkingSpotId: null,
+        officeId: null,
+        hibobId: null,
+        manualAccount: false,
+        deactivatedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       });
@@ -105,9 +112,22 @@ export class InMemoryUserStore {
    * The subset of `PrismaService` `AuthUserService` uses, shaped so it can be
    * dropped in with `{ provide: PrismaService, useValue: store.asPrismaService() }`.
    */
-  asPrismaService(): { client: { user: UserDelegate } } {
-    return { client: { user: this.userDelegate() } };
+  asPrismaService(): { client: { user: UserDelegate; office: OfficeDelegate } } {
+    return {
+      client: {
+        user: this.userDelegate(),
+        // The default office JIT provisioning assigns: always this one, or
+        // none when `defaultOfficeId` is set to `null`.
+        office: {
+          findFirst: async () =>
+            this.defaultOfficeId === null ? null : { id: this.defaultOfficeId },
+        },
+      },
+    };
   }
+
+  /** What `office.findFirst` (the oldest active office) answers; `null` = no office. */
+  defaultOfficeId: string | null = IN_MEMORY_OFFICE_ID;
 
   private userDelegate(): UserDelegate {
     return {
@@ -126,6 +146,10 @@ export class InMemoryUserStore {
           role: 'USER',
           active: true,
           preferredParkingSpotId: null,
+          officeId: null,
+          hibobId: null,
+          manualAccount: false,
+          deactivatedAt: null,
           createdAt: new Date(),
           updatedAt: new Date(),
           ...data,
@@ -184,6 +208,12 @@ interface UserWhereUnique {
 
 interface UserDelegate {
   findUnique(args: { where: UserWhereUnique }): Promise<User | null>;
-  create(args: { data: Pick<User, 'oktaId' | 'email' | 'name' | 'icsToken'> }): Promise<User>;
+  create(args: {
+    data: Pick<User, 'oktaId' | 'email' | 'name' | 'icsToken'> & Partial<Pick<User, 'officeId'>>;
+  }): Promise<User>;
   update(args: { where: UserWhereUnique; data: Partial<User> }): Promise<User>;
+}
+
+interface OfficeDelegate {
+  findFirst(args?: unknown): Promise<{ id: string } | null>;
 }

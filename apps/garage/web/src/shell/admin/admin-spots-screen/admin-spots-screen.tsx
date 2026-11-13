@@ -44,6 +44,7 @@
 
 import { useState } from 'react';
 import type {
+  AdminOffice,
   CreateSpotInput,
   ParkingSpot,
   SpotListOutput,
@@ -78,8 +79,8 @@ export interface SpotToday {
   readonly holderIsGuest: boolean;
 }
 
-/** A label/group/EV charger edit: `id`, `label` and `group` required, `evCharger` optional. */
-export type SaveSpotInput = Pick<UpdateSpotInput, 'id' | 'evCharger'> &
+/** A label/group/EV charger/office edit: `id`, `label` and `group` required, the rest optional. */
+export type SaveSpotInput = Pick<UpdateSpotInput, 'id' | 'evCharger' | 'officeId'> &
   Required<Pick<UpdateSpotInput, 'label' | 'group'>>;
 
 export interface AdminSpotsScreenProps {
@@ -92,6 +93,9 @@ export interface AdminSpotsScreenProps {
    * dash rather than as "Volné", which would be a claim.
    */
   readonly todayBySpotId: ReadonlyMap<string, SpotToday>;
+  /** Offices for the column and the form's picker. */
+  readonly offices: readonly (Pick<AdminOffice, 'id' | 'name'> &
+    Partial<Pick<AdminOffice, 'active'>>)[];
   /** Resolves when the spot exists; rejects to keep the dialog open. */
   readonly onCreate: (input: CreateSpotInput) => Promise<void>;
   /** Same contract, for a label/group/EV charger edit. */
@@ -132,6 +136,7 @@ export function AdminSpotsScreen({
   onRetry,
   spots,
   todayBySpotId,
+  offices,
   onCreate,
   onSave,
   onActiveChange,
@@ -179,6 +184,8 @@ export function AdminSpotsScreen({
 
   const dialogSaving = isDialogSaving(isSaving, dialog, pendingSpotId);
 
+  const officeNames = new Map(offices.map((office) => [office.id, office.name]));
+
   const columns: DataTableColumn<ParkingSpot>[] = [
     {
       id: 'label',
@@ -215,6 +222,13 @@ export function AdminSpotsScreen({
           }}
         />
       ),
+    },
+    {
+      id: 'office',
+      header: t('spotsColumnOffice'),
+      width: '160px',
+      sortValue: (spot) => officeNames.get(spot.officeId) ?? '',
+      cell: (spot) => <Text>{officeNames.get(spot.officeId) ?? spot.officeId}</Text>,
     },
     {
       id: 'today',
@@ -330,7 +344,7 @@ export function AdminSpotsScreen({
             }
             toolbar={<CategoryBand spots={loaded.spots} />}
             defaultSort={{ columnId: 'label', direction: 'asc' }}
-            minWidth="900px"
+            minWidth="1060px"
             emptyTitle={t('spotsEmpty')}
             emptyDescription={t('spotsEmptyDescription')}
           />
@@ -341,6 +355,7 @@ export function AdminSpotsScreen({
               // reuse the mounted form and its previous `defaultValues`.
               key={dialog.kind === 'edit' ? dialog.spot.id : 'create'}
               spot={dialog.kind === 'edit' ? dialog.spot : null}
+              offices={offices}
               errorMessage={failureShownIn('dialog')}
               saving={dialogSaving}
               onCancel={() => changeDialog(null)}

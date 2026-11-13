@@ -179,6 +179,16 @@ connection means something else entirely.
 
 ---
 
+Day rooms carry **both kinds** of event: parking (`reservation:*`, `waitlist:updated`,
+`timed-reservations:updated`, `cell:locked` / `cell:unlocked`) and desks (`desk:reserved`, `desk:released`, payload `{date, deskId, ...}`; see
+`doc/desks.md`). The same `day:subscribe` serves `/` and `/desks`. A hidden spot's traffic
+is the only thing filtered; desk events have no hidden concept. **Broadcasts are not
+office-scoped**: every socket in a day room receives every office's events, and a payload
+carries the holder's name for desks (a known gap, `doc/open-items.md`). A `DeskRelease` and
+approval requests broadcast nothing; the client refetches.
+
+---
+
 ## Everything inbound is parsed
 
 `ServerToClientEvents` is a compile-time map. At runtime, `socket.on('cell:locked',

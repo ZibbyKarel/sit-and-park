@@ -150,6 +150,17 @@ what CI gates on.
 pnpm nx run api:test-db
 ```
 
+Sixteen `*.db.spec.ts` suites, 233 tests (measured on the desk-merge branch, all
+passing). The desk merge added four: `desks/desks.db.spec.ts` (series booking and
+skip reasons, the unique indexes and the desk/user locks under races, permanent
+desks and releases, cancel rules, directory, approval requests),
+`desk-admin/desk-admin.db.spec.ts` (the orphan cascades of a desk, hive or holder
+change, bulk edits, races with a booking or a request), `employee-sync/employee-sync.db.spec.ts`
+(live and dry run, shrink protection, deactivation clean-up for desks and parking,
+the e-mail lower-casing migration) and `reservations/parking-offices.db.spec.ts`
+(parking scoped to the user's office). What they cover is described in
+`doc/desks.md` §Concurrency.
+
 Needs PostgreSQL up and `DATABASE_URL` set. They run against the **real dev
 database**, `--runInBand`, and clean up after themselves.
 
@@ -257,6 +268,15 @@ read as a duplicate connection, which is what the `DOC` lines exist to stop
 handshake carries the access token and matches neither name.
 
 ---
+
+## The desk journeys
+
+Desk specs under `apps/garage/web-e2e/src/` (written alongside this document; pass
+counts are in `CLAUDE.md`, not here): `desks.spec.ts`, `desk-series.spec.ts`,
+`desk-approval.spec.ts`, `desk-release.spec.ts`, `desk-admin.spec.ts`, with the page
+object `support/desk-page.ts`. Each has its own entry in `SPEC_DAY_SLOTS`
+(`deskBooking`, `deskSeries`, `deskSeriesSecondDay`, `deskApproval`, `deskAdmin`,
+`deskRelease`).
 
 ## The seven journeys
 

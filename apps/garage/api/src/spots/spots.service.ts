@@ -21,6 +21,7 @@ import type { ParkingSpot as ParkingSpotRow, Prisma } from '@garage/database';
 import { todayInPrague } from '@garage/shared-types';
 import { AuditLogService } from '../audit/audit-log.service';
 import { DomainError } from '../common/errors/domain-error';
+import { defaultOfficeId, parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 import { toContractSpot, toDateColumn } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
 
@@ -81,16 +82,22 @@ export class SpotsService implements OnModuleInit {
   }
 
   /**
-   * Active spots nobody has hidden — `spot.list`, the preferred-spot picker.
+   * Active spots nobody has hidden, of the viewer's office — `spot.list`, the
+   * preferred-spot picker.
    * Hidden spots are left out for admins too: bulk booking never assigns one,
    * so preferring it would be a promise nothing keeps.
    */
-  async listVisible(): Promise<ParkingSpot[]> {
-    const rows = await this.prisma.client.parkingSpot.findMany({
-      where: { active: true, hidden: false },
-      orderBy: SPOT_ORDER,
-    });
-    return rows.map(toContractSpot);
+  async listVisible(viewerUserId: string): Promise<ParkingSpot[]> {
+    const [rows, viewerOffice] = await Promise.all([
+      this.prisma.client.parkingSpot.findMany({
+        where: { active: true, hidden: false },
+        orderBy: SPOT_ORDER,
+      }),
+      parkingOfficeOf(this.prisma.client, viewerUserId),
+    ]);
+    // Only the viewer's office (`../common/office-scope.ts`), admins included:
+    // this is the preferred-spot picker, and a spot elsewhere is never offered.
+    return rows.filter((row) => seesParkingOffice(viewerOffice, row.officeId)).map(toContractSpot);
   }
 
   /** The admin table: optionally including retired spots, optionally one group. */
@@ -114,8 +121,14 @@ export class SpotsService implements OnModuleInit {
    * `CONFLICT` through `toOrpcError`.
    */
   async create(input: CreateSpotInput, actorUserId: string): Promise<ParkingSpot> {
+    const officeId = await this.resolveOffice(input.officeId);
     const row = await this.prisma.client.parkingSpot.create({
-      data: { label: input.label, group: input.group, evCharger: input.evCharger ?? false },
+      data: {
+        label: input.label,
+        group: input.group,
+        evCharger: input.evCharger ?? false,
+        officeId,
+      },
     });
 
     // The `payload` shape is fixed per action by `../audit/audit-payloads.ts`.
@@ -148,16 +161,23 @@ export class SpotsService implements OnModuleInit {
     if (changes.active === false && existing.active) {
       await this.requireNoFutureCommitments(id);
     }
+    // Moving a spot to another office leaves its reservations alone: they are
+    // still real bookings, and the holders keep seeing them on the day overview
+    // (it keeps a spot its viewer holds or queues for).
+    if (changes.officeId !== undefined) {
+      await this.resolveOffice(changes.officeId);
+    }
 
     // Spread the present fields only. `exactOptionalPropertyTypes` is on, so
     // `{ label: undefined }` is a different type from `{}` — and to Prisma it
     // would also be a different statement.
-    const data: Prisma.ParkingSpotUpdateInput = {
+    const data: Prisma.ParkingSpotUncheckedUpdateInput = {
       ...(changes.label === undefined ? {} : { label: changes.label }),
       ...(changes.group === undefined ? {} : { group: changes.group }),
       ...(changes.active === undefined ? {} : { active: changes.active }),
       ...(changes.hidden === undefined ? {} : { hidden: changes.hidden }),
       ...(changes.evCharger === undefined ? {} : { evCharger: changes.evCharger }),
+      ...(changes.officeId === undefined ? {} : { officeId: changes.officeId }),
     };
     const row = await this.prisma.client.parkingSpot.update({ where: { id }, data });
 
@@ -180,6 +200,7 @@ export class SpotsService implements OnModuleInit {
           active: existing.active,
           hidden: existing.hidden,
           evCharger: existing.evCharger,
+          officeId: existing.officeId,
         },
         after: {
           label: row.label,
@@ -187,6 +208,7 @@ export class SpotsService implements OnModuleInit {
           active: row.active,
           hidden: row.hidden,
           evCharger: row.evCharger,
+          officeId: row.officeId,
         },
       },
     });
@@ -223,6 +245,31 @@ export class SpotsService implements OnModuleInit {
     });
 
     return toContractSpot(row);
+  }
+
+  /**
+   * The office a created or moved spot goes to: the named one, which must
+   * exist (`NOT_FOUND`), or the default — the oldest active office
+   * (`VALIDATION_FAILED` when there is none).
+   */
+  private async resolveOffice(officeId: string | undefined): Promise<string> {
+    if (officeId !== undefined) {
+      const office = await this.prisma.client.office.findUnique({
+        where: { id: officeId },
+        select: { id: true },
+      });
+      if (office === null) {
+        throw new DomainError('NOT_FOUND', { message: 'No such office.' });
+      }
+      return office.id;
+    }
+    const fallback = await defaultOfficeId(this.prisma.client);
+    if (fallback === null) {
+      throw new DomainError('VALIDATION_FAILED', {
+        message: 'There is no active office to put the spot in.',
+      });
+    }
+    return fallback;
   }
 
   private async requireSpot(id: string): Promise<ParkingSpotRow> {

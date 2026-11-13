@@ -38,6 +38,19 @@ export const ERROR_CODES = [
   'VALIDATION_FAILED',
   'CONFLICT',
   'RESERVATIONS_LOCKED',
+  // Desk booking (`doc/desk-merge-plan.md`). Desk-level blockers fail a whole
+  // call; per-day reasons of a series travel as `DeskSkipReason` instead.
+  'DESK_ALREADY_RESERVED',
+  'DESK_RESERVATION_LIMIT_REACHED',
+  'DESK_NOT_AVAILABLE',
+  'DESK_ACCESS_DENIED',
+  'PERMANENT_DESK_HOLDER',
+  'NO_OFFICE_ASSIGNED',
+  'NO_PERMANENT_DESK',
+  'DESK_RELEASE_ALREADY_RESERVED',
+  'DESK_REQUEST_ALREADY_PENDING',
+  'DESK_REQUEST_ALREADY_DECIDED',
+  'NO_FREE_DAY',
 ] as const;
 
 export const errorCodeSchema = z.enum(ERROR_CODES);

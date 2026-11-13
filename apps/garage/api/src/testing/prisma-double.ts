@@ -162,6 +162,7 @@ export interface SpotSeed {
   active?: boolean;
   hidden?: boolean;
   evCharger?: boolean;
+  officeId?: string;
 }
 
 export interface UserSeed {
@@ -174,6 +175,7 @@ export interface UserSeed {
   licensePlate?: string | null;
   icsToken?: string;
   preferredParkingSpotId?: string | null;
+  officeId?: string | null;
 }
 
 export interface ReservationSeed {
@@ -209,6 +211,9 @@ export interface TimedReservationSeed {
 }
 
 const EPOCH = new Date('2026-01-01T00:00:00.000Z');
+
+/** The one office the double knows; see `officeDelegate`. */
+export const DEFAULT_OFFICE_ID = '0190a000-0000-7000-8000-000000000001';
 
 /**
  * The only id `ReservationWindowSettings` ever has — the table is a singleton,
@@ -257,6 +262,13 @@ export class PrismaDouble {
    */
   icsTokenCollisions = 0;
 
+  /** Minimal desk-side rows, for the profile's three derived fields. */
+  readonly hiveMemberships: { userId: string; hiveId: string }[] = [];
+  readonly desks: { id: string; permanentAssigneeId: string | null }[] = [];
+  readonly hives: { id: string; ownerId: string }[] = [];
+  /** Offices besides {@link DEFAULT_OFFICE_ID} that exist; never the default. */
+  readonly otherOfficeIds: string[] = [];
+
   /**
    * Empties every collection and counter the double owns, so one spec's rows
    * cannot reach the next test.
@@ -270,6 +282,10 @@ export class PrismaDouble {
   reset(): void {
     this.spots.length = 0;
     this.users.length = 0;
+    this.hiveMemberships.length = 0;
+    this.desks.length = 0;
+    this.hives.length = 0;
+    this.otherOfficeIds.length = 0;
     this.reservations.length = 0;
     this.waitlist.length = 0;
     this.timedReservations.length = 0;
@@ -290,6 +306,7 @@ export class PrismaDouble {
       active: seed.active ?? true,
       hidden: seed.hidden ?? false,
       evCharger: seed.evCharger ?? false,
+      officeId: seed.officeId ?? DEFAULT_OFFICE_ID,
       createdAt: EPOCH,
       updatedAt: EPOCH,
     };
@@ -309,6 +326,10 @@ export class PrismaDouble {
       active: seed.active ?? true,
       icsToken: seed.icsToken ?? `token-${id}`,
       preferredParkingSpotId: seed.preferredParkingSpotId ?? null,
+      officeId: seed.officeId === undefined ? DEFAULT_OFFICE_ID : seed.officeId,
+      hibobId: null,
+      manualAccount: false,
+      deactivatedAt: null,
       createdAt: EPOCH,
       updatedAt: EPOCH,
     };
@@ -387,6 +408,7 @@ export class PrismaDouble {
 
   private client() {
     return {
+      office: this.officeDelegate(),
       parkingSpot: this.parkingSpotDelegate(),
       user: this.userDelegate(),
       reservation: this.reservationDelegate(),
@@ -395,6 +417,37 @@ export class PrismaDouble {
       reservationWindowSettings: this.windowSettingsDelegate(),
       reservationLimitSettings: this.limitSettingsDelegate(),
       auditLog: this.auditLogDelegate(),
+      // Desk-side tables `MeService` reads for the profile; empty unless seeded.
+      // The ICS feed reads desk reservations; the double holds none.
+      deskReservation: { findMany: async () => [] },
+      hiveMembership: {
+        findUnique: async (args: { where: { userId: string } }) =>
+          this.hiveMemberships.find((m) => m.userId === args.where.userId) ?? null,
+      },
+      desk: {
+        findUnique: async (args: { where: { permanentAssigneeId: string } }) =>
+          this.desks.find((d) => d.permanentAssigneeId === args.where.permanentAssigneeId) ?? null,
+      },
+      hive: {
+        findFirst: async (args: { where: { ownerId: string } }) =>
+          this.hives.find((h) => h.ownerId === args.where.ownerId) ?? null,
+      },
+    };
+  }
+
+  /**
+   * One office by default: the double has no office table. Every seeded spot
+   * and user is in it unless the seed says otherwise — the state the migration
+   * that introduced offices leaves a database in. {@link otherOfficeIds} adds
+   * offices that exist (for `findUnique`) but are never the default.
+   */
+  private officeDelegate() {
+    const exists = (id: string) => id === DEFAULT_OFFICE_ID || this.otherOfficeIds.includes(id);
+    return {
+      findFirstOrThrow: async (_args?: unknown) => ({ id: DEFAULT_OFFICE_ID }),
+      findFirst: async (_args?: unknown) => ({ id: DEFAULT_OFFICE_ID }),
+      findUnique: async (args: { where: { id: string } }) =>
+        exists(args.where.id) ? { id: args.where.id } : null,
     };
   }
 
@@ -435,7 +488,12 @@ export class PrismaDouble {
         return row === undefined ? null : copy(row);
       },
       create: async (args: {
-        data: { label: string; group: ParkingSpotRow['group']; evCharger?: boolean };
+        data: {
+          label: string;
+          group: ParkingSpotRow['group'];
+          evCharger?: boolean;
+          officeId: string;
+        };
       }) => {
         if (this.spots.some((row) => row.label === args.data.label)) {
           throw uniqueViolation('ParkingSpot', 'label');
@@ -444,13 +502,16 @@ export class PrismaDouble {
           this.seedSpot({
             label: args.data.label,
             group: args.data.group,
+            officeId: args.data.officeId,
             ...(args.data.evCharger === undefined ? {} : { evCharger: args.data.evCharger }),
           })
         );
       },
       update: async (args: {
         where: { id: string };
-        data: Partial<Pick<ParkingSpotRow, 'label' | 'group' | 'active' | 'hidden' | 'evCharger'>>;
+        data: Partial<
+          Pick<ParkingSpotRow, 'label' | 'group' | 'active' | 'hidden' | 'evCharger' | 'officeId'>
+        >;
       }) => {
         const row = this.spots.find((candidate) => candidate.id === args.where.id);
         if (row === undefined) {
@@ -512,7 +573,13 @@ export class PrismaDouble {
       // subject the database has never seen; the oRPC pipeline test goes through
       // the real guard, so it goes through this.
       create: async (args: {
-        data: { oktaId: string; email: string; name: string; icsToken: string };
+        data: {
+          oktaId: string;
+          email: string;
+          name: string;
+          icsToken: string;
+          officeId?: string | null;
+        };
       }) => {
         for (const [column, value] of [
           ['oktaId', args.data.oktaId],
@@ -529,6 +596,7 @@ export class PrismaDouble {
             email: args.data.email,
             name: args.data.name,
             icsToken: args.data.icsToken,
+            ...(args.data.officeId === undefined ? {} : { officeId: args.data.officeId }),
           })
         );
       },
@@ -828,7 +896,17 @@ interface UserWhere {
 }
 
 type UserUpdateData = Partial<
-  Pick<UserRow, 'role' | 'active' | 'licensePlate' | 'icsToken' | 'name' | 'oktaId'>
+  Pick<
+    UserRow,
+    | 'role'
+    | 'active'
+    | 'licensePlate'
+    | 'icsToken'
+    | 'name'
+    | 'oktaId'
+    | 'officeId'
+    | 'manualAccount'
+  >
 > & {
   preferredParkingSpot?: { disconnect: true } | { connect: { id: string } };
 };

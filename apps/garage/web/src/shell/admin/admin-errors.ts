@@ -62,7 +62,16 @@ export type AdminWrite =
   | 'spotVisibility'
   | 'spotEvCharger'
   | 'windowUpdate'
-  | 'limitsUpdate';
+  | 'limitsUpdate'
+  | 'hiveCreate'
+  | 'hiveUpdate'
+  | 'hiveDelete'
+  | 'hiveMembership'
+  | 'officeCreate'
+  | 'officeUpdate'
+  | 'zoneCreate'
+  | 'zoneUpdate'
+  | 'syncLiveMode';
 
 /**
  * A write that failed, and which write it was.
@@ -127,6 +136,7 @@ const MESSAGES: Record<
     fallback: 'errFallbackSpot',
     byCode: {
       ...FORBIDDEN_ROW,
+      NOT_FOUND: 'errOfficeNotFound',
       CONFLICT: 'spotsDuplicateLabel',
       VALIDATION_FAILED: 'errSpotValidation',
     },
@@ -194,6 +204,56 @@ const MESSAGES: Record<
       CONFLICT: 'errLimitsConflict',
       VALIDATION_FAILED: 'errLimitsValidation',
     },
+  },
+  hiveCreate: {
+    fallback: 'errFallbackHive',
+    byCode: {
+      ...FORBIDDEN_ROW,
+      CONFLICT: 'errHiveConflict',
+      NOT_FOUND: 'errHiveOwnerNotFound',
+      VALIDATION_FAILED: 'errHiveOwnerInactive',
+    },
+  },
+  hiveUpdate: {
+    fallback: 'errFallbackHive',
+    byCode: {
+      ...FORBIDDEN_ROW,
+      CONFLICT: 'errHiveConflict',
+      NOT_FOUND: 'errHiveNotFound',
+      VALIDATION_FAILED: 'errHiveOwnerInactive',
+    },
+  },
+  hiveDelete: {
+    fallback: 'errFallbackHive',
+    byCode: { ...FORBIDDEN_ROW, NOT_FOUND: 'errHiveNotFound' },
+  },
+  hiveMembership: {
+    fallback: 'errFallbackHive',
+    byCode: { ...FORBIDDEN_ROW, NOT_FOUND: 'errHiveNotFound' },
+  },
+  officeCreate: {
+    fallback: 'errFallbackOffice',
+    byCode: { ...FORBIDDEN_ROW, CONFLICT: 'errOfficeConflict' },
+  },
+  officeUpdate: {
+    fallback: 'errFallbackOffice',
+    byCode: {
+      ...FORBIDDEN_ROW,
+      CONFLICT: 'errOfficeConflict',
+      NOT_FOUND: 'errOfficeNotFound',
+    },
+  },
+  zoneCreate: {
+    fallback: 'errFallbackZone',
+    byCode: { ...FORBIDDEN_ROW, CONFLICT: 'errZoneConflict', NOT_FOUND: 'errOfficeNotFound' },
+  },
+  zoneUpdate: {
+    fallback: 'errFallbackZone',
+    byCode: { ...FORBIDDEN_ROW, NOT_FOUND: 'errZoneNotFound' },
+  },
+  syncLiveMode: {
+    fallback: 'errFallbackSync',
+    byCode: { ...FORBIDDEN_ROW },
   },
 };
 

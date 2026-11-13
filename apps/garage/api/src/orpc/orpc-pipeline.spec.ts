@@ -54,9 +54,21 @@ interface RpcResponse {
  * quietly stop covering a procedure that was added later. Same walker as
  * `orpc-route-parity.spec.ts`, restricted to the admin branch.
  */
+/**
+ * Desk-merge admin namespaces whose controllers do not exist yet
+ * (`NOT_YET_IMPLEMENTED` in `orpc-route-parity.spec.ts`). The stage that
+ * implements one removes it here and adds its procedures to `ADMIN_CALLS`.
+ */
+const PENDING_ADMIN_NAMESPACES: string[] = [];
+
+/** A well-formed id nothing has; the refused calls never reach a lookup anyway. */
+const FORBIDDEN_ID = '0192f5f0-0000-7000-8000-00000000f0bd';
+
 function adminProcedureNames(node: unknown, prefix: string[] = []): string[] {
   if (isContractProcedure(node)) {
-    return prefix[0] === 'admin' ? [prefix.join('.')] : [];
+    return prefix[0] === 'admin' && !PENDING_ADMIN_NAMESPACES.includes(prefix[1] ?? '')
+      ? [prefix.join('.')]
+      : [];
   }
   if (typeof node !== 'object' || node === null) {
     return [];
@@ -217,6 +229,38 @@ describe('the oRPC transport through the assembled application', () => {
       'admin.timedReservation.cancel': () => ({
         timedReservationId: '0192f5f0-0000-7000-8000-00000000abcd',
       }),
+      'admin.employeeSync.get': () => undefined,
+      'admin.employeeSync.setLiveMode': () => ({ liveMode: true }),
+      'admin.desk.list': () => ({ date: '2026-10-05' }),
+      'admin.desk.update': () => ({ deskId: FORBIDDEN_ID, active: false }),
+      'admin.desk.bulkUpdate': () => ({ deskIds: [FORBIDDEN_ID], active: false }),
+      'admin.desk.setPermanentAssignee': () => ({ deskId: FORBIDDEN_ID, userId: null }),
+      'admin.desk.grants': () => ({ deskId: FORBIDDEN_ID }),
+      'admin.desk.setGrant': () => ({
+        deskIds: [FORBIDDEN_ID],
+        userId: double.users[0]?.id,
+        granted: true,
+      }),
+      'admin.desk.stats': () => ({ date: '2026-10-05' }),
+      'admin.hive.list': () => undefined,
+      'admin.hive.create': () => ({
+        name: 'FORBIDDEN',
+        color: '#2563EB',
+        ownerId: double.users[0]?.id,
+      }),
+      'admin.hive.update': () => ({ hiveId: FORBIDDEN_ID, name: 'FORBIDDEN' }),
+      'admin.hive.delete': () => ({ hiveId: FORBIDDEN_ID }),
+      'admin.hive.setMembership': () => ({
+        hiveId: FORBIDDEN_ID,
+        userId: double.users[0]?.id,
+        member: true,
+      }),
+      'admin.office.list': () => undefined,
+      'admin.office.create': () => ({ name: 'FORBIDDEN', active: true }),
+      'admin.office.update': () => ({ officeId: FORBIDDEN_ID, active: false }),
+      'admin.zone.list': () => ({ officeId: FORBIDDEN_ID }),
+      'admin.zone.create': () => ({ officeId: FORBIDDEN_ID, key: 'forbidden', name: 'FORBIDDEN' }),
+      'admin.zone.update': () => ({ zoneId: FORBIDDEN_ID, name: 'FORBIDDEN' }),
     };
 
     it('lists exactly the admin procedures the contract declares', () => {

@@ -10,7 +10,14 @@ import { ReservationPolicy } from './reservation-policy';
 import type { DomainEventPublisher } from './reservation-events';
 
 /** Nothing in this suite asserts on published events; a plain no-op stands in. */
-const noopPublisher: DomainEventPublisher = { publish: jest.fn(), notifyPromotions: jest.fn() };
+const noopPublisher: DomainEventPublisher = {
+  publish: jest.fn(),
+  notifyPromotions: jest.fn(),
+  deskReserved: jest.fn(),
+  deskReleased: jest.fn(),
+  deskApprovalRequested: jest.fn(),
+  deskApprovalDecided: jest.fn(),
+};
 
 /**
  * Inside September 2026's automatic window (default `openDaysBefore` 7:

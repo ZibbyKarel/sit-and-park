@@ -26,6 +26,10 @@ const validUser = {
   active: true,
   icsToken: 'f2b1c3d4e5f6',
   preferredParkingSpotId: OTHER_ID,
+  officeId: OTHER_ID,
+  hibobId: 'hibob-42',
+  manualAccount: false,
+  deactivatedAt: null,
   createdAt: NOW,
   updatedAt: NOW,
 };
@@ -266,6 +270,7 @@ describe('parkingSpotSchema', () => {
     active: true,
     hidden: false,
     evCharger: false,
+    officeId: OTHER_ID,
     createdAt: NOW,
     updatedAt: NOW,
   };
@@ -368,6 +373,20 @@ describe('auditLogSchema', () => {
       'RESERVATION_LIMITS_UPDATED',
       'TIMED_RESERVATION_CREATED',
       'TIMED_RESERVATION_CANCELLED',
+      'DESK_RESERVATION_CREATED',
+      'DESK_RESERVATION_CANCELLED',
+      'DESK_RESERVATION_CANCELLED_BY_ADMIN',
+      'DESK_RELEASED',
+      'DESK_RELEASE_CANCELLED',
+      'DESK_APPROVAL_REQUESTED',
+      'DESK_APPROVAL_DECIDED',
+      'DESK_UPDATED',
+      'HIVE_UPDATED',
+      'OFFICE_UPDATED',
+      'ZONE_UPDATED',
+      'EMPLOYEE_SYNC_APPLIED',
+      'EMPLOYEE_SYNC_SETTINGS_UPDATED',
+      'USER_DEACTIVATED',
     ]);
     for (const action of AUDIT_LOG_ACTIONS) {
       expect(auditLogActionSchema.safeParse(action).success).toBe(true);

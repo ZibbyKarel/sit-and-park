@@ -158,6 +158,14 @@ describe('useAdminWriteError', () => {
         ['spotVisibility', declaredOn(contract.admin.spot.update)],
         ['spotEvCharger', declaredOn(contract.admin.spot.update)],
         ['windowUpdate', declaredOn(contract.admin.window.update)],
+        ['hiveCreate', declaredOn(contract.admin.hive.create)],
+        ['hiveUpdate', declaredOn(contract.admin.hive.update)],
+        ['hiveDelete', declaredOn(contract.admin.hive.delete)],
+        ['hiveMembership', declaredOn(contract.admin.hive.setMembership)],
+        ['officeCreate', declaredOn(contract.admin.office.create)],
+        ['officeUpdate', declaredOn(contract.admin.office.update)],
+        ['zoneCreate', declaredOn(contract.admin.zone.create)],
+        ['zoneUpdate', declaredOn(contract.admin.zone.update)],
       ];
 
       /**

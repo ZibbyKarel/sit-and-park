@@ -106,4 +106,59 @@ export const ERROR_DEFINITIONS = {
     message: 'The reservation window for that month is closed.',
     data: errorDataSchema,
   },
+  DESK_ALREADY_RESERVED: {
+    status: 409,
+    message: 'The desk is already reserved for that day.',
+    data: errorDataSchema,
+  },
+  DESK_RESERVATION_LIMIT_REACHED: {
+    status: 409,
+    message: 'The user already has a desk reserved for that day.',
+    data: errorDataSchema,
+  },
+  DESK_NOT_AVAILABLE: {
+    status: 409,
+    message: 'The desk is inactive, or permanently assigned and not released for that day.',
+    data: errorDataSchema,
+  },
+  DESK_ACCESS_DENIED: {
+    status: 403,
+    message: 'The caller has no direct access to the desk; request approval instead.',
+    data: errorDataSchema,
+  },
+  PERMANENT_DESK_HOLDER: {
+    status: 409,
+    message: 'The user holds a permanent desk and cannot book another one.',
+    data: errorDataSchema,
+  },
+  NO_OFFICE_ASSIGNED: {
+    status: 409,
+    message: 'The user has no office assigned.',
+    data: errorDataSchema,
+  },
+  NO_PERMANENT_DESK: {
+    status: 409,
+    message: 'The user holds no permanent desk.',
+    data: errorDataSchema,
+  },
+  DESK_RELEASE_ALREADY_RESERVED: {
+    status: 409,
+    message: 'Somebody already reserved the released day; the release cannot be withdrawn.',
+    data: errorDataSchema,
+  },
+  DESK_REQUEST_ALREADY_PENDING: {
+    status: 409,
+    message: 'An identical approval request is already pending.',
+    data: errorDataSchema,
+  },
+  DESK_REQUEST_ALREADY_DECIDED: {
+    status: 409,
+    message: 'The approval request has already been decided.',
+    data: errorDataSchema,
+  },
+  NO_FREE_DAY: {
+    status: 409,
+    message: 'None of the requested days could be booked.',
+    data: errorDataSchema,
+  },
 } satisfies Record<ErrorCode, ErrorDefinition>;

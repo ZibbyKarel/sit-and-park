@@ -42,6 +42,8 @@ import { contract } from '@garage/contract';
 import type { UserRole } from '@garage/contract';
 import { ROLES_KEY } from '../auth/roles.decorator';
 import { PrismaService } from '../database/prisma.service';
+import { DeskAdminController } from '../desk-admin/desk-admin.controller';
+import { DesksController } from '../desks/desks.controller';
 import { MeController } from '../me/me.controller';
 import { OverviewController } from '../overview/overview.controller';
 import { ReservationLimitsController } from '../reservation-limits/reservation-limits.controller';
@@ -52,6 +54,7 @@ import { WaitlistController } from '../reservations/waitlist.controller';
 import { SpotsController } from '../spots/spots.controller';
 import { TimedReservationsController } from '../timed-reservations/timed-reservations.controller';
 import { UsersController } from '../users/users.controller';
+import { EmployeeSyncAdminController } from '../employee-sync/employee-sync-admin.controller';
 import { RPC_ROUTE_PREFIX } from './rpc-route';
 
 /**
@@ -61,8 +64,9 @@ import { RPC_ROUTE_PREFIX } from './rpc-route';
  * happen together.
  *
  * Task 13 removed the four single-day procedures; Task 30 removed the bulk pair.
- * The list is empty, and that is a state the assertions have to keep working in
- * — "every procedure has exactly one route" is now the whole claim.
+ * The desk merge added 33 procedures (`desk.*`, `admin.desk|hive|office|zone|employeeSync.*`);
+ * the stage that implements each removes its entries. An empty list is a state the
+ * assertions have to keep working in — "every procedure has exactly one route".
  */
 const NOT_YET_IMPLEMENTED: string[] = [];
 
@@ -77,6 +81,9 @@ const CONTROLLERS = [
   WaitlistController,
   BulkReservationController,
   TimedReservationsController,
+  DesksController,
+  EmployeeSyncAdminController,
+  DeskAdminController,
 ];
 
 interface RegisteredRoute {
@@ -277,7 +284,13 @@ describe('the RPC routing table', () => {
      * (`doc/decision/0080-*`); the two probes are excluded from the global
      * prefix so an orchestrator can reach them without knowing it.
      */
-    const NON_CONTRACT_ROUTES = ['calendar/:icsToken.ics', 'health/live', 'health/ready'];
+    const NON_CONTRACT_ROUTES = [
+      'calendar/:icsToken.ics',
+      // Keboola's employee-list push, bearer-key authenticated (`doc/decision/0330-*`).
+      'employee-sync',
+      'health/live',
+      'health/ready',
+    ];
 
     const ENV = {
       NODE_ENV: 'test',
@@ -358,7 +371,9 @@ describe('the RPC routing table', () => {
 
     it('registers no HTTP route the contract does not declare, bar a named allow-list', () => {
       const expected = [
-        ...procedures.map((name) => `${RPC_ROUTE_PREFIX}/${name.split('.').join('/')}`),
+        ...procedures
+          .filter((name) => !NOT_YET_IMPLEMENTED.includes(name))
+          .map((name) => `${RPC_ROUTE_PREFIX}/${name.split('.').join('/')}`),
         ...NON_CONTRACT_ROUTES,
       ].sort();
 

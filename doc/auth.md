@@ -520,13 +520,19 @@ There is no sign-up screen. On somebody's first ever request, `AuthUserService.r
 
 Then `active === false` → `FORBIDDEN`.
 
-Two further rules:
+Three further rules:
 
 - A valid token with **no `email` claim**, for a `sub` that is not yet provisioned, is
   refused with 401 and an `error`-level log. That condition means the IdP client is missing
   the `email` scope; no placeholder address is invented.
 - `email` is never refreshed from the token (it is the fallback identity key). `name` is,
   and only when it differs — so the steady-state request performs no write.
+- The `email` claim is trimmed and lower-cased before the lookup and the create.
+  `User.email` is a case-sensitive unique and the employee sync pre-creates rows
+  lower-cased, so `Jane.Doe@…` must find `jane.doe@…` rather than provision a second
+  row the next sync would treat as a stranger. Migration
+  `20261113120000_lowercase_user_email` lower-cases existing rows, except where two
+  rows differ only in case; those stay for an admin to merge, and the sync warns about them.
 
 ### Concurrency
 

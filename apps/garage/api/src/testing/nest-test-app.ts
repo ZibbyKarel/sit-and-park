@@ -115,7 +115,10 @@ export interface ApiTestAppOptions {
  * union when a suite genuinely needs another key, and the widening is the
  * signal.
  */
-export type TestAppEnvKey = 'REALTIME_LOCK_TTL_MS' | 'THROTTLE_STRICT_LIMIT';
+export type TestAppEnvKey =
+  | 'REALTIME_LOCK_TTL_MS'
+  | 'THROTTLE_STRICT_LIMIT'
+  | 'EMPLOYEE_SYNC_KEY_SHA256';
 
 export interface ApiTestApp {
   readonly app: INestApplication;

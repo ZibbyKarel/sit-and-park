@@ -67,6 +67,41 @@ enum AuditLogAction {
   RESERVATION_LIMITS_UPDATED
   TIMED_RESERVATION_CREATED
   TIMED_RESERVATION_CANCELLED
+  DESK_RESERVATION_CREATED
+  DESK_RESERVATION_CANCELLED
+  DESK_RESERVATION_CANCELLED_BY_ADMIN
+  DESK_RELEASED
+  DESK_RELEASE_CANCELLED
+  DESK_APPROVAL_REQUESTED
+  DESK_APPROVAL_DECIDED
+  DESK_UPDATED
+  HIVE_UPDATED
+  OFFICE_UPDATED
+  ZONE_UPDATED
+  EMPLOYEE_SYNC_APPLIED
+  EMPLOYEE_SYNC_SETTINGS_UPDATED
+  USER_DEACTIVATED
+}
+
+/// Lifecycle of a request to book a hive desk without direct access. A request
+/// its author withdraws is deleted, so there is no `CANCELLED` (decision 0332).
+enum DeskApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+/// Whether an employee-sync run wrote anything (`LIVE`) or only reported what
+/// it would have done (`DRY`).
+enum EmployeeSyncMode {
+  DRY
+  LIVE
+}
+
+/// Outcome of an employee-sync run. A `REJECTED` run changed nothing.
+enum EmployeeSyncStatus {
+  OK
+  REJECTED
 }
 
 // --- Entities --------------------------------------------------------------
@@ -92,6 +127,20 @@ model User {
   preferredParkingSpotId String?      @db.Uuid
   preferredParkingSpot   ParkingSpot? @relation("UserPreferredSpot", fields: [preferredParkingSpotId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
+  /// Office the user works in; scopes which desks and spots they see. Nullable:
+  /// a just-provisioned account has none until an admin or the sync sets it.
+  officeId String? @db.Uuid
+  office   Office? @relation(fields: [officeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  /// Employee id in HiBob; the key the employee sync matches on before e-mail.
+  hibobId       String?   @unique
+  /// Never touched by the employee sync (decision 0329). Accounts outside the
+  /// company domain are treated the same way whatever this says.
+  manualAccount Boolean   @default(false)
+  /// When the account was deactivated. `active` stays the switch the auth guard
+  /// reads; this only records when it was flipped.
+  deactivatedAt DateTime? @db.Timestamptz(3)
+
   createdAt DateTime @default(now()) @db.Timestamptz(3)
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 
@@ -99,7 +148,17 @@ model User {
   waitlistEntries WaitlistEntry[]
   auditLogs       AuditLog[]
 
+  ownedHives           Hive[]
+  hiveMembership       HiveMembership?
+  permanentDesk        Desk?                 @relation("DeskPermanentAssignee")
+  deskGrants           DeskGrant[]
+  deskReservations     DeskReservation[]
+  deskReleases         DeskRelease[]
+  deskApprovalRequests DeskApprovalRequest[] @relation("DeskApprovalRequester")
+  decidedDeskApprovals DeskApprovalRequest[] @relation("DeskApprovalDecider")
+
   @@index([preferredParkingSpotId])
+  @@index([officeId])
 }
 
 /// A physical parking spot. Retired spots are deactivated rather than deleted,
@@ -116,13 +175,20 @@ model ParkingSpot {
   /// Has a charger for electric cars. Informational only, shown to everybody
   /// (`doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`).
   evCharger Boolean      @default(false)
+  /// Office whose users see and book this spot. Every existing spot was
+  /// backfilled to Praha by the migration that introduced offices.
+  officeId  String       @db.Uuid
   createdAt DateTime     @default(now()) @db.Timestamptz(3)
   updatedAt DateTime     @updatedAt @db.Timestamptz(3)
+
+  office Office @relation(fields: [officeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
 
   reservations      Reservation[]
   waitlistEntries   WaitlistEntry[]
   timedReservations TimedReservation[]
   preferredBy       User[]             @relation("UserPreferredSpot")
+
+  @@index([officeId])
 }
 
 /// One spot booked for one day, by exactly one holder: a user, or a guest.
@@ -285,6 +351,223 @@ model ReservationLimitSettings {
   /// How many confirmed reservations one user may hold in a calendar month.
   /// `CHECK` in the migration mirrors the contract's 1–31 bounds.
   monthlyReservationCap Int @default(5)
+
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+}
+
+// --- Desks -----------------------------------------------------------------
+// The desk-booking feature (`doc/desk-merge-plan.md`, decisions 0320–0332).
+// Same conventions as the parking models above: uuid(7) ids, `DATE` days,
+// `Timestamptz(3)` timestamps, `Restrict` on every foreign key that carries
+// history. `Cascade` only on pure join rows (`HiveMembership`, `DeskGrant`)
+// when the hive or desk they join is removed.
+
+/// A branch office. Scopes desks, zones, parking spots and users
+/// (decision 0323). Deactivated rather than deleted, like users and spots.
+model Office {
+  id              String   @id @default(uuid(7)) @db.Uuid
+  name            String   @unique
+  active          Boolean  @default(true)
+  /// Name of a floor plan bundled with the web app
+  /// (`apps/garage/web/public/floorplans/<floorPlan>.svg`), never a URL —
+  /// decision 0325. Only `praha` exists.
+  floorPlan       String?
+  /// The plan's viewBox size, in the same units as `Desk.x`/`y`/`width`/`height`.
+  floorPlanWidth  Int?
+  floorPlanHeight Int?
+  createdAt       DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime @updatedAt @db.Timestamptz(3)
+
+  zones        Zone[]
+  desks        Desk[]
+  users        User[]
+  parkingSpots ParkingSpot[]
+}
+
+/// A named area of one office's plan (decision 0324). Independent of hives.
+model Zone {
+  id       String @id @default(uuid(7)) @db.Uuid
+  officeId String @db.Uuid
+  /// Stable key from the floor plan, e.g. `engineering1`.
+  key      String
+  /// Display name. Data, so not translated.
+  name     String
+
+  office Office @relation(fields: [officeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  desks  Desk[]
+
+  @@unique([officeId, key])
+}
+
+/// A team owning a set of desks (decision 0322). Global, not office-scoped.
+/// The owner decides approval requests for the hive's desks; that is the
+/// owner's only power. `color` is `#RRGGBB`, enforced by a hand-written CHECK.
+model Hive {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  name      String   @unique
+  color     String
+  ownerId   String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt DateTime @updatedAt @db.Timestamptz(3)
+
+  owner       User             @relation(fields: [ownerId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  memberships HiveMembership[]
+  desks       Desk[]
+
+  @@index([ownerId])
+}
+
+/// A user's membership of a hive. `userId` is unique: a user is in at most one
+/// hive, and adding them to another moves them.
+model HiveMembership {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  hiveId    String   @db.Uuid
+  userId    String   @unique @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  hive Hive @relation(fields: [hiveId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([hiveId])
+}
+
+/// One bookable desk. Geometry is in floor-plan units: the axis-aligned box of
+/// the desk's rectangle after every SVG transform is applied, generated once by
+/// `src/scripts/generate-floor-plan-sql.ts` (decision 0325).
+model Desk {
+  id                  String   @id @default(uuid(7)) @db.Uuid
+  officeId            String   @db.Uuid
+  zoneId              String   @db.Uuid
+  /// e.g. `D-001`. Unique per office.
+  code                String
+  active              Boolean  @default(true)
+  /// Nullable: a desk outside any hive is open to everyone in its office.
+  /// Removing a hive frees its desks rather than blocking the delete.
+  hiveId              String?  @db.Uuid
+  /// The permanent holder. Unique: at most one permanent desk per user.
+  permanentAssigneeId String?  @unique @db.Uuid
+  x                   Int
+  y                   Int
+  width               Int
+  height              Int
+  createdAt           DateTime @default(now()) @db.Timestamptz(3)
+  updatedAt           DateTime @updatedAt @db.Timestamptz(3)
+
+  office            Office @relation(fields: [officeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  zone              Zone   @relation(fields: [zoneId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  hive              Hive?  @relation(fields: [hiveId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+  permanentAssignee User?  @relation("DeskPermanentAssignee", fields: [permanentAssigneeId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  grants           DeskGrant[]
+  reservations     DeskReservation[]
+  releases         DeskRelease[]
+  approvalRequests DeskApprovalRequest[]
+
+  @@unique([officeId, code])
+  @@index([zoneId])
+  @@index([hiveId])
+}
+
+/// Direct permission for one user to book one hive desk without approval.
+model DeskGrant {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  deskId    String   @db.Uuid
+  userId    String   @db.Uuid
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  desk Desk @relation(fields: [deskId], references: [id], onDelete: Cascade, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([deskId, userId])
+  @@index([userId])
+}
+
+/// One desk booked for one day by one user. The two uniques are the booking
+/// guarantee (decision 0326); cancelling is a hard delete plus an audit entry,
+/// as for parking.
+model DeskReservation {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  deskId    String   @db.Uuid
+  userId    String   @db.Uuid
+  /// Reservation day in Europe/Prague. `DATE`, never a timestamp.
+  date      DateTime @db.Date
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  desk Desk @relation(fields: [deskId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([deskId, date])
+  @@unique([userId, date])
+  @@index([date])
+}
+
+/// A day on which a permanent desk's holder has freed it; on that day the desk
+/// is booked under the ordinary hive rules.
+model DeskRelease {
+  id           String   @id @default(uuid(7)) @db.Uuid
+  deskId       String   @db.Uuid
+  /// Released day in Europe/Prague. `DATE`, never a timestamp.
+  date         DateTime @db.Date
+  releasedById String   @db.Uuid
+  createdAt    DateTime @default(now()) @db.Timestamptz(3)
+
+  desk       Desk @relation(fields: [deskId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  releasedBy User @relation(fields: [releasedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@unique([deskId, date])
+  @@index([date])
+}
+
+/// A request to book a hive desk for one day without direct access, decided by
+/// the hive owner or an admin (decision 0332). At most one `PENDING` request per
+/// (desk, user, date): a partial unique index, hand-written in the migration,
+/// because Prisma's schema language cannot express its `WHERE`.
+model DeskApprovalRequest {
+  id          String             @id @default(uuid(7)) @db.Uuid
+  deskId      String             @db.Uuid
+  userId      String             @db.Uuid
+  /// Requested day in Europe/Prague. `DATE`, never a timestamp.
+  date        DateTime           @db.Date
+  status      DeskApprovalStatus @default(PENDING)
+  decidedById String?            @db.Uuid
+  decidedAt   DateTime?          @db.Timestamptz(3)
+  createdAt   DateTime           @default(now()) @db.Timestamptz(3)
+
+  desk      Desk  @relation(fields: [deskId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  user      User  @relation("DeskApprovalRequester", fields: [userId], references: [id], onDelete: Restrict, onUpdate: Cascade)
+  decidedBy User? @relation("DeskApprovalDecider", fields: [decidedById], references: [id], onDelete: Restrict, onUpdate: Cascade)
+
+  @@index([status, date])
+  @@index([deskId, date])
+  @@index([userId, date])
+}
+
+/// Log of every call of the employee sync, dry or live, accepted or rejected
+/// (decision 0330). `summary` is JSONB; its shape is the contract's.
+model EmployeeSyncRun {
+  id        String             @id @default(uuid(7)) @db.Uuid
+  createdAt DateTime           @default(now()) @db.Timestamptz(3)
+  /// Caller-supplied label, e.g. `keboola`.
+  source    String
+  mode      EmployeeSyncMode
+  status    EmployeeSyncStatus
+  /// Why a `REJECTED` run was rejected; null for an `OK` run.
+  reason    String?
+  summary   Json               @db.JsonB
+
+  @@index([createdAt])
+}
+
+/// Singleton settings row of the employee sync. The same arrangement as
+/// `ReservationWindowSettings`: `id` is a fixed `Int` that never leaves the
+/// database, the single row is a hand-written `CHECK ("id" = 1)`, and the
+/// migration inserts it. The sync key is not stored here: only its SHA-256, in
+/// the environment (decision 0330).
+model EmployeeSyncSettings {
+  id Int @id @default(1)
+
+  /// Off by default: every run is a dry run until an admin switches this on.
+  liveMode Boolean @default(false)
 
   updatedAt DateTime @updatedAt @db.Timestamptz(3)
 }

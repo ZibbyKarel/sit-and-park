@@ -9,7 +9,15 @@
  */
 
 import * as z from 'zod';
-import { parkingGroupSchema, userRoleSchema } from './enums';
+import { EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT } from '@garage/shared-types';
+import {
+  deskApprovalStatusSchema,
+  employeeSyncModeSchema,
+  employeeSyncStatusSchema,
+  floorPlanSchema,
+  parkingGroupSchema,
+  userRoleSchema,
+} from './enums';
 import { dateOnlySchema, halfHourTimeSchema, idSchema, timestampSchema } from './primitives';
 
 /**
@@ -31,6 +39,14 @@ export const userSchema = z.object({
   icsToken: z.string().min(1),
   /** First choice when bulk booking. Never applied to a single-day reservation. */
   preferredParkingSpotId: idSchema.nullable(),
+  /** The office whose desks and spots the user sees and books; `null` = none yet. */
+  officeId: idSchema.nullable(),
+  /** HiBob employee id, set by the employee sync. Unique. */
+  hibobId: z.string().min(1).nullable(),
+  /** `true` = the employee sync never touches this account. */
+  manualAccount: z.boolean(),
+  /** When the user was deactivated; `active` stays the switch the guard reads. */
+  deactivatedAt: timestampSchema.nullable(),
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -82,6 +98,8 @@ export const parkingSpotSchema = z.object({
    * `doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`.
    */
   evCharger: z.boolean(),
+  /** The office the spot belongs to; users see and book spots of their own office. */
+  officeId: idSchema,
   createdAt: timestampSchema,
   updatedAt: timestampSchema,
 });
@@ -316,6 +334,25 @@ export const AUDIT_LOG_ACTIONS = [
    * the row it names lives in a different table from `Reservation`.
    */
   'TIMED_RESERVATION_CANCELLED',
+  /*
+   * Desk booking (`doc/desk-merge-plan.md`). The desk members mirror the
+   * parking ones above for the same reason the parking ones are split: each
+   * names its own table, and "who acted on whose behalf" must be legible.
+   */
+  'DESK_RESERVATION_CREATED',
+  'DESK_RESERVATION_CANCELLED',
+  'DESK_RESERVATION_CANCELLED_BY_ADMIN',
+  'DESK_RELEASED',
+  'DESK_RELEASE_CANCELLED',
+  'DESK_APPROVAL_REQUESTED',
+  'DESK_APPROVAL_DECIDED',
+  'DESK_UPDATED',
+  'HIVE_UPDATED',
+  'OFFICE_UPDATED',
+  'ZONE_UPDATED',
+  'EMPLOYEE_SYNC_APPLIED',
+  'EMPLOYEE_SYNC_SETTINGS_UPDATED',
+  'USER_DEACTIVATED',
 ] as const;
 
 export const auditLogActionSchema = z.enum(AUDIT_LOG_ACTIONS);
@@ -338,3 +375,200 @@ export const auditLogSchema = z.object({
   createdAt: timestampSchema,
 });
 export type AuditLog = z.infer<typeof auditLogSchema>;
+
+// ---------------------------------------------------------------------------
+// Desk booking (`doc/desk-merge-plan.md` §"Data model"). Keys match the Prisma
+// models field for field (`schema-contract-parity.spec.ts`).
+// ---------------------------------------------------------------------------
+
+/** Bounded display name: offices, zones, hives. */
+const nameSchema = z.string().trim().min(1).max(100);
+
+/** `#RRGGBB`. */
+export const hexColorSchema = z.string().regex(/^#[0-9A-Fa-f]{6}$/, {
+  error: 'Expected a #RRGGBB colour',
+});
+
+/** Stable zone identifier inside one office, e.g. `engineering1`. */
+export const zoneKeySchema = z.string().regex(/^[a-z0-9_]{1,40}$/, {
+  error: 'Expected 1–40 characters of a–z, 0–9 and _',
+});
+
+/** A branch office. `floorPlan` names a bundled plan; its size is in plan units. */
+export const officeSchema = z.object({
+  id: idSchema,
+  name: nameSchema,
+  active: z.boolean(),
+  floorPlan: floorPlanSchema.nullable(),
+  floorPlanWidth: z.int().positive().nullable(),
+  floorPlanHeight: z.int().positive().nullable(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+export type Office = z.infer<typeof officeSchema>;
+
+/** A named area of one office's plan. Independent of hives. */
+export const zoneSchema = z.object({
+  id: idSchema,
+  officeId: idSchema,
+  key: zoneKeySchema,
+  name: nameSchema,
+});
+export type Zone = z.infer<typeof zoneSchema>;
+
+/**
+ * A team owning a set of desks. Global, not office-scoped. The owner is not a
+ * role: their only power is deciding approval requests for the hive's desks.
+ */
+export const hiveSchema = z.object({
+  id: idSchema,
+  name: nameSchema,
+  color: hexColorSchema,
+  ownerId: idSchema,
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+export type Hive = z.infer<typeof hiveSchema>;
+
+/** A user's membership of a hive. `userId` is unique: one hive per user. */
+export const hiveMembershipSchema = z.object({
+  id: idSchema,
+  hiveId: idSchema,
+  userId: idSchema,
+  createdAt: timestampSchema,
+});
+export type HiveMembership = z.infer<typeof hiveMembershipSchema>;
+
+/**
+ * A desk. Geometry is the axis-aligned box in plan units, rotation already
+ * applied; the web app draws it over the bundled plan. `permanentAssigneeId`
+ * is unique: at most one permanent desk per user.
+ */
+export const deskSchema = z.object({
+  id: idSchema,
+  officeId: idSchema,
+  zoneId: idSchema,
+  /** e.g. `D-001`; unique per office. */
+  code: z.string().min(1).max(40),
+  active: z.boolean(),
+  hiveId: idSchema.nullable(),
+  permanentAssigneeId: idSchema.nullable(),
+  x: z.int(),
+  y: z.int(),
+  width: z.int().positive(),
+  height: z.int().positive(),
+  createdAt: timestampSchema,
+  updatedAt: timestampSchema,
+});
+export type Desk = z.infer<typeof deskSchema>;
+
+/** Direct permission for one user to book one hive desk without approval. */
+export const deskGrantSchema = z.object({
+  id: idSchema,
+  deskId: idSchema,
+  userId: idSchema,
+  createdAt: timestampSchema,
+});
+export type DeskGrant = z.infer<typeof deskGrantSchema>;
+
+/** One desk for one whole day. Unique per (desk, date) and per (user, date). */
+export const deskReservationSchema = z.object({
+  id: idSchema,
+  deskId: idSchema,
+  userId: idSchema,
+  date: dateOnlySchema,
+  createdAt: timestampSchema,
+});
+export type DeskReservation = z.infer<typeof deskReservationSchema>;
+
+/** A day a permanent holder freed their desk. Unique per (desk, date). */
+export const deskReleaseSchema = z.object({
+  id: idSchema,
+  deskId: idSchema,
+  date: dateOnlySchema,
+  releasedById: idSchema,
+  createdAt: timestampSchema,
+});
+export type DeskRelease = z.infer<typeof deskReleaseSchema>;
+
+/**
+ * A request to book a hive desk for one date without direct access. Decided by
+ * the hive owner or any admin; a request its author withdraws is deleted.
+ */
+export const deskApprovalRequestSchema = z.object({
+  id: idSchema,
+  deskId: idSchema,
+  userId: idSchema,
+  date: dateOnlySchema,
+  status: deskApprovalStatusSchema,
+  decidedById: idSchema.nullable(),
+  decidedAt: timestampSchema.nullable(),
+  createdAt: timestampSchema,
+});
+export type DeskApprovalRequest = z.infer<typeof deskApprovalRequestSchema>;
+
+const syncCountSchema = z.int().nonnegative();
+const syncEmailSchema = z.string().min(1).max(320);
+const syncNameSchema = z.string().min(1).max(200);
+function syncList<T extends z.ZodType>(item: T) {
+  return z.array(item).max(EMPLOYEE_SYNC_SUMMARY_LIST_LIMIT);
+}
+
+/**
+ * What one employee-sync run did (or, in `DRY` mode, would have done). Stored
+ * as JSONB on `EmployeeSyncRun.summary`; strict, so a writer cannot drift.
+ * A rejected run still carries a summary, with zero counts and empty lists.
+ * Each list is capped; the counts are not.
+ */
+export const employeeSyncSummarySchema = z.strictObject({
+  received: syncCountSchema,
+  activeBefore: syncCountSchema,
+  created: syncList(z.strictObject({ email: syncEmailSchema, name: syncNameSchema })),
+  renamed: syncList(
+    z.strictObject({ email: syncEmailSchema, from: syncNameSchema, to: syncNameSchema })
+  ),
+  deactivated: syncList(
+    z.strictObject({
+      email: syncEmailSchema,
+      name: syncNameSchema,
+      freedDeskReservations: syncCountSchema,
+      freedParkingReservations: syncCountSchema,
+      removedWaitlistEntries: syncCountSchema,
+      rejectedRequests: syncCountSchema,
+      /** Codes of desks the user still holds permanently (kept, warned about). */
+      permanentDesks: z.array(z.string().min(1).max(40)).max(10),
+      /** Names of hives the user still owns (kept, warned about). */
+      ownedHives: z.array(nameSchema).max(100),
+    })
+  ),
+  reactivated: syncList(z.strictObject({ email: syncEmailSchema, name: syncNameSchema })),
+  linked: syncCountSchema,
+  unchanged: syncCountSchema,
+  warnings: syncList(z.string().min(1).max(1000)),
+});
+export type EmployeeSyncSummary = z.infer<typeof employeeSyncSummarySchema>;
+
+/** One call of `POST /api/employee-sync`, logged whether it was applied or not. */
+export const employeeSyncRunSchema = z.object({
+  id: idSchema,
+  createdAt: timestampSchema,
+  /** Who pushed the list, e.g. `keboola`. */
+  source: z.string().min(1).max(200),
+  mode: employeeSyncModeSchema,
+  status: employeeSyncStatusSchema,
+  /** Why the list was rejected; `null` for `OK`. */
+  reason: z.string().min(1).max(2000).nullable(),
+  summary: employeeSyncSummarySchema,
+});
+export type EmployeeSyncRun = z.infer<typeof employeeSyncRunSchema>;
+
+/**
+ * Singleton settings of the employee sync. No `id` (never addressed by id over
+ * the wire) and no `updatedAt`, like the other settings singletons. The key is
+ * not here: only its SHA-256 exists, in the API's environment.
+ */
+export const employeeSyncSettingsSchema = z.object({
+  /** `false` (the default) = every run is a dry run. */
+  liveMode: z.boolean(),
+});
+export type EmployeeSyncSettings = z.infer<typeof employeeSyncSettingsSchema>;

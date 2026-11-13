@@ -38,7 +38,11 @@
  * (the queue length) rather than a second story about the same one.
  */
 
-import type { ServerToClientEvents } from '@garage/contract/realtime';
+import type {
+  DeskReleasedEvent,
+  DeskReservedEvent,
+  ServerToClientEvents,
+} from '@garage/contract/realtime';
 
 /**
  * One committed, already-persisted fact, ready to be broadcast.
@@ -95,4 +99,29 @@ export abstract class DomainEventPublisher {
 
   /** Notify promoted users out of band. Never called inside a transaction. */
   abstract notifyPromotions(notices: readonly WaitlistPromotionNotice[]): void;
+
+  /** A desk is taken for a day (`desk:reserved`). Never called inside a transaction. */
+  abstract deskReserved(payload: DeskReservedEvent): void;
+
+  /** A desk reservation is gone (`desk:released`). Never called inside a transaction. */
+  abstract deskReleased(payload: DeskReleasedEvent): void;
+
+  /** A desk approval request was filed. Out of band only (stage 8: Slack DM to the owner). */
+  abstract deskApprovalRequested(notice: DeskApprovalNotice): void;
+
+  /** A desk approval request was decided. Out of band only (stage 8: Slack DM to the requester). */
+  abstract deskApprovalDecided(notice: DeskApprovalNotice): void;
+}
+
+/** One filed or decided desk approval request, for out-of-band notification. */
+export interface DeskApprovalNotice {
+  requestId: string;
+  deskId: string;
+  deskCode: string;
+  /** The requested day, `YYYY-MM-DD` in Europe/Prague. */
+  date: string;
+  requesterId: string;
+  /** Owner of the desk's hive; `null` once the desk left its hive. */
+  hiveOwnerId: string | null;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
 }

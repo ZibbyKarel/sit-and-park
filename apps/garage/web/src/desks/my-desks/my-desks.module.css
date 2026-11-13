@@ -1,0 +1,150 @@
+.section {
+  padding-bottom: var(--spacing-xl);
+}
+
+.sectionHeader {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+}
+
+.rows {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-sm);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md) var(--spacing-lg);
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-8);
+}
+
+.rowMain {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.calendarNav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
+.calendar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendarRow {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.weekday {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  color: rgb(var(--foreground--neutral-high-default--light));
+}
+
+.cell {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 72px;
+  padding: var(--spacing-xs);
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: var(--border-radius-border-radius-8);
+}
+
+.cell[data-empty='true'] {
+  border-style: dashed;
+  opacity: 0.4;
+}
+
+.cell[data-past='true'] {
+  opacity: 0.6;
+}
+
+.cell[data-today='true'] {
+  border-width: 2px;
+}
+
+.cellDay {
+  font-size: 12px;
+}
+
+.chip {
+  padding: 1px 6px;
+  border-radius: 4px;
+  font-size: 12px;
+  color: white;
+  background: rgb(29 78 216);
+}
+
+.chip[data-kind='released'] {
+  background: rgb(100 116 139);
+}
+
+.releaseForm {
+  max-width: 560px;
+}
+
+.dateRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-lg);
+}
+
+.dateField {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  font-size: 14px;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.dateChip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  padding: 2px 8px;
+  border: 1px solid rgb(var(--border--neutral-low-default--light));
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+.dateChip button {
+  border: 0;
+  background: none;
+  cursor: pointer;
+}
