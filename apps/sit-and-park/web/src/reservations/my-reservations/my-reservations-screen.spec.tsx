@@ -11,6 +11,8 @@ import {
 import type { StubbedApi, StubbedResponse } from '../../testing/stub-api';
 import { profile } from '../../testing/fixtures';
 import { createProviderWrapper } from '../../testing/providers';
+import { createDateFormatters } from '@sit-and-park/i18n';
+import { selectOption } from '../../test-utils/select-option';
 import { MyReservationsScreen } from './my-reservations-screen';
 
 /**
@@ -20,6 +22,7 @@ import { MyReservationsScreen } from './my-reservations-screen';
  * deterministic.
  */
 const TODAY = '2026-09-15';
+const cs = createDateFormatters('cs');
 
 jest.mock('@sit-and-park/i18n', () => ({
   ...jest.requireActual('@sit-and-park/i18n'),
@@ -692,6 +695,23 @@ describe('MyReservationsScreen calendar', () => {
       '2026-09',
       '2026-10',
     ]);
+  });
+
+  it('jumps back to the current month with the today button', async () => {
+    const { user } = await setup({}, 'calendar');
+    await screen.findByRole('grid', { name: 'calendarLabel' });
+    await user.click(screen.getByRole('button', { name: 'calNext' }));
+    await user.click(screen.getByRole('button', { name: 'calNext' }));
+    expect(screen.getByLabelText(/monthLabel/)).toHaveTextContent(cs.monthName(11));
+    await user.click(screen.getByRole('button', { name: 'today' }));
+    expect(screen.getByLabelText(/monthLabel/)).toHaveTextContent(cs.monthName(9));
+  });
+
+  it('switches months with the month select', async () => {
+    const { user } = await setup({}, 'calendar');
+    await screen.findByRole('grid', { name: 'calendarLabel' });
+    await selectOption(user, /monthLabel/, cs.monthName(12));
+    expect(screen.getByLabelText(/monthLabel/)).toHaveTextContent(cs.monthName(12));
   });
 
   it('a failed month keeps the navigation, so another month can be tried', async () => {

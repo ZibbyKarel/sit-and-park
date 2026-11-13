@@ -49,6 +49,11 @@
   gap: var(--spacing-md);
 }
 
+.calendarNavMonth {
+  flex: 1 1 0;
+  min-width: 0;
+}
+
 .calendar {
   display: flex;
   flex-direction: column;
