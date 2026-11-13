@@ -21,6 +21,7 @@ import {
   expectDeskStatus,
   goToDesksDay,
   goToMyReservations,
+  MY_RESERVATIONS_LIST,
   myReservationsSection,
 } from './support/desk-page';
 import { expect, test } from './support/fixtures';
@@ -73,7 +74,7 @@ test('deactivating a desk removes its holder’s future reservation', async ({
   await expectDeskStatus(userPage, DESK, DESK_STATUS.inactive);
   await goToMyReservations(userPage);
   await expect(
-    myReservationsSection(userPage, 'Moje rezervace stolů').getByText(DESK, { exact: true })
+    myReservationsSection(userPage, MY_RESERVATIONS_LIST).getByText(DESK, { exact: true })
   ).toHaveCount(0);
 
   await toggleActive(adminPage, editor, true);

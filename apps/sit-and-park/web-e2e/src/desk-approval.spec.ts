@@ -15,6 +15,7 @@ import {
   expectDeskStatus,
   goToDesksDay,
   goToMyReservations,
+  MY_RESERVATIONS_LIST,
   myReservationsSection,
   openDesk,
 } from './support/desk-page';
@@ -74,7 +75,7 @@ test('the approved requester holds the desk; the rejected one sees the rejection
 
   await goToMyReservations(userPage);
   await expect(
-    myReservationsSection(userPage, 'Moje rezervace stolů')
+    myReservationsSection(userPage, MY_RESERVATIONS_LIST)
       .getByRole('listitem')
       .filter({ hasText: APPROVED_DESK })
   ).toContainText(dayAndMonthCzech(DATE));

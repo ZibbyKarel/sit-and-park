@@ -10,8 +10,13 @@
  * cannot collide on the one-reservation-per-user-per-day rule.
  */
 
-import { e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
+import { dayAndMonthCzech, e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
 import { expect, test } from './support/fixtures';
+import {
+  goToMyReservations,
+  MY_RESERVATIONS_LIST,
+  myReservationsSection,
+} from './support/desk-page';
 import { LOT_PATH } from './support/oidc-login';
 import { USER } from './support/personas';
 import {
@@ -69,6 +74,18 @@ test('the reservation survives a fresh tab and a reload — it is in the databas
 
   const dialog = await openSpot(userPage, SPOT);
   await expect(dialog).toContainText('Vaše rezervace');
+});
+
+test('the reservation is listed under Moje rezervace with the parking icon', async ({
+  userPage,
+}) => {
+  await goToMyReservations(userPage);
+
+  const row = myReservationsSection(userPage, MY_RESERVATIONS_LIST)
+    .getByRole('listitem')
+    .filter({ hasText: SPOT });
+  await expect(row).toContainText(dayAndMonthCzech(DATE));
+  await expect(row.getByRole('img', { name: 'Parkování' })).toBeVisible();
 });
 
 test('the holder cancels it and the bay is free again', async ({ userPage }) => {

@@ -16,6 +16,9 @@ import { FIRST_ROUTE_VISIT_TIMEOUT_MS } from './lot-page';
 export const DESKS_PATH = '/desks';
 export const MY_RESERVATIONS_PATH = '/reservations';
 
+/** Name of the unified parking + desk list: the page H1, which labels its region. */
+export const MY_RESERVATIONS_LIST = 'Moje rezervace';
+
 /** `desks.status*` of `cs.json`: what a desk's accessible name says it is. */
 export const DESK_STATUS = {
   free: 'volný',
@@ -80,16 +83,16 @@ export async function cancelMyDesk(page: Page, code: string): Promise<void> {
   await expect(dialog).toBeHidden();
 }
 
-/** Opens `/reservations`, switches to the "Seznam" tab and waits for the first section. */
+/** Opens `/reservations`, switches to the "Seznam" tab and waits for the unified list region. */
 export async function goToMyReservations(page: Page): Promise<void> {
   await page.goto(MY_RESERVATIONS_PATH);
   await page
     .getByRole('radio', { name: 'Seznam' })
     .click({ timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS });
-  await expect(page.getByRole('heading', { name: 'Moje rezervace stolů' })).toBeVisible({
+  await expect(page.getByRole('region', { name: MY_RESERVATIONS_LIST })).toBeVisible({
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
-  // The H2s sit outside each section's data guard, so the heading alone says nothing
+  // The region sits outside its section's data guard, so it alone says nothing
   // about the data: an "absent" assertion would pass while it is still loading.
   await expect(page.getByRole('status').filter({ hasText: 'Načítá se' })).toHaveCount(0);
 }
