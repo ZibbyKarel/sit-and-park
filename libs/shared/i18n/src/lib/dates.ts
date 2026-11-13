@@ -4,7 +4,7 @@
  * Every locale-dependent, `Intl`-backed formatter moved to
  * `./date-formatters.ts` when the app gained a second language; the
  * `DateOnly` plumbing that used to live alongside them here now comes from
- * `libs/garage/shared-types`, re-exported by `libs/shared/i18n/src/index.ts`. What stays in
+ * `libs/sit-and-park/shared-types`, re-exported by `libs/shared/i18n/src/index.ts`. What stays in
  * this file is `MONTH_LOCATIVE_CS` and nothing else.
  */
 

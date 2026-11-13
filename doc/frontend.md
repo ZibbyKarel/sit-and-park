@@ -1,6 +1,6 @@
 # The web application
 
-`apps/garage/web` is the Next.js 16 App Router front end. This document describes the
+`apps/sit-and-park/web` is the Next.js 16 App Router front end. This document describes the
 shell that Task 23 established: the route tree, the single client boundary and
 the order its providers nest in, the sign-in flow, the three screen states that
 feature screens compose and the `ScreenData<T>` union that says which of them a
@@ -21,12 +21,12 @@ the library:
 
 | Instead of                     | Import                                          |
 | ------------------------------ | ----------------------------------------------- |
-| `next-auth`, `next-auth/react` | `@garage/auth`, `@garage/auth/client`           |
-| `@tanstack/react-query`        | `@garage/query`                                 |
-| `socket.io-client`             | `@garage/realtime-client`                       |
-| `next-intl`                    | `@garage/i18n`                                  |
-| `react-hook-form`              | `@garage/form`                                  |
-| `@orpc/client`                 | `@garage/api-client`                            |
+| `next-auth`, `next-auth/react` | `@sit-and-park/auth`, `@sit-and-park/auth/client`           |
+| `@tanstack/react-query`        | `@sit-and-park/query`                                 |
+| `socket.io-client`             | `@sit-and-park/realtime-client`                       |
+| `next-intl`                    | `@sit-and-park/i18n`                                  |
+| `react-hook-form`              | `@sit-and-park/form`                                  |
+| `@orpc/client`                 | `@sit-and-park/api-client`                            |
 
 `no-restricted-imports` in `eslint.config.mjs` enforces this and `web:lint`
 runs with `--max-warnings=0`, so a direct import is a build failure rather than
@@ -152,7 +152,7 @@ the same code and differ only in environment values.
    `response_type=code`, `scope=openid profile email offline_access` and PKCE
    `S256`.
 4. The provider redirects back to `/api/auth/callback/okta`, handled by
-   `app/api/auth/[...nextauth]/route.ts`, which is `libs/garage/auth`'s `handlers`
+   `app/api/auth/[...nextauth]/route.ts`, which is `libs/sit-and-park/auth`'s `handlers`
    and nothing else.
 5. The session cookie is set and the user lands on `/`.
 
@@ -222,7 +222,7 @@ The screen renders as `@shoptet/ui`'s `Modal` (`doc/decision/0150-*`)
 rather than a bespoke dialog, with its × hidden and `closeOnScrimClick={false}`
 (the design draws no ×, and this dialog holds unsaved input — fix-round note
 in `doc/decision/0150-*`): a licence-plate/preferred-spot form built with
-`useAppForm`/`FormField` (`@garage/form`), submitted through
+`useAppForm`/`FormField` (`@sit-and-park/form`), submitted through
 `me.updateSettings`'s three-valued input (absent = leave alone, `null` =
 clear, a value = set — `toUpdateInput` turns an empty string into `null` for
 both fields). The fields sit inside a real `<form id="settings-form">`; the
@@ -397,7 +397,7 @@ Three details are worth knowing before using it:
   out here rather than imported as TanStack's `UseQueryResult`, so the seam
   names no transport. A screen fed from `useQueries`, from a test or
   from a parent's own state is adapted by the same function, and
-  `@garage/query` stays the thin wrapper it is meant to be.
+  `@sit-and-park/query` stays the thin wrapper it is meant to be.
 - **`ScreenDataGuard`** is the two-branch guard every screen had copied into
   it, written once, and it takes a render prop rather than returning early: a
   screen whose states belong _inside_ something it has already opened — a modal
@@ -430,7 +430,7 @@ Two conventions hold across the five:
   combinations that mean nothing should not be writable.
 - **Keys are structure, sentences are copy.** A view function returns a message
   _key_ — which case are we in — and never a formatted string: formatting
-  belongs to `@garage/i18n` and the sentence to the component. That also
+  belongs to `@sit-and-park/i18n` and the sentence to the component. That also
   keeps each union enumerated once, in the module that produced it; re-switching
   on one in the component would enumerate its variants twice, and adding a
   variant would then fail to compile in the wrong file.
@@ -444,7 +444,7 @@ button. It is pure presentation — every decision it draws arrives as a prop,
 and every interaction it reports goes back out through a callback, same as
 `WindowBanner` beside it. `doc/decision/0140-*` split it into its own
 `date-nav-bar.tsx`; it was later folded back into `LotHeader`
-(`apps/garage/web/src/lot/lot-header/lot-header.tsx`'s module comment says so), so it
+(`apps/sit-and-park/web/src/lot/lot-header/lot-header.tsx`'s module comment says so), so it
 no longer has a file or spec of its own — its behaviour below is covered by
 `lot-header.spec.tsx`.
 
@@ -452,12 +452,12 @@ The Czech public-holiday and weekend highlighting the design calls for
 ("STÁTNÍ SVÁTEK · DEN ČESKÉ STÁTNOSTI" on a yellow bar, "Víkend" on a
 Saturday/Sunday, "Pracovní den" — not highlighted — otherwise) is not decided
 in `DayBar` at all: `LotScreen` computes a `DayNoteView` via
-`toDayNoteView(date)` (`./lot-view.ts`), which reads `@garage/i18n`'s
+`toDayNoteView(date)` (`./lot-view.ts`), which reads `@sit-and-park/i18n`'s
 Czech holiday calendar (`czechPublicHolidayOn`) and weekend check
 (`isWeekend`), and `DayBar` only maps `note.highlighted` to a class and
 `note.key`/`note.name` to translated copy. The uppercase rendering is CSS
 (`uppercase`), not the message text — same pattern as the section eyebrow
-above the heading — so `apps/garage/web/messages/cs.json` stores
+above the heading — so `apps/sit-and-park/web/messages/cs.json` stores
 `'Státní svátek · {name}'`, not shouted text.
 
 Changing the day — the arrows, the month/year selects, or "Dnes" — moves
@@ -468,7 +468,7 @@ leaves the old day's realtime room and joins the new one. Both derive from
 the same `date` argument on purpose — there is no second place either could
 drift out of sync with the day actually on screen. `doc/decision/0141-*`
 covers where and how that "leaves the old room" guarantee is tested, on top
-of the socket-level proof already in `libs/garage/realtime-client`'s own suite
+of the socket-level proof already in `libs/sit-and-park/realtime-client`'s own suite
 (`doc/realtime.md`).
 
 ## Realtime: what a broadcast is allowed to change

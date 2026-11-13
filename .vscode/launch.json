@@ -14,7 +14,10 @@
       "internalConsoleOptions": "neverOpen",
       "skipFiles": ["<node_internals>/**"],
       "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/apps/garage/api/dist/**/*.(m|c|)js", "!**/node_modules/**"]
+      "outFiles": [
+        "${workspaceFolder}/apps/sit-and-park/api/dist/**/*.(m|c|)js",
+        "!**/node_modules/**"
+      ]
     }
   ]
 }

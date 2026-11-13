@@ -1,20 +1,20 @@
 /**
  * @jest-environment node
  *
- * `@garage/contract`'s barrel also pulls in `@orpc/client` at runtime
+ * `@sit-and-park/contract`'s barrel also pulls in `@orpc/client` at runtime
  * (through the oRPC procedure builders), which references the web
  * `TransformStream` global that jsdom — this project's default test
  * environment, needed by `provider.spec.tsx` — does not provide. This file
  * never touches the DOM, so it runs under plain Node instead.
  */
 
-import { ERROR_CODES } from '@garage/contract';
-import type { ErrorCode } from '@garage/contract';
+import { ERROR_CODES } from '@sit-and-park/contract';
+import type { ErrorCode } from '@sit-and-park/contract';
 import { createErrorTranslator } from './errors';
 
 /**
- * A fixture, not the real catalog: the real ones live in `apps/garage/web/messages`
- * and their completeness is guarded there (`apps/garage/web/messages/messages.spec.ts`),
+ * A fixture, not the real catalog: the real ones live in `apps/sit-and-park/web/messages`
+ * and their completeness is guarded there (`apps/sit-and-park/web/messages/messages.spec.ts`),
  * because that is where they can be read for *every* locale at once. This spec
  * is about the translator, not about the copy.
  */

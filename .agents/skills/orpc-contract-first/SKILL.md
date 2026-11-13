@@ -325,7 +325,7 @@ export default defineConfig({
 Use dependency direction as the sanity check:
 
 ```txt
-apps/garage/web ------------> packages/contracts <------------- apps/garage/api
+apps/sit-and-park/web ------------> packages/contracts <------------- apps/sit-and-park/api
                                 ^
                                 |
                          packages/core-service
@@ -334,13 +334,13 @@ apps/garage/web ------------> packages/contracts <------------- apps/garage/api
 Allowed dependencies:
 
 - `contracts` may depend on `@orpc/contract`, schema libraries such as `zod`, and small type-only/domain packages.
-- `core-service` or `apps/garage/api` may depend on `contracts`, `@orpc/server`, database packages, auth packages, and framework adapters.
-- `apps/garage/web` may depend on `contracts`, `@orpc/client`, UI/query libraries, and browser framework packages.
+- `core-service` or `apps/sit-and-park/api` may depend on `contracts`, `@orpc/server`, database packages, auth packages, and framework adapters.
+- `apps/sit-and-park/web` may depend on `contracts`, `@orpc/client`, UI/query libraries, and browser framework packages.
 
 Disallowed dependencies:
 
 - `contracts` importing `@orpc/server`, API framework adapters, DB clients, auth/session services, or app-specific config.
-- `apps/garage/web` importing `core-service`, server routers, server context, or API app files.
+- `apps/sit-and-park/web` importing `core-service`, server routers, server context, or API app files.
 - Server implementation packages importing UI/client packages.
 
 ## Implementation checklist

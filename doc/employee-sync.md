@@ -4,7 +4,7 @@ A Keboola flow pushes the HiBob employee list to the API. The sync links,
 renames, reactivates and pre-creates employees, and deactivates the ones that
 left. Decisions: `doc/decision/0329-users-are-deactivated-never-deleted.md`,
 `doc/decision/0330-employee-sync-endpoint-key-hash-dry-run-shrink-protection.md`.
-Code: `apps/garage/api/src/employee-sync/`; shapes: `libs/garage/contract/src/api/employee-sync.ts`.
+Code: `apps/sit-and-park/api/src/employee-sync/`; shapes: `libs/sit-and-park/contract/src/api/employee-sync.ts`.
 
 ## Endpoint
 

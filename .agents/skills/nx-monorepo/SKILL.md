@@ -272,8 +272,8 @@ pnpm nx test my-python-app
 Create libraries that multiple Python apps can import:
 
 ```bash
-mkdir -p libs/garage/auth-common-py
-cd libs/garage/auth-common-py
+mkdir -p libs/sit-and-park/auth-common-py
+cd libs/sit-and-park/auth-common-py
 uv init --lib
 cd ../..
 # Add to workspace members, then uv sync

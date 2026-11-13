@@ -1,11 +1,11 @@
 # Database – schema, migrations, seed, backups
 
-PostgreSQL 17 + Prisma 7. Everything database-related lives in `libs/garage/database`
+PostgreSQL 17 + Prisma 7. Everything database-related lives in `libs/sit-and-park/database`
 (tag `type:data`, `scope:api`); the CLI configuration is in `prisma.config.ts`
 at the repo root.
 
 The source of truth for **the shape of the data** is the contract
-(`libs/garage/contract/src/schemas/entities.ts`). The Prisma schema mirrors it – the
+(`libs/sit-and-park/contract/src/schemas/entities.ts`). The Prisma schema mirrors it – the
 same field names, the same nullability, the same enums. Where storage
 differs, it's deliberate and described below in the section
 [Where storage differs from the contract](#where-storage-differs-from-the-contract).
@@ -17,15 +17,15 @@ differs, it's deliberate and described below in the section
 | file                                                   | what it's for                                                                                     |
 | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------- |
 | `prisma.config.ts` (root)                              | Prisma CLI configuration: the path to the schema, to migrations, `DATABASE_URL`, the seed command |
-| `libs/garage/database/prisma/schema.prisma`            | the domain model                                                                                  |
-| `libs/garage/database/prisma/migrations/`              | SQL migrations + `migration_lock.toml`                                                            |
-| `libs/garage/database/src/generated/prisma/`           | the **generated** Prisma Client (committed, never hand-edited)                                    |
-| `libs/garage/database/src/lib/create-prisma-client.ts` | the single place the client is created (the driver adapter)                                       |
-| `libs/garage/database/src/lib/seed-data.ts`            | seed data as plain data (testable without a database)                                             |
-| `libs/garage/database/src/scripts/seed.ts`             | the script that writes it (idempotent)                                                            |
-| `libs/garage/database/src/lib/floor-plan.ts`           | desk geometry and zones read from a floor-plan SVG, and the Praha migration SQL built from them  |
-| `libs/garage/database/src/scripts/generate-floor-plan-sql.ts` | regenerates `20261112120200_praha_office/migration.sql` from `apps/garage/web/public/floorplans/praha.svg` |
-| `libs/garage/database/src/index.ts`                    | the public entry point, `@garage/database`                                                        |
+| `libs/sit-and-park/database/prisma/schema.prisma`            | the domain model                                                                                  |
+| `libs/sit-and-park/database/prisma/migrations/`              | SQL migrations + `migration_lock.toml`                                                            |
+| `libs/sit-and-park/database/src/generated/prisma/`           | the **generated** Prisma Client (committed, never hand-edited)                                    |
+| `libs/sit-and-park/database/src/lib/create-prisma-client.ts` | the single place the client is created (the driver adapter)                                       |
+| `libs/sit-and-park/database/src/lib/seed-data.ts`            | seed data as plain data (testable without a database)                                             |
+| `libs/sit-and-park/database/src/scripts/seed.ts`             | the script that writes it (idempotent)                                                            |
+| `libs/sit-and-park/database/src/lib/floor-plan.ts`           | desk geometry and zones read from a floor-plan SVG, and the Praha migration SQL built from them  |
+| `libs/sit-and-park/database/src/scripts/generate-floor-plan-sql.ts` | regenerates `20261112120200_praha_office/migration.sql` from `apps/sit-and-park/web/public/floorplans/praha.svg` |
+| `libs/sit-and-park/database/src/index.ts`                    | the public entry point, `@sit-and-park/database`                                                        |
 
 `prisma.config.ts` sits at the root because that's where the Prisma CLI looks
 for configuration, and it's also where the root `.env` lives (see
@@ -189,7 +189,7 @@ and `TimedReservation(date)` (the same per-day lookups as `Reservation`).
 The reservation day is a calendar day in `Europe/Prague`, not an instant.
 `TIMESTAMP` would anchor it to a timezone, and the day would shift depending
 on the client's and the server's zone – exactly the class of bug Task 3's
-work in `libs/garage/shared-types` addressed
+work in `libs/sit-and-park/shared-types` addressed
 (`doc/decision/0013-calendar-arithmetic-and-single-timezone-boundary.md`). In
 the contract it's `z.iso.date()` (`YYYY-MM-DD`); in Postgres it's `DATE`; and
 the **only** place the conversion happens is the service layer in Task 10.
@@ -271,7 +271,7 @@ models in three migrations:
 | `20261112120200_praha_office`        | **generated** from the floor plan: office `Praha`, 12 zones, 221 desks with geometry; backfills `officeId`; `ParkingSpot.officeId` NOT NULL     |
 
 - **`Office`** scopes desks, zones, spots and users. `floorPlan` names a plan
-  bundled with the web app (`apps/garage/web/public/floorplans/<name>.svg`),
+  bundled with the web app (`apps/sit-and-park/web/public/floorplans/<name>.svg`),
   never a URL. `User.officeId` is nullable (a just-provisioned account has
   none); `ParkingSpot.officeId` is required.
 - **`Zone`** is unique per (`officeId`, `key`). **`Desk.code`** is unique per
@@ -368,13 +368,13 @@ More detail: `doc/decision/0027-hard-delete-and-append-only-auditlog.md`.
 ## Where storage differs from the contract
 
 Everything else is 1:1 (and guarded by
-`libs/garage/database/src/lib/schema-contract-parity.spec.ts`).
+`libs/sit-and-park/database/src/lib/schema-contract-parity.spec.ts`).
 
 | field                                                             | contract (wire)                            | storage                                                        | why                                                                                                                                                                                                                                         |
 | ----------------------------------------------------------------- | ------------------------------------------ | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `AuditLog.payload`                                                | `Record<string, unknown>`                  | `JSONB` (`Prisma.JsonValue`)                                   | the payload's shape depends on `action`; a structured column would have to be a union of six shapes. `JsonValue` also allows the JSON value `null`, even though the column is `NOT NULL` – that's a property of JSON, not a nullable column |
 | `Reservation.date`, `WaitlistEntry.date`, `TimedReservation.date` | `string` (`YYYY-MM-DD`)                    | `DATE` → `Date`                                                | see the section on `DATE` above                                                                                                                                                                                                             |
-| `TimedReservation.startTime`/`.endTime`                           | `string` (`HH:MM`, half-hour grid)         | `startMinute`/`endMinute` (`SMALLINT`, minutes since midnight) | arithmetic on the half-open range (`CHECK`, the exclusivity triggers) is simpler on integers than on strings; `@garage/shared-types`'s `timeOfDayToMinutes`/`minutesToTimeOfDay` own the conversion at the boundary (`doc/decision/0314-*`) |
+| `TimedReservation.startTime`/`.endTime`                           | `string` (`HH:MM`, half-hour grid)         | `startMinute`/`endMinute` (`SMALLINT`, minutes since midnight) | arithmetic on the half-open range (`CHECK`, the exclusivity triggers) is simpler on integers than on strings; `@sit-and-park/shared-types`'s `timeOfDayToMinutes`/`minutesToTimeOfDay` own the conversion at the boundary (`doc/decision/0314-*`) |
 | `*.createdAt`, `*.updatedAt`                                      | `string` (ISO 8601, `doc/decision/0015-*`) | `TIMESTAMPTZ(3)` → `Date`                                      | the contract is transport-neutral; the database stores an instant including the zone                                                                                                                                                        |
 | `ReservationWindowSettings.id`, `.updatedAt`                      | doesn't exist                              | `INTEGER` / `TIMESTAMPTZ(3)`                                   | the singleton isn't addressed through the API – see the section above                                                                                                                                                                       |
 | `ReservationLimitSettings.id`, `.updatedAt`                       | doesn't exist                              | `INTEGER` / `TIMESTAMPTZ(3)`                                   | same reason, same singleton pattern                                                                                                                                                                                                         |
@@ -404,17 +404,17 @@ cp .env.example .env      # once
 ```
 
 Every command runs **from the repo root** – `prisma.config.ts` resolves the
-paths into `libs/garage/database` itself.
+paths into `libs/sit-and-park/database` itself.
 
 | command                                | what it does                                                                                 |
 | -------------------------------------- | -------------------------------------------------------------------------------------------- |
 | `pnpm exec prisma validate`                  | validates the schema (no database needed)                                                    |
 | `pnpm exec prisma format`                    | formats `schema.prisma` (no database needed)                                                 |
-| `pnpm exec prisma generate`                  | regenerates the client into `libs/garage/database/src/generated/prisma` (no database needed) |
+| `pnpm exec prisma generate`                  | regenerates the client into `libs/sit-and-park/database/src/generated/prisma` (no database needed) |
 | `pnpm exec prisma migrate dev --name <name>` | dev: creates a new migration and applies it                                                  |
 | `pnpm exec prisma migrate deploy`            | production/CI: applies existing migrations, generates nothing                                |
 | `pnpm exec prisma migrate status`            | what's applied and what's missing                                                            |
-| `pnpm exec prisma db seed`                   | runs `libs/garage/database/src/scripts/seed.ts`                                              |
+| `pnpm exec prisma db seed`                   | runs `libs/sit-and-park/database/src/scripts/seed.ts`                                              |
 | `pnpm exec prisma studio`                    | a data browser (dev)                                                                         |
 
 A typical first run:
@@ -492,13 +492,13 @@ A single-instance deployment, no managed backup – the backup is `pg_dump`.
 
 ```bash
 # full backup (custom format, compressed; best for pg_restore)
-pg_dump "$DATABASE_URL" --format=custom --file=garage-$(date +%F).dump
+pg_dump "$DATABASE_URL" --format=custom --file=sit-and-park-$(date +%F).dump
 
 # data only, no schema (migrations can restore the schema)
-pg_dump "$DATABASE_URL" --format=custom --data-only --file=garage-data-$(date +%F).dump
+pg_dump "$DATABASE_URL" --format=custom --data-only --file=sit-and-park-data-$(date +%F).dump
 
 # restore into an empty database (full dump, schema included)
-pg_restore --dbname="$DATABASE_URL" --clean --if-exists garage-2026-08-28.dump
+pg_restore --dbname="$DATABASE_URL" --clean --if-exists sit-and-park-2026-08-28.dump
 
 # restore data into a database where `prisma migrate deploy` has already run.
 # The init migration inserted `ReservationWindowSettings (id = 1)` there itself,
@@ -511,7 +511,7 @@ psql "$DATABASE_URL" -c 'DELETE FROM "ReservationWindowSettings";'
 psql "$DATABASE_URL" -c 'DELETE FROM "ReservationLimitSettings";'
 psql "$DATABASE_URL" -c 'DELETE FROM "EmployeeSyncSettings";'
 psql "$DATABASE_URL" -c 'DELETE FROM "Desk"; DELETE FROM "Zone"; DELETE FROM "Office";'
-pg_restore --dbname="$DATABASE_URL" --data-only garage-data-2026-08-28.dump
+pg_restore --dbname="$DATABASE_URL" --data-only sit-and-park-data-2026-08-28.dump
 ```
 
 From a running container with no local `pg_dump`:
@@ -519,7 +519,7 @@ From a running container with no local `pg_dump`:
 ```bash
 docker compose exec -T postgres \
   sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' \
-  > garage-$(date +%F).dump
+  > sit-and-park-$(date +%F).dump
 ```
 
 `sh -c '…'`, in single quotes, so that `$POSTGRES_USER` and `$POSTGRES_DB` are

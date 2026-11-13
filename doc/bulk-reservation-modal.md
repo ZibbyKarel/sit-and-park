@@ -2,7 +2,7 @@
 
 `Hromadná rezervace` is the front end of the bulk allocator
 (`doc/bulk-reservation.md`, `doc/decision/0090-*`–`0092-*`). It lives entirely in
-`apps/garage/web/src/lot/`:
+`apps/sit-and-park/web/src/lot/`:
 
 | file | what it is |
 | --- | --- |
@@ -121,8 +121,8 @@ confirmation and never the display of a confirmation that already happened:
 
 ## What it never imports
 
-Data through `@garage/query` and `@garage/api-client`, copy and dates through
-`@garage/i18n`, UI through `@garage/design-system/primitives`. Nothing here names
+Data through `@sit-and-park/query` and `@sit-and-park/api-client`, copy and dates through
+`@sit-and-park/i18n`, UI through `@sit-and-park/design-system/primitives`. Nothing here names
 `@tanstack/react-query`, `@orpc/client`, `next-intl` or `socket.io-client` — the wrapper rule
 (`doc/wrappers.md`), enforced by `no-restricted-imports`.
 

@@ -1,8 +1,8 @@
 /**
  * The whole point of `libs/shared/form` is that a real, validated, submittable form
- * can be built from `@garage/form` plus plain elements without ever importing
+ * can be built from `@sit-and-park/form` plus plain elements without ever importing
  * `react-hook-form` directly (`doc/wrappers.md`). This file's own import list —
- * `@garage/form` and `zod`, nothing else — *is* that proof, and the last test
+ * `@sit-and-park/form` and `zod`, nothing else — *is* that proof, and the last test
  * below reads this file's own source back off disk to make the claim
  * self-checking rather than something a reviewer has to take on faith.
  *
@@ -14,7 +14,7 @@ import type { ReactNode } from 'react';
 import * as z from 'zod';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { FormField, FormProvider, useAppForm } from '@garage/form';
+import { FormField, FormProvider, useAppForm } from '@sit-and-park/form';
 
 const demoSchema = z.object({
   name: z.string().min(1, 'Name is required'),
@@ -116,7 +116,7 @@ function DemoForm({ onValid }: { readonly onValid: (values: DemoValues) => void 
   );
 }
 
-describe('a form built only from @garage/form + native elements', () => {
+describe('a form built only from @sit-and-park/form + native elements', () => {
   it('reflects Zod validation errors into each control error state, observably', async () => {
     const user = userEvent.setup();
     render(<DemoForm onValid={jest.fn()} />);

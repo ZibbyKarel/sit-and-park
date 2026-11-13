@@ -26,7 +26,7 @@ import type { ApiClient } from './api-client';
  * Every leaf carries `queryKey`, `queryOptions`, `mutationKey`,
  * `mutationOptions` and `call`; every branch carries `key()` for partial
  * matching (invalidation). All of it is derived from `ApiClient`, i.e. from
- * `libs/garage/contract`.
+ * `libs/sit-and-park/contract`.
  */
 export type ApiQueryUtils = RouterUtils<ApiClient>;
 

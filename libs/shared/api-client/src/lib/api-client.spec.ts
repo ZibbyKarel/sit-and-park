@@ -8,7 +8,7 @@
  */
 
 import { readFileSync } from 'node:fs';
-import type { CreateReservationOutput } from '@garage/contract';
+import type { CreateReservationOutput } from '@sit-and-park/contract';
 import { createApiClient } from '../index';
 import { rpcPayload, stubTransport } from '../__fixtures__/stub-transport';
 

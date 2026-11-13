@@ -17,14 +17,14 @@ See `doc/auth.md`.
 
 Two tests hold that up, and they make different claims:
 
-- `apps/garage/api/src/orpc/orpc-route-parity.spec.ts` reads the decorator off Nest's
+- `apps/sit-and-park/api/src/orpc/orpc-route-parity.spec.ts` reads the decorator off Nest's
   metadata: every `admin.*` route has `@Roles('ADMIN')`, and no other route
   does.
-- `apps/garage/api/src/orpc/orpc-pipeline.spec.ts` drives **every admin procedure**
+- `apps/sit-and-park/api/src/orpc/orpc-pipeline.spec.ts` drives **every admin procedure**
   over real HTTP with a real non-admin token and requires a 403 in the RPC
   envelope, with nothing written to the database and nothing in the audit log.
   Metadata being present is not the guard running; this is the one that says
-  the guard runs. Its list of procedures is checked against `libs/garage/contract`, so
+  the guard runs. Its list of procedures is checked against `libs/sit-and-park/contract`, so
   an admin procedure added later fails the suite rather than being skipped.
 
 The role gate in `AdminScreen` is a **courtesy** — it stops a non-admin who
@@ -38,7 +38,7 @@ and refuses removing the last active admin whatever the browser sends.
 ## Layout
 
 ```
-apps/garage/web/src/
+apps/sit-and-park/web/src/
   app/(app)/admin/page.tsx       wiring: profile + the five connected panels
   shell/admin-screen/admin-screen.tsx  role gate, page chrome, the tab strip
   shell/admin/
@@ -54,7 +54,7 @@ apps/garage/web/src/
 
 The screens have a spec each; the five panels share one
 (`admin-panels.spec.tsx`), which runs the real screens and the real
-`@garage/query` against a fake `api` object. What only that spec can see is
+`@sit-and-park/query` against a fake `api` object. What only that spec can see is
 everything _between_ a screen and the contract: which procedure a control calls,
 what input it sends, which `AdminWrite` a failure is attributed to, what is
 invalidated afterwards, and that `viewerId` really comes from `me.get` — the
@@ -173,7 +173,7 @@ report `cap: null` (`doc/decision/0315-*`).
 `MonthWindowOverview.windowFrom` / `windowTo` are **always** the range the AUTO
 rule would produce. When `lockMode !== 'AUTO'` an admin has overridden the
 state and those dates describe a hypothetical, not a fact
-(`libs/garage/contract/src/schemas/reservation-window.ts`).
+(`libs/sit-and-park/contract/src/schemas/reservation-window.ts`).
 
 Both places that render them read `lockMode` first:
 
@@ -216,10 +216,10 @@ surface cannot silently repaint the other.
 
 ## Czech copy
 
-All of it is in the `admin` namespace of `apps/garage/web/messages/cs.json`, and all
+All of it is in the `admin` namespace of `apps/sit-and-park/web/messages/cs.json`, and all
 of it is verbatim from the designs where the designs have it. English lives
 alongside it in `en.json`, kept in step by the parity guard at
-`apps/garage/web/messages/messages.spec.ts`. Three notes:
+`apps/sit-and-park/web/messages/messages.spec.ts`. Three notes:
 
 - **Plurals are ICU, not a hand-written table.** Czech has three integer plural
   categories (`one` = 1, `few` = 2–4, `other` = 5+) and "1 den" / "3 dny" /

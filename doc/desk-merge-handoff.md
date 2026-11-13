@@ -6,15 +6,15 @@ Read this first; it is updated after every stage.
 ## Where things are
 
 - Worktree `worktrees/desk-merge`, branch `desk-merge`. Nothing is pushed or merged.
-- The worktree's `.env` points at its **own database `garage_desk`** (same
-  Postgres container as `garage`), so migrations here do not touch the main
+- The worktree's `.env` points at its **own database `sit_and_park_desk`** (same
+  Postgres container as `sit-and-park`), so migrations here do not touch the main
   checkout's dev database. `docker compose --profile dev up -d` runs from the
   repository root.
 - Scratch (session-local, may be gone):
-  `/private/tmp/claude-501/-Users-zibar-Workspace-shoptet-garage/5c1a8667-61b1-422d-b6e8-29f2ad0b056e/scratchpad/`
+  `/private/tmp/claude-501/-Users-zibar-Workspace-shoptet-sit-and-park/5c1a8667-61b1-422d-b6e8-29f2ad0b056e/scratchpad/`
   - `desk-src/` — the extracted source zip (untrusted; read, never run)
   - `desk-src-report.md` — full analysis of the source app (rules, messages, screens, SVG)
-  - `garage-map.md` — garage's conventions and guard tests a big feature trips
+  - `sit-and-park-map.md` — sit-and-park's conventions and guard tests a big feature trips
   If it is gone, the zip is Slack file `F0CGZ9G0NKV`.
 
 ## Baseline (main @ af4a034, 2026-11-12)
@@ -70,6 +70,6 @@ Nothing in the plan is unimplemented. Known gaps, none of them blocking:
 ## Notes for whoever resumes
 
 - Agents get a shared brief: `SCRATCH/agent-brief.md`; they never commit, the orchestrator does.
-- The Prisma client is committed (`libs/garage/database/src/generated`); regenerate after schema changes.
+- The Prisma client is committed (`libs/sit-and-park/database/src/generated`); regenerate after schema changes.
 - A JIT-provisioned user has `officeId = null` until stage 5/6 assigns the default office.
 - Seed: `desk@example.com` holds permanent desk D-013; hives Engineering (D-037..042, owner admin) and Sales (D-013..018).

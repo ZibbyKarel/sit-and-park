@@ -1,13 +1,13 @@
 # Authentication and authorization
 
-This document describes how a person becomes an identified caller: how `apps/garage/web` signs them
+This document describes how a person becomes an identified caller: how `apps/sit-and-park/web` signs them
 in against Okta and keeps a session, and how the token that session holds becomes a user in
-`apps/garage/api` — where the token comes from, how it is verified against the issuer's JWKS, how a
+`apps/sit-and-park/api` — where the token comes from, how it is verified against the issuer's JWKS, how a
 user row appears on somebody's first ever request, and what happens when a signing key
 rotates. The source of truth is the code; when they disagree, trust the code.
 
-The frontend half is `libs/garage/auth`, the wrapper over next-auth v5 / Auth.js, consumed by
-`apps/garage/web`. The backend half is `apps/garage/api/src/auth/`. Env variables are also documented in
+The frontend half is `libs/sit-and-park/auth`, the wrapper over next-auth v5 / Auth.js, consumed by
+`apps/sit-and-park/web`. The backend half is `apps/sit-and-park/api/src/auth/`. Env variables are also documented in
 `doc/environment.md`; the error shapes referenced below are in `doc/api-operations.md` and
 `doc/decision/0033-*`.
 
@@ -18,13 +18,13 @@ The frontend half is `libs/garage/auth`, the wrapper over next-auth v5 / Auth.js
 **Dev, e2e and production run the same code. Only env values differ.**
 
 There is no `NODE_ENV` check, no `isTest` flag, no "skip auth locally" branch anywhere in
-`apps/garage/api/src/auth/**`, and no bypass flag, credentials provider or test-only branch anywhere
-in `libs/garage/auth` (global constraint 8). Local development points `AUTH_OKTA_ISSUER` at the
+`apps/sit-and-park/api/src/auth/**`, and no bypass flag, credentials provider or test-only branch anywhere
+in `libs/sit-and-park/auth` (global constraint 8). Local development points `AUTH_OKTA_ISSUER` at the
 `mock-oauth2-server` container from `docker-compose.yml`; production points it at the Okta
 org. The code cannot tell the difference and is not permitted to try.
 
 This is why the JWKS endpoint is discovered rather than hardcoded (Okta and
-`mock-oauth2-server` publish it at different paths), why `libs/garage/auth` discovers the
+`mock-oauth2-server` publish it at different paths), why `libs/sit-and-park/auth` discovers the
 authorization and token endpoints from the same document, and why the tests stand up a real
 OIDC issuer instead of stubbing the verifier.
 
@@ -32,7 +32,7 @@ OIDC issuer instead of stubbing the verifier.
 
 ## The pieces
 
-The backend half, `apps/garage/api/src/auth/`:
+The backend half, `apps/sit-and-park/api/src/auth/`:
 
 | file                                    | role                                                                                  |
 | --------------------------------------- | ------------------------------------------------------------------------------------- |
@@ -49,8 +49,8 @@ The backend half, `apps/garage/api/src/auth/`:
 | `token-claims.ts`                       | the Zod claim schema, parsed **after** verification                                   |
 | `auth.module.ts`                        | wiring; exports the verifier and the user service for Task 15                         |
 
-The frontend half is one lib, `libs/garage/auth`, with two entry points — `@garage/auth` for the
-server and `@garage/auth/client` for the browser. See _Using it from the app_.
+The frontend half is one lib, `libs/sit-and-park/auth`, with two entry points — `@sit-and-park/auth` for the
+server and `@sit-and-park/auth/client` for the browser. See _Using it from the app_.
 
 ---
 
@@ -58,11 +58,11 @@ server and `@garage/auth/client` for the browser. See _Using it from the app_.
 
 ### 0. Sign-in and session
 
-`apps/garage/web` never handles a password. Auth.js redirects to the issuer, exchanges the
+`apps/sit-and-park/web` never handles a password. Auth.js redirects to the issuer, exchanges the
 authorization code server-side, and keeps the result in an encrypted httpOnly cookie.
 
 ```
-browser                    apps/garage/web (Next.js server)          Okta / mock-oauth2-server
+browser                    apps/sit-and-park/web (Next.js server)          Okta / mock-oauth2-server
    │                                │                                    │
    │  GET /any-protected-route      │                                    │
    ├───────────────────────────────►│                                    │
@@ -185,16 +185,16 @@ unchanged by this layer. No log line in `src/auth/**` carries a raw token, a key
 
 ## Environment
 
-Five variables. The four read by `apps/garage/web` are validated fail-fast in `apps/garage/web/src/env.ts`;
-`AUTH_OKTA_AUDIENCE` belongs to `apps/garage/api`'s schema. `.env.example` documents all of them.
+Five variables. The four read by `apps/sit-and-park/web` are validated fail-fast in `apps/sit-and-park/web/src/env.ts`;
+`AUTH_OKTA_AUDIENCE` belongs to `apps/sit-and-park/api`'s schema. `.env.example` documents all of them.
 
 | variable                 | read by                | used for                                                                                                                                         |
 | ------------------------ | ---------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `AUTH_SECRET`            | `apps/garage/web`             | encrypts the Auth.js session cookie. ≥ 32 characters.                                                                                            |
-| `AUTH_OKTA_ISSUER`       | `apps/garage/web`, `apps/garage/api` | the OIDC issuer, shared verbatim by both halves. `apps/garage/web` discovers the authorization and token endpoints from it; `apps/garage/api` discovers the JWKS URI from the same document. |
-| `AUTH_OKTA_AUDIENCE`     | `apps/garage/api`             | the `aud` every bearer must carry. See _The audience the two halves agree on_.                                                                    |
-| `AUTH_OKTA_CLIENT_ID`    | `apps/garage/web`             | the web app's OAuth2 client.                                                                                                                     |
-| `AUTH_OKTA_CLIENT_SECRET`| `apps/garage/web`             | its secret. Server-side only.                                                                                                                    |
+| `AUTH_SECRET`            | `apps/sit-and-park/web`             | encrypts the Auth.js session cookie. ≥ 32 characters.                                                                                            |
+| `AUTH_OKTA_ISSUER`       | `apps/sit-and-park/web`, `apps/sit-and-park/api` | the OIDC issuer, shared verbatim by both halves. `apps/sit-and-park/web` discovers the authorization and token endpoints from it; `apps/sit-and-park/api` discovers the JWKS URI from the same document. |
+| `AUTH_OKTA_AUDIENCE`     | `apps/sit-and-park/api`             | the `aud` every bearer must carry. See _The audience the two halves agree on_.                                                                    |
+| `AUTH_OKTA_CLIENT_ID`    | `apps/sit-and-park/web`             | the web app's OAuth2 client.                                                                                                                     |
+| `AUTH_OKTA_CLIENT_SECRET`| `apps/sit-and-park/web`             | its secret. Server-side only.                                                                                                                    |
 
 There is deliberately **no** `AUTH_TRUST_HOST`, and that absence is load-bearing. Auth.js
 refuses to serve `/api/auth/*` at all unless `trustHost` is true, and computes it as
@@ -210,14 +210,14 @@ under `NODE_ENV=production` with all four web variables removed and asserts a 20
 
 `AUTH_OKTA_ISSUER` is the **only** Okta URL anywhere in the configuration. The authorization
 and token endpoints are discovered from `${issuer}/.well-known/openid-configuration`
-(`doc/decision/0045-*`), and so is the JWKS URI `apps/garage/api` verifies against
+(`doc/decision/0045-*`), and so is the JWKS URI `apps/sit-and-park/api` verifies against
 (`doc/decision/0043-*`). In dev and e2e the value points at the `mock-oauth2-server`
 container; in production at the real org.
 
-The two secrets are read from `process.env` in `apps/garage/web` and passed to `createAuth` as
-arguments. `libs/garage/auth` reads no environment variable of its own — Auth.js's implicit
+The two secrets are read from `process.env` in `apps/sit-and-park/web` and passed to `createAuth` as
+arguments. `libs/sit-and-park/auth` reads no environment variable of its own — Auth.js's implicit
 `AUTH_SECRET` / `AUTH_OKTA_ID` / `AUTH_OKTA_SECRET` inference is deliberately bypassed so that
-`apps/garage/web/src/env.ts` stays the one schema that decides which variables exist. Neither secret
+`apps/sit-and-park/web/src/env.ts` stays the one schema that decides which variables exist. Neither secret
 carries a `NEXT_PUBLIC_` prefix, which is the only thing that would put it in the browser
 bundle.
 
@@ -238,8 +238,8 @@ them. An operator provisioning the org needs all three:
 
 ## The audience the two halves agree on
 
-`apps/garage/api` validates the bearer against `AUTH_OKTA_AUDIENCE` and rejects any token whose `aud`
-differs. `libs/garage/auth` sends **no** `audience` and no `resource` parameter, at `/authorize` or
+`apps/sit-and-park/api` validates the bearer against `AUTH_OKTA_AUDIENCE` and rejects any token whose `aud`
+differs. `libs/sit-and-park/auth` sends **no** `audience` and no `resource` parameter, at `/authorize` or
 at `/token`, so whatever `aud` ends up in the token is entirely the issuer's choice. That
 makes `AUTH_OKTA_AUDIENCE` a value that has to match the issuer, not a value the two halves
 can be assumed to share.
@@ -249,7 +249,7 @@ can be assumed to share.
 This half has been measured, not reasoned. With the Docker daemon running and
 `mock-oauth2-server` up from `docker-compose.yml`, a token request against its `default`
 issuer returned an access token whose decoded claims read
-`{"sub":"garage-web","aud":"default","iss":"http://localhost:8080/default","tid":"default",…}`.
+`{"sub":"sit-and-park-web","aud":"default","iss":"http://localhost:8080/default","tid":"default",…}`.
 A reviewer independently drove a full `authorization_code` exchange plus a refresh against the
 same container and decoded three separate access tokens; `aud` was `default` in every one.
 That is what `.env.example` sets `AUTH_OKTA_AUDIENCE` to for dev and e2e, so the two halves
@@ -299,7 +299,7 @@ env values differ" true.
 | `AUTH_SECRET`, client secret      | `process.env`, server only                            | **no**               |
 
 Nothing is written to `localStorage`, `sessionStorage`, or a JS-readable cookie. The browser
-needs the access token because `libs/garage/realtime-client` (Task 21) puts it in the Socket.io
+needs the access token because `libs/sit-and-park/realtime-client` (Task 21) puts it in the Socket.io
 handshake; the refresh token it has no use for, and never receives. Reasoning and how it is
 tested: `doc/decision/0047-*`.
 
@@ -377,7 +377,7 @@ it cannot recall a response already sent — so it makes the surviving token use
 
 ### How revocation works
 
-`libs/garage/auth/src/lib/revocation.ts`. On `events.signOut` the session's `sub` goes into a revoked
+`libs/sit-and-park/auth/src/lib/revocation.ts`. On `events.signOut` the session's `sub` goes into a revoked
 set; in the `jwt` callback, a token whose `sub` is in that set makes the callback return
 `null`. Two things follow from that `null`, both from `@auth/core`:
 
@@ -409,7 +409,7 @@ it, and `isAuthorized` would not catch it either (it reads `auth.user`, never `s
 ### What it does not cover
 
 - **The Okta access token is not revoked at the issuer.** Anyone holding a copy of it can keep
-  calling `apps/garage/api` directly until it expires — measured at one hour against the dev issuer,
+  calling `apps/sit-and-park/api` directly until it expires — measured at one hour against the dev issuer,
   and set on the Okta authorization server in production, which this repository does not
   configure. Named as a deliberate boundary in `doc/decision/0230-*`.
 - **The revoked set is in memory**, shared across Next.js's bundles via `globalThis`
@@ -576,7 +576,7 @@ starts signing with a new key, the first token carrying the new `kid` is a cache
 triggers an immediate refetch of the JWKS — and the freshly published key is there. The key
 is picked up by that first request.
 
-Nothing on the frontend is affected either: `libs/garage/auth` never validates a token, it only
+Nothing on the frontend is affected either: `libs/sit-and-park/auth` never validates a token, it only
 carries one.
 
 The 10-minute `cacheMaxAge` therefore does not govern rotation. It bounds something else: how
@@ -613,7 +613,7 @@ trade, and `doc/decision/0043-*` records it so nobody "fixes" it later without r
 Server side:
 
 ```ts
-// apps/garage/web/src/auth.ts
+// apps/sit-and-park/web/src/auth.ts
 export const { handlers, auth, signIn, signOut, getAccessToken } = createAuth({ … });
 
 // app/api/auth/[...nextauth]/route.ts
@@ -627,7 +627,7 @@ const session = await auth();
 const api = createApiClient({ url: apiRpcUrl(env.NEXT_PUBLIC_API_URL), getAccessToken });
 ```
 
-`apiRpcUrl` — `apps/garage/web/src/api-url.ts` — is not decoration. `NEXT_PUBLIC_API_URL`
+`apiRpcUrl` — `apps/sit-and-park/web/src/api-url.ts` — is not decoration. `NEXT_PUBLIC_API_URL`
 stops at the global prefix (`http://localhost:3000/api`), while the oRPC
 transport is mounted a segment below it (`MeController` is `@Controller('rpc')`),
 and `RPCLink` appends only the procedure's key path to the base it is given.
@@ -640,7 +640,7 @@ Browser side:
 
 ```tsx
 'use client';
-import { AuthProvider, useRequireAuth, useAccessTokenProvider } from '@garage/auth/client';
+import { AuthProvider, useRequireAuth, useAccessTokenProvider } from '@sit-and-park/auth/client';
 
 // in the app's provider boundary, with the server-read session handed down:
 <AuthProvider session={session}>…</AuthProvider>
@@ -652,7 +652,7 @@ const { session, status } = useRequireAuth();
 const getAccessToken = useAccessTokenProvider();   // stable identity, latest session
 ```
 
-`@garage/auth` and `@garage/auth/client` are separate entry points on purpose: the
+`@sit-and-park/auth` and `@sit-and-park/auth/client` are separate entry points on purpose: the
 server half pulls in Auth.js's route handlers and `next/server`, which have no place in a
 browser bundle (`doc/decision/0046-*`). A Jest guard fails the build if the client entry ever
 reaches the server modules.
@@ -692,7 +692,7 @@ feed(@Param('token') token: string) { … }
 
 Four levels, none of which needs Docker.
 
-**Against a real OIDC issuer.** `apps/garage/api/src/auth/testing/oidc-test-issuer.ts` is an
+**Against a real OIDC issuer.** `apps/sit-and-park/api/src/auth/testing/oidc-test-issuer.ts` is an
 in-process HTTP server that serves a genuine discovery document and a genuine JWKS of real
 2048-bit RSA public keys; the tests sign real RS256 tokens against it. Nothing is stubbed —
 signature checking, discovery, caching and rotation are executed, not described. It stands in
@@ -707,7 +707,7 @@ an undecorated route is protected, that the probes stay reachable — because al
 properties of a composition (Express → throttler → guard → Passport → `jsonwebtoken` →
 filter) rather than of any single function.
 
-**The frontend half.** `libs/garage/auth`'s own unit tests stub only `fetch` (`AuthOptions.fetch`,
+**The frontend half.** `libs/sit-and-park/auth`'s own unit tests stub only `fetch` (`AuthOptions.fetch`,
 the same seam `ApiClientOptions.fetch` already is) and drive the real callbacks, the real
 `SessionProvider`, and a real `createApiClient`. The end-to-end path through a browser is
 Playwright's job in Fáze 7.
@@ -734,12 +734,12 @@ had read. The store's insert is now held open so the six requests genuinely race
 `docker-compose.yml` runs `mock-oauth2-server`, and `AUTH_OKTA_ISSUER` in `.env.example`
 points at its `default` issuer. It accepts any `client_id`/`client_secret`, serves a real
 discovery document, and issues real signed JWTs, so the whole flow above is meant to run
-unmodified — including refresh, because `libs/garage/auth` reads the client-authentication method out
+unmodified — including refresh, because `libs/sit-and-park/auth` reads the client-authentication method out
 of the discovery document rather than assuming one (`doc/decision/0045-*`).
 
 The container has since been brought up, which answered the `aud` question above. One thing it
 has not answered: which value of `token_endpoint_auth_methods_supported` the container
-publishes, and therefore which of `libs/garage/auth`'s three client-authentication branches is taken
+publishes, and therefore which of `libs/sit-and-park/auth`'s three client-authentication branches is taken
 against it. All three are tested against a stubbed document; the live selection is unobserved.
 
 ### What is **not** covered here

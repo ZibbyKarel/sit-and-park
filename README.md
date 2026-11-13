@@ -1,7 +1,7 @@
-# Garage
+# Sit & Park
 
-Company parking-reservation app. Nx monorepo: `apps/garage/api` (NestJS 11) and
-`apps/garage/web` (Next.js 16), sharing a contract-first Zod contract over oRPC, with
+Company parking-reservation app. Nx monorepo: `apps/sit-and-park/api` (NestJS 11) and
+`apps/sit-and-park/web` (Next.js 16), sharing a contract-first Zod contract over oRPC, with
 Socket.io realtime, Okta sign-in, a personal ICS feed and PostgreSQL 17 behind
 Prisma 7.
 
@@ -17,11 +17,11 @@ Requires Docker and the Node version in [`.nvmrc`](.nvmrc).
 ```bash
 pnpm install
 cp .env.example .env                  # git-ignored; edit if you like
-cp .env.example apps/garage/web/.env         # Next.js reads env files from its own directory
+cp .env.example apps/sit-and-park/web/.env         # Next.js reads env files from its own directory
 docker compose --profile dev up -d    # PostgreSQL 17, mock OIDC issuer, adminer
 pnpm exec prisma migrate deploy
 pnpm exec prisma db seed                    # development fixture: 9 spots, 5 users, 2 hives, 1 permanent desk
-pnpm dev:garage                 # api on :3000, web on :4200
+pnpm dev                 # api on :3000, web on :4200
 ```
 
 Then open <http://localhost:4200> and sign in — see **How to log in on dev**,
@@ -55,7 +55,7 @@ does not recognise.
 | Dev Desk Holder | `dev-desk-holder` | `{"email":"desk@example.com","name":"Dev Desk Holder"}`  | USER  |
 | Dev Inactive    | `dev-inactive`    | `{"email":"inactive@example.com","name":"Dev Inactive"}` | USER  |
 
-These come from the seed fixture (`libs/garage/database/src/lib/seed-data.ts`)
+These come from the seed fixture (`libs/sit-and-park/database/src/lib/seed-data.ts`)
 and only exist after `pnpm exec prisma db seed`. Open a second browser (or a private
 window) as `dev-user2` to see the realtime cell-lock and booking broadcasts
 land in another tab.
@@ -63,7 +63,7 @@ land in another tab.
 ## Everyday commands
 
 ```bash
-pnpm dev:garage  # serve this app's api and web (continuous)
+pnpm dev  # serve this app's api and web (continuous)
 pnpm lint           # every project in the workspace, both applications
 pnpm typecheck
 pnpm test               # unit suites; excludes *.db.spec.ts, which need Postgres
@@ -100,7 +100,7 @@ One host-side prerequisite, once, and only while the **mock** issuer is in use �
 add to `/etc/hosts`:
 
 ```
-127.0.0.1 garage-api garage-oidc
+127.0.0.1 sit-and-park-api sit-and-park-oidc
 ```
 
 Both names have to mean the same server from the browser and from inside the
@@ -110,7 +110,7 @@ header it was asked on
 With a real Okta tenant the issuer is already a public name.
 
 The web app is published on <http://localhost:4200> and the API on
-<http://garage-api:3000>. Startup order is enforced: Postgres becomes
+<http://sit-and-park-api:3000>. Startup order is enforced: Postgres becomes
 healthy, `migrate` applies pending migrations and exits 0, `api` starts and its
 `/health/ready` goes green, then `web`.
 
@@ -175,7 +175,7 @@ Domain and rules: `doc/desks.md`.
   12 zones and 221 desks with their floor-plan geometry, and `officeId` on every
   existing user and parking spot. No seed is needed for production desks.
   The floor plan itself ships with the web image
-  (`apps/garage/web/public/floorplans/praha.svg`).
+  (`apps/sit-and-park/web/public/floorplans/praha.svg`).
 - **A user without an office cannot book desks** (`NO_OFFICE_ASSIGNED`); new
   users get the oldest active office, an admin changes it in `Uživatelé`.
 - **`EMPLOYEE_SYNC_KEY_SHA256`** (SHA-256 hex of the bearer key) enables
@@ -198,7 +198,7 @@ Single-instance deployment, no managed backups: the backup is `pg_dump`.
 ```bash
 docker compose --env-file .env.docker exec -T postgres \
   sh -c 'pg_dump -U "$POSTGRES_USER" -d "$POSTGRES_DB" --format=custom' \
-  > garage-$(date +%F).dump
+  > sit-and-park-$(date +%F).dump
 ```
 
 The `sh -c '…'` is load-bearing, and the single quotes with it. `--env-file`
@@ -238,11 +238,11 @@ The MVP targets a single instance, and there is no Redis, no BullMQ and no
 broker. The seams for adding them exist and are documented; none of them is
 built:
 
-| What                       | Where the seam is                                                                                                                         | The upgrade                                                                                                                                                         |
-| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Socket.io across instances | `configureRealtime` in `apps/garage/api/src/realtime/realtime-io.adapter.ts`                                                              | Give the adapter `@socket.io/redis-adapter` so a broadcast from one instance reaches sockets held by another. Nothing above the adapter changes.                    |
-| Cell locks                 | `LockService` (`apps/garage/api/src/realtime/`) — an interface over an in-process map with a TTL                                          | Back it with Redis `SET NX PX`. The TTL is already the contract (`REALTIME_LOCK_TTL_MS`, `doc/decision/0110-the-cell-lock-ttl-is-thirty-seconds-and-configurable`). |
-| Scheduled work             | `ScheduledJobRunner` (`apps/garage/api/src/scheduling/`) — today the daily Slack summary in `apps/garage/api/src/slack/` (`doc/slack.md`) | An in-process schedule fires once per instance, so N instances post N summaries. BullMQ with a repeatable job, or a single elected leader, is the fix.              |
+| What                       | Where the seam is                                                                                                                                     | The upgrade                                                                                                                                                         |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Socket.io across instances | `configureRealtime` in `apps/sit-and-park/api/src/realtime/realtime-io.adapter.ts`                                                                    | Give the adapter `@socket.io/redis-adapter` so a broadcast from one instance reaches sockets held by another. Nothing above the adapter changes.                    |
+| Cell locks                 | `LockService` (`apps/sit-and-park/api/src/realtime/`) — an interface over an in-process map with a TTL                                                | Back it with Redis `SET NX PX`. The TTL is already the contract (`REALTIME_LOCK_TTL_MS`, `doc/decision/0110-the-cell-lock-ttl-is-thirty-seconds-and-configurable`). |
+| Scheduled work             | `ScheduledJobRunner` (`apps/sit-and-park/api/src/scheduling/`) — today the daily Slack summary in `apps/sit-and-park/api/src/slack/` (`doc/slack.md`) | An in-process schedule fires once per instance, so N instances post N summaries. BullMQ with a repeatable job, or a single elected leader, is the fix.              |
 
 Until then: **run one instance.** `doc/realtime.md` and `doc/api-operations.md`
 describe what each seam guarantees today.

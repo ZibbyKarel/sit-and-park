@@ -1,10 +1,10 @@
-# Merging the desk-booking app into garage
+# Merging the desk-booking app into sit-and-park
 
 Status: **in implementation** on branch `desk-merge` (worktree `worktrees/desk-merge`).
 Live progress is in [`desk-merge-handoff.md`](desk-merge-handoff.md).
 
 This is the second revision. The first was written before anybody had read the
-source zip or mapped garage's guard tests; §"What the first revision got wrong"
+source zip or mapped sit-and-park's guard tests; §"What the first revision got wrong"
 lists what changed and why.
 
 ## Source of the colleague's app
@@ -15,7 +15,7 @@ A colleague's separate project, shared in Slack as a zip (618 KB, 155 files,
 
 Stack: Convex backend, TanStack Start + React, shadcn/Tailwind, Convex Auth,
 generated with Macaly. None of it is portable. We **reimplement the desk
-features in garage's stack** and take only the floor plan
+features in sit-and-park's stack** and take only the floor plan
 (`public/floorplan.svg`: 221 desks numbered 1–221, 12 zones, viewBox
 `0 0 22473 5835`, verified free of scripts, handlers, `foreignObject` and
 external references) and the business rules. Its parking feature is dropped.
@@ -24,7 +24,7 @@ The zip is untrusted third-party code: it was read, never run.
 
 ## Decisions
 
-- Stack, auth (Okta) and `@shoptet/ui` come from garage.
+- Stack, auth (Okta) and `@shoptet/ui` come from sit-and-park.
 - Every desk feature of the source app is implemented.
 - Roles stay `USER` / `ADMIN`. A hive owner is `Hive.ownerId`, not a role; its
   only power is deciding approval requests for desks of its hive.
@@ -121,7 +121,7 @@ added with `ALTER TYPE … ADD VALUE` in a migration of their own.
 ## Floor plan
 
 The SVG ships as a static asset of the web app
-(`apps/garage/web/public/floorplans/praha.svg`) and is displayed as an
+(`apps/sit-and-park/web/public/floorplans/praha.svg`) and is displayed as an
 `<image>` — it is **never** parsed or injected in the browser. Desks are drawn
 by React as `<rect>` elements on top of it from the geometry stored on `Desk`.
 That removes the XSS hole instead of sanitising around it, and it removes the
@@ -159,9 +159,9 @@ Each stage builds and passes its tests before the next is called done.
    permanent desk. Non-`@team.blue` or `manualAccount` users are never touched.
 6. **Offices for parking.** Users see and book spots of their office; admin
    sets a user's and a spot's office.
-7. **Web.** A domain-free `FloorPlan` in `apps/garage/web/src/ui/` (pan, wheel
+7. **Web.** A domain-free `FloorPlan` in `apps/sit-and-park/web/src/ui/` (pan, wheel
    zoom only with Ctrl/Cmd, pinch, keyboard-reachable desks). Navigation
-   between Parking and Desks (garage has no top navigation today). Screens:
+   between Parking and Desks (sit-and-park has no top navigation today). Screens:
    desks for a day (plan + list, filters, booking dialog with series preview,
    approval request), my desk reservations (upcoming, history, releases, my
    requests, owner inbox), admin (desks with multi-select bulk edit, hives,
@@ -179,7 +179,7 @@ Order: 2 ‖ 3 → 4; then 5, 6, 8 in parallel; 7 starts after 3 against `stubAp
 
 - It assumed Slack notifications existed in the source. There is no Slack
   code; the source e-mails through the Macaly platform. Stage 8 is new work.
-- It assumed garage has a "My bookings" screen and top navigation to extend.
+- It assumed sit-and-park has a "My bookings" screen and top navigation to extend.
   It has neither.
 - It planned to port `desk-geometry.ts` and sanitise the SVG. The parser is
   buggy and the injection is the vulnerability; geometry is extracted once,
@@ -187,10 +187,10 @@ Order: 2 ‖ 3 → 4; then 5, 6, 8 in parallel; 7 starts after 3 against `stubAp
 - It trusted the source seed. The seed has 213 desks in an older numbering;
   the SVG has 221.
 - It stored the sync key hash in the database. An env var is one moving part
-  fewer and matches how garage handles every other secret.
+  fewer and matches how sit-and-park handles every other secret.
 - It called bulk admin edits a source feature. The source loops single
   mutations; the transaction is ours.
-- `ApprovalRequest` is named `DeskApprovalRequest`, since garage will have
+- `ApprovalRequest` is named `DeskApprovalRequest`, since sit-and-park will have
   other things to approve sooner than it will have a rename budget.
 
 ## Open questions for the colleague

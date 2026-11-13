@@ -7,10 +7,10 @@ and documentation (`doc/`, this file). The two deliberate exceptions:
 `plan.md` (the binding spec, written in Czech — see below) stays as-is, and
 **UI copy** is **written** in Czech, because this is a Czech company's internal
 app and the interface language is a product decision, not a documentation one.
-Czech remains the source of truth: `apps/garage/web/messages/cs.json` is where copy
+Czech remains the source of truth: `apps/sit-and-park/web/messages/cs.json` is where copy
 is written, and its keys define what exists. English is a translation that
 sits alongside it (`en.json`), kept in step by the parity guard at
-`apps/garage/web/messages/messages.spec.ts`. New copy is written in Czech first and
+`apps/sit-and-park/web/messages/messages.spec.ts`. New copy is written in Czech first and
 then translated — never English-first, and never by replacing a Czech string
 with an English one. See `doc/i18n.md` for details.
 
@@ -19,13 +19,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ## Project state
 
 **This workspace is built to host more than one application**, though one
-application, `garage`, is all there is (parking **and desks**; a `wishlist` scaffold was removed). `apps/` and `libs/` are
-namespaced by owner: `apps/garage/*` and `libs/garage/*` belong to the
+application, `sit-and-park`, is all there is (parking **and desks**; a `wishlist` scaffold was removed). `apps/` and `libs/` are
+namespaced by owner: `apps/sit-and-park/*` and `libs/sit-and-park/*` belong to the
 parking app, `libs/shared/*` holds the three libs a second application also
 consumes (`form`, `i18n`, `api-client`). A lib's namespace
 is decided by **how many applications consume it**, not by how much code it
 holds — `doc/decision/0310-*` states the rule, records why `auth` and
-`shared-types` sit under `garage/` despite looking generic, and names the
+`shared-types` sit under `sit-and-park/` despite looking generic, and names the
 one piece of debt the split exposed (`libs/shared/api-client` still imports
 this app's contract at runtime; that must be resolved before a second
 contract exists).
@@ -36,17 +36,16 @@ commands below are unaffected by the directory layout. They will not stay
 that way — project names are globally unique, so a second application cannot
 own a project called `api` either, and scaffolding it forces the rename.
 
-Every project therefore also carries an **`app:` tag** — `app:garage` or
+Every project therefore also carries an **`app:` tag** — `app:sit-and-park` or
 `app:shared` — and that is what a per-application command selects on:
-`nx run-many -t lint -p tag:app:garage`, never `-p api,web`. The tag
-survives the rename; a list of project names does not. In `package.json`,
-an unsuffixed script is workspace-wide and a `:<app>` suffix scopes it
-(`pnpm dev:garage`).
+`nx run-many -t lint -p tag:app:sit-and-park`, never `-p api,web`. The tag
+survives the rename; a list of project names does not. Every script in
+`package.json` is workspace-wide; `pnpm dev` serves the `app:sit-and-park` api and web.
 
-The garage app is scaffolded and all of Fáze 0–7 (parking) is written, plus the desk
+The sit-and-park app is scaffolded and all of Fáze 0–7 (parking) is written, plus the desk
 feature merged in from a colleague's app (`doc/desks.md`, `doc/desk-merge-plan.md`):
-`apps/garage/api` (NestJS 11), `apps/garage/web` (Next.js 16),
-`apps/garage/api-e2e`, `apps/garage/web-e2e`, and ten libs.
+`apps/sit-and-park/api` (NestJS 11), `apps/sit-and-park/web` (Next.js 16),
+`apps/sit-and-park/api-e2e`, `apps/sit-and-park/web-e2e`, and ten libs.
 `pnpm install` first — several agents have skipped it in a fresh worktree and spent
 the next hour on spurious `Module not found` errors in `api:build`.
 
@@ -76,7 +75,7 @@ absent one, because a reader trusts it.
 ```bash
 pnpm install                 # always, in a fresh worktree, before anything else
 
-pnpm dev:garage  # serve,dev for this app's api and web — continuous
+pnpm dev  # serve,dev for this app's api and web — continuous
 pnpm lint           # nx run-many -t lint
 pnpm typecheck      # nx run-many -t typecheck
 pnpm test               # nx run-many -t test
@@ -152,7 +151,7 @@ that reproduces what CI actually runs — **61 passed, exit 0, 52.4 s**, against
   corrupt the write; the same thing has been seen here as exit 1 after 509
   passing tests. Read the suite's own summary line, not just `$?`.
 
-**`pnpm test` does not run the database suites.** `apps/garage/api/jest.config.cts`
+**`pnpm test` does not run the database suites.** `apps/sit-and-park/api/jest.config.cts`
 excludes `*.db.spec.ts` because they need a live PostgreSQL; they run under
 `api:test-db`, and in CI in their own job. A change to `SELECT … FOR UPDATE`,
 to transaction isolation, or to waitlist promotion is untested until you have
@@ -172,7 +171,7 @@ run that target.
   `POST /api/rpc/me/get` → 401 (the route exists and the guard ran),
   `POST /api/me/get` → 404.
 - **The floor plan is a static image and desks are drawn from database geometry.**
-  `apps/garage/web/public/floorplans/praha.svg` is shown as an SVG `<image>` and
+  `apps/sit-and-park/web/public/floorplans/praha.svg` is shown as an SVG `<image>` and
   desks are React `<rect>`s from `Desk.x/y/width/height`, which a generated
   migration put there. Never fetch, parse or inject the SVG as markup: the source
   app did and it was a stored-XSS hole (`doc/decision/0325-*`, `doc/desks.md`).
@@ -209,8 +208,8 @@ suite, which several config comments had been assuming for a while.
 
 Non-negotiable architectural rules from `plan.md` that apply to every phase (see the file for full detail):
 
-- **Contract-first**: all FE↔BE data shapes are defined once as Zod schemas in the single `libs/garage/contract` lib — shared entity schemas plus two entry points: `@garage/contract` (API, via oRPC) and `@garage/contract/realtime` (Socket.io events — Zod payload schemas, validated server-side). TS types are always derived (`z.infer`), never hand-duplicated. No endpoint/DTO/event may exist in code before it exists in the contract. Errors are typed contract errors; reservation dates are date-only (`YYYY-MM-DD`) in Europe/Prague.
-- **UI from `@shoptet/ui`**: UI comes from `@shoptet/ui` (exact pin `0.24.0-beta`, imported directly, no wrapper lib). Compositions it lacks live in `apps/garage/web/src/ui/`, one folder per component, domain-free, styled with colocated CSS Modules (no Tailwind, no Storybook). Server components never import `@shoptet/ui` directly (`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`; this supersedes `plan.md`'s design-system-first rule).
+- **Contract-first**: all FE↔BE data shapes are defined once as Zod schemas in the single `libs/sit-and-park/contract` lib — shared entity schemas plus two entry points: `@sit-and-park/contract` (API, via oRPC) and `@sit-and-park/contract/realtime` (Socket.io events — Zod payload schemas, validated server-side). TS types are always derived (`z.infer`), never hand-duplicated. No endpoint/DTO/event may exist in code before it exists in the contract. Errors are typed contract errors; reservation dates are date-only (`YYYY-MM-DD`) in Europe/Prague.
+- **UI from `@shoptet/ui`**: UI comes from `@shoptet/ui` (exact pin `0.24.0-beta`, imported directly, no wrapper lib). Compositions it lacks live in `apps/sit-and-park/web/src/ui/`, one folder per component, domain-free, styled with colocated CSS Modules (no Tailwind, no Storybook). Server components never import `@shoptet/ui` directly (`doc/decision/0318-ui-comes-from-shoptet-ui-and-the-in-house-design-system-is-deleted.md`; this supersedes `plan.md`'s design-system-first rule).
 - **Mandatory wrapper layers**: app/feature code must never import react-hook-form, TanStack Query, socket.io-client, next-auth, next-intl, or ical-generator directly — always through the corresponding `libs/*` wrapper (table in `plan.md`). ESLint (Nx module boundaries / `no-restricted-imports`) must enforce this. A one-off, non-recurring third-party import elsewhere in app code is acceptable only with a comment explaining why no wrapper was created — but this exception does not apply to the libraries listed above.
 - Validation is Zod-only; `class-validator`/`class-transformer` are not used in NestJS.
 - No Sentry/metrics/APM/alerting (next phase), no Slack slash commands or interactive Block Kit — Slack integration is outbound `chat.postMessage` notifications only. Note: structured logging (nestjs-pino), health endpoints and graceful shutdown are baseline hygiene required by `plan.md` (§"Provozní základ") and are **not** covered by the no-monitoring rule.

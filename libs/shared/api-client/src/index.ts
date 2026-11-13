@@ -1,10 +1,10 @@
 /**
- * `@garage/api-client` — the wrapper lib that owns `@orpc/client`.
+ * `@sit-and-park/api-client` — the wrapper lib that owns `@orpc/client`.
  *
  * Three things come out of here and nothing else needs to:
  *
  * - {@link createApiClient} / {@link ApiClient} — the transport, typed from
- *   `libs/garage/contract`;
+ *   `libs/sit-and-park/contract`;
  * - {@link toContractError} / {@link errorStatus} — reading a failure back as a
  *   member of the contract's closed error enum;
  * - {@link createApiQueryUtils} / {@link ApiQueryUtils} — the bridge from this

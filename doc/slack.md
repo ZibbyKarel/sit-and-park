@@ -10,8 +10,8 @@ Everything lives in two modules:
 
 | Directory                         | What it owns                                                                                   |
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
-| `apps/garage/api/src/slack/`      | the Slack client, the Czech copy, the three notifications, the daily-summary job               |
-| `apps/garage/api/src/scheduling/` | `ScheduleModule.forRoot()` and `ScheduledJobRunner` — scheduling, which is not a Slack concept |
+| `apps/sit-and-park/api/src/slack/`      | the Slack client, the Czech copy, the three notifications, the daily-summary job               |
+| `apps/sit-and-park/api/src/scheduling/` | `ScheduleModule.forRoot()` and `ScheduledJobRunner` — scheduling, which is not a Slack concept |
 
 ---
 
@@ -20,7 +20,7 @@ Everything lives in two modules:
 `plan.md` states this as a scope boundary and it is not a preference: **the API
 never accepts anything from Slack.** No slash commands, no interactive Block
 Kit, no events subscription, no request-signature verification, and therefore no
-`POST /slack/*` route anywhere in `apps/garage/api`. `SlackModule` registers **no
+`POST /slack/*` route anywhere in `apps/sit-and-park/api`. `SlackModule` registers **no
 controller**, which is what enforces it — `slack.module.spec.ts` asserts the
 module's `controllers` metadata is empty, so adding a handler fails a test
 rather than passing review.
@@ -31,7 +31,7 @@ Two Slack methods are called, both outbound:
 - `users.lookupByEmail` — to find the Slack account for a promoted user.
 
 `slack.module.spec.ts` also pins that every `@slack/web-api` import in
-`apps/garage/api` is inside `slack/`, and that exactly one _shipped_ file constructs a
+`apps/sit-and-park/api` is inside `slack/`, and that exactly one _shipped_ file constructs a
 `WebClient`.
 
 ---
@@ -39,7 +39,7 @@ Two Slack methods are called, both outbound:
 ## 2. The three messages
 
 All copy is **Czech** (`doc/decision/0029-*`), plain text, and lives in
-`apps/garage/api/src/slack/slack-messages.ts` — see `doc/decision/0131-*` for why it is
+`apps/sit-and-park/api/src/slack/slack-messages.ts` — see `doc/decision/0131-*` for why it is
 there and not in `libs/shared/i18n`.
 
 | Trigger                                | Destination                         | Message                                                                                              |
@@ -67,7 +67,7 @@ for parking.
 **Why "a spot came free" is exactly `reservation:cancelled`.** The realtime
 contract already decided this: a cancellation that promoted somebody emits
 `reservation:reassigned` _instead of_ `reservation:cancelled`, never both
-(`libs/garage/contract/src/realtime/events.ts`). So filtering on `reservation:cancelled`
+(`libs/sit-and-park/contract/src/realtime/events.ts`). So filtering on `reservation:cancelled`
 cannot announce a spot that was taken in the same transaction, and nothing in
 `SlackDomainEventPublisher` re-derives that rule. Not sent for a hidden spot
 (`doc/decision/0316-*`).
@@ -88,7 +88,7 @@ table to drift.
 ## 3. Where the notifications are fired from
 
 Through the **after-commit seam** Task 13 left behind:
-`apps/garage/api/src/reservations/reservation-events.ts` declares
+`apps/sit-and-park/api/src/reservations/reservation-events.ts` declares
 `DomainEventPublisher`, and `ReservationsModule` binds it to
 `CompositeDomainEventPublisher`, which fans every fact out to
 `SlackDomainEventPublisher` **and** to Task 15's `RealtimeDomainEventPublisher`
@@ -131,7 +131,7 @@ Three properties of that placement matter, and each is exercised:
 Task 15's Socket.io gateway implements the same `DomainEventPublisher` seam, for
 `publish`, and Nest resolves one provider per token. So the token is bound to
 neither implementation directly but to `CompositeDomainEventPublisher`
-(`apps/garage/api/src/reservations/composite-domain-event.publisher.ts`), which
+(`apps/sit-and-park/api/src/reservations/composite-domain-event.publisher.ts`), which
 forwards to both. `RealtimeModule` and `SlackModule` each provide and export
 their concrete class; `ReservationsModule` assembles the list and binds the
 composite. `doc/decision/0135-*` records why.
@@ -245,7 +245,7 @@ The token is a **workspace-wide credential**: whoever reads it out of a log can
 post as the app into every channel it is in and read every user's email. It
 comes only from `SLACK_BOT_TOKEN`, is never in the repo, never in an audit
 payload, and never in a log line. Two defences, in order
-(`apps/garage/api/src/slack/slack-token-redaction.ts`):
+(`apps/sit-and-park/api/src/slack/slack-token-redaction.ts`):
 
 1. **The object that would carry it is never built.** The `WebClient` is
    constructed with `attachOriginalToWebAPIRequestError: false`; without it, a
@@ -258,11 +258,11 @@ payload, and never in a log line. Two defences, in order
    removed too, so a second workspace's token in an error string does not sail
    through.
 
-**This is checked by reading real log output.** Every other spec in `apps/garage/api`
+**This is checked by reading real log output.** Every other spec in `apps/sit-and-park/api`
 pins `LOG_LEVEL: 'fatal'`, which is why no test in this project had ever read a
 log line — and how a bearer credential reached the logs in four places on an
 earlier task. The Slack specs run a real pino at `trace` into memory
-(`apps/garage/api/src/slack/testing/capture-logs.ts`) and assert that the token went out
+(`apps/sit-and-park/api/src/slack/testing/capture-logs.ts`) and assert that the token went out
 in the request header and came back in no log line, across a platform error, a
 500 and a timeout.
 
@@ -294,7 +294,7 @@ code.
 
 ## 7. The daily summary job
 
-`apps/garage/api/src/slack/daily-summary.job.ts`. A `CronJob` registered through
+`apps/sit-and-park/api/src/slack/daily-summary.job.ts`. A `CronJob` registered through
 `SchedulerRegistry` (not the `@Cron` decorator, whose expression must be a
 literal — the time is configuration), built from `SLACK_DAILY_SUMMARY_AT` and
 `timeZone: 'Europe/Prague'`.
@@ -319,7 +319,7 @@ literal — the time is configuration), built from `SLACK_DAILY_SUMMARY_AT` and
 
 ### `ScheduledJobRunner`
 
-Every job body goes through `apps/garage/api/src/scheduling/scheduled-job-runner.ts`,
+Every job body goes through `apps/sit-and-park/api/src/scheduling/scheduled-job-runner.ts`,
 which supplies the three things `@nestjs/schedule` does not:
 
 - a body that throws is logged and swallowed, because an unhandled rejection out

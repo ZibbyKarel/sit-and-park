@@ -1,6 +1,6 @@
 # api-client
 
-`@garage/api-client` — the wrapper lib that owns `@orpc/client`. It is the only place in
+`@sit-and-park/api-client` — the wrapper lib that owns `@orpc/client`. It is the only place in
 the workspace allowed to import that package.
 
 Usage, the access-token provider and how contract errors are read:

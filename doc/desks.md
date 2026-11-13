@@ -6,9 +6,9 @@ reimplemented in this stack from a colleague's separate app, not ported
 (`doc/decision/0320-*`); `doc/desk-merge-plan.md` is the plan it was built to.
 Where this document and the plan differ, this document describes the code.
 
-Code: `apps/garage/api/src/desks/` (the caller's side), `desk-admin/` (admin
+Code: `apps/sit-and-park/api/src/desks/` (the caller's side), `desk-admin/` (admin
 side), `employee-sync/` (see `doc/employee-sync.md`); shapes in
-`libs/garage/contract/src/api/{desks,desk-requests,admin-desks,hives,offices}.ts`.
+`libs/sit-and-park/contract/src/api/{desks,desk-requests,admin-desks,hives,offices}.ts`.
 Decisions: `doc/decision/0320-*` to `0332-*` (indexed in `doc/decision/README.md`).
 Schema and migrations: `doc/database.md`. Procedures and errors: `doc/contract.md`.
 
@@ -180,7 +180,7 @@ memberships; those two writes are unaudited.
 
 ## Floor plan
 
-The SVG is a static asset, `apps/garage/web/public/floorplans/praha.svg`, shown
+The SVG is a static asset, `apps/sit-and-park/web/public/floorplans/praha.svg`, shown
 as an SVG `<image>`; it is **never** fetched, parsed or injected as markup. Desks
 are React `<rect>`s drawn from the geometry on `Desk`
 (`web/src/ui/floor-plan/`). That removes the source's stored-XSS hole instead of
@@ -190,7 +190,7 @@ The geometry reaches the database through a migration:
 `20261112120200_praha_office` creates the office `Praha`, its 12 zones and 221
 desks, backfills `User.officeId` and `ParkingSpot.officeId`, and makes the spot
 column required. The file is **generated** by
-`libs/garage/database/src/lib/floor-plan.ts` (a small SVG walker: transform stack,
+`libs/sit-and-park/database/src/lib/floor-plan.ts` (a small SVG walker: transform stack,
 desk = `g#Desk_N > rect#desk_body_N`, zone = nearest `g#zone-<key>`, stored box =
 axis-aligned box after every transform). `floor-plan.spec.ts` fails until the
 committed SQL matches the SVG.
@@ -198,13 +198,13 @@ committed SQL matches the SVG.
 Regenerate (only for an unapplied migration; an applied one is checksummed):
 
 ```bash
-node --require @swc-node/register libs/garage/database/src/scripts/generate-floor-plan-sql.ts
+node --require @swc-node/register libs/sit-and-park/database/src/scripts/generate-floor-plan-sql.ts
 ```
 
 A changed plan for a live database needs a new migration instead.
 
 **A second office** needs: a new SVG under `public/floorplans/`, its key added to
-`FLOOR_PLANS` (`libs/garage/shared-types/src/lib/domain-constants.ts`), and a
+`FLOOR_PLANS` (`libs/sit-and-park/shared-types/src/lib/domain-constants.ts`), and a
 migration that inserts the office, zones and desks (extend `floor-plan.ts` to
 emit it, as for Praha). There is no admin upload. Offices and zones without a
 plan can already be created in the admin UI, but their desks cannot be drawn.
