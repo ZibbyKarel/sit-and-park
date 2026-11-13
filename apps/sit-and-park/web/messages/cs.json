@@ -374,6 +374,7 @@
     "ctaDone": "Hotovo",
     "scheduleTitle": "Návrh rozvrhu",
     "scheduleDescription": "Takhle vás zapíšeme. Než rozvrh potvrdíte, může se stav parkoviště změnit — po potvrzení uvidíte, co se skutečně stalo.",
+    "spotSelectLabel": "Parkovací místo, {date}",
     "scheduleSummary": "{assigned, plural, one {# den} few {# dny} other {# dní}} s místem, {queued, plural, one {# den} few {# dny} other {# dní}} ve frontě.",
     "badgeAssignedPreferred": "Rezervováno · preferované",
     "badgeAssigned": "Rezervováno",

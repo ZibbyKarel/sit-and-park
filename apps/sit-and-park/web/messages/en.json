@@ -374,6 +374,7 @@
     "ctaDone": "Done",
     "scheduleTitle": "Proposed schedule",
     "scheduleDescription": "This is how we’ll sign you up. The state of the parking lot can change before you confirm the schedule — after confirming you’ll see what actually happened.",
+    "spotSelectLabel": "Parking spot, {date}",
     "scheduleSummary": "{assigned, plural, one {# day} other {# days}} with a spot, {queued, plural, one {# day} other {# days}} in the queue.",
     "badgeAssignedPreferred": "Reserved · preferred",
     "badgeAssigned": "Reserved",

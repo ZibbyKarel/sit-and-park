@@ -193,15 +193,25 @@ describe('DeskBulkModal', () => {
     expect(screen.getByRole('button', { name: 'ctaGenerate: count=1' })).toBeDisabled();
   });
 
+  it('non-admin: the desk select is disabled', async () => {
+    serve({ 'desk/previewBulk': ok(preview()) });
+    const { user } = renderModal({ isAdmin: false });
+    await user.click(dayTile(16));
+    await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));
+    await screen.findByText('preferredTag');
+    expect(screen.getByLabelText(/deskSelectLabel: person=Jana.*16\. listopadu/)).toBeDisabled();
+  });
+
   it('manual pick on an UNASSIGNED row is sent, and the desk disappears from the others', async () => {
     const api = serve({
+      'admin/user/list': ok(USERS),
       'desk/previewBulk': ok(preview()),
       'desk/confirmBulk': ok({
         reserved: [reservation('user-jana', '2026-11-16', D2.id)],
         skipped: [],
       }),
     });
-    const { user } = renderModal({ isAdmin: false });
+    const { user } = renderModal({ isAdmin: true });
 
     await user.click(dayTile(16));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));

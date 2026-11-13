@@ -159,6 +159,8 @@ function BulkReservationModalContent({
   const [proposal, setProposal] = useState<PreviewBulkOutput | null>(null);
   const [result, setResult] = useState<ConfirmBulkOutput | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
+  // Admin's per-day spot overrides on step 2, date → parkingSpotId.
+  const [spotChoices, setSpotChoices] = useState<Readonly<Record<string, string>>>({});
 
   // No reset effect here on purpose — the wrapper above keys this component on
   // `open` and the month, so every opening is a fresh mount and the four
@@ -524,8 +526,17 @@ function BulkReservationModalContent({
         t={t}
         proposal={proposal}
         pending={pending}
+        picker={{
+          isAdmin,
+          freeSpots: proposal.freeSpots,
+          choices: spotChoices,
+          onChoose: (date, parkingSpotId) => {
+            setSpotChoices((current) => ({ ...current, [date]: parkingSpotId }));
+          },
+        }}
         onBack={() => {
           setProposal(null);
+          setSpotChoices({});
           setFailure(null);
         }}
         confirmPending={confirmBulk.isPending}
@@ -535,8 +546,17 @@ function BulkReservationModalContent({
           // requested day — but "we confirm exactly what you were shown" is
           // the invariant, and reading it off the thing that was shown is
           // the only way to state it.
+          const changed = proposal.days.flatMap((day) => {
+            const chosen = spotChoices[day.date];
+            return day.outcome !== 'UNAVAILABLE' &&
+              chosen !== undefined &&
+              chosen !== day.parkingSpotId
+              ? [{ date: day.date, parkingSpotId: chosen }]
+              : [];
+          });
           confirmBulk.mutate({
             dates: proposal.days.map((day) => day.date),
+            ...(isAdmin && changed.length > 0 ? { spotChoices: changed } : {}),
             ...(showHolderForm ? { holderId: holderForm.getValues('userId') } : {}),
           });
         }}

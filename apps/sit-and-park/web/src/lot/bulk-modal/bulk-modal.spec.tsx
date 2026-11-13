@@ -940,6 +940,41 @@ describe('BulkReservationModal — the admin holder selector', () => {
 });
 
 describe('BulkReservationModal — step 2, the proposed schedule', () => {
+  const FREE = [{ date: '2026-09-02', spots: [{ id: 'spot-free', label: 'E2.99' }] }];
+  const SPOT_LABEL = /spotSelectLabel: date=.*2\. září/;
+
+  it('ADMIN: a changed spot is sent as a spotChoice, only for that day', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() =>
+      expect(apiMocks.confirmBulk).toHaveBeenCalledWith(
+        {
+          dates: ['2026-09-01', '2026-09-02'],
+          spotChoices: [{ date: '2026-09-02', parkingSpotId: 'spot-free' }],
+        },
+        expect.anything()
+      )
+    );
+  });
+
+  it('ADMIN: confirming without changes sends no spotChoices', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() => expect(apiMocks.confirmBulk).toHaveBeenCalled());
+    expect(apiMocks.confirmBulk.mock.calls[0][0]).not.toHaveProperty('spotChoices');
+  });
+
+  it('non-admin: the select shows the proposed spot and is disabled', async () => {
+    const { user } = setup({ previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    const select = screen.getByLabelText(SPOT_LABEL);
+    expect(select).toBeDisabled();
+    expect(select).toHaveTextContent('E2.93');
+  });
+
   it('lists every day as date, weekday, spot and badge', async () => {
     const { user } = setup();
     await reachSchedule(user);
