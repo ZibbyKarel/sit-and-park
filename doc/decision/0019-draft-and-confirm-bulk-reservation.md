@@ -1,5 +1,7 @@
 # 0019 – The bulk-reservation preview and confirmation share a shape; the client computes the diff
 
+> Partly superseded by `0333-admin-may-change-the-proposed-parking-spot.md`: an admin's `confirmBulk` may carry explicit `spotChoices`.
+
 **Date:** 2026-08-28 · **Status:** accepted · **Follows on from:** `doc/decision/0004-*` §Bulk reservation
 
 ## What

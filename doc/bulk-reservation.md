@@ -44,6 +44,20 @@ with an extra step. Three consequences follow, and all three are the point:
 The preview is not a promise, and the API never pretends otherwise: every field
 of the confirmation is built from rows the database actually returned.
 
+### An admin's per-day spot choice
+
+`confirmBulk` otherwise takes only `dates`. An admin may add `spotChoices:
+{ date, parkingSpotId }[]` (dates unique, each one of `dates`); a non-admin
+sending a non-empty list gets `FORBIDDEN` before anything else runs.
+`previewBulk` returns `freeSpots: { date, spots: { id, label }[] }[]` to fill the
+per-day select. In `planDay` the order is choice, preferred spot, first free
+spot, and a choice counts only when that spot is still free and allocatable in
+the transaction; otherwise the day is allocated normally, with no new error or
+outcome. The same choices are reused on every retry. The web modal sends only
+the days the admin changed; for a non-admin the select is disabled and
+prefilled. Desks have their own rules (`doc/decision/0321-*`); only their
+existing select is disabled for non-admins. See `doc/decision/0333-*`.
+
 ---
 
 ## The allocator
