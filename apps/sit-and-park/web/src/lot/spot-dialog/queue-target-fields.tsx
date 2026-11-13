@@ -12,7 +12,7 @@
  * this is the selector alone.
  * */
 
-import { SingleSelectField } from '@shoptet/ui';
+import { SingleSelectField } from '../../ui/client-select/client-select';
 import { FormField } from '@sit-and-park/form';
 import { useTranslations } from '@sit-and-park/i18n';
 import type { HolderOption } from './holder-input';

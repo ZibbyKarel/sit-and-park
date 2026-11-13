@@ -20,7 +20,8 @@
  */
 
 import { useState } from 'react';
-import { Button, Modal, SingleSelect } from '@shoptet/ui';
+import { Button, Modal } from '@shoptet/ui';
+import { SingleSelect } from '../../ui/client-select/client-select';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import {

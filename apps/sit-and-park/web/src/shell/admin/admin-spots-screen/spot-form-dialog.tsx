@@ -3,7 +3,8 @@
 import * as z from 'zod';
 import type { AdminOffice, ParkingSpot } from '@sit-and-park/contract';
 import { FormField, FormProvider, useAppForm } from '@sit-and-park/form';
-import { Button, CheckboxField, Modal, SingleSelectField, Stack } from '@shoptet/ui';
+import { Button, CheckboxField, Modal, Stack } from '@shoptet/ui';
+import { SingleSelectField } from '../../../ui/client-select/client-select';
 import { TextField } from '../../../ui/text-field/text-field';
 import { Toast } from '../../../ui/toast/toast';
 import { PARKING_GROUPS, useTranslations } from '@sit-and-park/i18n';

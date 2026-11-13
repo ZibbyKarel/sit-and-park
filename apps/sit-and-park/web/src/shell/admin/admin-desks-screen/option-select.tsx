@@ -1,6 +1,6 @@
 'use client';
 
-import { SingleSelectField } from '@shoptet/ui';
+import { SingleSelectField } from '../../../ui/client-select/client-select';
 
 export interface Option {
   readonly value: string;

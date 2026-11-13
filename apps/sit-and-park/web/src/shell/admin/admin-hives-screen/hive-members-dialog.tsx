@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import type { AdminHive } from '@sit-and-park/contract';
 import { useTranslations } from '@sit-and-park/i18n';
-import { Button, Modal, SingleSelect, Stack, Text } from '@shoptet/ui';
+import { Button, Modal, Stack, Text } from '@shoptet/ui';
+import { SingleSelect } from '../../../ui/client-select/client-select';
 import { Toast } from '../../../ui/toast/toast';
 import styles from './admin-hives-screen.module.css';
 

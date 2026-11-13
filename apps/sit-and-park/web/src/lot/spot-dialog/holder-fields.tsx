@@ -11,7 +11,7 @@
  * fields sit under the provider.
  * */
 
-import { SingleSelectField } from '@shoptet/ui';
+import { SingleSelectField } from '../../ui/client-select/client-select';
 import { TextField } from '../../ui/text-field/text-field';
 import { FormField } from '@sit-and-park/form';
 import { HALF_HOUR_END_TIMES, HALF_HOUR_START_TIMES, useTranslations } from '@sit-and-park/i18n';

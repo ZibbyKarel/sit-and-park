@@ -10,7 +10,8 @@
 import { useCallback, useMemo, useState } from 'react';
 import NextLink from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Button, CheckboxField, SingleSelectField, SystemMessage, Tabs } from '@shoptet/ui';
+import { Button, CheckboxField, SystemMessage, Tabs } from '@shoptet/ui';
+import { SingleSelectField } from '../../ui/client-select/client-select';
 import {
   compareDateOnly,
   nextWeekday,

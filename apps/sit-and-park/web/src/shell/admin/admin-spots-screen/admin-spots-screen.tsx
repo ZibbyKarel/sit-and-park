@@ -50,7 +50,8 @@ import type {
   SpotListOutput,
   UpdateSpotInput,
 } from '@sit-and-park/contract';
-import { Button, SingleSelect, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { Button, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { SingleSelect } from '../../../ui/client-select/client-select';
 import { ConfirmDialog } from '../../../ui/confirm-dialog/confirm-dialog';
 import { DataTable } from '../../../ui/data-table/data-table';
 import type { DataTableColumn } from '../../../ui/data-table/data-table';

@@ -42,7 +42,8 @@
 
 import { useMemo, useState } from 'react';
 import type { AdminListUsersOutput, AdminOffice, AdminUser } from '@sit-and-park/contract';
-import { Avatar, SearchInput, SingleSelect, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { Avatar, SearchInput, Stack, Switch, Tag, Text } from '@shoptet/ui';
+import { SingleSelect } from '../../../ui/client-select/client-select';
 import { useFormatter, useTranslations } from '@sit-and-park/i18n';
 import { ConfirmDialog } from '../../../ui/confirm-dialog/confirm-dialog';
 import { DataTable } from '../../../ui/data-table/data-table';
