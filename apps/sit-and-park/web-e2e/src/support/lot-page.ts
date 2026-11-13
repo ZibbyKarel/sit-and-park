@@ -284,7 +284,7 @@ export async function closeBulkResult(page: Page): Promise<void> {
  */
 export async function openSettings(page: Page): Promise<Locator> {
   await page.getByRole('button', { name: 'Uživatelské menu' }).click();
-  await page.getByRole('menuitem', { name: 'Nastavení (SPZ auta)' }).click();
+  await page.getByRole('menuitem', { name: 'Nastavení' }).click();
   await page.waitForURL('**/settings', { timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS });
 
   const dialog = page.getByRole('dialog');

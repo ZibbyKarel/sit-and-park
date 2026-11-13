@@ -126,7 +126,7 @@ test.describe('the language a person chooses', () => {
   test('English survives a reload and a navigation, against a Czech browser', async ({
     browser,
   }) => {
-    // Two switches, two reloads and four document loads of a production build,
+    // Two switches, two reloads and six document loads of a production build,
     // one of them the settings route whose first visit carries the allowance
     // `FIRST_ROUTE_VISIT_TIMEOUT_MS` exists for. The default 30 s test timeout
     // is the wrong budget for that, and `slow()` raises it without touching
