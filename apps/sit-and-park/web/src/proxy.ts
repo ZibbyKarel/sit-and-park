@@ -29,7 +29,9 @@
  * - `/api/health` — an orchestrator's probe carries no session, so protecting
  *   it would report every healthy instance as dead. Same reasoning as the API's
  *   `@Public()` probes (`doc/auth.md` §Public routes).
- * - `_next/static`, `_next/image`, `favicon.ico` — assets, not navigations.
+ * - `_next/static`, `_next/image` and root-level `*.ico|png|svg` files from `public/` (favicon,
+ *   logo) — assets, not navigations. Without the extension rule the login page
+ *   cannot even load its own logo: the request is redirected to the login page.
  *
  * The login route itself **is** matched, on purpose: Auth.js compares the
  * request path against `pages.signIn` and skips its own redirect when they are
@@ -46,5 +48,5 @@ export { auth as proxy } from './auth';
  * starts the same way. `proxy.spec.ts` pins both cases.
  */
 export const config = {
-  matcher: ['/((?!api/auth/|api/health(?:$|/)|_next/static|_next/image|favicon\\.ico).*)'],
+  matcher: ['/((?!api/auth/|api/health(?:$|/)|_next/static|_next/image|[^/]+\\.(?:ico|png|svg)$).*)'],
 };

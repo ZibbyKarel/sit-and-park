@@ -55,6 +55,8 @@ describe('proxy matcher', () => {
     ['static chunks', '/_next/static/chunks/main.js'],
     ['optimised images', '/_next/image'],
     ['the favicon', '/favicon.ico'],
+    ['a logo from public/', '/sit-and-park-logo.svg'],
+    ['an icon from public/', '/apple-touch-icon.png'],
   ])('leaves %s alone (%s)', (_label, pathname) => {
     expect(matches(pathname)).toBe(false);
   });
@@ -67,5 +69,6 @@ describe('proxy matcher', () => {
     expect(matches('/api/healthcheck')).toBe(true);
     expect(matches('/api/other')).toBe(true);
     expect(matches('/_next-door')).toBe(true);
+    expect(matches('/svg')).toBe(true);
   });
 });
