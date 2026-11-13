@@ -4,31 +4,30 @@
  * Parking and desk reservations as one list (tab "Seznam"): upcoming and past,
  * with single and bulk cancel. (The month calendar is `reservations-calendar.tsx`.)
  *
- * Bulk cancel loops `reservation.cancel` / `desk.cancel` by entry kind — the
- * contract has no bulk procedure — and keeps the ones that failed selected so
- * a retry is one click. Either query failing fails the whole list: a half list
+ * Cancelling goes through `useCancelReservations` (shared with the calendar's
+ * detail dialog); the list keeps the ones that failed selected so a retry is
+ * one click. Either query failing fails the whole list: a half list
  * that silently omits one kind would be worse than the error.
  */
 
 import { useState } from 'react';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
 import { useRequireAuth } from '@sit-and-park/auth/client';
 import { todayInPrague, useDateFormatters, useTranslations } from '@sit-and-park/i18n';
 import { Button, CheckboxField, Stack, Text, Strong } from '@shoptet/ui';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
 import { useApi } from '../../shell/api-provider/api-provider';
-import { useNotify } from '../../shell/notifications/toast-provider';
 import { ScreenDataGuard } from '../../shell/screen-state/screen-state';
 import type { ScreenData } from '../../shell/screen-state/screen-state';
 import { CarIcon, DeskIcon } from '../../ui/icons/icons';
 import { useCurrentUser } from '../../shell/use-current-user';
-import { useDeskWriteError } from './my-reservations-errors';
 import {
   mergeMyReservations,
   reservationDetail,
   splitReservations,
   type MyListEntry,
 } from './my-reservations-view';
+import { useCancelReservations } from './use-cancel-reservations';
 import styles from './my-reservations.module.css';
 
 type ConfirmTarget = MyListEntry | 'bulk' | null;
@@ -40,10 +39,8 @@ export function ReservationsSection() {
   const t = useTranslations('myDesks');
   const f = useDateFormatters();
   const api = useApi();
-  const queryClient = useQueryClient();
   const { status } = useRequireAuth();
   const viewer = useCurrentUser();
-  const describe = useDeskWriteError();
 
   const enabled = status === 'authenticated';
   const desksQuery = useQuery({ ...api.desk.myReservations.queryOptions(), enabled });
@@ -61,50 +58,19 @@ export function ReservationsSection() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [confirm, setConfirm] = useState<ConfirmTarget>(null);
-  const [notice, setNotice] = useState<string | null>(null);
-  const [failure, setFailure] = useState<string | null>(null);
-  const [busy, setBusy] = useState(false);
-
-  useNotify(notice, 'success');
-  useNotify(failure, 'danger');
-
-  const cancelDesk = useMutation(api.desk.cancel.mutationOptions());
-  const cancelParking = useMutation(api.reservation.cancel.mutationOptions());
+  const { busy, cancel } = useCancelReservations();
   const isAdmin = viewer.data?.role === 'ADMIN';
 
   async function run(entries: readonly MyListEntry[]) {
-    setNotice(null);
-    setFailure(null);
-    setBusy(true);
-    const failedKeys: string[] = [];
-    let lastError: unknown = null;
-    for (const entry of entries) {
-      const reservationId = entry.reservation.id;
-      try {
-        await (entry.kind === 'parking' ? cancelParking : cancelDesk).mutateAsync({
-          reservationId,
-        });
-      } catch (error) {
-        failedKeys.push(entry.key);
-        lastError = error;
-      }
-    }
-    setBusy(false);
+    const failedKeys = await cancel(
+      entries.map((entry) => ({
+        kind: entry.kind,
+        key: entry.key,
+        reservationId: entry.reservation.id,
+      }))
+    );
     setConfirm(null);
-    setSelected(new Set(failedKeys));
-    void queryClient.invalidateQueries({ queryKey: api.desk.key() });
-    void queryClient.invalidateQueries({ queryKey: api.reservation.key() });
-    void queryClient.invalidateQueries({ queryKey: api.overview.key() });
-    void queryClient.invalidateQueries({ queryKey: api.admin.reservation.key() });
-    if (failedKeys.length === 0) {
-      setNotice(
-        entries.length === 1 ? t('cancelledOne') : t('cancelledMany', { count: entries.length })
-      );
-    } else if (entries.length === 1) {
-      setFailure(describe(lastError, 'cancel'));
-    } else {
-      setFailure(t('bulkPartial', { failed: failedKeys.length, total: entries.length }));
-    }
+    setSelected(failedKeys);
   }
 
   function toggle(id: string) {
