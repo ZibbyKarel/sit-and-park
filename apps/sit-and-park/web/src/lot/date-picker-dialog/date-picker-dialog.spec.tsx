@@ -7,6 +7,11 @@ import { selectOption } from '../../test-utils/select-option';
 
 const cs = createDateFormatters('cs');
 
+jest.mock('@sit-and-park/i18n', () => ({
+  ...jest.requireActual('@sit-and-park/i18n'),
+  todayInPrague: () => '2026-09-01',
+}));
+
 /**
  * The dialog's own job, on top of what `./date-picker-view.spec.ts` already
  * covers for the grid arithmetic: it opens on the month of `selectedDate`,
@@ -49,6 +54,19 @@ describe('DatePickerDialog — opening', () => {
     expect(
       within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate(SELECTED)}` })
     ).toHaveAttribute('aria-pressed', 'true');
+  });
+});
+
+describe('DatePickerDialog — today', () => {
+  it('marks only today in the grid', () => {
+    renderDialog();
+    const dialog = screen.getByRole('dialog', { name: 'datePickerTitle' });
+    expect(
+      within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate('2026-09-01')}` })
+    ).toHaveAttribute('data-today');
+    expect(
+      within(dialog).getByRole('button', { name: `dayCell: date=${cs.fullDate('2026-09-02')}` })
+    ).not.toHaveAttribute('data-today');
   });
 });
 

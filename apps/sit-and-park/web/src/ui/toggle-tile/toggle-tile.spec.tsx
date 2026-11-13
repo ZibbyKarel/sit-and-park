@@ -4,6 +4,18 @@ import userEvent from '@testing-library/user-event';
 import { ToggleTile } from './toggle-tile';
 
 describe('ToggleTile', () => {
+  it('marks today with data-today', () => {
+    render(
+      <>
+        <ToggleTile today>7</ToggleTile>
+        <ToggleTile>8</ToggleTile>
+      </>
+    );
+
+    expect(screen.getByRole('button', { name: '7' })).toHaveAttribute('data-today');
+    expect(screen.getByRole('button', { name: '8' })).not.toHaveAttribute('data-today');
+  });
+
   it('renders a real button that defaults to type="button" and shape="cell"', () => {
     render(<ToggleTile>12</ToggleTile>);
 

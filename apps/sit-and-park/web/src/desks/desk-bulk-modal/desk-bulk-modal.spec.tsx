@@ -122,6 +122,14 @@ async function togglePerson(user: ReturnType<typeof userEvent.setup>, name: stri
 }
 
 describe('DeskBulkModal', () => {
+  it('marks only today in the grid', () => {
+    serve({});
+    renderModal();
+
+    expect(dayTile(16)).toHaveAttribute('data-today');
+    expect(dayTile(17)).not.toHaveAttribute('data-today');
+  });
+
   it('USER: picks days, sends no people, books the proposal and reports the result', async () => {
     const api = serve({
       'desk/previewBulk': ok(

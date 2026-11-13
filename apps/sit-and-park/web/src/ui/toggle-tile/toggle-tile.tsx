@@ -27,6 +27,8 @@ export interface ToggleTileProps
   selectable?: boolean | undefined;
   /** Defaults to `none`. */
   transition?: ToggleTileTransition | undefined;
+  /** Whether this tile is today's date; draws a ring that does not change its size. */
+  today?: boolean | undefined;
   /** CSS colour for the background of an inactive `cell`; ignored otherwise. */
   accentColor?: string | undefined;
 }
@@ -45,6 +47,7 @@ export const ToggleTile = forwardRef<HTMLButtonElement, ToggleTileProps>(functio
     disabled = false,
     type = 'button',
     accentColor,
+    today = false,
     children,
     ...rest
   },
@@ -67,6 +70,7 @@ export const ToggleTile = forwardRef<HTMLButtonElement, ToggleTileProps>(functio
       data-shape={shape}
       data-state={state}
       data-transition={transition}
+      data-today={today ? '' : undefined}
       data-accent={accented ? '' : undefined}
     >
       {children}

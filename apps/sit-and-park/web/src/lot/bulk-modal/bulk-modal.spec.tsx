@@ -318,6 +318,16 @@ async function reachSchedule(user: ReturnType<typeof userEvent.setup>) {
 }
 
 describe('BulkReservationModal — step 1, choosing the days', () => {
+  it('marks only today in the grid', () => {
+    setup();
+    expect(
+      screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' })
+    ).toHaveAttribute('data-today');
+    expect(
+      screen.getByRole('button', { name: 'dayCell: date=středa 2. září 2026' })
+    ).not.toHaveAttribute('data-today');
+  });
+
   it('draws the month grid with Czech column heads, Monday first', () => {
     setup();
     const heads = screen.getAllByRole('columnheader').map((cell) => cell.textContent);

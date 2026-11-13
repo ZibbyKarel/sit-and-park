@@ -280,7 +280,8 @@ export function DeskBulkModal({
   }
 
   // ----------------------------------------------------------------- select
-  const monthGrid = buildMonthGrid(anchorDate, todayInPrague(), NO_RESERVED_DATES);
+  const today = todayInPrague();
+  const monthGrid = buildMonthGrid(anchorDate, today, NO_RESERVED_DATES);
   const weekendHeads = weekendColumns(monthGrid);
   const selectedSet = new Set(selected);
 
@@ -332,6 +333,7 @@ export function DeskBulkModal({
                       <ToggleTile
                         shape="cell"
                         transition="base"
+                        today={day.date === today}
                         selected={day.selectable ? selectedSet.has(day.date) : false}
                         selectable={day.selectable}
                         aria-pressed={day.selectable ? selectedSet.has(day.date) : undefined}

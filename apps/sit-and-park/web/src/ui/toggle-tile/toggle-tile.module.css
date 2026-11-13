@@ -47,6 +47,10 @@
   background-color: var(--tile-accent);
 }
 
+.root[data-shape='cell'][data-today] {
+  box-shadow: 0 0 0 2px rgb(var(--border--controls-medium-selected--light));
+}
+
 .root[data-shape='pill'] {
   display: inline-flex;
   align-items: center;

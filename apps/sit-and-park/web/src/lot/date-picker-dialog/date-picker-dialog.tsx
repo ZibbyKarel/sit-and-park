@@ -28,6 +28,7 @@ import {
   addMonths,
   parseDateOnly,
   startOfMonth,
+  todayInPrague,
   useDateFormatters,
   useTranslations,
   type DateOnly,
@@ -78,6 +79,7 @@ function DatePickerDialogContent({
   const f = useDateFormatters();
   const [viewAnchor, setViewAnchor] = useState<DateOnly>(() => startOfMonth(selectedDate));
 
+  const today = todayInPrague();
   const grid = buildDatePickerGrid(viewAnchor, selectedDate);
   const parts = parseDateOnly(viewAnchor);
 
@@ -169,6 +171,7 @@ function DatePickerDialogContent({
                     <td key={key}>
                       <ToggleTile
                         shape="cell"
+                        today={day.date === today}
                         selected={day.selected}
                         selectable={day.selectable}
                         aria-pressed={day.selectable ? day.selected : undefined}

@@ -362,7 +362,8 @@ function BulkReservationModalContent({
     onError: setFailure,
   });
 
-  const grid = buildMonthGrid(anchorDate, todayInPrague(), reservedDates);
+  const today = todayInPrague();
+  const grid = buildMonthGrid(anchorDate, today, reservedDates);
   const weekendHeads = weekendColumns(grid);
   const selectedSet = new Set(selected);
 
@@ -586,6 +587,7 @@ function BulkReservationModalContent({
                       <ToggleTile
                         shape="cell"
                         transition="base"
+                        today={day.date === today}
                         selected={day.selectable ? selectedSet.has(day.date) : false}
                         selectable={
                           day.selectable &&

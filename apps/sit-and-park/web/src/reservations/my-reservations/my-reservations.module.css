@@ -92,14 +92,16 @@
   opacity: 0.7;
 }
 
-.cell[data-today='true'],
-.row[data-today='true'] {
-  border-width: 2px;
-}
-
 .cell[data-warning='true'],
 .row[data-warning='true'] {
   border-color: rgb(var(--border--warning-medium-default--light));
+}
+
+/* After the warning rule on purpose: today's ring wins when both apply. */
+.cell[data-today='true'],
+.row[data-today='true'] {
+  border-width: 2px;
+  border-color: rgb(var(--border--controls-medium-selected--light));
 }
 
 .cellDay {
