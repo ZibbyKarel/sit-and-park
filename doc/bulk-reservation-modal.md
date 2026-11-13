@@ -73,7 +73,9 @@ from it. "Zpět na výběr" returns to the grid with the selection intact.
 set of cells that were clicked. In the ordinary case the two are the same list; they part company if
 the preview is ever narrowed or reordered server-side, and then the schedule the user agreed to is
 the one that must be sent. The plan itself is not sent: the server does not receive, and would not
-trust, the allocation the client is holding. The modal then compares the two, day by day, and does not
+trust, the allocation the client is holding. The one exception is an admin's
+`spotChoices` (only the days they changed), which the server re-validates
+(`doc/decision/0333-admin-may-change-the-proposed-parking-spot.md`). The modal then compares the two, day by day, and does not
 close until the user dismisses it. This is the point of the whole flow and it has its own record:
 `doc/decision/0170-*`.
 

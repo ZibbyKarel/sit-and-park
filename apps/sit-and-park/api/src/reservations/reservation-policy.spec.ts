@@ -202,4 +202,20 @@ describe('ReservationPolicy', () => {
       ).not.toThrow();
     });
   });
+  describe('assertMayChooseBulkSpots', () => {
+    const CHOICES = [{ date: OPEN_MONTH_DAY, parkingSpotId: 'spot-1' }];
+
+    it('refuses a non-admin who sends choices', () => {
+      expect(codeOf(() => policy.assertMayChooseBulkSpots(USER, CHOICES))).toBe('FORBIDDEN');
+    });
+
+    it('lets a non-admin through with no choices', () => {
+      expect(() => policy.assertMayChooseBulkSpots(USER, [])).not.toThrow();
+      expect(() => policy.assertMayChooseBulkSpots(USER, undefined)).not.toThrow();
+    });
+
+    it('lets an admin choose', () => {
+      expect(() => policy.assertMayChooseBulkSpots(ADMIN, CHOICES)).not.toThrow();
+    });
+  });
 });

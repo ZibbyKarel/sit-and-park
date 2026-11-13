@@ -24,11 +24,15 @@
  * 3. **No active spots at all** → `UNAVAILABLE / NO_SPOTS_AVAILABLE`. There is
  *    nothing to reserve *and* nothing to queue for, so it is neither of the two
  *    outcomes below.
- * 4. **The preferred spot, if it is free** → `SPOT_ASSIGNED`, `isPreferredSpot`.
- * 5. **The first free spot** in the canonical order below → `SPOT_ASSIGNED`.
- * 6. Otherwise **the shortest queue** → `QUEUED`, with the position the user
+ * 4. **An admin's spot choice for that day, if it is free** → `SPOT_ASSIGNED`
+ *    (`isPreferredSpot` only if it happens to be the preferred spot). A choice
+ *    that is taken, blocked or not allocatable is ignored, never an error
+ *    (`doc/decision/0333-*`).
+ * 5. **The preferred spot, if it is free** → `SPOT_ASSIGNED`, `isPreferredSpot`.
+ * 6. **The first free spot** in the canonical order below → `SPOT_ASSIGNED`.
+ * 7. Otherwise **the shortest queue** → `QUEUED`, with the position the user
  *    would take (or already holds). The tiebreak there is the label *alone*,
- *    not the group-then-label order of steps 4–5 — see {@link shortestQueue}.
+ *    not the group-then-label order of steps 5–6 — see {@link shortestQueue}.
  *
  * ## Why the allocator sorts its own inputs
  *
@@ -106,6 +110,8 @@ export interface AllocationRequest {
   preferredParkingSpotId: string | null;
   /** One entry per date in {@link dates}. A missing date is an empty day. */
   stateByDate: ReadonlyMap<DateOnly, DayState>;
+  /** An admin's chosen spot per day (`confirmBulk`'s `spotChoices`). Honoured only when free. */
+  spotChoiceByDate?: ReadonlyMap<DateOnly, string>;
 }
 
 /** An empty world, for a date the caller had nothing to say about. */
@@ -174,6 +180,13 @@ function shortestQueue(
   return best;
 }
 
+/** Spots neither blocked nor reserved that day, in the order they arrive. */
+function freeSpots(spots: readonly AllocatableSpot[], day: DayState): AllocatableSpot[] {
+  return spots.filter(
+    (spot) => !day.blockedSpotIds.has(spot.id) && !day.reservedSpotIds.has(spot.id)
+  );
+}
+
 /** One day, given the rules in this file's header. */
 function planDay(
   date: DateOnly,
@@ -192,9 +205,11 @@ function planDay(
     return { outcome: 'UNAVAILABLE', date, reason: 'NO_SPOTS_AVAILABLE' };
   }
 
-  const free = candidates.filter((spot) => !day.reservedSpotIds.has(spot.id));
+  const free = freeSpots(candidates, day);
+  const choiceId = request.spotChoiceByDate?.get(date);
+  const choice = free.find((spot) => spot.id === choiceId);
   const preferred = free.find((spot) => spot.id === request.preferredParkingSpotId);
-  const chosen = preferred ?? free[0];
+  const chosen = choice ?? preferred ?? free[0];
 
   if (chosen !== undefined) {
     return {
@@ -238,4 +253,22 @@ export function allocateBulk(request: AllocationRequest): BulkDayPlan[] {
   return dates.map((date) =>
     planDay(date, spots, request, request.stateByDate.get(date) ?? EMPTY_DAY)
   );
+}
+
+/**
+ * Per requested business day the holder has no reservation on, the spots
+ * {@link allocateBulk} could assign — the options an admin may choose from.
+ * Ascending date, spots in {@link compareSpots} order.
+ */
+export function freeSpotsByDate(
+  request: AllocationRequest
+): { date: DateOnly; spots: { id: string; label: string }[] }[] {
+  const spots = [...request.spots].sort(compareSpots);
+  return [...request.dates].sort(compareDateOnly).flatMap((date) => {
+    const day = request.stateByDate.get(date) ?? EMPTY_DAY;
+    if (!isBusinessDay(date) || day.userHasReservation) {
+      return [];
+    }
+    return [{ date, spots: freeSpots(spots, day).map(({ id, label }) => ({ id, label })) }];
+  });
 }

@@ -3,7 +3,7 @@
 import type { useTranslations } from '@sit-and-park/i18n';
 import { Button, Modal } from '@shoptet/ui';
 import type { PreviewBulkOutput } from '@sit-and-park/contract';
-import { CalendarTable } from './calendar-table';
+import { CalendarTable, type CalendarTableProps } from './calendar-table';
 import styles from './bulk-modal.module.css';
 
 /**
@@ -25,6 +25,7 @@ export interface SchedulePreviewModalProps {
   readonly onBack: () => void;
   readonly confirmPending: boolean;
   readonly onConfirm: () => void;
+  readonly picker: NonNullable<CalendarTableProps['picker']>;
 }
 
 export function SchedulePreviewModal({
@@ -36,12 +37,13 @@ export function SchedulePreviewModal({
   onBack,
   confirmPending,
   onConfirm,
+  picker,
 }: SchedulePreviewModalProps) {
   return (
     <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
       <Modal.Header subheader={t('scheduleDescription')}>{t('scheduleTitle')}</Modal.Header>
       <Modal.Content>
-        <CalendarTable days={proposal.days} t={t} />
+        <CalendarTable days={proposal.days} t={t} picker={picker} />
         <p className={styles.summary}>
           {/*
             The server's own count, exactly as the result step uses

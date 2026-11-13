@@ -218,6 +218,31 @@ describe('bulk booking against a real PostgreSQL', () => {
   });
 
   describe('previewBulk', () => {
+    it('returns the free spots per day', async () => {
+      const FREE_SPOTS_DAY = '2100-07-01' as DateOnly;
+      const SATURDAY = '2100-07-03' as DateOnly;
+      const [free, taken] = [await seedSpot(client), await seedSpot(client)];
+      await client.reservation.create({
+        data: {
+          parkingSpotId: taken.id,
+          userId: (await seedUser(client)).id,
+          date: toDateColumn(FREE_SPOTS_DAY),
+        },
+      });
+
+      const preview = await harness.bulk.preview(
+        { dates: [SATURDAY, FREE_SPOTS_DAY] },
+        actorFor(user),
+        TODAY
+      );
+
+      expect(preview.freeSpots.map((entry) => entry.date)).toEqual([FREE_SPOTS_DAY]);
+      const ids = preview.freeSpots[0]?.spots.map((spot) => spot.id) ?? [];
+      expect(ids).toContain(free.id);
+      expect(ids).not.toContain(taken.id);
+      expect(preview.freeSpots[0]?.spots).toContainEqual({ id: free.id, label: free.label });
+    });
+
     it('writes nothing at all — no reservation, no queue entry, no audit row', async () => {
       const before = await counts();
 
@@ -537,6 +562,85 @@ describe('bulk booking against a real PostgreSQL', () => {
   });
 
   describe('confirmBulk', () => {
+    it("an admin's spot choice is booked instead of the allocator's pick", async () => {
+      const CHOSEN_DAY = '2100-07-02' as DateOnly;
+      const [admin, preferred, chosen] = [
+        await seedUser(client),
+        await seedSpot(client),
+        await seedSpot(client),
+      ];
+      await setPreferredSpot(client, admin.id, preferred.id);
+
+      const result = await harness.bulk.confirm(
+        { dates: [CHOSEN_DAY], spotChoices: [{ date: CHOSEN_DAY, parkingSpotId: chosen.id }] },
+        actorFor(admin, 'ADMIN'),
+        TODAY
+      );
+
+      expect(result.days[0]).toMatchObject({
+        outcome: 'SPOT_ASSIGNED',
+        parkingSpotId: chosen.id,
+        isPreferredSpot: false,
+      });
+      expect(
+        await client.reservation.count({
+          where: { userId: admin.id, parkingSpotId: chosen.id, date: toDateColumn(CHOSEN_DAY) },
+        })
+      ).toBe(1);
+    });
+
+    it('a chosen spot taken before confirm falls back to normal allocation', async () => {
+      const TAKEN_CHOICE_DAY = '2100-07-07' as DateOnly;
+      const [admin, preferred, chosen] = [
+        await seedUser(client),
+        await seedSpot(client),
+        await seedSpot(client),
+      ];
+      await setPreferredSpot(client, admin.id, preferred.id);
+      await client.reservation.create({
+        data: {
+          parkingSpotId: chosen.id,
+          userId: (await seedUser(client)).id,
+          date: toDateColumn(TAKEN_CHOICE_DAY),
+        },
+      });
+
+      const result = await harness.bulk.confirm(
+        {
+          dates: [TAKEN_CHOICE_DAY],
+          spotChoices: [{ date: TAKEN_CHOICE_DAY, parkingSpotId: chosen.id }],
+        },
+        actorFor(admin, 'ADMIN'),
+        TODAY
+      );
+
+      expect(result.days[0]).toMatchObject({
+        outcome: 'SPOT_ASSIGNED',
+        parkingSpotId: preferred.id,
+        isPreferredSpot: true,
+      });
+    });
+
+    it('refuses spot choices from a non-admin', async () => {
+      const NON_ADMIN_CHOICE_DAY = '2100-07-08' as DateOnly;
+      const [booker, spot] = [await seedUser(client), await seedSpot(client)];
+      const before = await counts();
+
+      expect(
+        await codeOf(
+          harness.bulk.confirm(
+            {
+              dates: [NON_ADMIN_CHOICE_DAY],
+              spotChoices: [{ date: NON_ADMIN_CHOICE_DAY, parkingSpotId: spot.id }],
+            },
+            actorFor(booker),
+            TODAY
+          )
+        )
+      ).toBe('FORBIDDEN');
+      expect(await counts()).toEqual(before);
+    });
+
     it('writes a reservation, an audit entry and a broadcast for every assigned day', async () => {
       const booker = await seedUser(client);
 

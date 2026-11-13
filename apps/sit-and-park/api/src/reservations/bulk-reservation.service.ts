@@ -114,6 +114,7 @@ import type {
   BulkBookingSummary,
   BulkDayPlan,
   BulkDayResult,
+  ConfirmBulkInput,
   ConfirmBulkOutput,
   PreviewBulkOutput,
   ReservationWindowSettings,
@@ -138,8 +139,8 @@ import { toDateColumn, toDateOnly, toPublicReservation } from '../common/prisma-
 import { PrismaService } from '../database/prisma.service';
 import { ReservationWindowService } from '../reservation-window/reservation-window.service';
 import { assertActiveUser } from './active-user';
-import type { AllocatableSpot, DayState } from './bulk-allocator';
-import { allocateBulk } from './bulk-allocator';
+import type { AllocatableSpot, AllocationRequest, DayState } from './bulk-allocator';
+import { allocateBulk, freeSpotsByDate } from './bulk-allocator';
 import {
   assertWithinMonthlyReservationCap,
   readMonthlyReservationCap,
@@ -267,22 +268,25 @@ export class BulkReservationService {
     const month = this.monthOf(input.dates);
 
     const world = await this.readWorld(this.prisma.client, input.dates, holderId);
-    const days = this.inRequestOrder(input.dates, this.allocate(input.dates, world, holderId));
+    const request = this.allocationRequest(input.dates, world, holderId);
+    const days = this.inRequestOrder(input.dates, allocateBulk(request));
 
     return {
       month,
       preferredParkingSpotId: world.preferredParkingSpotId,
       days,
+      freeSpots: freeSpotsByDate(request),
       summary: this.summarise(days),
     };
   }
 
   /** The real booking. One transaction; broadcasts strictly after it commits. */
   async confirm(
-    input: BulkBookingInput,
+    input: ConfirmBulkInput,
     actor: AuthenticatedUser,
     today: DateOnly = todayInPrague()
   ): Promise<ConfirmBulkOutput> {
+    this.policy.assertMayChooseBulkSpots(actor, input.spotChoices);
     const holderId = await this.resolveHolder(input.holderId, actor);
     const settings = await this.window.getSettings();
     this.assertRequestable(input.dates, actor, settings, today);
@@ -295,7 +299,19 @@ export class BulkReservationService {
       today
     );
 
-    const outcome = await this.committedConfirm(input.dates, month, actor, holderId, capInForce);
+    // Honoured per attempt against the world `confirmOnce` re-reads, so a choice
+    // taken since the preview simply falls back (`doc/decision/0333-*`).
+    const spotChoiceByDate = new Map(
+      (input.spotChoices ?? []).map((choice) => [choice.date, choice.parkingSpotId])
+    );
+    const outcome = await this.committedConfirm(
+      input.dates,
+      month,
+      actor,
+      holderId,
+      capInForce,
+      spotChoiceByDate
+    );
 
     // Past `await`, so past `COMMIT` — and deliberately outside the retry loop.
     // Nothing above this line may talk to Slack or Socket.io. There are no
@@ -349,12 +365,13 @@ export class BulkReservationService {
     month: string,
     actor: AuthenticatedUser,
     holderId: string,
-    capInForce: boolean
+    capInForce: boolean,
+    spotChoiceByDate: ReadonlyMap<DateOnly, string>
   ): Promise<ConfirmOutcome> {
     for (let attempt = 1; ; attempt += 1) {
       try {
         return await this.prisma.client.$transaction(
-          (tx) => this.confirmOnce(tx, dates, month, actor, holderId, capInForce),
+          (tx) => this.confirmOnce(tx, dates, month, actor, holderId, capInForce, spotChoiceByDate),
           RESERVATION_TRANSACTION_OPTIONS
         );
       } catch (error) {
@@ -393,10 +410,11 @@ export class BulkReservationService {
     month: string,
     actor: AuthenticatedUser,
     holderId: string,
-    capInForce: boolean
+    capInForce: boolean,
+    spotChoiceByDate: ReadonlyMap<DateOnly, string>
   ): Promise<ConfirmOutcome> {
     const world = await this.readWorld(tx, dates, holderId);
-    const plans = this.allocate(dates, world, holderId);
+    const plans = allocateBulk(this.allocationRequest(dates, world, holderId, spotChoiceByDate));
 
     const assignedCount = plans.filter((plan) => plan.outcome === 'SPOT_ASSIGNED').length;
     if (capInForce && assignedCount > 0) {
@@ -776,14 +794,20 @@ export class BulkReservationService {
 
   // --- assembling the answer -------------------------------------------------
 
-  private allocate(dates: readonly DateOnly[], world: World, holderId: string): BulkDayPlan[] {
-    return allocateBulk({
+  private allocationRequest(
+    dates: readonly DateOnly[],
+    world: World,
+    holderId: string,
+    spotChoiceByDate: ReadonlyMap<DateOnly, string> = new Map()
+  ): AllocationRequest {
+    return {
       dates,
       spots: world.spots,
       userId: holderId,
       preferredParkingSpotId: world.preferredParkingSpotId,
       stateByDate: world.stateByDate,
-    });
+      spotChoiceByDate,
+    };
   }
 
   /**

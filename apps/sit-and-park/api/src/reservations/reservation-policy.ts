@@ -189,6 +189,23 @@ export class ReservationPolicy {
   }
 
   /**
+   * May this caller override the proposed spot of a parking bulk confirm?
+   * Only an admin; an empty or absent list is no override at all.
+   */
+  assertMayChooseBulkSpots(
+    actor: AuthenticatedUser,
+    spotChoices: readonly unknown[] | undefined
+  ): void {
+    if (spotChoices === undefined || spotChoices.length === 0 || actor.role === 'ADMIN') {
+      return;
+    }
+
+    throw new DomainError('FORBIDDEN', {
+      message: 'Only an admin may choose the spots of a bulk booking.',
+    });
+  }
+
+  /**
    * May this caller book desks for every one of `userIds` (desk bulk booking)?
    * Themselves always; anybody else only as an admin.
    */

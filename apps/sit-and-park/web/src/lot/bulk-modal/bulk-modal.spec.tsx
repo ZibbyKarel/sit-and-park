@@ -172,6 +172,7 @@ function preview(overrides: Partial<PreviewBulkOutput> = {}): PreviewBulkOutput 
         isPreferredSpot: false,
       },
     ],
+    freeSpots: [],
     summary: { assigned: 2, queued: 0, unavailable: 0, preferredSpotHits: 1 },
     ...overrides,
   };
@@ -939,6 +940,104 @@ describe('BulkReservationModal — the admin holder selector', () => {
 });
 
 describe('BulkReservationModal — step 2, the proposed schedule', () => {
+  const FREE = [
+    {
+      date: '2026-09-02',
+      spots: [
+        { id: 'spot-other', label: 'E2.93' },
+        { id: 'spot-free', label: 'E2.99' },
+      ],
+    },
+  ];
+  const SPOT_LABEL = /spotSelectLabel: date=.*2\. září/;
+
+  it('ADMIN: a changed spot is sent as a spotChoice, only for that day', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await user.click(screen.getByLabelText(SPOT_LABEL));
+    const listbox = await screen.findByRole('listbox');
+    expect(within(listbox).getAllByRole('option', { name: 'E2.93' })).toHaveLength(1);
+    await user.click(within(listbox).getByRole('option', { name: 'E2.99' }));
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() =>
+      expect(apiMocks.confirmBulk).toHaveBeenCalledWith(
+        {
+          dates: ['2026-09-01', '2026-09-02'],
+          spotChoices: [{ date: '2026-09-02', parkingSpotId: 'spot-free' }],
+        },
+        expect.anything()
+      )
+    );
+  });
+
+  it('ADMIN: an honoured pick is not reported as a change on the result step', async () => {
+    const { user } = setup({
+      isAdmin: true,
+      previewOutput: preview({ freeSpots: FREE }),
+      confirmOutput: confirmed({
+        days: [
+          {
+            outcome: 'SPOT_ASSIGNED',
+            date: '2026-09-01',
+            parkingSpotId: PREFERRED_SPOT_ID,
+            parkingSpotLabel: 'E2.92',
+            isPreferredSpot: true,
+            reservationId: 'res-1',
+          },
+          {
+            outcome: 'SPOT_ASSIGNED',
+            date: '2026-09-02',
+            parkingSpotId: 'spot-free',
+            parkingSpotLabel: 'E2.99',
+            isPreferredSpot: false,
+            reservationId: 'res-2',
+          },
+        ],
+      }),
+    });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    expect(await screen.findByText('resultUnchanged')).toBeInTheDocument();
+    expect(screen.queryByText('resultChangedTitle')).not.toBeInTheDocument();
+  });
+
+  it('ADMIN: a dropped pick shows up as a difference on the result step', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    expect(await screen.findByText('resultChangedTitle')).toBeInTheDocument();
+    expect(screen.queryByText('resultUnchanged')).not.toBeInTheDocument();
+  });
+
+  it('ADMIN: a choice does not survive Back and a new preview', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaBack' }));
+    await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=2' }));
+    await user.click(await screen.findByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() => expect(apiMocks.confirmBulk).toHaveBeenCalled());
+    expect(apiMocks.confirmBulk.mock.calls[0][0]).not.toHaveProperty('spotChoices');
+  });
+
+  it('ADMIN: confirming without changes sends no spotChoices', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() => expect(apiMocks.confirmBulk).toHaveBeenCalled());
+    expect(apiMocks.confirmBulk.mock.calls[0][0]).not.toHaveProperty('spotChoices');
+  });
+
+  it('non-admin: the select shows the proposed spot and is disabled', async () => {
+    const { user } = setup({ previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    const select = screen.getByLabelText(SPOT_LABEL);
+    expect(select).toBeDisabled();
+    expect(select).toHaveTextContent('E2.93');
+  });
+
   it('lists every day as date, weekday, spot and badge', async () => {
     const { user } = setup();
     await reachSchedule(user);
@@ -953,6 +1052,7 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
 
   it('badges a queued day with its position and an impossible day with its reason', async () => {
     const { user } = setup({
+      isAdmin: true,
       previewOutput: preview({
         days: [
           {
@@ -970,6 +1070,9 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
     await reachSchedule(user);
 
     expect(screen.getByText('badgeQueued: position=3')).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/spotSelectLabel: date=.*1\. září/));
+    expect(within(await screen.findByRole('listbox')).getAllByRole('option')).toHaveLength(1);
+    await user.keyboard('{Escape}');
     expect(screen.getByText('badgeAlreadyReserved: position=0')).toBeInTheDocument();
   });
 

@@ -232,6 +232,7 @@ export function DeskBulkModal({
                           getOptionValue={(option) => option.value}
                           getOptionLabel={(option) => option.label}
                           value={row.deskId ?? NO_DESK}
+                          disabled={!isAdmin}
                           onChange={(value) => {
                             setPicks((current) => ({
                               ...current,

@@ -44,6 +44,20 @@ with an extra step. Three consequences follow, and all three are the point:
 The preview is not a promise, and the API never pretends otherwise: every field
 of the confirmation is built from rows the database actually returned.
 
+### An admin's per-day spot choice
+
+`confirmBulk` otherwise takes only `dates`. An admin may add `spotChoices:
+{ date, parkingSpotId }[]` (dates unique, each one of `dates`); a non-admin
+sending a non-empty list gets `FORBIDDEN` before anything else runs.
+`previewBulk` returns `freeSpots: { date, spots: { id, label }[] }[]` to fill the
+per-day select. In `planDay` the order is choice, preferred spot, first free
+spot, and a choice counts only when that spot is still free and allocatable in
+the transaction; otherwise the day is allocated normally, with no new error or
+outcome. The same choices are reused on every retry. The web modal sends only
+the days the admin changed; for a non-admin the select is disabled and
+prefilled. Desks have their own rules (`doc/decision/0321-*`); only their
+existing select is disabled for non-admins. See `doc/decision/0333-*`.
+
 ---
 
 ## The allocator
@@ -56,26 +70,30 @@ the preference order testable by an ordinary unit test.
 
 ### Per day, in this order
 
-1. **Not a business day** → `UNAVAILABLE / NOT_A_BUSINESS_DAY`. First because it
+1. **An admin's explicit choice for the day, if that spot is still free** →
+   `SPOT_ASSIGNED` (`doc/decision/0333-*`). Only `confirmBulk` receives
+   choices; a choice for a spot no longer free is ignored and the day goes
+   through the steps below as usual.
+2. **Not a business day** → `UNAVAILABLE / NOT_A_BUSINESS_DAY`. First because it
    is the most durable fact: a Saturday is still a Saturday next month, whereas
    "every spot is taken" is true for an afternoon. Note that inside a bulk
    request this is a _per-day fact_, not a rejected request — see
    `doc/decision/0090-*`.
-2. **The user already holds a reservation that day** → `UNAVAILABLE /
+3. **The user already holds a reservation that day** → `UNAVAILABLE /
 ALREADY_HAS_RESERVATION`. Above the queue branch on purpose: queueing
    somebody who already has a spot creates an entry that can never be promoted
    (one reservation per user per day), which is what `waitlist.join` refuses at
    the door.
-3. **No active, non-hidden spots at all** (`doc/decision/0316-*`) →
+4. **No active, non-hidden spots at all** (`doc/decision/0316-*`) →
    `UNAVAILABLE / NO_SPOTS_AVAILABLE`.
-4. **The preferred spot, if free** → `SPOT_ASSIGNED`, `isPreferredSpot: true`.
-5. **The first free spot** in canonical order → `SPOT_ASSIGNED`.
-6. **Otherwise the shortest queue** → `QUEUED`, with the position the user would
+5. **The preferred spot, if free** → `SPOT_ASSIGNED`, `isPreferredSpot: true`.
+6. **The first free spot** in canonical order → `SPOT_ASSIGNED`.
+7. **Otherwise the shortest queue** → `QUEUED`, with the position the user would
    take (or the one they already hold).
 
 `preferredParkingSpotId` comes from the user's profile and is a bulk-only
 preference — the single-day flow never applies it. A retired spot is simply
-absent from the candidate list, so a stale preference degrades to step 5.
+absent from the candidate list, so a stale preference degrades to step 6.
 
 ### The two orderings, and why the allocator re-derives both
 

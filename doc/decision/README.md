@@ -226,3 +226,4 @@ for why, and take the next number from the end of this list.
 - [`0330-employee-sync-endpoint-key-hash-dry-run-shrink-protection`](0330-employee-sync-endpoint-key-hash-dry-run-shrink-protection.md) — 0330 – Employee sync: endpoint outside oRPC, key hash from the environment, dry-run default, shrink protection, manual accounts
 - [`0331-the-contract-stays-mcp-friendly-no-mcp-server-or-slack-bot`](0331-the-contract-stays-mcp-friendly-no-mcp-server-or-slack-bot.md) — 0331 – The contract stays MCP-friendly; no MCP server or Slack bot is built
 - [`0332-deskapprovalrequest-naming-and-the-request-lifecycle`](0332-deskapprovalrequest-naming-and-the-request-lifecycle.md) — 0332 – `DeskApprovalRequest` naming and the request lifecycle
+- [`0333-admin-may-change-the-proposed-parking-spot`](0333-admin-may-change-the-proposed-parking-spot.md) — 0333 – An admin may change the proposed parking spot in a bulk confirm
