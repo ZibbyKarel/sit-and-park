@@ -1,6 +1,6 @@
+import { IntlProvider } from '@sit-and-park/i18n';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { IntlProvider } from '@sit-and-park/i18n';
 import cs from '../../../messages/cs.json';
 import { LoginScreen } from './login-screen';
 
@@ -28,14 +28,6 @@ describe('LoginScreen', () => {
     renderLoginScreen();
 
     expect(screen.getByRole('heading', { level: 1 })).toHaveTextContent('brand');
-  });
-
-  it('shows both lines of the Czech tagline and the footnote', () => {
-    renderLoginScreen();
-
-    expect(screen.getByText(/tagline/)).toBeInTheDocument();
-    expect(screen.getByText(/taglineSecondary/)).toBeInTheDocument();
-    expect(screen.getByText('footnote')).toBeInTheDocument();
   });
 
   it('offers exactly one control, and it submits a form', () => {

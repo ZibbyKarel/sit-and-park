@@ -12,15 +12,12 @@
     "metaDescription": "Company parking spot reservations."
   },
   "login": {
-    "tagline": "Company parking spot reservations.",
-    "taglineSecondary": "Sign in with your company account.",
-    "signIn": "Sign in with OKTA Verify",
-    "footnote": "Internal tool · employees only"
+    "signIn": "Sign in with OKTA Verify"
   },
   "nav": {
     "userMenu": "User menu",
     "adminBadge": "Admin",
-    "settings": "Settings (car license plate)",
+    "settings": "Settings",
     "administration": "Administration",
     "language": "Language",
     "languageCurrent": "(current)",

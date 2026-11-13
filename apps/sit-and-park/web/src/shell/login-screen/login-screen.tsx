@@ -13,10 +13,10 @@
  * `doc/auth.md` §"The flow, end to end".
  */
 
-import { Button, Paragraph, Stack, Text } from '@shoptet/ui';
+import { Button, Stack } from '@shoptet/ui';
 import { useTranslations } from '@sit-and-park/i18n';
-import { Brand } from '../brand';
 import { IconCircle } from '../../ui/icon-circle/icon-circle';
+import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import styles from './login-screen.module.css';
 
 export interface LoginScreenProps {
@@ -26,17 +26,16 @@ export interface LoginScreenProps {
 
 export function LoginScreen({ action }: LoginScreenProps) {
   const t = useTranslations('login');
+  const tShell = useTranslations('shell');
 
   return (
     <div className={styles.canvas}>
       <Stack align="center" justify="center" gap="xxl">
-        <Brand size="lg" asHeading />
-
-        <Paragraph appearance="lg" variant="secondary" align="center">
-          {t('tagline')}
-          <br />
-          {t('taglineSecondary')}
-        </Paragraph>
+        {/* The full logo, claim included; the hidden text names the page's only heading. */}
+        <h1 className={styles.logoHeading}>
+          <VisuallyHidden>{tShell('brand')}</VisuallyHidden>
+          <img src="/sit-and-park-logo.svg" alt="" className={styles.logo} />
+        </h1>
 
         <form action={action}>
           <Button type="submit" size="lg">
@@ -56,12 +55,6 @@ export function LoginScreen({ action }: LoginScreenProps) {
             </span>
           </Button>
         </form>
-
-        <span className={styles.footnote}>
-          <Text appearance="strong-sm" variant="tertiary" align="center">
-            {t('footnote')}
-          </Text>
-        </span>
       </Stack>
     </div>
   );

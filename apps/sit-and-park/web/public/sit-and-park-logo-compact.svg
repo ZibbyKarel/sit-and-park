@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 530 230" role="img" aria-labelledby="title">
+<title id="title">Sit &amp; Park</title>
+<g transform="translate(14 0) scale(.82)">
+  <path d="M128 22c-52 0-94 42-94 94 0 68 94 150 94 150s94-82 94-150c0-52-42-94-94-94Z" fill="#3B88FF"/>
+  <path d="M91 159V88h37c23 0 37 12 37 32 0 19-14 31-37 31h-21v20H91Zm16-24h21c14 0 21-5 21-15s-7-16-21-16h-21v31Z" fill="#FFFFFF" fill-rule="evenodd"/>
+  <path d="M118 182h48m-40 0v18m32-18v18" fill="none" stroke="#00DB33" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<text x="235" y="112" textLength="280" lengthAdjust="spacingAndGlyphs" fill="#172A45" font-family="Inter, Arial, sans-serif" font-size="65" font-weight="750" letter-spacing="-2">Sit <tspan fill="#FFBE0E">&amp;</tspan> Park</text>
+</svg>

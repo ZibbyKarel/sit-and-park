@@ -12,15 +12,12 @@
     "metaDescription": "Rezervace firemních parkovacích míst."
   },
   "login": {
-    "tagline": "Rezervace firemních parkovacích míst.",
-    "taglineSecondary": "Přihlaste se firemním účtem.",
-    "signIn": "Login přes OKTA Verify",
-    "footnote": "Interní nástroj · pouze pro zaměstnance"
+    "signIn": "Login přes OKTA Verify"
   },
   "nav": {
     "userMenu": "Uživatelské menu",
     "adminBadge": "Admin",
-    "settings": "Nastavení (SPZ auta)",
+    "settings": "Nastavení",
     "administration": "Správa",
     "language": "Jazyk",
     "languageCurrent": "(aktuální)",

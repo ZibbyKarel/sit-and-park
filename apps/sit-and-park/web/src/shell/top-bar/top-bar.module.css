@@ -19,6 +19,17 @@
   text-decoration: none;
 }
 
+/* The global `img { max-width: 100%; height: auto }` reset drops the height
+   attribute, and the shrink-wrapped link gives max-width nothing to resolve
+   against, so the logo collapses to 0x0 without an explicit size. */
+.brandLogo {
+  height: 84px;
+  width: auto;
+  max-width: none;
+  /* Takes only 48px of the bar's height; the pin's tip hangs below the bar. */
+  margin-block: -8px -28px;
+}
+
 .nav {
   display: flex;
   flex: 1;

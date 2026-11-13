@@ -6,6 +6,19 @@
   padding-inline: 16px;
 }
 
+.logoHeading {
+  margin: 0;
+}
+
+/* Explicit size: the global `img { max-width: 100%; height: auto }` reset
+   would otherwise collapse it inside the shrink-wrapped stack. */
+.logo {
+  display: block;
+  width: min(360px, calc(100vw - 32px));
+  max-width: none;
+  height: auto;
+}
+
 .signIn {
   display: inline-flex;
   align-items: center;

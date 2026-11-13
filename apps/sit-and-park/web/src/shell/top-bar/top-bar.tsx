@@ -109,9 +109,9 @@ export function TopBar({
 
   return (
     <header className={styles.bar}>
-      {/* Full logo (symbol, name, claim) linking to the landing page. */}
+      {/* Logo without the claim (that lives on the login screen), linking to the landing page. */}
       <NextLink href="/" className={styles.brandLink}>
-        <img src="/sit-and-park-logo.svg" alt={tShell('brand')} height={44} />
+        <img src="/sit-and-park-logo-compact.svg" alt={tShell('brand')} height={44} className={styles.brandLogo} />
       </NextLink>
 
       <nav aria-label={t('primary')} className={styles.nav}>
