@@ -192,6 +192,15 @@ function stubClipboard(): { writeText: jest.Mock } {
   return { writeText };
 }
 
+/** The × in the corner. `Modal` renders it without an accessible name. */
+function closeButton(): HTMLElement {
+  const button = document.querySelector<HTMLElement>('.modal__close button');
+  if (button === null) {
+    throw new Error('close button not rendered');
+  }
+  return button;
+}
+
 describe('SettingsScreen — loading and error', () => {
   it('shows the loading state and no form while the profile is in flight', () => {
     renderScreen({ isPending: true, profile: undefined });
@@ -537,19 +546,32 @@ describe('SettingsScreen — the modal chrome', () => {
     expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('does not close on a scrim click, so a stray click cannot discard unsaved input', async () => {
+  it('closes on a scrim click', async () => {
     const { onClose, user } = renderScreen();
 
-    const scrim = screen.getByRole('dialog').parentElement as HTMLElement;
-    await user.click(scrim);
+    await user.click(document.querySelector('.modal__overlay') as HTMLElement);
 
-    expect(onClose).not.toHaveBeenCalled();
+    expect(onClose).toHaveBeenCalledTimes(1);
   });
 
-  it('renders no × close button — the design draws none', () => {
-    renderScreen();
+  it('closes with the close button', async () => {
+    const { onClose, user } = renderScreen();
 
-    expect(screen.queryByRole('button', { name: 'Zavřít' })).not.toBeInTheDocument();
+    await user.click(closeButton());
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not close the settings when Escape closes the regenerate confirmation', async () => {
+    const { onClose, user } = renderScreen();
+
+    await user.click(screen.getByRole('button', { name: 'icsRegenerate' }));
+    await user.keyboard('{Escape}');
+
+    expect(
+      screen.queryByRole('dialog', { name: 'icsRegenerateConfirmTitle' })
+    ).not.toBeInTheDocument();
+    expect(onClose).not.toHaveBeenCalled();
   });
 });
 

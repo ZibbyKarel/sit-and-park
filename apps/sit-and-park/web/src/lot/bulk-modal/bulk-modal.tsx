@@ -35,7 +35,6 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, Modal, SystemMessage } from '@shoptet/ui';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
-import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import type { ConfirmBulkOutput, PreviewBulkOutput } from '@sit-and-park/contract';
 import { FormProvider, useAppForm } from '@sit-and-park/form';
 import { useApi } from '../../shell/api-provider/api-provider';
@@ -146,8 +145,6 @@ function BulkReservationModalContent({
   holderError,
 }: BulkReservationModalProps) {
   const t = useTranslations('bulk');
-  // Every step below, `SchedulePreviewModal` included, is one modal at a time.
-  useEscapeToClose(open, onClose);
   const f = useDateFormatters();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -435,7 +432,7 @@ function BulkReservationModalContent({
   if (result !== null) {
     const differences = diffBulkSchedule(confirmedPlan ?? proposal?.days ?? [], result.days);
     return (
-      <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal isOpen={open} onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
         <Modal.Header subheader={t('resultDescription')}>{t('resultTitle')}</Modal.Header>
         <Modal.Content>
           <div className={styles.stack}>
@@ -501,10 +498,7 @@ function BulkReservationModalContent({
   // header button cannot cover. Deliberately **after** the result step above.
   if (!canReserveMonth) {
     return (
-      // Consistent with the three flow steps: whichever of them this replaced
-      // was holding a selection, and a stray click on the scrim should not be
-      // how the user finds that out.
-      <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal isOpen={open} onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
         <Modal.Header>{t('lockedTitle')}</Modal.Header>
         <Modal.Content>
           <p className={styles.muted}>{t('lockedDescription')}</p>
@@ -589,7 +583,7 @@ function BulkReservationModalContent({
 
   // ----------------------------------------------------------------- select
   return (
-    <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+    <Modal isOpen={open} onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
       <Modal.Header
         subheader={t('description', {
           month: f.monthLocative(parseDateOnly(anchorDate).month),

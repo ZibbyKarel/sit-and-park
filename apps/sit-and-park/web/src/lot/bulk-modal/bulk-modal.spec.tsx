@@ -311,6 +311,15 @@ function setup(options: SetupOptions = {}) {
 }
 
 /** Selects two working days and moves on to the proposal. */
+/** The × in the corner. `Modal` renders it without an accessible name. */
+function closeButton(): HTMLElement {
+  const button = document.querySelector<HTMLElement>('.modal__close button');
+  if (button === null) {
+    throw new Error('close button not rendered');
+  }
+  return button;
+}
+
 async function reachSchedule(user: ReturnType<typeof userEvent.setup>) {
   await user.click(screen.getByRole('button', { name: 'dayCell: date=úterý 1. září 2026' }));
   await user.click(screen.getByRole('button', { name: 'dayCell: date=středa 2. září 2026' }));
@@ -1446,32 +1455,14 @@ describe('BulkReservationModal — the locked month is blocked, not merely hidde
     expect(apiMocks.previewBulk).not.toHaveBeenCalled();
   });
 
-  it('does not let a stray scrim click be how the user loses a selection', async () => {
-    // The refusal can replace a step that was holding a month's worth of picked
-    // days, and going back is not offered. Every one of the four panels sets
-    // `closeOnScrimClick={false}` for that reason; without this the refusal was
-    // the one that did not, and nothing said so.
-    const { user, rerender, onClose } = setup();
-    await reachSchedule(user);
+  it('closes with the close button and on a scrim click', async () => {
+    const { user, onClose } = setup();
 
-    rerender(
-      <BulkReservationModal
-        open
-        onClose={onClose}
-        anchorDate={ANCHOR}
-        canReserveMonth={false}
-        isAdmin={false}
-        viewerUserId={null}
-        holderOptions={[]}
-        holderPending={false}
-      />
-    );
+    await user.click(closeButton());
+    expect(onClose).toHaveBeenCalledTimes(1);
 
-    const dialog = screen.getByRole('dialog', { name: 'lockedTitle' });
-    await user.click(dialog.parentElement as HTMLElement);
-
-    expect(onClose).not.toHaveBeenCalled();
-    expect(screen.getByRole('dialog', { name: 'lockedTitle' })).toBeInTheDocument();
+    await user.click(document.querySelector('.modal__overlay') as HTMLElement);
+    expect(onClose).toHaveBeenCalledTimes(2);
   });
 
   it('stops a confirmation whose window closed while the modal was open', async () => {

@@ -27,7 +27,6 @@ import type { DeskBulkPreviewOutput } from '@sit-and-park/contract';
 import { MultiSelect, SingleSelect } from '../../ui/client-select/client-select';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
-import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import { useApi } from '../../shell/api-provider/api-provider';
 import { useNotify } from '../../shell/notifications/toast-provider';
 import { useAdminUserOptions } from '../../lot/use-admin-user-options';
@@ -79,7 +78,6 @@ export function DeskBulkModal({
   const f = useDateFormatters();
   const api = useApi();
   const queryClient = useQueryClient();
-  useEscapeToClose(true, onClose);
 
   const [selected, setSelected] = useState<readonly DateOnly[]>([]);
   // `null` until the user toggles someone: the selection then follows the viewer, who may
@@ -129,7 +127,7 @@ export function DeskBulkModal({
   if (result !== null && proposal !== null) {
     const view = toResultView(proposal, result);
     return (
-      <Modal isOpen onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal isOpen onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
         <Modal.Header subheader={t('resultDescription')}>{t('resultTitle')}</Modal.Header>
         <Modal.Content>
           <div className={styles.stack}>
@@ -194,7 +192,7 @@ export function DeskBulkModal({
     const summary = summarizePlan(plan);
     const assignments = toAssignments(plan);
     return (
-      <Modal isOpen onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal isOpen onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
         <Modal.Header subheader={t('scheduleDescription')}>{t('scheduleTitle')}</Modal.Header>
         <Modal.Content>
           <table className={styles.table}>
@@ -287,7 +285,7 @@ export function DeskBulkModal({
   const selectedSet = new Set(selected);
 
   return (
-    <Modal isOpen onClose={onClose} canBeDismissed={false} maxWidth>
+    <Modal isOpen onClose={onClose} canBeDismissed={!confirmBulk.isPending} maxWidth>
       <Modal.Header
         subheader={t('description', { month: f.monthLocative(parseDateOnly(anchorDate).month) })}
       >

@@ -40,7 +40,7 @@ export function SchedulePreviewModal({
   picker,
 }: SchedulePreviewModalProps) {
   return (
-    <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
+    <Modal isOpen={open} onClose={onClose} canBeDismissed={!confirmPending} maxWidth>
       <Modal.Header subheader={t('scheduleDescription')}>{t('scheduleTitle')}</Modal.Header>
       <Modal.Content>
         <CalendarTable days={proposal.days} t={t} picker={picker} />
