@@ -76,7 +76,7 @@ export function ReservationsSection() {
     setNotice(null);
     setFailure(null);
     setBusy(true);
-    const failed: string[] = [];
+    const failedKeys: string[] = [];
     let lastError: unknown = null;
     for (const entry of entries) {
       const reservationId = entry.reservation.id;
@@ -85,24 +85,25 @@ export function ReservationsSection() {
           reservationId,
         });
       } catch (error) {
-        failed.push(entry.key);
+        failedKeys.push(entry.key);
         lastError = error;
       }
     }
     setBusy(false);
     setConfirm(null);
-    setSelected(new Set(failed));
+    setSelected(new Set(failedKeys));
     void queryClient.invalidateQueries({ queryKey: api.desk.key() });
     void queryClient.invalidateQueries({ queryKey: api.reservation.key() });
     void queryClient.invalidateQueries({ queryKey: api.overview.key() });
-    if (failed.length === 0) {
+    void queryClient.invalidateQueries({ queryKey: api.admin.reservation.key() });
+    if (failedKeys.length === 0) {
       setNotice(
         entries.length === 1 ? t('cancelledOne') : t('cancelledMany', { count: entries.length })
       );
     } else if (entries.length === 1) {
       setFailure(describe(lastError, 'cancel'));
     } else {
-      setFailure(t('bulkPartial', { failed: failed.length, total: entries.length }));
+      setFailure(t('bulkPartial', { failed: failedKeys.length, total: entries.length }));
     }
   }
 

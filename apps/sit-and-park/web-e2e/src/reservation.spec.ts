@@ -31,10 +31,11 @@ import {
 const DATE = e2eDayForSlot(SPEC_DAY_SLOTS.reservation);
 const SPOT = 'E2.65';
 
-// Serial, and stated rather than relied on: the three tests are three moments
-// of one reservation's life, so the second and third have nothing to assert if
-// the first did not happen. In serial mode Playwright skips the rest of the
-// group after a failure instead of reporting three failures for one cause.
+// Serial, and stated rather than relied on: the four tests are four moments
+// of one reservation's life (reserve, survive a reload, appear in the Moje
+// rezervace list, cancel), so each later one has nothing to assert if the first
+// did not happen. In serial mode Playwright skips the rest of the group after a
+// failure instead of reporting four failures for one cause.
 test.describe.configure({ mode: 'serial' });
 
 test('a user reserves a free spot and the bay shows their name and plate', async ({ userPage }) => {

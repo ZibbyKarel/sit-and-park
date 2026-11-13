@@ -295,6 +295,21 @@ describe('MyReservationsScreen reservations', () => {
     expect(paths(api).filter((p) => p === 'desk/cancel')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'cancelSelected: count=1' })).toBeInTheDocument();
   });
+  it('reports a partial failure when the parking cancel fails and the desk cancel succeeds', async () => {
+    const { api, user } = await setup({
+      parking: [parking('p1', '2026-09-16')],
+      reservations: [reservation('r1', '2026-09-16')],
+      override: { 'reservation/cancel': () => contractErrorResponse('FORBIDDEN') },
+    });
+    await user.click(await screen.findByLabelText('selectAll'));
+    await user.click(screen.getByRole('button', { name: 'cancelSelected: count=2' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'bulkDialogConfirm' }));
+    expect(await screen.findByText('bulkPartial: failed=1,total=2')).toBeInTheDocument();
+    expect(paths(api)).toContain('reservation/cancel');
+    expect(paths(api)).toContain('desk/cancel');
+    expect(screen.getByRole('button', { name: 'cancelSelected: count=1' })).toBeInTheDocument();
+  });
 });
 
 describe('MyReservationsScreen permanent desk', () => {

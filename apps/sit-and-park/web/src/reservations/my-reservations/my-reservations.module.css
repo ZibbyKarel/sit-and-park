@@ -36,10 +36,6 @@
   border-radius: var(--border-radius-border-radius-8);
 }
 
-.row svg {
-  flex-shrink: 0;
-}
-
 .rowMain {
   display: flex;
   flex: 1;
