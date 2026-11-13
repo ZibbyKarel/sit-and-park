@@ -94,6 +94,7 @@ export const SPEC_DAY_SLOTS = {
   deskApproval: 15,
   deskAdmin: 16,
   deskRelease: 17,
+  reservationDetail: 18,
 } as const;
 
 const CZECH_MONTHS_GENITIVE = [
