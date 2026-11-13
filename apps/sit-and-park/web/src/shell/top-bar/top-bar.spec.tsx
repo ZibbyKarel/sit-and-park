@@ -72,6 +72,12 @@ describe('TopBar', () => {
       expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
     });
 
+    it('shows no administration tab', () => {
+      renderTopBar({ role: 'USER' });
+      const nav = screen.getByRole('navigation', { name: 'primary' });
+      expect(within(nav).queryByRole('link', { name: 'administration' })).not.toBeInTheDocument();
+    });
+
     it('offers only settings and sign-out', async () => {
       const { user } = renderTopBar({ role: 'USER' });
       await openMenu(user);
@@ -95,24 +101,48 @@ describe('TopBar', () => {
       expect(screen.getByText('adminBadge')).toBeInTheDocument();
     });
 
-    it('offers the administration entry', async () => {
+    it('shows the administration tab last in the primary navigation, linking to the admin route', () => {
+      renderTopBar({ role: 'ADMIN' });
+      const links = within(screen.getByRole('navigation', { name: 'primary' })).getAllByRole(
+        'link'
+      );
+      expect(links.map((l) => l.textContent)).toEqual([
+        'parking',
+        'desks',
+        'myReservations',
+        'administration',
+      ]);
+      expect(links[3]).toHaveAttribute('href', ADMIN_ROUTE);
+    });
+
+    it('no longer offers administration in the user menu', async () => {
       const { user } = renderTopBar({ role: 'ADMIN' });
       await openMenu(user);
+      expect(screen.queryByRole('menuitem', { name: /administration/ })).not.toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'settings' })).toBeInTheDocument();
+      expect(screen.getByRole('menuitem', { name: 'signOut' })).toBeInTheDocument();
+    });
 
-      expect(screen.getByRole('menuitem', { name: /administration/ })).toBeInTheDocument();
+    it('marks the administration tab current on the admin route', () => {
+      renderTopBar({ role: 'ADMIN', pathname: ADMIN_ROUTE });
+      expect(screen.getByRole('link', { name: 'administration' })).toHaveAttribute(
+        'aria-current',
+        'page'
+      );
+      expect(screen.getByRole('link', { name: 'parking' })).not.toHaveAttribute('aria-current');
     });
   });
 
   describe('when the role is not known yet', () => {
     // `me.get` is in flight, or it failed. Both reach this component as
     // `role === undefined`, and both have to fail closed.
-    it('renders neither the crown nor the administration entry', async () => {
+    it('renders neither the crown nor the administration tab', async () => {
       const { user } = renderTopBar({ role: undefined });
 
       expect(screen.queryByTestId('admin-crown')).not.toBeInTheDocument();
-      expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'administration' })).not.toBeInTheDocument();
       await openMenu(user);
-      expect(screen.queryByRole('menuitem', { name: /administration/ })).not.toBeInTheDocument();
+      expect(screen.queryByText('adminBadge')).not.toBeInTheDocument();
     });
   });
 
@@ -123,14 +153,6 @@ describe('TopBar', () => {
 
     expect(onNavigate).toHaveBeenCalledWith(SETTINGS_ROUTE);
     expect(onSignOut).not.toHaveBeenCalled();
-  });
-
-  it('navigates to the administration route when administration is chosen', async () => {
-    const { user, onNavigate } = renderTopBar({ role: 'ADMIN' });
-    await openMenu(user);
-    await user.click(screen.getByRole('menuitem', { name: /administration/ }));
-
-    expect(onNavigate).toHaveBeenCalledWith(ADMIN_ROUTE);
   });
 
   it('signs out when sign-out is chosen, and does not navigate', async () => {
@@ -188,6 +210,7 @@ describe('TopBar', () => {
         'href',
         MY_RESERVATIONS_ROUTE
       );
+      expect(within(nav).queryByRole('link', { name: 'administration' })).not.toBeInTheDocument();
     });
 
     it('marks exactly the current section', () => {

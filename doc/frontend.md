@@ -196,16 +196,16 @@ SVG. Domain: `doc/desks.md`.
 `shell/top-bar/top-bar.tsx` is **presentational** — props in, callbacks out, no data
 fetching — and `shell/app-top-bar.tsx` is the connected wrapper. Left: the
 brand, wrapped in a link to `/`, then the primary navigation (`Parkování`, `Stoly`,
-`Moje rezervace`; `nav` keys in `top-bar.tsx`). Right: an `Admin` badge for administrators,
+`Moje rezervace`, and `Správa` for administrators only; `nav` keys in `top-bar.tsx`). Right: an `Admin` badge for administrators,
 then the avatar with the user's initials, their name, and a dropdown holding
-their name and email, `Nastavení (SPZ auta)`, `Správa` (administrators only)
+their name and email, `Nastavení (SPZ auta)`
 and `Odhlásit se`.
 
 The role comes from the contract's `me.get` (`shell/use-current-user.ts`), not
 from the session — Auth.js's session carries only the access token. The
 consequence is that while the profile is loading or has failed, `role` is
 `undefined` and `isAdmin` is `role === 'ADMIN'`, which is **false**. The badge
-and the `Správa` entry are absent rather than present-and-broken. This is a
+and the `Správa` tab are absent rather than present-and-broken. This is a
 convenience, not a control: the API's `RolesGuard` is what actually enforces
 the role, and `/admin` renders a `FORBIDDEN` empty state for a non-admin who
 navigates there directly.

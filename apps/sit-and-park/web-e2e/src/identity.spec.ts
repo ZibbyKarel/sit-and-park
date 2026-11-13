@@ -26,7 +26,12 @@ test('the admin persona is the seeded admin', async ({ adminPage }) => {
   );
   await adminPage.getByRole('button', { name: 'Uživatelské menu' }).click();
   await expect(adminPage.getByText(ADMIN.claims['email'] as string)).toBeVisible();
-  await expect(adminPage.getByRole('menuitem', { name: 'Správa' })).toBeVisible();
+  await expect(
+    adminPage
+      .getByRole('navigation', { name: 'Hlavní navigace' })
+      .getByRole('link', { name: 'Správa' })
+  ).toHaveAttribute('href', '/admin');
+  await expect(adminPage.getByRole('menuitem', { name: 'Správa' })).toHaveCount(0);
 });
 
 test('the ordinary personas are not admins', async ({ userPage, userTwoPage }) => {
@@ -40,7 +45,12 @@ test('the ordinary personas are not admins', async ({ userPage, userTwoPage }) =
     );
     await page.getByRole('button', { name: 'Uživatelské menu' }).click();
     await expect(page.getByText(persona.claims['email'] as string)).toBeVisible();
-    // No `Správa` entry, and no admin badge beside the name.
+    // No `Správa` tab or menu entry, and no admin badge beside the name.
     await expect(page.getByRole('menuitem', { name: 'Správa' })).toHaveCount(0);
+    await expect(
+      page
+        .getByRole('navigation', { name: 'Hlavní navigace' })
+        .getByRole('link', { name: 'Správa' })
+    ).toHaveCount(0);
   }
 });

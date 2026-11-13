@@ -33,12 +33,12 @@ import styles from './top-bar.module.css';
 
 /** Menu entry ids. `onSelect` is called with one of these. */
 export const MENU_SETTINGS = 'settings';
-export const MENU_ADMIN = 'administration';
 export const MENU_SIGN_OUT = 'sign-out';
 
 /**
  * The primary sections, in bar order. Admin screens for desks are tabs of
- * `ADMIN_ROUTE`, reached from the menu's `Správa` entry, not items here.
+ * `ADMIN_ROUTE`, reached from the admin-only `Správa` item appended after
+ * these, not items here.
  */
 const NAV_ITEMS = [
   { route: LOT_ROUTE, key: 'parking' },
@@ -56,10 +56,10 @@ export interface TopBarProps {
   /**
    * The caller's role, or `undefined` while `me.get` is in flight or after it
    * failed. Anything other than `ADMIN` — `undefined` included — hides both the
-   * badge and the `Správa` entry: unknown is not an admin.
+   * badge and the `Správa` tab: unknown is not an admin.
    */
   readonly role?: UserRole | undefined;
-  /** Called with {@link ADMIN_ROUTE} or {@link SETTINGS_ROUTE}. */
+  /** Called with {@link SETTINGS_ROUTE}. */
   readonly onNavigate: (route: string) => void;
   readonly onSignOut: () => void;
   /** Whether dark mode is on, so the toggle offers the opposite. */
@@ -80,12 +80,13 @@ export function TopBar({
   const t = useTranslations('nav');
   const tShell = useTranslations('shell');
   const isAdmin = role === 'ADMIN';
+  const navItems = isAdmin
+    ? [...NAV_ITEMS, { route: ADMIN_ROUTE, key: 'administration' } as const]
+    : NAV_ITEMS;
 
   const onSelect = (id: string) => {
     if (id === MENU_SETTINGS) {
       onNavigate(SETTINGS_ROUTE);
-    } else if (id === MENU_ADMIN) {
-      onNavigate(ADMIN_ROUTE);
     } else if (id === MENU_SIGN_OUT) {
       onSignOut();
     }
@@ -104,7 +105,7 @@ export function TopBar({
       </NextLink>
 
       <nav aria-label={t('primary')} className={styles.nav}>
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <NextLink
             key={item.route}
             href={item.route}
@@ -158,16 +159,6 @@ export function TopBar({
           </Menu.Item>
           <Menu.Divider />
           <Menu.Item onAction={() => onSelect(MENU_SETTINGS)}>{t('settings')}</Menu.Item>
-          {/* Desk administration lives in the admin screen's tabs; this one entry reaches it. */}
-          {isAdmin ? (
-            <Menu.Item onAction={() => onSelect(MENU_ADMIN)}>
-              <span className={styles.entry}>
-                {t('administration')}
-                {/* The design draws a right arrow on this entry alone: it leaves the current screen. */}
-                <span aria-hidden="true">→</span>
-              </span>
-            </Menu.Item>
-          ) : null}
           <Menu.Divider />
           <Menu.Item destructive onAction={() => onSelect(MENU_SIGN_OUT)}>
             {t('signOut')}

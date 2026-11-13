@@ -12,7 +12,7 @@
  *
  * So the role comes from the contract, through `me.get`, like every other piece
  * of application data. That is also why the top bar's `ADMIN` badge and its
- * `Správa` entry appear a moment after the name does, and why both are absent
+ * `Správa` tab appear a moment after the name does, and why both are absent
  * while the query is in flight: unknown means not an admin, which is the only
  * safe direction for a check to fail in. Nothing is *authorised* here — the API
  * enforces `@Roles('ADMIN')` on every admin procedure regardless of what this
