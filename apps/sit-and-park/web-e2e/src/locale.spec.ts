@@ -5,7 +5,7 @@
  * writes or, failing that, from `Accept-Language`
  * (`apps/sit-and-park/web/src/i18n/resolve-locale.ts` → `negotiateLocale` in `libs/shared/i18n`).
  * Both halves are unit-tested, and neither unit can see the seam this file is
- * about: that a language chosen in the menu **survives a reload and a fresh
+ * about: that a language chosen in the settings dialog **survives a reload and a fresh
  * document request**, while the browser keeps asking for something else in
  * every request header. Only a browser can show that.
  *
@@ -23,8 +23,8 @@
  * `<html lang>` proves the negotiation; a piece of copy proves the *catalog*
  * that was loaded with it. The copy below is quoted from
  * `apps/sit-and-park/web/messages/{cs,en}.json`, and the key is named so a rename is
- * traceable: `nav.userMenu`, `nav.language`, `lot.previousDay`,
- * `settings.title`.
+ * traceable: `nav.userMenu`, `settings.languageHeading`,
+ * `lot.previousDay`, `settings.title`.
  *
  * The switcher's own entries are the exception and are never asserted on:
  * `LOCALE_LABELS` in `libs/shared/i18n` is intentionally endonymic (`Čeština`,
@@ -41,8 +41,8 @@ import { FIRST_ROUTE_VISIT_TIMEOUT_MS } from './support/lot-page';
 const COPY = {
   /** `nav.userMenu` — the top-bar button, present on every signed-in screen. */
   userMenu: { cs: 'Uživatelské menu', en: 'User menu' },
-  /** `nav.language` — the group header inside the open user menu. */
-  language: { cs: 'Jazyk', en: 'Language' },
+  /** `settings.languageHeading` — the accessible name of the language radiogroup in the settings dialog. */
+  languageHeading: { cs: 'Jazyk', en: 'Language' },
   /** `lot.previousDay` — body copy on the lot, below the top bar. */
   previousDay: { cs: 'Předchozí den', en: 'Previous day' },
   /** `settings.title` — the settings modal's own title. */
@@ -134,46 +134,44 @@ test.describe('the language a person chooses', () => {
     test.slow();
 
     await signedInPage(browser, 'cs-CZ', async (page) => {
-      await page.goto(LOT_PATH);
-      await expectLocale(page, 'cs');
-
-      await page.getByRole('button', { name: COPY.userMenu.cs }).click();
-      // The group header, in Czech, is what says the *menu* is still Czech at
-      // the moment of the choice — the entries themselves are endonyms.
-      await expect(page.getByText(COPY.language.cs)).toBeVisible();
-      await page.getByRole('menuitem', { name: 'English' }).click();
-
-      // `router.refresh()`, so the switch itself is a re-render, not a load.
-      await expectLocale(page, 'en');
-
-      await page.reload();
-      await expectLocale(page, 'en');
-
-      // A fresh document request for another route, which is where a
-      // cookie-negotiated scheme with no locale in the URL either works or
-      // does not. `goto` rather than the menu entry: the menu entry's copy is
-      // itself locale-dependent, and this step is about the negotiation.
       await page.goto('/settings');
       const dialog = page.getByRole('dialog');
       await expect(dialog).toBeVisible({ timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS });
-      await expect(dialog).toContainText(COPY.settingsTitle.en);
+      await expect(dialog).toContainText(COPY.settingsTitle.cs);
+
+      // An unsaved edit must survive the switch: router.refresh() keeps client state.
+      // Located by label, which is itself locale-dependent, hence two lookups.
+      await dialog.getByLabel('SPZ auta').fill('E2E 123');
+
+      // The radio input is visually hidden inside its label, so click the label text.
+      await dialog
+        .getByRole('radiogroup', { name: COPY.languageHeading.cs })
+        .getByText('English')
+        .click();
+
+      // `router.refresh()`, so the switch itself is a re-render, not a load.
       await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+      await expect(dialog).toContainText(COPY.settingsTitle.en);
+      await expect(dialog.getByLabel('License plate')).toHaveValue('E2E 123');
 
-      // And back, so the switcher is shown to work in both directions rather
-      // than only away from the default. Back on the lot first: settings is a
-      // modal with a scrim over the top bar, and the user menu underneath it
-      // is not clickable — measured, as a 30 s hang on exactly that click.
-      //
-      // This direction is corroboration, not proof: `cs` is also what the
-      // header alone would give, so it says the second cookie write took
-      // effect, and the `cs-CZ` → `en` half above is what proves persistence.
+      // Leaves without saving; the plate edit is discarded.
       await page.goto(LOT_PATH);
-      await page.getByRole('button', { name: COPY.userMenu.en }).click();
-      await expect(page.getByText(COPY.language.en)).toBeVisible();
-      await page.getByRole('menuitem', { name: 'Čeština' }).click();
+      await expectLocale(page, 'en');
+      await page.reload();
+      await expectLocale(page, 'en');
 
+      // And back. Corroboration, not proof: `cs` is also what the header alone
+      // gives, so this says the second cookie write took effect, and the
+      // `cs-CZ` -> `en` half above is what proves persistence.
+      await page.goto('/settings');
+      await expect(dialog).toContainText(COPY.settingsTitle.en);
+      await dialog
+        .getByRole('radiogroup', { name: COPY.languageHeading.en })
+        .getByText('Čeština')
+        .click();
+      await expect(dialog).toContainText(COPY.settingsTitle.cs);
+      await page.goto(LOT_PATH);
       await expectLocale(page, 'cs');
-
       await page.reload();
       await expectLocale(page, 'cs');
     });
