@@ -20,11 +20,13 @@ function renderTopBar(
     role?: UserRole | undefined;
     locale?: Locale;
     pathname?: string;
+    dark?: boolean;
   } = {}
 ) {
   const onNavigate = jest.fn();
   const onSignOut = jest.fn();
   const onLocaleChange = jest.fn();
+  const onThemeToggle = jest.fn();
 
   render(
     <IntlProvider locale="cs" messages={cs}>
@@ -37,13 +39,13 @@ function renderTopBar(
         onSignOut={onSignOut}
         locale={overrides.locale ?? 'cs'}
         onLocaleChange={onLocaleChange}
-        dark={false}
-        onThemeToggle={jest.fn()}
+        dark={overrides.dark ?? false}
+        onThemeToggle={onThemeToggle}
       />
     </IntlProvider>
   );
 
-  return { onNavigate, onSignOut, onLocaleChange, user: userEvent.setup() };
+  return { onNavigate, onSignOut, onLocaleChange, onThemeToggle, user: userEvent.setup() };
 }
 
 async function openMenu(user: ReturnType<typeof userEvent.setup>) {
@@ -171,6 +173,28 @@ describe('TopBar', () => {
       await user.click(screen.getByRole('menuitem', { name: /Čeština/ }));
 
       expect(onLocaleChange).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('the theme toggle', () => {
+    it('offers the switch to dark mode with a moon while light, and reports a click', async () => {
+      const { user, onThemeToggle } = renderTopBar({ dark: false });
+      const button = screen.getByRole('button', { name: 'switchToDark' });
+
+      expect(button.querySelector('svg')).not.toBeNull();
+      await user.click(button);
+      expect(onThemeToggle).toHaveBeenCalledTimes(1);
+    });
+
+    it('offers the switch to light mode while dark', () => {
+      renderTopBar({ dark: true });
+      expect(screen.getByRole('button', { name: 'switchToLight' })).toBeInTheDocument();
+    });
+
+    it('is no longer an entry of the user menu', async () => {
+      const { user } = renderTopBar();
+      await openMenu(user);
+      expect(screen.queryByRole('menuitem', { name: /dark|switchTo/i })).toBeNull();
     });
   });
 

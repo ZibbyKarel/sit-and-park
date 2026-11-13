@@ -28,6 +28,7 @@ import {
   MY_RESERVATIONS_ROUTE,
   SETTINGS_ROUTE,
 } from '../../routes';
+import { MoonIcon, SunIcon } from '../../ui/icons/icons';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import styles from './top-bar.module.css';
 
@@ -69,7 +70,7 @@ export interface TopBarProps {
   readonly locale: Locale;
   /** Called with the locale the user picked. Never called for the active one. */
   readonly onLocaleChange: (locale: Locale) => void;
-  /** Whether dark mode is on, so the menu can mark it. */
+  /** Whether dark mode is on, so the toggle offers the opposite. */
   readonly dark: boolean;
   readonly onThemeToggle: () => void;
 }
@@ -111,7 +112,12 @@ export function TopBar({
     <header className={styles.bar}>
       {/* Logo without the claim (that lives on the login screen), linking to the landing page. */}
       <NextLink href="/" className={styles.brandLink}>
-        <img src="/sit-and-park-logo-compact.svg" alt={tShell('brand')} height={44} className={styles.brandLogo} />
+        <img
+          src="/sit-and-park-logo-compact.svg"
+          alt={tShell('brand')}
+          height={44}
+          className={styles.brandLogo}
+        />
       </NextLink>
 
       <nav aria-label={t('primary')} className={styles.nav}>
@@ -133,6 +139,15 @@ export function TopBar({
             <Tag level="notice">{t('adminBadge')}</Tag>
           </span>
         ) : null}
+
+        <button
+          type="button"
+          className={styles.themeToggle}
+          onClick={onThemeToggle}
+          aria-label={dark ? t('switchToLight') : t('switchToDark')}
+        >
+          {dark ? <SunIcon size="md" /> : <MoonIcon size="md" />}
+        </button>
 
         <Menu
           placement="bottom end"
@@ -187,18 +202,6 @@ export function TopBar({
               </span>
             </Menu.Item>
           ))}
-          <Menu.Divider />
-          <Menu.Item onAction={onThemeToggle}>
-            <span className={styles.entry}>
-              {t('darkMode')}
-              {dark ? (
-                <span data-active="true">
-                  <Icon icon="shp-checkmark" size="sm" />
-                  <VisuallyHidden> {t('darkModeOn')}</VisuallyHidden>
-                </span>
-              ) : null}
-            </span>
-          </Menu.Item>
           <Menu.Divider />
           <Menu.Item destructive onAction={() => onSelect(MENU_SIGN_OUT)}>
             {t('signOut')}
