@@ -13,3 +13,4 @@
 11. [ ] Dialogy nejdou zavřít klikem vně a nemají close button.
 12. [ ] Sjednoť tlačitka na otevření dialogů hromadných rezervací pro parkování i pro stoly ať vypadají stejně.
 13. [ ] korunka v dropdownu uživatele v prabo nahoře v topBaru má být nad kruhem s avatarem uživatele (resp jeho iniciály) a né až za jménem
+14. [ ] Uklidit v repu MD soubory stejným způsobem jakým jsme to dělali v session 0a229e9c-c44e-4f1b-a96f-a7729cc55945
