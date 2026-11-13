@@ -22,9 +22,9 @@ import {
   type DateOnly,
 } from '@sit-and-park/i18n';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Button, CheckboxField, Modal, SystemMessage, Tag } from '@shoptet/ui';
+import { Button, Modal, SystemMessage, Tag } from '@shoptet/ui';
 import type { DeskBulkPreviewOutput } from '@sit-and-park/contract';
-import { SingleSelect } from '../../ui/client-select/client-select';
+import { MultiSelect, SingleSelect } from '../../ui/client-select/client-select';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
@@ -293,23 +293,17 @@ export function DeskBulkModal({
       </Modal.Header>
       <Modal.Content>
         {isAdmin && userOptions.options.length > 0 ? (
-          <fieldset className={styles.people}>
-            <legend className={styles.peopleLegend}>{t('peopleLegend')}</legend>
-            {userOptions.options.map((option) => (
-              <CheckboxField
-                key={option.userId}
-                label={option.name}
-                checked={people.includes(option.userId)}
-                onChange={(checked) => {
-                  setPeople(
-                    checked
-                      ? [...people, option.userId]
-                      : people.filter((id) => id !== option.userId)
-                  );
-                }}
-              />
-            ))}
-          </fieldset>
+          <div className={styles.people}>
+            <MultiSelect
+              label={t('peopleLegend')}
+              options={userOptions.options}
+              getOptionValue={(option) => option.userId}
+              getOptionLabel={(option) => option.name}
+              value={[...people]}
+              onChange={setPeople}
+              mode="dropdown"
+            />
+          </div>
         ) : null}
 
         <table className="calendar-grid">

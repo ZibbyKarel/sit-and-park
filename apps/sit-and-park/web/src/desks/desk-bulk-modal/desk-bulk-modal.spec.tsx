@@ -113,6 +113,14 @@ const USERS = {
   ],
 };
 
+/** Opens the people MultiSelect, toggles `name` and closes the popover. */
+async function togglePerson(user: ReturnType<typeof userEvent.setup>, name: string) {
+  await user.click(await screen.findByLabelText('peopleLegend'));
+  await user.click(await screen.findByRole('option', { name }));
+  await user.keyboard('{Escape}');
+  await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
+}
+
 describe('DeskBulkModal', () => {
   it('USER: picks days, sends no people, books the proposal and reports the result', async () => {
     const api = serve({
@@ -157,7 +165,7 @@ describe('DeskBulkModal', () => {
     });
     const { user } = renderModal({ isAdmin: true });
 
-    await user.click(await screen.findByLabelText('Jana Nováková'));
+    await togglePerson(user, 'Jana Nováková');
     await user.click(dayTile(16));
     await user.click(dayTile(18));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=2' }));
@@ -166,6 +174,15 @@ describe('DeskBulkModal', () => {
     expect(await bodiesOf(api, 'desk/previewBulk')).toEqual([
       { dates: ['2026-11-16', '2026-11-18'], userIds: ['user-viewer', 'user-jana'] },
     ]);
+  });
+
+  it('ADMIN: deselecting everyone disables generate', async () => {
+    serve({ 'admin/user/list': ok(USERS) });
+    const { user } = renderModal({ isAdmin: true });
+
+    await togglePerson(user, 'Karel Zíbar');
+    await user.click(dayTile(16));
+    expect(screen.getByRole('button', { name: 'ctaGenerate: count=1' })).toBeDisabled();
   });
 
   it('manual pick on an UNASSIGNED row is sent, and the desk disappears from the others', async () => {
@@ -263,10 +280,10 @@ describe('DeskBulkModal', () => {
       'desk/previewBulk': ok(preview()),
     });
     const { user, rerender } = renderModal({ isAdmin: true, viewerUserId: null });
-    const karel = await screen.findByLabelText('Karel Zíbar');
-    expect(karel).not.toBeChecked();
+    const trigger = await screen.findByLabelText('peopleLegend');
+    expect(trigger).not.toHaveTextContent('Karel Zíbar');
     rerender({ viewerUserId: 'user-viewer' });
-    expect(karel).toBeChecked();
+    expect(trigger).toHaveTextContent('Karel Zíbar');
 
     await user.click(dayTile(16));
     await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=1' }));

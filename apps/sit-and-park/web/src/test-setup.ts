@@ -9,8 +9,9 @@ jest.mock('next-intl', () => ({
 // `next/dynamic` loads asynchronously, so the SSR-skipping selects would not be
 // in the DOM on first render. Tests (no SSR) get the real components directly.
 jest.mock('./ui/client-select/client-select', () => {
-  const { SingleSelect, SingleSelectField, DateField } = jest.requireActual('@shoptet/ui');
-  return { SingleSelect, SingleSelectField, DateField };
+  const { SingleSelect, SingleSelectField, DateField, MultiSelect } =
+    jest.requireActual('@shoptet/ui');
+  return { SingleSelect, SingleSelectField, DateField, MultiSelect };
 });
 
 /**
