@@ -48,8 +48,7 @@ export function Brand({ size = 'sm', asHeading = false }: BrandProps) {
 
   return (
     <Stack orientation="horizontal" align="center" gap={config.gap}>
-      {/* Decorative: the wordmark beside it carries the name. Plain <img>: a static SVG gains nothing from next/image. */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
+      {/* Decorative: the wordmark beside it carries the name. */}
       <img src="/sit-and-park-symbol.svg" alt="" width={config.symbolPx} height={config.symbolPx} />
       <span className={styles.wordmark} data-size={size}>
         {asHeading ? (
