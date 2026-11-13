@@ -10,7 +10,7 @@
 8. [x] Dialog hromadné rezervace stolů trošku upravíme a v sekci pro koho rezervovat zobrazíme vlastně jen multiSelect s uživateli. Čisto teoreticky môžeme zrušiť celú tú sekci a mysto ní zobrazíme i jeden multiselekt. (main@bfcb5c8)
 9. [x] V dialogu hromadné rezervace, stolů i parkovacích míst i vybíráku datumu chceme vždy zvýraznit dnešní datum. Stačí nějaký border okolo aktuálního data v kalendáři. Stejně tak zvýrazíme i dnešní datum na stránce moje rezervace v kalendářovém zobrazení. (main@2bfdc58)
 10. [x] V dialogu návrh rozvrhu by měl mít admin vždy možnost vygenerovaný stůl změnit. To znamená, že vždy tam zobrazím vybíráko stolů s předvyplněnou hodnou. A pokud je přihlášený uživatel admin, měli mít možnost to změnit. stejně tak i pro návrh rozvrhu pro parkovací místa (main@1086ae3)
-11. [ ] Dialogy nejdou zavřít klikem vně a nemají close button.
+11. [x] Dialogy nejdou zavřít klikem vně a nemají close button. (main@39435d2)
 12. [x] Sjednoť tlačitka na otevření dialogů hromadných rezervací pro parkování i pro stoly ať vypadají stejně. (main@c0aa090)
 13. [x] korunka v dropdownu uživatele v prabo nahoře v topBaru má být nad kruhem s avatarem uživatele (resp jeho iniciály) a né až za jménem (main@8c9cb8c)
 14. [ ] Uklidit v repu MD soubory stejným způsobem jakým jsme to dělali v session 0a229e9c-c44e-4f1b-a96f-a7729cc55945
