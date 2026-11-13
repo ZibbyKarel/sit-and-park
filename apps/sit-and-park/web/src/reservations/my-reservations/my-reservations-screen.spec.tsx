@@ -1,7 +1,7 @@
 import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { QueryClient } from '@tanstack/react-query';
-import type { MyDeskReservation, MyProfile } from '@sit-and-park/contract';
+import type { MyDeskReservation, MyParkingReservation, MyProfile } from '@sit-and-park/contract';
 import {
   contractErrorResponse,
   rpcPayload,
@@ -61,8 +61,22 @@ function reservation(id: string, date: string, deskCode = 'A-01'): MyDeskReserva
   };
 }
 
+function parking(id: string, date: string, parkingSpotLabel = 'E2.65'): MyParkingReservation {
+  return {
+    id,
+    parkingSpotId: 'spot-1',
+    userId: 'user-viewer',
+    guestName: null,
+    licensePlate: null,
+    date,
+    createdAt: '2026-09-01T08:00:00.000Z',
+    parkingSpotLabel,
+  };
+}
+
 interface World {
   reservations: MyDeskReservation[];
+  parking: MyParkingReservation[];
   /** `reservation.myMonth`'s `reservedDates`. */
   parkingDates: string[];
   waitlist: { date: string; parkingSpotLabel: string; position: number }[];
@@ -77,6 +91,7 @@ interface World {
 async function setup(partial: Partial<World> = {}, view: 'list' | 'calendar' = 'list') {
   const world: World = {
     reservations: [],
+    parking: [],
     parkingDates: [],
     waitlist: [],
     releases: null,
@@ -111,6 +126,15 @@ async function setup(partial: Partial<World> = {}, view: 'list' | 'calendar' = '
         });
       case 'desk/myReservations':
         return res({ reservations: world.reservations });
+      case 'reservation/myReservations':
+        return res({ reservations: world.parking });
+      case 'reservation/cancel':
+        return res({
+          reservationId: 'x',
+          date: TODAY,
+          parkingSpotId: 'spot-1',
+          promoted: false,
+        });
       case 'desk/myReleases':
         return res(world.releases);
       case 'desk/myRequests':
@@ -155,6 +179,77 @@ describe('MyReservationsScreen reservations', () => {
     expect(screen.getByText('B-02')).toBeInTheDocument();
     // a non-admin cannot cancel the past one: only the one upcoming cancel button exists
     expect(screen.getAllByRole('button', { name: /^cancelOneLabel/ })).toHaveLength(1);
+  });
+
+  it('lists parking and desk reservations in one list, marked by icon', async () => {
+    await setup({
+      parking: [parking('p1', '2026-09-16')],
+      reservations: [reservation('r1', '2026-09-16')],
+    });
+    const rows = within(await screen.findByRole('region', { name: 'title' })).getAllByRole(
+      'listitem'
+    );
+    expect(rows).toHaveLength(2);
+    const [first, second] = rows as [HTMLElement, HTMLElement];
+    expect(within(first).getByText('E2.65')).toBeInTheDocument();
+    expect(within(first).getByRole('img', { name: 'kindParking' })).toBeInTheDocument();
+    expect(within(second).getByText('A-01')).toBeInTheDocument();
+    expect(within(second).getByRole('img', { name: 'kindDesk' })).toBeInTheDocument();
+  });
+
+  it('has no heading of its own in the list view', async () => {
+    await setup();
+    await screen.findByText('emptyAll');
+    expect(screen.queryByRole('heading', { name: 'reservationsTitle' })).toBeNull();
+    expect(screen.getByRole('heading', { level: 1, name: 'title' })).toBeInTheDocument();
+  });
+
+  it('cancels a parking reservation through reservation.cancel', async () => {
+    const { api, user } = await setup({ parking: [parking('p1', '2026-09-16')] });
+    await user.click(await screen.findByRole('button', { name: /^cancelOneLabel: code=E2.65/ }));
+    const dialog = await screen.findByRole('dialog');
+    expect(within(dialog).getByText(/^cancelDialogDescriptionParking/)).toBeInTheDocument();
+    const before = paths(api).filter((p) => p === 'reservation/myReservations').length;
+    await user.click(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' }));
+    await waitFor(() =>
+      expect(paths(api).filter((p) => p === 'reservation/myReservations').length).toBeGreaterThan(
+        before
+      )
+    );
+    const call = api.requests[paths(api).indexOf('reservation/cancel')];
+    expect(await call?.json()).toEqual({ json: { reservationId: 'p1' } });
+    expect(paths(api)).not.toContain('desk/cancel');
+    expect(await screen.findByText('cancelledOne')).toBeInTheDocument();
+  });
+
+  it('bulk-cancels a mixed selection, each through its own procedure', async () => {
+    const { api, user } = await setup({
+      parking: [parking('p1', '2026-09-16')],
+      reservations: [reservation('r1', '2026-09-16')],
+    });
+    await user.click(await screen.findByLabelText('selectAll'));
+    await user.click(screen.getByRole('button', { name: 'cancelSelected: count=2' }));
+    const dialog = await screen.findByRole('dialog');
+    await user.click(within(dialog).getByRole('button', { name: 'bulkDialogConfirm' }));
+    expect(await screen.findByText('cancelledMany: count=2')).toBeInTheDocument();
+    expect(paths(api).filter((p) => p === 'reservation/cancel')).toHaveLength(1);
+    expect(paths(api).filter((p) => p === 'desk/cancel')).toHaveLength(1);
+  });
+
+  it('shows the error with retry when the parking list fails', async () => {
+    await setup({
+      reservations: [reservation('r1', '2026-09-16')],
+      override: { 'reservation/myReservations': () => transportErrorResponse(500, 'boom') },
+    });
+    expect(await screen.findByText('errorTitle')).toBeInTheDocument();
+    expect(screen.queryByText('A-01')).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'retry' })).toBeInTheDocument();
+  });
+
+  it('puts a past parking reservation in the history', async () => {
+    await setup({ parking: [parking('p0', '2026-09-10')] });
+    expect(await screen.findByText('emptyUpcoming')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'historyToggle: count=1' })).toBeInTheDocument();
   });
 
   it('shows the empty state', async () => {

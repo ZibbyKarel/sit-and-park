@@ -425,8 +425,9 @@
     "calendarHint": "Rezervace zrušíte v zobrazení Seznam."
   },
   "myDesks": {
-    "reservationsTitle": "Moje rezervace stolů",
-    "emptyAll": "Zatím nemáte žádnou rezervaci stolu.",
+    "emptyAll": "Zatím nemáte žádnou rezervaci stolu ani parkování.",
+    "kindParking": "Parkování",
+    "kindDesk": "Stůl",
     "emptyUpcoming": "Nemáte žádné nadcházející rezervace.",
     "reservationDetail": "{date} · {detail}",
     "selectAll": "Vybrat vše",
@@ -437,6 +438,7 @@
     "historyToggle": "Historie ({count})",
     "cancelDialogTitle": "Zrušit rezervaci {code}?",
     "cancelDialogDescription": "{date} · {detail}. Rezervace se uvolní pro ostatní.",
+    "cancelDialogDescriptionParking": "{date}. Místo se uvolní pro ostatní.",
     "cancelDialogConfirm": "Zrušit rezervaci",
     "cancelDialogKeep": "Ponechat",
     "bulkDialogTitle": "Zrušit {count, plural, one {# rezervaci} few {# rezervace} other {# rezervací}}?",

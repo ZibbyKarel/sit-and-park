@@ -4,7 +4,7 @@
  * `/reservations` — "Moje rezervace": a month calendar of the caller's parking,
  * waitlist places, desk reservations, desk requests, the permanent desk and its
  * released days, and (tab "Seznam") the lists behind it:
- * desk reservations with cancel, permanent-desk releases, approval requests
+ * parking and desk reservations as one list with cancel, permanent-desk releases, approval requests
  * and, for hive owners and admins, the inbox. Each section loads and fails on
  * its own, so one broken query leaves the others usable.
  */
@@ -26,7 +26,7 @@ export function MyReservationsScreen() {
   return (
     <Stack gap="xl">
       <div className={styles.sectionHeader}>
-        <H1>{t('title')}</H1>
+        <H1 id="my-reservations-title">{t('title')}</H1>
         <SegmentedControl
           aria-label={t('viewLabel')}
           size="sm"

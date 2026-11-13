@@ -425,8 +425,9 @@
     "calendarHint": "Cancel reservations in the List view."
   },
   "myDesks": {
-    "reservationsTitle": "My desk reservations",
-    "emptyAll": "You have no desk reservations yet.",
+    "emptyAll": "You have no desk or parking reservations yet.",
+    "kindParking": "Parking",
+    "kindDesk": "Desk",
     "emptyUpcoming": "You have no upcoming reservations.",
     "reservationDetail": "{date} — {detail}",
     "selectAll": "Select all",
@@ -437,6 +438,7 @@
     "historyToggle": "History ({count})",
     "cancelDialogTitle": "Cancel reservation {code}?",
     "cancelDialogDescription": "{date} · {detail}. The desk will be freed for others.",
+    "cancelDialogDescriptionParking": "{date}. The spot will be freed for others.",
     "cancelDialogConfirm": "Cancel reservation",
     "cancelDialogKeep": "Keep it",
     "bulkDialogTitle": "Cancel {count, plural, one {# reservation} other {# reservations}}?",
