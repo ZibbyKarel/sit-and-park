@@ -70,26 +70,30 @@ the preference order testable by an ordinary unit test.
 
 ### Per day, in this order
 
-1. **Not a business day** → `UNAVAILABLE / NOT_A_BUSINESS_DAY`. First because it
+1. **An admin's explicit choice for the day, if that spot is still free** →
+   `SPOT_ASSIGNED` (`doc/decision/0333-*`). Only `confirmBulk` receives
+   choices; a choice for a spot no longer free is ignored and the day goes
+   through the steps below as usual.
+2. **Not a business day** → `UNAVAILABLE / NOT_A_BUSINESS_DAY`. First because it
    is the most durable fact: a Saturday is still a Saturday next month, whereas
    "every spot is taken" is true for an afternoon. Note that inside a bulk
    request this is a _per-day fact_, not a rejected request — see
    `doc/decision/0090-*`.
-2. **The user already holds a reservation that day** → `UNAVAILABLE /
+3. **The user already holds a reservation that day** → `UNAVAILABLE /
 ALREADY_HAS_RESERVATION`. Above the queue branch on purpose: queueing
    somebody who already has a spot creates an entry that can never be promoted
    (one reservation per user per day), which is what `waitlist.join` refuses at
    the door.
-3. **No active, non-hidden spots at all** (`doc/decision/0316-*`) →
+4. **No active, non-hidden spots at all** (`doc/decision/0316-*`) →
    `UNAVAILABLE / NO_SPOTS_AVAILABLE`.
-4. **The preferred spot, if free** → `SPOT_ASSIGNED`, `isPreferredSpot: true`.
-5. **The first free spot** in canonical order → `SPOT_ASSIGNED`.
-6. **Otherwise the shortest queue** → `QUEUED`, with the position the user would
+5. **The preferred spot, if free** → `SPOT_ASSIGNED`, `isPreferredSpot: true`.
+6. **The first free spot** in canonical order → `SPOT_ASSIGNED`.
+7. **Otherwise the shortest queue** → `QUEUED`, with the position the user would
    take (or the one they already hold).
 
 `preferredParkingSpotId` comes from the user's profile and is a bulk-only
 preference — the single-day flow never applies it. A retired spot is simply
-absent from the candidate list, so a stale preference degrades to step 5.
+absent from the candidate list, so a stale preference degrades to step 6.
 
 ### The two orderings, and why the allocator re-derives both
 

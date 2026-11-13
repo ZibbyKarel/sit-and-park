@@ -157,6 +157,9 @@ function BulkReservationModalContent({
   // server's own count and is what step 2 prints, so the two steps quote the
   // same authority instead of one of them re-deriving it from `days`.
   const [proposal, setProposal] = useState<PreviewBulkOutput | null>(null);
+  // What the admin was shown **after** their picks: the baseline the result is
+  // diffed against. Equals `proposal` when nothing was changed.
+  const [confirmedPlan, setConfirmedPlan] = useState<PreviewBulkOutput['days'] | null>(null);
   const [result, setResult] = useState<ConfirmBulkOutput | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
   // Admin's per-day spot overrides on step 2, date → parkingSpotId.
@@ -430,7 +433,7 @@ function BulkReservationModalContent({
   // The confirm button does not exist on this step, so nothing is weakened by
   // letting it through. See `doc/decision/0176-*`.
   if (result !== null) {
-    const differences = diffBulkSchedule(proposal?.days ?? [], result.days);
+    const differences = diffBulkSchedule(confirmedPlan ?? proposal?.days ?? [], result.days);
     return (
       <Modal isOpen={open} onClose={onClose} canBeDismissed={false} maxWidth>
         <Modal.Header subheader={t('resultDescription')}>{t('resultTitle')}</Modal.Header>
@@ -528,6 +531,7 @@ function BulkReservationModalContent({
         pending={pending}
         picker={{
           isAdmin,
+          pending: confirmBulk.isPending,
           freeSpots: proposal.freeSpots,
           choices: spotChoices,
           onChoose: (date, parkingSpotId) => {
@@ -537,6 +541,7 @@ function BulkReservationModalContent({
         onBack={() => {
           setProposal(null);
           setSpotChoices({});
+          setConfirmedPlan(null);
           setFailure(null);
         }}
         confirmPending={confirmBulk.isPending}
@@ -546,14 +551,32 @@ function BulkReservationModalContent({
           // requested day — but "we confirm exactly what you were shown" is
           // the invariant, and reading it off the thing that was shown is
           // the only way to state it.
-          const changed = proposal.days.flatMap((day) => {
-            const chosen = spotChoices[day.date];
-            return day.outcome !== 'UNAVAILABLE' &&
-              chosen !== undefined &&
-              chosen !== day.parkingSpotId
-              ? [{ date: day.date, parkingSpotId: chosen }]
-              : [];
+          const changed: { date: DateOnly; parkingSpotId: string }[] = [];
+          const effective = proposal.days.map((day): PreviewBulkOutput['days'][number] => {
+            const chosen = isAdmin ? spotChoices[day.date] : undefined;
+            if (
+              day.outcome === 'UNAVAILABLE' ||
+              chosen === undefined ||
+              chosen === day.parkingSpotId
+            ) {
+              return day;
+            }
+            changed.push({ date: day.date, parkingSpotId: chosen });
+            // A chosen free spot is a spot, never a queue place: that is what
+            // the server would answer if it honours the pick.
+            const label =
+              proposal.freeSpots
+                .find((entry) => entry.date === day.date)
+                ?.spots.find((spot) => spot.id === chosen)?.label ?? day.parkingSpotLabel;
+            return {
+              outcome: 'SPOT_ASSIGNED',
+              date: day.date,
+              parkingSpotId: chosen,
+              parkingSpotLabel: label,
+              isPreferredSpot: chosen === proposal.preferredParkingSpotId,
+            };
           });
+          setConfirmedPlan(effective);
           confirmBulk.mutate({
             dates: proposal.days.map((day) => day.date),
             ...(isAdmin && changed.length > 0 ? { spotChoices: changed } : {}),

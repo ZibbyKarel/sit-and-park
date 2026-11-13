@@ -42,6 +42,8 @@ export interface CalendarTableProps {
    */
   readonly picker?: {
     readonly isAdmin: boolean;
+    /** True while the confirm is in flight: the picks are frozen. */
+    readonly pending: boolean;
     readonly freeSpots: PreviewBulkOutput['freeSpots'];
     /** Date → chosen spot id, for days the admin changed. */
     readonly choices: Readonly<Record<DateOnly, string>>;
@@ -111,7 +113,7 @@ function SpotSelect({
       getOptionValue={(option) => option.id}
       getOptionLabel={(option) => option.label}
       value={picker.choices[row.date] ?? day.parkingSpotId}
-      disabled={!picker.isAdmin}
+      disabled={!picker.isAdmin || picker.pending}
       onChange={(value) => {
         if (value !== null) {
           picker.onChoose(row.date, value);

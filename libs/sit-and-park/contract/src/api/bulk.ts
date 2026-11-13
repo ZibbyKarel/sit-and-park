@@ -225,9 +225,9 @@ export const previewBulkContract = authed
  * Perform the booking. One transaction; days somebody took in the meantime fall
  * into the queue and are reported, not discarded.
  *
- * Same days as `previewBulk`, plus optional admin `spotChoices` — the server
- * does not trust, and does not receive, the plan the client is holding; it
- * re-validates each choice. See
+ * Same days as `previewBulk`, plus optional admin `spotChoices`. Apart from
+ * those picks the server does not receive, and does not trust, the plan the
+ * client is holding; it re-validates each choice. See
  * `doc/decision/0333-admin-may-change-the-proposed-parking-spot.md`.
  */
 export const confirmBulkContract = authed

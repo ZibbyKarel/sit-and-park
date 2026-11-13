@@ -970,6 +970,47 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
     );
   });
 
+  it('ADMIN: an honoured pick is not reported as a change on the result step', async () => {
+    const { user } = setup({
+      isAdmin: true,
+      previewOutput: preview({ freeSpots: FREE }),
+      confirmOutput: confirmed({
+        days: [
+          {
+            outcome: 'SPOT_ASSIGNED',
+            date: '2026-09-01',
+            parkingSpotId: PREFERRED_SPOT_ID,
+            parkingSpotLabel: 'E2.92',
+            isPreferredSpot: true,
+            reservationId: 'res-1',
+          },
+          {
+            outcome: 'SPOT_ASSIGNED',
+            date: '2026-09-02',
+            parkingSpotId: 'spot-free',
+            parkingSpotLabel: 'E2.99',
+            isPreferredSpot: false,
+            reservationId: 'res-2',
+          },
+        ],
+      }),
+    });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    expect(await screen.findByText('resultUnchanged')).toBeInTheDocument();
+    expect(screen.queryByText('resultChangedTitle')).not.toBeInTheDocument();
+  });
+
+  it('ADMIN: a dropped pick shows up as a difference on the result step', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
+    expect(await screen.findByText('resultChangedTitle')).toBeInTheDocument();
+    expect(screen.queryByText('resultUnchanged')).not.toBeInTheDocument();
+  });
+
   it('ADMIN: a choice does not survive Back and a new preview', async () => {
     const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
     await reachSchedule(user);
