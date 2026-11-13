@@ -210,10 +210,11 @@ function parkingReservation(id: string, date: string): MyParkingReservation {
     parkingSpotId: 'spot-1',
     userId: 'user-1',
     date,
-    status: 'CONFIRMED',
+    guestName: null,
+    licensePlate: null,
     createdAt: '2026-09-01T08:00:00.000Z',
     parkingSpotLabel: 'P1',
-  } as unknown as MyParkingReservation;
+  };
 }
 
 describe('mergeMyReservations', () => {
