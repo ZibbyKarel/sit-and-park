@@ -2,8 +2,8 @@
  * A desk reservation opened from the "Moje rezervace" calendar: its detail
  * dialog shows the desk on the floor plan, and cancels from there.
  *
- * D-001 on its own day (`SPEC_DAY_SLOTS.reservationDetail`); `desks.spec.ts`
- * books the same desk on a different day.
+ * D-004 on its own day (`SPEC_DAY_SLOTS.reservationDetail`); `desks.spec.ts`
+ * books D-001 and D-002, so the two specs never share a desk.
  */
 
 import { e2eDayForSlot, SPEC_DAY_SLOTS } from './support/dates';
@@ -13,7 +13,7 @@ import { FIRST_ROUTE_VISIT_TIMEOUT_MS } from './support/lot-page';
 import type { Page } from '@playwright/test';
 
 const DATE = e2eDayForSlot(SPEC_DAY_SLOTS.reservationDetail);
-const DESK = 'D-001';
+const DESK = 'D-004';
 
 test.describe.configure({ mode: 'serial' });
 
