@@ -132,13 +132,14 @@ export function TopBar({
           trigger={({ props }) => (
             <button type="button" {...props} aria-label={t('userMenu')} className={styles.trigger}>
               <span className={styles.avatar}>
-                <Avatar name={name} />
+                <Avatar name={name} variant="image" />
                 {isAdmin ? (
                   <span className={styles.crown} aria-hidden="true" data-testid="admin-crown">
                     <Icon icon="shp-crown" size="sm" />
                   </span>
                 ) : null}
               </span>
+              <Text appearance="strong-md">{name}</Text>
               <span aria-hidden="true">▾</span>
             </button>
           )}

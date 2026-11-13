@@ -101,6 +101,20 @@ describe('TopBar', () => {
       expect(screen.getByText('adminBadge')).toBeInTheDocument();
     });
 
+    it('puts the admin crown inside the same wrapper as the initials, not after the name', () => {
+      renderTopBar({ role: 'ADMIN' });
+      const crown = screen.getByTestId('admin-crown');
+      const trigger = screen.getByRole('button', { name: 'userMenu' });
+      const wrapper = crown.parentElement as HTMLElement;
+      expect(wrapper).not.toBe(trigger);
+      expect(wrapper.querySelector('.avatar__abbreviation')).not.toBeNull();
+      // Avatar's own caption stays in the DOM but visually hidden (variant="image"), so the
+      // wrapper is only as big as the circle; the visible name sits outside it.
+      expect(wrapper.querySelector('.avatar__text')).toHaveStyle({ position: 'absolute' });
+      expect(within(wrapper).queryByText('Karel Zíbar', { ignore: '.avatar__text *' })).toBeNull();
+      expect(within(trigger).getAllByText('Karel Zíbar').length).toBeGreaterThan(0);
+    });
+
     it('shows the administration tab last in the primary navigation, linking to the admin route', () => {
       renderTopBar({ role: 'ADMIN' });
       const links = within(screen.getByRole('navigation', { name: 'primary' })).getAllByRole(
