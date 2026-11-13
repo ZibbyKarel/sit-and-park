@@ -14,7 +14,7 @@ import type { BulkDayPlan } from '@sit-and-park/contract';
 import type { DateOnly } from '@sit-and-park/shared-types';
 import { isBusinessDay } from '@sit-and-park/shared-types';
 import type { AllocatableSpot, AllocationRequest, DayState } from './bulk-allocator';
-import { allocateBulk } from './bulk-allocator';
+import { allocateBulk, freeSpotsByDate } from './bulk-allocator';
 
 /** January 2099: `01` is New Year (a Thursday), `03` a Saturday, `05` a Monday. */
 const HOLIDAY = '2099-01-01' as DateOnly;
@@ -413,6 +413,105 @@ describe('the shape of the whole plan', () => {
         parkingSpotId: 'it-1',
         parkingSpotLabel: 'IT-1',
         isPreferredSpot: false,
+      },
+    ]);
+  });
+});
+
+describe('an admin spot choice', () => {
+  const choose = (spotId: string, date: DateOnly = MONDAY) => new Map([[date, spotId]]);
+
+  it('is assigned when free, even over a free preferred spot', () => {
+    expect(
+      onlyPlan({ preferredParkingSpotId: 'it-1', spotChoiceByDate: choose('shared-2') })
+    ).toEqual({
+      outcome: 'SPOT_ASSIGNED',
+      date: MONDAY,
+      parkingSpotId: 'shared-2',
+      parkingSpotLabel: 'SHARED-2',
+      isPreferredSpot: false,
+    });
+  });
+
+  it('is flagged as preferred when the choice is the preferred spot', () => {
+    expect(
+      onlyPlan({ preferredParkingSpotId: 'shared-2', spotChoiceByDate: choose('shared-2') })
+    ).toMatchObject({ parkingSpotId: 'shared-2', isPreferredSpot: true });
+  });
+
+  it('falls back to the preferred spot when the chosen one is reserved', () => {
+    expect(
+      onlyPlan({
+        preferredParkingSpotId: 'it-2',
+        spotChoiceByDate: choose('shared-2'),
+        stateByDate: new Map([[MONDAY, day({ reservedSpotIds: new Set(['shared-2']) })]]),
+      })
+    ).toMatchObject({ parkingSpotId: 'it-2', isPreferredSpot: true });
+  });
+
+  it('falls back to the first free spot when the chosen one is blocked', () => {
+    expect(
+      onlyPlan({
+        spotChoiceByDate: choose('shared-2'),
+        stateByDate: new Map([[MONDAY, day({ blockedSpotIds: new Set(['shared-2']) })]]),
+      })
+    ).toMatchObject({ parkingSpotId: 'it-1' });
+  });
+
+  it('falls back when the chosen id is not among the allocatable spots', () => {
+    expect(onlyPlan({ spotChoiceByDate: choose('other-office-spot') })).toMatchObject({
+      outcome: 'SPOT_ASSIGNED',
+      parkingSpotId: 'it-1',
+    });
+  });
+
+  it('does not override a non-business day', () => {
+    expect(onlyPlan({ dates: [WEEKEND], spotChoiceByDate: choose('it-2', WEEKEND) })).toEqual({
+      outcome: 'UNAVAILABLE',
+      date: WEEKEND,
+      reason: 'NOT_A_BUSINESS_DAY',
+    });
+  });
+});
+
+describe('freeSpotsByDate', () => {
+  it('lists the free spots per business day the holder has no reservation on', () => {
+    expect(
+      freeSpotsByDate(
+        request({
+          dates: [WEDNESDAY, WEEKEND, MONDAY, TUESDAY],
+          stateByDate: new Map([
+            [
+              MONDAY,
+              day({ reservedSpotIds: new Set(['it-1']), blockedSpotIds: new Set(['shared-1']) }),
+            ],
+            [TUESDAY, day({ userHasReservation: true })],
+          ]),
+        })
+      )
+    ).toEqual([
+      {
+        date: MONDAY,
+        spots: [
+          { id: 'it-2', label: 'IT-2' },
+          { id: 'shared-2', label: 'SHARED-2' },
+        ],
+      },
+      {
+        date: WEDNESDAY,
+        spots: SPOTS.map(({ id, label }) => ({ id, label })),
+      },
+    ]);
+  });
+
+  it('orders IT before SHARED', () => {
+    expect(freeSpotsByDate(request({ spots: CROSSED_SPOTS }))).toEqual([
+      {
+        date: MONDAY,
+        spots: [
+          { id: 'it-b', label: 'B1' },
+          { id: 'shared-a', label: 'A1' },
+        ],
       },
     ]);
   });

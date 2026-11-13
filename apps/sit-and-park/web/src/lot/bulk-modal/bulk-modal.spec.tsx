@@ -172,6 +172,7 @@ function preview(overrides: Partial<PreviewBulkOutput> = {}): PreviewBulkOutput 
         isPreferredSpot: false,
       },
     ],
+    freeSpots: [],
     summary: { assigned: 2, queued: 0, unavailable: 0, preferredSpotHits: 1 },
     ...overrides,
   };
