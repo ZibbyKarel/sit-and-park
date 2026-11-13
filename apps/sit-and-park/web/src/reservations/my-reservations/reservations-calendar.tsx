@@ -22,6 +22,7 @@ import NextLink from 'next/link';
 import { useRequireAuth } from '@sit-and-park/auth/client';
 import {
   compareDateOnly,
+  parseDateOnly,
   todayInPrague,
   toYearMonth,
   useDateFormatters,
@@ -34,6 +35,7 @@ import { ScreenDataGuard } from '../../shell/screen-state/screen-state';
 import type { ScreenData } from '../../shell/screen-state/screen-state';
 import { useCurrentUser } from '../../shell/use-current-user';
 import { deskOnPlanHref } from '../../routes';
+import { MonthNav } from '../../ui/month-nav/month-nav';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
 import { CarIcon, DeskIcon, WarningIcon } from '../../ui/icons/icons';
 import {
@@ -186,22 +188,19 @@ export function ReservationsCalendar() {
   return (
     <Stack gap="md">
       <div className={styles.calendarNav}>
-        <Button
-          variant="secondary"
-          size="sm"
-          aria-label={t('calPrev')}
-          onClick={() => setAnchor(shiftMonth(anchor, -1))}
-        >
-          ‹
-        </Button>
-        <Strong>{f.monthAndYear(anchor)}</Strong>
-        <Button
-          variant="secondary"
-          size="sm"
-          aria-label={t('calNext')}
-          onClick={() => setAnchor(shiftMonth(anchor, 1))}
-        >
-          ›
+        <div className={styles.calendarNavMonth}>
+          <MonthNav
+            anchor={anchor}
+            years={[-1, 0, 1].map((offset) => parseDateOnly(anchor).year + offset)}
+            onChange={(next) => setAnchor(shiftMonth(next, 0))}
+            previousLabel={t('calPrev')}
+            nextLabel={t('calNext')}
+            monthLabel={t('monthLabel')}
+            yearLabel={t('yearLabel')}
+          />
+        </div>
+        <Button variant="secondary" size="sm" onClick={() => setAnchor(shiftMonth(today, 0))}>
+          {t('today')}
         </Button>
       </div>
       <ScreenDataGuard

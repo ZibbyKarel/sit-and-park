@@ -1,0 +1,10 @@
+.nav {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-sm);
+}
+
+.grow {
+  flex: 1 1 0;
+  min-width: 0;
+}

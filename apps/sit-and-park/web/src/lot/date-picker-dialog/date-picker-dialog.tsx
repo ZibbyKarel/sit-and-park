@@ -20,13 +20,11 @@
  */
 
 import { useState } from 'react';
-import { Button, Modal } from '@shoptet/ui';
-import { SingleSelect } from '../../ui/client-select/client-select';
+import { Modal } from '@shoptet/ui';
+import { MonthNav } from '../../ui/month-nav/month-nav';
 import { ToggleTile } from '../../ui/toggle-tile/toggle-tile';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import {
-  addMonths,
-  parseDateOnly,
   startOfMonth,
   todayInPrague,
   useDateFormatters,
@@ -45,16 +43,6 @@ export interface DatePickerDialogProps {
   readonly years: readonly number[];
   readonly onSelect: (date: DateOnly) => void;
 }
-
-const MONTHS_IN_YEAR = 12;
-
-interface NumberOption {
-  readonly value: number;
-  readonly label: string;
-}
-
-const getOptionValue = (option: NumberOption) => option.value;
-const getOptionLabel = (option: NumberOption) => option.label;
 
 /**
  * Keyed on `open` and `selectedDate` for the same reason
@@ -81,7 +69,6 @@ function DatePickerDialogContent({
 
   const today = todayInPrague();
   const grid = buildDatePickerGrid(viewAnchor, selectedDate);
-  const parts = parseDateOnly(viewAnchor);
 
   const WEEKDAY_KEYS = [
     'weekdayMon',
@@ -93,61 +80,20 @@ function DatePickerDialogContent({
     'weekdaySun',
   ] as const;
 
-  const monthOptions = Array.from({ length: MONTHS_IN_YEAR }, (_unused, index) => ({
-    value: index + 1,
-    label: f.monthName(index + 1),
-  }));
-  const yearOptions = years.map((year) => ({ value: year, label: String(year) }));
-
   return (
     <Modal isOpen={open} onClose={onClose}>
       <Modal.Header>{t('datePickerTitle')}</Modal.Header>
       <Modal.Content>
         <div className={styles.nav}>
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-label={t('previousDay')}
-            onClick={() => {
-              setViewAnchor((current) => addMonths(current, -1));
-            }}
-          >
-            ‹
-          </Button>
-          <div className={styles.grow}>
-            <SingleSelect
-              label={t('monthLabel')}
-              value={parts.month}
-              options={monthOptions}
-              getOptionValue={getOptionValue}
-              getOptionLabel={getOptionLabel}
-              onChange={(month) => {
-                if (month === null) return;
-                setViewAnchor((current) => addMonths(current, month - parts.month));
-              }}
-            />
-          </div>
-          <SingleSelect
-            label={t('yearLabel')}
-            value={parts.year}
-            options={yearOptions}
-            getOptionValue={getOptionValue}
-            getOptionLabel={getOptionLabel}
-            onChange={(year) => {
-              if (year === null) return;
-              setViewAnchor((current) => addMonths(current, (year - parts.year) * MONTHS_IN_YEAR));
-            }}
+          <MonthNav
+            anchor={viewAnchor}
+            years={years}
+            onChange={setViewAnchor}
+            previousLabel={t('previousDay')}
+            nextLabel={t('nextDay')}
+            monthLabel={t('monthLabel')}
+            yearLabel={t('yearLabel')}
           />
-          <Button
-            variant="secondary"
-            size="sm"
-            aria-label={t('nextDay')}
-            onClick={() => {
-              setViewAnchor((current) => addMonths(current, 1));
-            }}
-          >
-            ›
-          </Button>
         </div>
 
         <table className="calendar-grid">
