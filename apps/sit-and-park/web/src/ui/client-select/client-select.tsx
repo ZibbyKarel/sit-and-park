@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * `SingleSelect` / `SingleSelectField` that never render on the server.
+ * `SingleSelect` / `SingleSelectField` / `DateField` that never render on the server.
  *
  * `@shoptet/ui` builds its `matchMedia` breakpoint queries when the module is
  * evaluated (`hooks/useScreenHasMinWidth.js`), so anything that pulls in a
@@ -15,6 +15,7 @@ import dynamic from 'next/dynamic';
 import type {
   SingleSelect as SingleSelectType,
   SingleSelectField as SingleSelectFieldType,
+  DateField as DateFieldType,
 } from '@shoptet/ui';
 
 export const SingleSelect = dynamic(() => import('@shoptet/ui').then((m) => m.SingleSelect), {
@@ -27,3 +28,7 @@ export const SingleSelectField = dynamic(
     ssr: false,
   }
 ) as unknown as typeof SingleSelectFieldType;
+
+export const DateField = dynamic(() => import('@shoptet/ui').then((m) => m.DateField), {
+  ssr: false,
+}) as unknown as typeof DateFieldType;

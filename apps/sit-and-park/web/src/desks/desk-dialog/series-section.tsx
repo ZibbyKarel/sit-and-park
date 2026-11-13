@@ -10,7 +10,8 @@
 
 import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { Button, CheckboxField, CounterField, DateField, SystemMessage } from '@shoptet/ui';
+import { Button, CheckboxField, CounterField, SystemMessage } from '@shoptet/ui';
+import { DateField } from '../../ui/client-select/client-select';
 import {
   addDays,
   dayOfWeek,
