@@ -52,6 +52,7 @@ const EXPECTED_PROCEDURES = [
   'reservation.previewBulk',
   'reservation.confirmBulk',
   'reservation.myMonth',
+  'reservation.myReservations',
   'waitlist.join',
   'waitlist.leave',
   'spot.list',
@@ -156,6 +157,7 @@ const EXPECTED_ERROR_CODES: Record<string, readonly string[]> = {
     'CONFLICT',
   ],
   'reservation.myMonth': ['FORBIDDEN'],
+  'reservation.myReservations': ['FORBIDDEN'],
   'waitlist.join': [
     'FORBIDDEN',
     'NOT_FOUND',
@@ -305,6 +307,7 @@ describe('contract router', () => {
       'me.get',
       'me.regenerateIcsToken',
       'spot.list',
+      'reservation.myReservations',
       'desk.myReservations',
       'desk.myRequests',
       'desk.pendingRequests',

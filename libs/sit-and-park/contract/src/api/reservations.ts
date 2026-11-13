@@ -8,7 +8,8 @@
 import * as z from 'zod';
 import { parkingSpotSchema, reservationSchema } from '../schemas/entities';
 import { dateOnlySchema, idSchema, yearMonthSchema } from '../schemas/primitives';
-import { authed, contractErrors } from './builder';
+import { DESK_HISTORY_MONTHS } from '@sit-and-park/shared-types';
+import { authed, contractErrors, noInputSchema } from './builder';
 
 /**
  * Who the reservation is for, when the caller is not booking for themselves.
@@ -220,6 +221,25 @@ export type MyMonthReservationsOutput = z.infer<typeof myMonthReservationsOutput
 export const getMyMonthReservationsContract = authed
   .input(myMonthReservationsInputSchema)
   .output(myMonthReservationsOutputSchema);
+
+/** One of the caller's parking reservations, with its spot's label for display. */
+export const myParkingReservationSchema = reservationSchema.extend({
+  parkingSpotLabel: parkingSpotSchema.shape.label,
+});
+export type MyParkingReservation = z.infer<typeof myParkingReservationSchema>;
+
+export const myParkingReservationsOutputSchema = z.object({
+  /** Dated from `DESK_HISTORY_MONTHS` months before today on, oldest date first. No upper bound. */
+  reservations: z.array(myParkingReservationSchema),
+});
+export type MyParkingReservationsOutput = z.infer<typeof myParkingReservationsOutputSchema>;
+
+export const myParkingReservationsContract = authed
+  .route({
+    description: `The caller’s parking reservations by date: every future one and the past ones of the last ${DESK_HISTORY_MONTHS} months.`,
+  })
+  .input(noInputSchema)
+  .output(myParkingReservationsOutputSchema);
 
 export const adminUserMonthReservationsInputSchema = z.object({
   /** Whose month to read. Never defaulted to the caller — see the contract below. */

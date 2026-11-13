@@ -1,8 +1,8 @@
 /**
- * `reservation.create`, `reservation.cancel` and `reservation.myMonth`, each on
- * its own Nest route, plus the admin-only `admin.reservation.month`.
+ * `reservation.create`, `reservation.cancel`, `reservation.myMonth` and
+ * `reservation.myReservations`, each on its own Nest route, plus the admin-only `admin.reservation.month`.
  *
- * The three `reservation.*` routes carry no `@Roles()`: any authenticated user
+ * The four `reservation.*` routes carry no `@Roles()`: any authenticated user
  * may reserve, and any authenticated user may cancel — *their own*. "Their own"
  * is an authorization rule about a row, not about a route, so it lives in
  * `ReservationsService` where the row is, and the admin exemption lives there
@@ -48,6 +48,9 @@ export class ReservationsController {
           myMonth: implementer.reservation.myMonth.handler(({ input, context }) =>
             reservations.myMonth(input, context.user)
           ),
+          myReservations: implementer.reservation.myReservations.handler(({ context }) =>
+            reservations.myReservations(context.user)
+          ),
         },
         admin: {
           reservation: {
@@ -73,6 +76,11 @@ export class ReservationsController {
 
   @RpcRoute('reservation', 'myMonth')
   myMonthReservations(): Promise<void> {
+    throw new Error('replaced by @RpcRoute');
+  }
+
+  @RpcRoute('reservation', 'myReservations')
+  myParkingReservations(): Promise<void> {
     throw new Error('replaced by @RpcRoute');
   }
 

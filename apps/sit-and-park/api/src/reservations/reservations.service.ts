@@ -65,6 +65,7 @@ import type {
   MonthReservations,
   MyMonthReservationsInput,
   MyMonthReservationsOutput,
+  MyParkingReservationsOutput,
   ReservationWindowSettings,
 } from '@sit-and-park/contract';
 import type { Prisma } from '@sit-and-park/database';
@@ -93,6 +94,7 @@ import {
 } from '../common/prisma-mapping';
 import { PrismaService } from '../database/prisma.service';
 import { ReservationWindowService } from '../reservation-window/reservation-window.service';
+import { historyFloor } from '../desks/desks.service';
 import { assertActiveUser } from './active-user';
 import {
   assertWithinMonthlyReservationCap,
@@ -293,6 +295,28 @@ export class ReservationsService {
         parkingSpotLabel: row.parkingSpot.label,
       })),
       waitlist: await this.waitlistInMonth(actor.id, input.month),
+    };
+  }
+
+  /**
+   * The caller's parking reservations as a list: every future one (no upper
+   * bound — a FORCE_OPEN month can be booked a year ahead) and the past ones
+   * of the last `DESK_HISTORY_MONTHS` months, oldest date first.
+   */
+  async myReservations(
+    actor: AuthenticatedUser,
+    today: DateOnly = todayInPrague()
+  ): Promise<MyParkingReservationsOutput> {
+    const rows = await this.prisma.client.reservation.findMany({
+      where: { userId: actor.id, date: { gte: historyFloor(today) } },
+      include: { parkingSpot: { select: { label: true } } },
+      orderBy: [{ date: 'asc' }, { id: 'asc' }],
+    });
+    return {
+      reservations: rows.map((row) => ({
+        ...toContractReservation(row),
+        parkingSpotLabel: row.parkingSpot.label,
+      })),
     };
   }
 

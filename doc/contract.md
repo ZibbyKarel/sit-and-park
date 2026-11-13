@@ -288,6 +288,7 @@ admin may add further non-overlapping blocks to it.
 | `reservation.create`      | `{ parkingSpotId, date }` | `Reservation`                                      | `NOT_FOUND`, `SPOT_ALREADY_RESERVED`, `RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
 | `reservation.cancel`      | `{ reservationId }`       | `{ reservationId, date, parkingSpotId, promoted }` | `NOT_FOUND`, `CONFLICT`                                                                                                                                  |
 | `reservation.myMonth`     | `{ month }`               | `{ month, reservedDates[], count, cap \| null, reservations[], waitlist[] }` | —                                                                                                                                                        |
+| `reservation.myReservations` | — | `{ reservations[] }`: future + last 12 months (`DESK_HISTORY_MONTHS`), each `Reservation` + `parkingSpotLabel` | — |
 | `admin.reservation.month` | `{ userId, month }`       | `{ month, reservedDates[], count, cap \| null }`   | —                                                                                                                                                        |
 
 `reservation.cancel` **deliberately declares no window error.** Per

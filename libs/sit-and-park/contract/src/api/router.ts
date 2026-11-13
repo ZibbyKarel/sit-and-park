@@ -67,6 +67,7 @@ import {
   createReservationContract,
   getMyMonthReservationsContract,
   getUserMonthReservationsContract,
+  myParkingReservationsContract,
 } from './reservations';
 import {
   getReservationWindowSettingsContract,
@@ -101,6 +102,8 @@ export const contract = {
     confirmBulk: confirmBulkContract,
     /** The caller's own reserved dates and count for one calendar month. */
     myMonth: getMyMonthReservationsContract,
+    /** The caller's parking reservations as a list: future ones and the last year's. */
+    myReservations: myParkingReservationsContract,
   },
   waitlist: {
     join: joinWaitlistContract,
