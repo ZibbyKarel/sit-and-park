@@ -152,7 +152,7 @@ test.describe('the language a person chooses', () => {
       // `router.refresh()`, so the switch itself is a re-render, not a load.
       await expect(page.locator('html')).toHaveAttribute('lang', 'en');
       await expect(dialog).toContainText(COPY.settingsTitle.en);
-      await expect(dialog.getByLabel('License plate')).toHaveValue('E2E 123');
+      await expect(dialog.getByLabel('Car license plate')).toHaveValue('E2E 123');
 
       // Leaves without saving; the plate edit is discarded.
       await page.goto(LOT_PATH);
