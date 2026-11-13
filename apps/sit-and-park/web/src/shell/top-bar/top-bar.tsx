@@ -23,7 +23,6 @@ import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '
 import NextLink from 'next/link';
 import { ADMIN_ROUTE, DESKS_ROUTE, LOT_ROUTE, MY_DESKS_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
-import { Brand } from '../brand';
 import styles from './top-bar.module.css';
 
 /** Menu entry ids. `onSelect` is called with one of these. */
@@ -82,6 +81,7 @@ export function TopBar({
   onThemeToggle,
 }: TopBarProps) {
   const t = useTranslations('nav');
+  const tShell = useTranslations('shell');
   const isAdmin = role === 'ADMIN';
 
   const onSelect = (id: string) => {
@@ -103,8 +103,9 @@ export function TopBar({
 
   return (
     <header className={styles.bar}>
-      <NextLink href={LOT_ROUTE} className={styles.brandLink}>
-        <Brand />
+      {/* Full logo (symbol, name, claim) linking to the landing page. */}
+      <NextLink href="/" className={styles.brandLink}>
+        <img src="/sit-and-park-logo.svg" alt={tShell('brand')} height={44} />
       </NextLink>
 
       <nav aria-label={t('primary')} className={styles.nav}>

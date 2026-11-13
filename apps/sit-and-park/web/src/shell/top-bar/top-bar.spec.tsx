@@ -56,7 +56,7 @@ describe('TopBar', () => {
 
     expect(screen.getAllByText('Karel Zíbar').length).toBeGreaterThan(0);
     expect(screen.getByText('KZ')).toBeInTheDocument();
-    expect(screen.getByText('brand')).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'brand' })).toBeInTheDocument();
   });
 
   it('shows the email only inside the menu, not on the bar', async () => {
