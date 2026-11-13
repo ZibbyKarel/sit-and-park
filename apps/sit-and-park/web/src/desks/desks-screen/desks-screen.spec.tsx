@@ -365,6 +365,29 @@ describe('DesksScreen', () => {
     mockSearch = '';
   });
 
+  it('clears the URL highlight on the first desk activation', async () => {
+    mockSearch = 'date=2026-11-16&desk=d2';
+    const mine = directoryDesk({
+      id: 'd2',
+      code: 'D-002',
+      status: 'RESERVED_BY_ME',
+      myReservationId: 'res-1',
+    });
+    serve({ 'desk/directory': ok(directory([FREE, mine])) });
+    const user = renderScreen();
+
+    const shape = await screen.findByRole('button', { name: /^deskAria(Hive)?: code=D-002,/ });
+    expect(shape).toHaveAttribute('aria-pressed', 'true');
+    await openDesk(user, FREE);
+    await user.keyboard('{Escape}');
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.getByRole('button', { name: /^deskAria(Hive)?: code=D-002,/ })).toHaveAttribute(
+      'aria-pressed',
+      'false'
+    );
+    mockSearch = '';
+  });
+
   describe('bulk booking', () => {
     const SECOND = directoryDesk({ id: 'desk-second', code: 'D-002' });
     const asAdmin = {

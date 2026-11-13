@@ -81,7 +81,8 @@ export function DesksScreen() {
   const [filter, setFilter] = useState<DeskFilter>(EMPTY_DESK_FILTER);
   const [openDeskId, setOpenDeskId] = useState<string | null>(null);
   // From the calendar's "show on plan": highlighted and focused, not opened.
-  const focusDeskId = useSearchParams().get(DESK_PARAM);
+  // Copied once: the URL stays, but the highlight clears on the first activation.
+  const [focusDeskId, setFocusDeskId] = useState(useSearchParams().get(DESK_PARAM));
   const [view, setView] = useState<View>('plan');
   const [bulkOpen, setBulkOpen] = useState(false);
   // Admin only: desks ticked for bulk booking (Ctrl/Cmd-click or the list checkbox).
@@ -407,9 +408,11 @@ export function DesksScreen() {
                         tones={DESK_TONES}
                         selectedIds={selectedIds}
                         focusId={focusDeskId ?? undefined}
-                        onShapeActivate={(id, { multi }) =>
-                          isAdmin && multi ? togglePool(id) : setOpenDeskId(id)
-                        }
+                        onShapeActivate={(id, { multi }) => {
+                          setFocusDeskId(null);
+                          if (isAdmin && multi) togglePool(id);
+                          else setOpenDeskId(id);
+                        }}
                         labels={{
                           zoomIn: t('planZoomIn'),
                           zoomOut: t('planZoomOut'),
