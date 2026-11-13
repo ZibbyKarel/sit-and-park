@@ -24,3 +24,25 @@
   fill: none;
   stroke: #fff;
 }
+
+/* Outline glyphs that take the colour of the text they sit in. */
+.car,
+.desk,
+.warning {
+  flex-shrink: 0;
+  fill: none;
+  stroke: currentcolor;
+}
+
+.car[data-size='sm'],
+.desk[data-size='sm'],
+.warning[data-size='sm'] {
+  width: 16px;
+  height: 16px;
+}
+.car[data-size='md'],
+.desk[data-size='md'],
+.warning[data-size='md'] {
+  width: 20px;
+  height: 20px;
+}

@@ -17,10 +17,10 @@ import type { ContractClient } from './router';
 import { contract } from './router';
 import {
   adminUserMonthReservationsInputSchema,
-  getMyMonthReservationsContract,
   getUserMonthReservationsContract,
   monthReservationsOutputSchema,
   myMonthReservationsInputSchema,
+  myMonthReservationsOutputSchema,
 } from './reservations';
 
 /** Flattens the router into `['a.b.c', procedure]` pairs. */
@@ -58,6 +58,8 @@ const EXPECTED_PROCEDURES = [
   'desk.directory',
   'desk.previewSeries',
   'desk.reserve',
+  'desk.previewBulk',
+  'desk.confirmBulk',
   'desk.cancel',
   'desk.myReservations',
   'desk.requestApproval',
@@ -196,6 +198,8 @@ const EXPECTED_ERROR_CODES: Record<string, readonly string[]> = {
     'DESK_RESERVATION_LIMIT_REACHED',
     'CONFLICT',
   ],
+  'desk.previewBulk': ['FORBIDDEN', 'NOT_FOUND'],
+  'desk.confirmBulk': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
   'desk.cancel': ['FORBIDDEN', 'NOT_FOUND', 'PAST_DATE'],
   'desk.myReservations': ['FORBIDDEN'],
   'desk.requestApproval': [
@@ -440,9 +444,12 @@ describe('contract router', () => {
     expect(Object.keys(myMonthReservationsInputSchema.shape)).toEqual(['month']);
   });
 
-  it('answers the admin month summary in the same shape as myMonth', () => {
+  it('answers the admin month summary with the shared summary that myMonth extends', () => {
     expect(getUserMonthReservationsContract['~orpc'].outputSchema).toBe(
-      getMyMonthReservationsContract['~orpc'].outputSchema
+      monthReservationsOutputSchema
+    );
+    expect(Object.keys(myMonthReservationsOutputSchema.shape)).toEqual(
+      expect.arrayContaining(Object.keys(monthReservationsOutputSchema.shape))
     );
   });
 

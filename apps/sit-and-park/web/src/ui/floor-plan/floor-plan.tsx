@@ -12,7 +12,14 @@ import {
   type PointerEvent,
 } from 'react';
 
-import { IDENTITY_VIEW, panBy, zoomAt, type View } from './floor-plan-view';
+import {
+  IDENTITY_VIEW,
+  panBy,
+  wheelDeltaToPixels,
+  wheelZoomFactor,
+  zoomAt,
+  type View,
+} from './floor-plan-view';
 import styles from './floor-plan.module.css';
 
 export interface FloorPlanShape {
@@ -49,12 +56,18 @@ export interface FloorPlanProps {
   /** Click, Enter or Space on an enabled shape; `multi` = Ctrl or Cmd held. */
   onShapeActivate?: ((id: string, modifiers: { multi: boolean }) => void) | undefined;
   /** Already translated by the caller. */
-  labels: { zoomIn: string; zoomOut: string; reset: string; hint: string };
+  labels: {
+    zoomIn: string;
+    zoomOut: string;
+    reset: string;
+    hint: string;
+    enterFullscreen: string;
+    exitFullscreen: string;
+  };
 }
 
 const DRAG_THRESHOLD_PX = 6;
 const BUTTON_FACTOR = 1.25;
-const WHEEL_FACTOR = 1.15;
 /** From this zoom on, shape labels are shown. */
 const LABEL_SCALE = 3;
 
@@ -130,6 +143,8 @@ export function FloorPlan({
 }: FloorPlanProps) {
   const [view, setView] = useState<View>(IDENTITY_VIEW);
   const [dragging, setDragging] = useState(false);
+  // CSS-only fullscreen: the native Fullscreen API would hide the portalled dialogs and toasts.
+  const [fullscreen, setFullscreen] = useState(false);
   const svgRef = useRef<SVGSVGElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const start = useRef({ x: 0, y: 0 });
@@ -162,32 +177,70 @@ export function FloorPlan({
     return { k, left: r.left, top: r.top, vw: r.width / k, vh: r.height / k };
   };
 
-  // Wheel needs a non-passive listener to be able to preventDefault; only Ctrl/Cmd zooms,
-  // anything else is left alone so the page scrolls.
+  // Wheel needs a non-passive listener to be able to preventDefault. Ctrl/Cmd+wheel (and a
+  // trackpad pinch, which arrives as a wheel with ctrlKey) zooms at the pointer; a plain wheel
+  // or two-finger scroll pans. A plain wheel that cannot move the plan (e.g. at the base zoom)
+  // is left alone so the page scrolls.
+  const viewRef = useRef(view);
+  viewRef.current = view;
   useEffect(() => {
     const svg = svgRef.current;
     if (!svg) return;
     const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey && !e.metaKey) return;
-      e.preventDefault();
       const m = metrics();
-      const factor = e.deltaY < 0 ? WHEEL_FACTOR : 1 / WHEEL_FACTOR;
-      setView((v) =>
-        zoomAt(
-          v,
-          factor,
-          (e.clientX - m.left) / m.k,
-          (e.clientY - m.top) / m.k,
-          m.vw,
-          m.vh,
-          width,
-          height
-        )
-      );
+      const v = viewRef.current;
+      const dy = wheelDeltaToPixels(e.deltaY, e.deltaMode, window.innerHeight);
+      if (e.ctrlKey || e.metaKey) {
+        e.preventDefault();
+        const factor = wheelZoomFactor(dy);
+        setView((cur) =>
+          zoomAt(
+            cur,
+            factor,
+            (e.clientX - m.left) / m.k,
+            (e.clientY - m.top) / m.k,
+            m.vw,
+            m.vh,
+            width,
+            height
+          )
+        );
+        return;
+      }
+      const dx = wheelDeltaToPixels(e.deltaX, e.deltaMode, window.innerWidth);
+      const next = panBy(v, -dx / m.k, -dy / m.k, m.vw, m.vh, width, height);
+      if (next.tx === v.tx && next.ty === v.ty) return;
+      e.preventDefault();
+      viewRef.current = next;
+      setView(next);
     };
     svg.addEventListener('wheel', onWheel, { passive: false });
     return () => svg.removeEventListener('wheel', onWheel);
   }, [width, height]);
+
+  // Lock page scroll while in fullscreen; Esc leaves it unless something else (an open dialog)
+  // already handled the key.
+  useEffect(() => {
+    if (!fullscreen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const onKey = (e: globalThis.KeyboardEvent) => {
+      if (e.key !== 'Escape' || e.defaultPrevented) return;
+      if (document.querySelector('[aria-modal="true"]')) return;
+      setFullscreen(false);
+      setView(IDENTITY_VIEW);
+    };
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.body.style.overflow = prevOverflow;
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [fullscreen]);
+
+  const toggleFullscreen = () => {
+    setView(IDENTITY_VIEW); // the visible window changes size
+    setFullscreen((f) => !f);
+  };
 
   function onPointerDown(e: PointerEvent<SVGSVGElement>) {
     if (pointers.current.size === 0) {
@@ -247,7 +300,7 @@ export function FloorPlan({
   };
 
   return (
-    <div className={styles.root}>
+    <div className={styles.root} data-fullscreen={fullscreen ? '' : undefined}>
       <div className={styles.viewport} style={{ aspectRatio: `${width} / ${height}` }}>
         <svg
           ref={svgRef}
@@ -289,6 +342,14 @@ export function FloorPlan({
         </button>
         <button type="button" className={styles.button} onClick={() => setView(IDENTITY_VIEW)}>
           {labels.reset}
+        </button>
+        <button
+          type="button"
+          className={styles.button}
+          aria-pressed={fullscreen}
+          onClick={toggleFullscreen}
+        >
+          {fullscreen ? labels.exitFullscreen : labels.enterFullscreen}
         </button>
       </div>
       <p className={styles.hint}>{labels.hint}</p>

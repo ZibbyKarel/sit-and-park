@@ -33,8 +33,9 @@ import { FloorPlan } from '../../ui/floor-plan/floor-plan';
 import { DataTable, type DataTableColumn } from '../../ui/data-table/data-table';
 import { Chip } from '../../ui/chip/chip';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
-import { MY_DESKS_ROUTE } from '../../routes';
+import { MY_RESERVATIONS_ROUTE } from '../../routes';
 import { DeskDialog } from '../desk-dialog/desk-dialog';
+import { DeskBulkModal } from '../desk-bulk-modal/desk-bulk-modal';
 import { useErrorCopy } from '../desk-dialog/use-error-copy';
 import {
   DESK_STATUS_KEYS,
@@ -70,13 +71,18 @@ export function DesksScreen() {
   const api = useApi();
   const queryClient = useQueryClient();
   const { status: sessionStatus } = useSession();
-  const isAdmin = useCurrentUser().data?.role === 'ADMIN';
+  const currentUser = useCurrentUser().data;
+  const isAdmin = currentUser?.role === 'ADMIN';
+  const viewerUserId = currentUser?.id ?? null;
 
   const [date, setDate] = useDateInUrl();
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [filter, setFilter] = useState<DeskFilter>(EMPTY_DESK_FILTER);
   const [openDeskId, setOpenDeskId] = useState<string | null>(null);
   const [view, setView] = useState<View>('plan');
+  const [bulkOpen, setBulkOpen] = useState(false);
+  // Admin only: desks ticked for bulk booking (Ctrl/Cmd-click or the list checkbox).
+  const [pool, setPool] = useState<readonly string[]>([]);
 
   const directoryQuery = useQuery({
     ...api.desk.directory.queryOptions({ input: { date } }),
@@ -111,7 +117,20 @@ export function DesksScreen() {
     [desks, filter]
   );
   const banner = useMemo(() => toDeskBannerView(desks), [desks]);
-  const selectedIds = useMemo(() => (openDeskId === null ? [] : [openDeskId]), [openDeskId]);
+  // A ticked id that left the directory (other day, deactivated) is not a selection.
+  const poolIds = useMemo(
+    () => pool.filter((id) => desks.some((desk) => desk.id === id)),
+    [pool, desks]
+  );
+  const selectedIds = useMemo(
+    () => (openDeskId === null ? poolIds : [...poolIds, openDeskId]),
+    [openDeskId, poolIds]
+  );
+  const togglePool = useCallback((id: string) => {
+    setPool((current) =>
+      current.includes(id) ? current.filter((other) => other !== id) : [...current, id]
+    );
+  }, []);
   const isPast = compareDateOnly(date, todayInPrague()) < 0;
   const openDesk = desks.find((desk) => desk.id === openDeskId) ?? null;
 
@@ -142,6 +161,23 @@ export function DesksScreen() {
   ];
 
   const columns: DataTableColumn<DirectoryDesk>[] = [
+    ...(isAdmin
+      ? [
+          {
+            id: 'select',
+            header: <VisuallyHidden>{t('columnSelect')}</VisuallyHidden>,
+            width: '48px',
+            cell: (desk: DirectoryDesk) => (
+              <input
+                type="checkbox"
+                aria-label={t('selectDesk', { code: desk.code })}
+                checked={poolIds.includes(desk.id)}
+                onChange={() => togglePool(desk.id)}
+              />
+            ),
+          },
+        ]
+      : []),
     { id: 'code', header: t('columnCode'), cell: (desk) => desk.code, sortValue: (d) => d.code },
     {
       id: 'zone',
@@ -233,10 +269,24 @@ export function DesksScreen() {
             {t('today')}
           </Button>
         </div>
-        <Chip size="md" tone="outline" as="p">
-          {t('freeCount', { free, total: desks.length })}
-        </Chip>
+        <div className={styles.group}>
+          <Chip size="md" tone="outline" as="p">
+            {t('freeCount', { free, total: desks.length })}
+          </Chip>
+          <Button variant="secondary" size="sm" onClick={() => setBulkOpen(true)}>
+            {t('bulkOpen')}
+          </Button>
+        </div>
       </div>
+
+      {isAdmin && poolIds.length > 0 ? (
+        <div role="status" className={styles.selection}>
+          <span>{t('selectionCount', { count: poolIds.length })}</span>
+          <Button variant="secondary" size="sm" onClick={() => setPool([])}>
+            {t('selectionClear')}
+          </Button>
+        </div>
+      ) : null}
 
       <DatePickerDialog
         open={datePickerOpen}
@@ -256,7 +306,7 @@ export function DesksScreen() {
               level="notice"
               description={t('bannerPermanent', { code: banner.code })}
               controls={
-                <NextLink href={MY_DESKS_ROUTE} className={styles.link}>
+                <NextLink href={MY_RESERVATIONS_ROUTE} className={styles.link}>
                   {t('bannerPermanentLink')}
                 </NextLink>
               }
@@ -347,14 +397,19 @@ export function DesksScreen() {
                         shapes={shapes}
                         tones={DESK_TONES}
                         selectedIds={selectedIds}
-                        onShapeActivate={(id) => setOpenDeskId(id)}
+                        onShapeActivate={(id, { multi }) =>
+                          isAdmin && multi ? togglePool(id) : setOpenDeskId(id)
+                        }
                         labels={{
                           zoomIn: t('planZoomIn'),
                           zoomOut: t('planZoomOut'),
                           reset: t('planReset'),
                           hint: t('planHint'),
+                          enterFullscreen: t('planEnterFullscreen'),
+                          exitFullscreen: t('planExitFullscreen'),
                         }}
                       />
+                      {isAdmin ? <p className={styles.muted}>{t('planMultiHint')}</p> : null}
                       <section aria-label={t('legendTitle')} className={styles.legend}>
                         {DESK_STATUS_ORDER.map((status) => (
                           <span key={status} className={styles.status}>
@@ -380,6 +435,16 @@ export function DesksScreen() {
           )}
         </>
       )}
+
+      {bulkOpen ? (
+        <DeskBulkModal
+          onClose={() => setBulkOpen(false)}
+          anchorDate={date}
+          isAdmin={isAdmin}
+          viewerUserId={viewerUserId}
+          deskIds={isAdmin && poolIds.length > 0 ? poolIds : undefined}
+        />
+      ) : null}
 
       {openDesk === null ? null : (
         <DeskDialog

@@ -287,7 +287,7 @@ admin may add further non-overlapping blocks to it.
 | ------------------------- | ------------------------- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `reservation.create`      | `{ parkingSpotId, date }` | `Reservation`                                      | `NOT_FOUND`, `SPOT_ALREADY_RESERVED`, `RESERVATION_LIMIT_REACHED`, `PAST_DATE`, `OUT_OF_HORIZON`, `RESERVATIONS_LOCKED`, `VALIDATION_FAILED`, `CONFLICT` |
 | `reservation.cancel`      | `{ reservationId }`       | `{ reservationId, date, parkingSpotId, promoted }` | `NOT_FOUND`, `CONFLICT`                                                                                                                                  |
-| `reservation.myMonth`     | `{ month }`               | `{ month, reservedDates[], count, cap \| null }`   | —                                                                                                                                                        |
+| `reservation.myMonth`     | `{ month }`               | `{ month, reservedDates[], count, cap \| null, reservations[], waitlist[] }` | —                                                                                                                                                        |
 | `admin.reservation.month` | `{ userId, month }`       | `{ month, reservedDates[], count, cap \| null }`   | —                                                                                                                                                        |
 
 `reservation.cancel` **deliberately declares no window error.** Per
@@ -427,7 +427,7 @@ yourself.
 | procedure               | input                                        | output                             | other errors                     |
 | ----------------------- | -------------------------------------------- | ---------------------------------- | -------------------------------- |
 | `me.get`                | —                                            | `MyProfile` (`User` incl. `icsToken`, plus `hiveId`, `permanentDeskId`, `ownsHive`) | —      |
-| `me.updateSettings`     | `{ licensePlate?, preferredParkingSpotId? }` | `User`                             | `NOT_FOUND`, `VALIDATION_FAILED` |
+| `me.updateSettings`     | `{ licensePlate?, preferredParkingSpotId?, preferredDeskId? }` | `User`                             | `NOT_FOUND`, `VALIDATION_FAILED` |
 | `me.regenerateIcsToken` | —                                            | `{ icsToken }`                     | —                                |
 
 `me.get` returns `icsToken`, because it's the caller's own token, and the
@@ -438,12 +438,17 @@ settings screen builds the feed address from it.
 | value        | meaning                                         |
 | ------------ | ----------------------------------------------- |
 | field absent | don't change it                                 |
-| `null`       | clear it (no license plate / no preferred spot) |
+| `null`       | clear it (no license plate / no preferred spot / no preferred desk) |
 | a value      | set it                                          |
 
-Both fields are nullable on the entity, so "clear" must be expressible;
+All three fields are nullable on the entity, so "clear" must be expressible;
 `.partial()` alone couldn't distinguish it from "don't change". `NOT_FOUND` is
 a nonexistent preferred spot; `VALIDATION_FAILED` targets a deactivated one.
+`preferredDeskId` likewise: `NOT_FOUND` for an unknown desk,
+`VALIDATION_FAILED` for an inactive one or one outside the caller's office. It
+is the first choice of `desk.previewBulk` only, and is cleared to `null` when
+an admin moves the user to another office or deactivates the desk or moves it
+to another office.
 
 `preferredParkingSpotId` is used **exclusively** as the first choice during a
 bulk reservation; it has no effect on a regular single-day reservation
@@ -581,6 +586,8 @@ declare `FORBIDDEN` through `authed`; the table lists the other codes.
 | `desk.directory`                  | `{ date }`                                    | office, zones, hives, `desks[]` with status, `myReservationId`, `myPendingRequestId` | `NO_OFFICE_ASSIGNED`                                                                                                                                                |
 | `desk.previewSeries`              | `{ deskId, dates[1..20] }` (span ≤ 34 days)   | `{ days[{ date, ok, reason }] }`             | `NOT_FOUND`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED`                                                              |
 | `desk.reserve`                    | as `previewSeries`                            | `{ reserved[], skipped[{ date, reason }] }`  | previewSeries codes + `NO_FREE_DAY`, `DESK_ALREADY_RESERVED`, `DESK_RESERVATION_LIMIT_REACHED`, `CONFLICT`                                                          |
+| `desk.previewBulk`                | `{ dates[1..31] (one month), userIds?[1..50], deskIds?[1..500] }` | `{ month, people[], rows[ASSIGNED \| UNASSIGNED \| UNAVAILABLE], freeDesks[{ officeId, date, desks[] }] }` | `NOT_FOUND`                                                                                                                                                         |
+| `desk.confirmBulk`                | `{ assignments[{ userId, date, deskId }] }` (unique per person+day and desk+day) | `{ reserved[], skipped[{ userId, date, deskId, reason }] }` | `NOT_FOUND`, `CONFLICT`                                                                                                                                             |
 | `desk.cancel`                     | `{ reservationId }`                           | `{ reservationId, date, deskId }`            | `NOT_FOUND`, `PAST_DATE`                                                                                                                                            |
 | `desk.myReservations`             | —                                             | `{ reservations[] }`: future + last 12 months (`DESK_HISTORY_MONTHS`) | —                                                                                                                                                                   |
 | `desk.requestApproval`            | `{ deskId, date }`                            | `DeskApprovalRequest`                        | `NOT_FOUND`, `PAST_DATE`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`, `DESK_NOT_AVAILABLE`, `DESK_RESERVATION_LIMIT_REACHED`, `DESK_ALREADY_RESERVED`, `DESK_REQUEST_ALREADY_PENDING`, `VALIDATION_FAILED` |

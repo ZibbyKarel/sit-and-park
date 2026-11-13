@@ -33,6 +33,7 @@ function userRow(overrides: Record<string, unknown> = {}) {
     active: true,
     icsToken: 'secret-token',
     preferredParkingSpotId: null,
+    preferredDeskId: null,
     officeId: 'office-1',
     hibobId: null,
     manualAccount: false,

@@ -110,6 +110,7 @@ export function toContractUser(row: UserRow): User {
     active: row.active,
     icsToken: row.icsToken,
     preferredParkingSpotId: row.preferredParkingSpotId,
+    preferredDeskId: row.preferredDeskId,
     officeId: row.officeId,
     hibobId: row.hibobId,
     manualAccount: row.manualAccount,

@@ -74,6 +74,7 @@ type UserUpdatedPayload =
   | ({ readonly change: 'settings' } & Change<{
       readonly licensePlate: string | null;
       readonly preferredParkingSpotId: string | null;
+      readonly preferredDeskId: string | null;
     }>)
   | ({ readonly change: 'admin-updated' } & Change<{
       readonly role: UserRole;

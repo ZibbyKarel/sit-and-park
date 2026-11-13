@@ -249,6 +249,32 @@ export const DESK_SKIP_REASONS = [
 export type DeskSkipReason = (typeof DESK_SKIP_REASONS)[number];
 
 /**
+ * Why one row (person, day) of a desk bulk booking is not (or would not be)
+ * booked: the series reasons plus the person- and desk-level blockers a series
+ * call fails on as a whole, because a bulk batch spans several people and
+ * desks and one blocked row must not fail the rest.
+ *
+ * - `DESK_NOT_AVAILABLE` — the desk is inactive or not in the person's office.
+ * - `DESK_ACCESS_DENIED` — a hive desk the person cannot book directly (an
+ *   admin's manual pick may override it).
+ * - `PERMANENT_DESK_HOLDER` — the person holds a permanent desk.
+ * - `NO_OFFICE_ASSIGNED` — the person has no office.
+ * - `USER_INACTIVE` — the person is deactivated.
+ */
+export const DESK_BULK_SKIP_REASONS = [
+  ...DESK_SKIP_REASONS,
+  'DESK_NOT_AVAILABLE',
+  'DESK_ACCESS_DENIED',
+  'PERMANENT_DESK_HOLDER',
+  'NO_OFFICE_ASSIGNED',
+  'USER_INACTIVE',
+] as const;
+export type DeskBulkSkipReason = (typeof DESK_BULK_SKIP_REASONS)[number];
+
+/** A desk bulk booking names at most this many people (an admin booking for others). */
+export const MAX_DESK_BULK_USERS = 50;
+
+/**
  * Keys of the floor plans bundled with the web app
  * (`apps/sit-and-park/web/public/floorplans/<key>.svg`). `Office.floorPlan` stores
  * one of them, or `null`. A second office needs a new asset, a member here

@@ -1,10 +1,7 @@
-import { MyDesksScreen } from '../../../../desks/my-desks/my-desks-screen';
+import { redirect } from 'next/navigation';
+import { MY_RESERVATIONS_ROUTE } from '../../../../routes';
 
-/**
- * `/desks/my` — the caller's desk reservations, releases and approval
- * requests. A server component that renders one client component; everything
- * the screen needs lives below `app/providers.tsx`'s client boundary.
- */
-export default function MyDesksPage() {
-  return <MyDesksScreen />;
+/** Old bookmarks. */
+export default function MyDesksRedirectPage() {
+  redirect(MY_RESERVATIONS_ROUTE);
 }

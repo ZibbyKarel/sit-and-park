@@ -2,11 +2,16 @@ import { fireEvent, render, screen, waitFor, within } from '@testing-library/rea
 import userEvent from '@testing-library/user-event';
 import { QueryClient } from '@tanstack/react-query';
 import type { MyDeskReservation, MyProfile } from '@sit-and-park/contract';
-import { contractErrorResponse, rpcPayload, stubApi } from '../../testing/stub-api';
+import {
+  contractErrorResponse,
+  rpcPayload,
+  stubApi,
+  transportErrorResponse,
+} from '../../testing/stub-api';
 import type { StubbedApi, StubbedResponse } from '../../testing/stub-api';
 import { profile } from '../../testing/fixtures';
 import { createProviderWrapper } from '../../testing/providers';
-import { MyDesksScreen } from './my-desks-screen';
+import { MyReservationsScreen } from './my-reservations-screen';
 
 /**
  * The screen runs against a real `createApiClient` with only `fetch` stubbed
@@ -58,6 +63,9 @@ function reservation(id: string, date: string, deskCode = 'A-01'): MyDeskReserva
 
 interface World {
   reservations: MyDeskReservation[];
+  /** `reservation.myMonth`'s `reservedDates`. */
+  parkingDates: string[];
+  waitlist: { date: string; parkingSpotLabel: string; position: number }[];
   releases: unknown;
   requests: unknown[];
   pending: unknown[];
@@ -66,9 +74,11 @@ interface World {
   override: Record<string, () => StubbedResponse>;
 }
 
-function setup(partial: Partial<World> = {}) {
+async function setup(partial: Partial<World> = {}, view: 'list' | 'calendar' = 'list') {
   const world: World = {
     reservations: [],
+    parkingDates: [],
+    waitlist: [],
     releases: null,
     requests: [],
     pending: [],
@@ -85,6 +95,20 @@ function setup(partial: Partial<World> = {}) {
     switch (path) {
       case 'me/get':
         return res(world.me);
+      case 'reservation/myMonth':
+        return res({
+          month: '2026-09',
+          reservedDates: world.parkingDates,
+          count: world.parkingDates.length,
+          cap: null,
+          reservations: world.parkingDates.map((date) => ({
+            date,
+            reservationId: `res-${date}`,
+            parkingSpotId: 'spot-1',
+            parkingSpotLabel: 'A1',
+          })),
+          waitlist: world.waitlist.map((entry) => ({ ...entry, parkingSpotId: 'spot-2' })),
+        });
       case 'desk/myReservations':
         return res({ reservations: world.reservations });
       case 'desk/myReleases':
@@ -109,16 +133,20 @@ function setup(partial: Partial<World> = {}) {
   });
   mockClient = api.client;
   const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } });
-  render(<MyDesksScreen />, { wrapper: createProviderWrapper(queryClient) });
-  return { api, world, user: userEvent.setup() };
+  render(<MyReservationsScreen />, { wrapper: createProviderWrapper(queryClient) });
+  const user = userEvent.setup();
+  if (view === 'list') {
+    await user.click(screen.getByRole('radio', { name: 'viewList' }));
+  }
+  return { api, world, user };
 }
 
 const paths = (api: StubbedApi) =>
   api.requests.map((request) => new URL(request.url).pathname.replace('/rpc/', ''));
 
-describe('MyDesksScreen reservations', () => {
+describe('MyReservationsScreen reservations', () => {
   it('splits upcoming and history and says so when there is nothing', async () => {
-    const { user } = setup({
+    const { user } = await setup({
       reservations: [reservation('past', '2026-09-10', 'B-02'), reservation('today', TODAY)],
     });
     expect(await screen.findByText('A-01')).toBeInTheDocument();
@@ -130,17 +158,18 @@ describe('MyDesksScreen reservations', () => {
   });
 
   it('shows the empty state', async () => {
-    setup();
+    await setup();
     expect(await screen.findByText('emptyAll')).toBeInTheDocument();
   });
 
   it('cancels one reservation after confirmation and refetches', async () => {
-    const { api, user } = setup({ reservations: [reservation('r1', '2026-09-16')] });
+    const { api, user } = await setup({ reservations: [reservation('r1', '2026-09-16')] });
     await user.click(await screen.findByRole('button', { name: /^cancelOneLabel: code=A-01/ }));
     const dialog = await screen.findByRole('dialog');
+    const before = paths(api).filter((p) => p === 'desk/myReservations').length;
     await user.click(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' }));
     await waitFor(() =>
-      expect(paths(api).filter((p) => p === 'desk/myReservations')).toHaveLength(2)
+      expect(paths(api).filter((p) => p === 'desk/myReservations').length).toBeGreaterThan(before)
     );
     const cancelCall = api.requests[paths(api).indexOf('desk/cancel')];
     expect(await cancelCall?.json()).toEqual({ json: { reservationId: 'r1' } });
@@ -149,7 +178,7 @@ describe('MyDesksScreen reservations', () => {
 
   it('bulk-cancels selected rows and reports a partial failure', async () => {
     let calls = 0;
-    const { api, user } = setup({
+    const { api, user } = await setup({
       reservations: [
         reservation('r1', '2026-09-16', 'A-01'),
         reservation('r2', '2026-09-17', 'A-02'),
@@ -171,19 +200,9 @@ describe('MyDesksScreen reservations', () => {
     expect(paths(api).filter((p) => p === 'desk/cancel')).toHaveLength(2);
     expect(screen.getByRole('button', { name: 'cancelSelected: count=1' })).toBeInTheDocument();
   });
-
-  it('draws the Monday-to-Friday calendar view', async () => {
-    const { user } = setup({ reservations: [reservation('r1', '2026-09-16')] });
-    await screen.findByText('A-01');
-    await user.click(screen.getByRole('radio', { name: 'viewCalendar' }));
-    const grid = screen.getByRole('grid', { name: 'calendarLabel' });
-    expect(within(grid).getAllByRole('columnheader')).toHaveLength(5);
-    expect(within(grid).getByText('A-01')).toBeInTheDocument();
-    expect(screen.getByText('calCount: count=1')).toBeInTheDocument();
-  });
 });
 
-describe('MyDesksScreen permanent desk', () => {
+describe('MyReservationsScreen permanent desk', () => {
   const releases = {
     deskId: 'desk-9',
     code: 'P-09',
@@ -194,13 +213,13 @@ describe('MyDesksScreen permanent desk', () => {
   };
 
   it('is absent without a permanent desk', async () => {
-    setup();
+    await setup();
     await screen.findByText('emptyAll');
     expect(screen.queryByText(/releaseTitle/)).not.toBeInTheDocument();
   });
 
   it('releases the selected working days, minus a removed one', async () => {
-    const { api, user } = setup({ releases });
+    const { api, user } = await setup({ releases });
     await screen.findByText('releaseTitle: code=P-09');
     fireEvent.change(screen.getByLabelText('releaseTo'), { target: { value: '2026-09-17' } });
     await user.click(await screen.findByRole('button', { name: /^releaseRemoveDate: date=16/ }));
@@ -212,7 +231,7 @@ describe('MyDesksScreen permanent desk', () => {
   });
 
   it('lists releases with the booker and disables revoke where booked', async () => {
-    setup({ releases });
+    await setup({ releases });
     expect(await screen.findByText(/^releasedBy.*Jana Nováková/)).toBeInTheDocument();
     expect(screen.getByText(/^releasedFree/)).toBeInTheDocument();
     const buttons = screen.getAllByRole('button', { name: /^revokeLabel/ });
@@ -221,7 +240,7 @@ describe('MyDesksScreen permanent desk', () => {
   });
 
   it('shows copy when a revoke loses the race', async () => {
-    const { user } = setup({
+    const { user } = await setup({
       releases,
       override: {
         'desk/cancelRelease': () => contractErrorResponse('DESK_RELEASE_ALREADY_RESERVED'),
@@ -232,7 +251,7 @@ describe('MyDesksScreen permanent desk', () => {
   });
 });
 
-describe('MyDesksScreen requests', () => {
+describe('MyReservationsScreen requests', () => {
   const mine = {
     id: 'req-1',
     deskId: 'd',
@@ -247,7 +266,7 @@ describe('MyDesksScreen requests', () => {
   };
 
   it('shows status and cancels a pending request', async () => {
-    const { api, user } = setup({
+    const { api, user } = await setup({
       requests: [mine, { ...mine, id: 'req-2', status: 'APPROVED', deskCode: 'H-08' }],
     });
     expect(await screen.findByText('statusPENDING')).toBeInTheDocument();
@@ -258,7 +277,7 @@ describe('MyDesksScreen requests', () => {
   });
 
   it('shows the empty state', async () => {
-    setup();
+    await setup();
     expect(await screen.findByText('requestsEmpty')).toBeInTheDocument();
   });
 
@@ -272,18 +291,18 @@ describe('MyDesksScreen requests', () => {
   };
 
   it('hides the inbox from a plain user with nothing to decide', async () => {
-    setup();
+    await setup();
     await screen.findByText('requestsEmpty');
     expect(screen.queryByText('inboxTitle')).not.toBeInTheDocument();
   });
 
   it('shows an empty inbox to a hive owner', async () => {
-    setup({ me: profile({ ownsHive: true }) });
+    await setup({ me: profile({ ownsHive: true }) });
     expect(await screen.findByText('inboxEmpty')).toBeInTheDocument();
   });
 
   it('approves a request', async () => {
-    const { api, user } = setup({ pending: [pending] });
+    const { api, user } = await setup({ pending: [pending] });
     await user.click(await screen.findByRole('button', { name: /^approveLabel/ }));
     await waitFor(() => expect(paths(api)).toContain('desk/decideRequest'));
     const call = api.requests[paths(api).indexOf('desk/decideRequest')];
@@ -291,7 +310,7 @@ describe('MyDesksScreen requests', () => {
   });
 
   it('shows the error copy when the desk got taken meanwhile', async () => {
-    const { user } = setup({
+    const { user } = await setup({
       pending: [pending],
       override: { 'desk/decideRequest': () => contractErrorResponse('DESK_ALREADY_RESERVED') },
     });
@@ -304,11 +323,129 @@ describe('MyDesksScreen requests', () => {
     ['DESK_RESERVATION_LIMIT_REACHED', 'errDecideLimitReached'],
     ['PAST_DATE', 'errDecidePast'],
   ])('words %s from the decider’s point of view', async (code, copy) => {
-    const { user } = setup({
+    const { user } = await setup({
       pending: [pending],
       override: { 'desk/decideRequest': () => contractErrorResponse(code as never) },
     });
     await user.click(await screen.findByRole('button', { name: /^approveLabel/ }));
     expect(await screen.findByText(copy)).toBeInTheDocument();
+  });
+});
+
+describe('MyReservationsScreen calendar', () => {
+  const request = {
+    id: 'req-1',
+    deskId: 'd',
+    userId: 'user-viewer',
+    date: '2026-09-18',
+    status: 'PENDING',
+    decidedById: null,
+    decidedAt: null,
+    createdAt: '2026-09-01T08:00:00.000Z',
+    deskCode: 'H-07',
+    zoneName: 'Zóna H',
+  };
+
+  it('opens on the calendar and shows parking, desk and request events as text', async () => {
+    await setup(
+      {
+        parkingDates: ['2026-09-16', '2026-09-17'],
+        reservations: [reservation('r1', '2026-09-16')],
+        requests: [request],
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(within(grid).getAllByRole('columnheader')).toHaveLength(7);
+    expect(within(grid).getAllByText('eventParking: label=A1')).toHaveLength(2);
+    expect(within(grid).getByText('eventDesk: code=A-01')).toBeInTheDocument();
+    expect(
+      within(grid).getByText('eventRequest: code=H-07,status=requestPENDING')
+    ).toBeInTheDocument();
+    expect(grid.querySelectorAll('svg:not([aria-hidden="true"])')).toHaveLength(0);
+  });
+
+  it('shows a waitlist entry as text and does not warn about it', async () => {
+    await setup(
+      { waitlist: [{ date: '2026-09-17', parkingSpotLabel: 'B2', position: 2 }] },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(within(grid).getByText('eventWaitlist: label=B2,position=2')).toBeInTheDocument();
+    expect(within(grid).queryByText('warningNoDesk')).not.toBeInTheDocument();
+  });
+
+  it('marks only the parking day without a desk', async () => {
+    await setup(
+      {
+        parkingDates: ['2026-09-16', '2026-09-17'],
+        reservations: [reservation('r1', '2026-09-16')],
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(within(grid).getAllByText('warningNoDesk')).toHaveLength(1);
+  });
+
+  it('lists the same days in the agenda for narrow screens', async () => {
+    await setup({ parkingDates: ['2026-09-17'] }, 'calendar');
+    const agenda = await screen.findByRole('region', { name: 'agendaLabel' });
+    expect(within(agenda).getByText('eventParking: label=A1')).toBeInTheDocument();
+    expect(within(agenda).getByText('warningNoDesk')).toBeInTheDocument();
+  });
+
+  it('says so when the month is empty', async () => {
+    await setup({}, 'calendar');
+    expect(await screen.findByText('agendaEmpty')).toBeInTheDocument();
+  });
+
+  it('navigates months and asks for that month’s parking', async () => {
+    const { api, user } = await setup({}, 'calendar');
+    await screen.findByRole('grid', { name: 'calendarLabel' });
+    await user.click(screen.getByRole('button', { name: 'calNext' }));
+    await waitFor(() => {
+      const months = api.requests
+        .filter((request) => request.url.endsWith('reservation/myMonth'))
+        .map((request) => request.clone().json());
+      expect(months).toHaveLength(2);
+    });
+    const bodies = await Promise.all(
+      api.requests
+        .filter((request) => request.url.endsWith('reservation/myMonth'))
+        .map((request) => request.json())
+    );
+    expect(bodies.map((body: { json: { month: string } }) => body.json.month)).toEqual([
+      '2026-09',
+      '2026-10',
+    ]);
+  });
+
+  it('a failed month keeps the navigation, so another month can be tried', async () => {
+    const { user } = await setup(
+      { override: { 'reservation/myMonth': () => transportErrorResponse(500, 'boom') } },
+      'calendar'
+    );
+    expect(await screen.findByText('errorTitle')).toBeInTheDocument();
+    expect(screen.queryByRole('grid', { name: 'calendarLabel' })).not.toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'calNext' }));
+    expect(screen.getByRole('button', { name: 'calPrev' })).toBeInTheDocument();
+  });
+
+  it('failed desk requests or releases only add a notice: the calendar still renders', async () => {
+    await setup(
+      {
+        parkingDates: ['2026-09-16'],
+        reservations: [reservation('r1', '2026-09-16')],
+        override: {
+          'desk/myRequests': () => transportErrorResponse(500, 'boom'),
+          'desk/myReleases': () => transportErrorResponse(500, 'boom'),
+        },
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(within(grid).getByText('eventDesk: code=A-01')).toBeInTheDocument();
+    expect(screen.getByText(/calendarPartialError/)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'retry' })).toBeInTheDocument();
   });
 });

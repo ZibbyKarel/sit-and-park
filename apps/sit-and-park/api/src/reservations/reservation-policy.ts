@@ -187,4 +187,18 @@ export class ReservationPolicy {
       message: 'Only an admin may add somebody else to a queue.',
     });
   }
+
+  /**
+   * May this caller book desks for every one of `userIds` (desk bulk booking)?
+   * Themselves always; anybody else only as an admin.
+   */
+  assertMayNameDeskHolders(userIds: readonly string[], actor: AuthenticatedUser): void {
+    if (actor.role === 'ADMIN' || userIds.every((id) => id === actor.id)) {
+      return;
+    }
+
+    throw new DomainError('FORBIDDEN', {
+      message: 'Only an admin may book desks for somebody else.',
+    });
+  }
 }

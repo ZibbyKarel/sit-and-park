@@ -4,7 +4,7 @@ import { IntlProvider } from '@sit-and-park/i18n';
 import cs from '../../../messages/cs.json';
 import type { UserRole } from '@sit-and-park/contract';
 import type { Locale } from '@sit-and-park/i18n';
-import { ADMIN_ROUTE, DESKS_ROUTE, MY_DESKS_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import { ADMIN_ROUTE, DESKS_ROUTE, MY_RESERVATIONS_ROUTE, SETTINGS_ROUTE } from '../../routes';
 import { TopBar } from './top-bar';
 
 /**
@@ -186,9 +186,9 @@ describe('TopBar', () => {
 
       expect(within(nav).getByRole('link', { name: 'parking' })).toHaveAttribute('href', '/');
       expect(within(nav).getByRole('link', { name: 'desks' })).toHaveAttribute('href', DESKS_ROUTE);
-      expect(within(nav).getByRole('link', { name: 'myDesks' })).toHaveAttribute(
+      expect(within(nav).getByRole('link', { name: 'myReservations' })).toHaveAttribute(
         'href',
-        MY_DESKS_ROUTE
+        MY_RESERVATIONS_ROUTE
       );
     });
 
@@ -197,7 +197,9 @@ describe('TopBar', () => {
 
       expect(screen.getByRole('link', { name: 'desks' })).toHaveAttribute('aria-current', 'page');
       expect(screen.getByRole('link', { name: 'parking' })).not.toHaveAttribute('aria-current');
-      expect(screen.getByRole('link', { name: 'myDesks' })).not.toHaveAttribute('aria-current');
+      expect(screen.getByRole('link', { name: 'myReservations' })).not.toHaveAttribute(
+        'aria-current'
+      );
     });
   });
 });

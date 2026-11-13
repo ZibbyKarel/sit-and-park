@@ -127,6 +127,10 @@ model User {
   preferredParkingSpotId String?      @db.Uuid
   preferredParkingSpot   ParkingSpot? @relation("UserPreferredSpot", fields: [preferredParkingSpotId], references: [id], onDelete: SetNull, onUpdate: Cascade)
 
+  /// First choice when bulk booking desks. Nullable FK, like the preferred spot.
+  preferredDeskId String? @db.Uuid
+  preferredDesk   Desk?   @relation("UserPreferredDesk", fields: [preferredDeskId], references: [id], onDelete: SetNull, onUpdate: Cascade)
+
   /// Office the user works in; scopes which desks and spots they see. Nullable:
   /// a just-provisioned account has none until an admin or the sync sets it.
   officeId String? @db.Uuid
@@ -158,6 +162,7 @@ model User {
   decidedDeskApprovals DeskApprovalRequest[] @relation("DeskApprovalDecider")
 
   @@index([preferredParkingSpotId])
+  @@index([preferredDeskId])
   @@index([officeId])
 }
 
@@ -462,6 +467,7 @@ model Desk {
   reservations     DeskReservation[]
   releases         DeskRelease[]
   approvalRequests DeskApprovalRequest[]
+  preferredBy      User[]                @relation("UserPreferredDesk")
 
   @@unique([officeId, code])
   @@index([zoneId])

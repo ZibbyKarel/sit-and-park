@@ -10,6 +10,7 @@ import * as z from 'zod';
 import {
   DESK_ACCESS_LEVELS,
   DESK_APPROVAL_STATUSES,
+  DESK_BULK_SKIP_REASONS,
   DESK_SKIP_REASONS,
   DESK_STATUSES,
   EMPLOYEE_SYNC_MODES,
@@ -53,6 +54,10 @@ export type DeskAccess = z.infer<typeof deskAccessSchema>;
 /** Why one day of a desk series is not booked; never stored. */
 export const deskSkipReasonSchema = z.enum(DESK_SKIP_REASONS);
 export type DeskSkipReason = z.infer<typeof deskSkipReasonSchema>;
+
+/** Why one (person, day) row of a desk bulk booking is not booked; never stored. */
+export const deskBulkSkipReasonSchema = z.enum(DESK_BULK_SKIP_REASONS);
+export type DeskBulkSkipReason = z.infer<typeof deskBulkSkipReasonSchema>;
 
 /** A bundled floor plan key; `Office.floorPlan` stores one as a plain string. */
 export const floorPlanSchema = z.enum(FLOOR_PLANS);

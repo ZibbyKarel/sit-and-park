@@ -175,6 +175,7 @@ export interface UserSeed {
   licensePlate?: string | null;
   icsToken?: string;
   preferredParkingSpotId?: string | null;
+  preferredDeskId?: string | null;
   officeId?: string | null;
 }
 
@@ -264,7 +265,12 @@ export class PrismaDouble {
 
   /** Minimal desk-side rows, for the profile's three derived fields. */
   readonly hiveMemberships: { userId: string; hiveId: string }[] = [];
-  readonly desks: { id: string; permanentAssigneeId: string | null }[] = [];
+  readonly desks: {
+    id: string;
+    permanentAssigneeId: string | null;
+    officeId?: string;
+    active?: boolean;
+  }[] = [];
   readonly hives: { id: string; ownerId: string }[] = [];
   /** Offices besides {@link DEFAULT_OFFICE_ID} that exist; never the default. */
   readonly otherOfficeIds: string[] = [];
@@ -326,6 +332,7 @@ export class PrismaDouble {
       active: seed.active ?? true,
       icsToken: seed.icsToken ?? `token-${id}`,
       preferredParkingSpotId: seed.preferredParkingSpotId ?? null,
+      preferredDeskId: seed.preferredDeskId ?? null,
       officeId: seed.officeId === undefined ? DEFAULT_OFFICE_ID : seed.officeId,
       hibobId: null,
       manualAccount: false,
@@ -425,8 +432,16 @@ export class PrismaDouble {
           this.hiveMemberships.find((m) => m.userId === args.where.userId) ?? null,
       },
       desk: {
-        findUnique: async (args: { where: { permanentAssigneeId: string } }) =>
-          this.desks.find((d) => d.permanentAssigneeId === args.where.permanentAssigneeId) ?? null,
+        findUnique: async (args: { where: { permanentAssigneeId: string } | { id: string } }) => {
+          const { where } = args;
+          const found =
+            'id' in where
+              ? this.desks.find((d) => d.id === where.id)
+              : this.desks.find((d) => d.permanentAssigneeId === where.permanentAssigneeId);
+          return found === undefined
+            ? null
+            : { officeId: DEFAULT_OFFICE_ID, active: true, ...found };
+        },
       },
       hive: {
         findFirst: async (args: { where: { ownerId: string } }) =>
@@ -607,7 +622,7 @@ export class PrismaDouble {
         if (row === undefined) {
           throw recordNotFound();
         }
-        const { preferredParkingSpot, ...scalars } = args.data;
+        const { preferredParkingSpot, preferredDesk, ...scalars } = args.data;
         if (scalars.icsToken !== undefined) {
           if (this.icsTokenCollisions > 0) {
             this.icsTokenCollisions -= 1;
@@ -625,6 +640,9 @@ export class PrismaDouble {
         if (preferredParkingSpot !== undefined) {
           row.preferredParkingSpotId =
             'disconnect' in preferredParkingSpot ? null : preferredParkingSpot.connect.id;
+        }
+        if (preferredDesk !== undefined) {
+          row.preferredDeskId = 'disconnect' in preferredDesk ? null : preferredDesk.connect.id;
         }
         return copy(row);
       },
@@ -713,7 +731,34 @@ export class PrismaDouble {
 
   private waitlistDelegate() {
     return {
-      findMany: async (args: { where: { date: Date }; orderBy?: unknown; select?: unknown }) => {
+      findMany: async (args: {
+        where: {
+          date: Date | { gte: Date; lte: Date };
+          userId?: string;
+          parkingSpotId?: { in: string[] };
+        };
+        orderBy?: unknown;
+        select?: unknown;
+      }) => {
+        // `ReservationsService.myMonth`: a month range, either one user's own
+        // entries (with the spot's label joined in) or every entry in the
+        // given spots' queues.
+        if (!(args.where.date instanceof Date)) {
+          const { gte, lte } = args.where.date;
+          const spots = args.where.parkingSpotId?.in;
+          return this.waitlist
+            .filter(
+              (row) =>
+                row.date.getTime() >= gte.getTime() &&
+                row.date.getTime() <= lte.getTime() &&
+                (args.where.userId === undefined || row.userId === args.where.userId) &&
+                (spots === undefined || spots.includes(row.parkingSpotId))
+            )
+            .sort(
+              (a, b) => a.createdAt.getTime() - b.createdAt.getTime() || a.id.localeCompare(b.id)
+            )
+            .map((row) => ({ ...row, parkingSpot: copy(this.requireSpot(row.parkingSpotId)) }));
+        }
         const target = args.where.date.getTime();
         return this.waitlist
           .filter((row) => row.date.getTime() === target)
@@ -909,6 +954,7 @@ type UserUpdateData = Partial<
   >
 > & {
   preferredParkingSpot?: { disconnect: true } | { connect: { id: string } };
+  preferredDesk?: { disconnect: true } | { connect: { id: string } };
 };
 
 function matchesUserWhere(row: UserRow, where: UserWhere): boolean {

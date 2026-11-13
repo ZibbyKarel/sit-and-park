@@ -1,10 +1,13 @@
 import { render, screen } from '@testing-library/react';
 
-import { BoltIcon, EyeOffIcon } from './icons';
+import { BoltIcon, CarIcon, DeskIcon, EyeOffIcon, WarningIcon } from './icons';
 
 describe.each([
   ['BoltIcon', BoltIcon, 'Nabíječka pro elektromobily'],
   ['EyeOffIcon', EyeOffIcon, 'Skryté'],
+  ['CarIcon', CarIcon, 'Auto'],
+  ['DeskIcon', DeskIcon, 'Stůl'],
+  ['WarningIcon', WarningIcon, 'Pozor'],
 ] as const)('%s', (_name, Icon, label) => {
   it('is an image named by its label', () => {
     render(<Icon label={label} />);

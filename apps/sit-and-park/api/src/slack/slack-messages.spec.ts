@@ -73,7 +73,7 @@ describe('waitlistPromotedMessage', () => {
 describe('desk approval messages', () => {
   it('tells the owner who asks, for which desk, hive and day', () => {
     expect(deskApprovalRequestedMessage('Jan Novák', 'D-014', 'Backend', MONDAY)).toBe(
-      'Jan Novák žádá o stůl D-014 (Backend) na pondělí 28. září 2026. Žádost vyřídíte v aplikaci v části Moje stoly.'
+      'Jan Novák žádá o stůl D-014 (Backend) na pondělí 28. září 2026. Žádost vyřídíte v aplikaci v části Moje rezervace.'
     );
   });
 

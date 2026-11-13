@@ -20,8 +20,8 @@ import {
   deskShape,
   expectDeskStatus,
   goToDesksDay,
-  goToMyDesks,
-  myDesksSection,
+  goToMyReservations,
+  myReservationsSection,
 } from './support/desk-page';
 import { expect, test } from './support/fixtures';
 import { selectOption } from './support/select-option';
@@ -71,9 +71,9 @@ test('deactivating a desk removes its holder’s future reservation', async ({
 
   await goToDesksDay(userPage, DATE);
   await expectDeskStatus(userPage, DESK, DESK_STATUS.inactive);
-  await goToMyDesks(userPage);
+  await goToMyReservations(userPage);
   await expect(
-    myDesksSection(userPage, 'Moje rezervace stolů').getByText(DESK, { exact: true })
+    myReservationsSection(userPage, 'Moje rezervace stolů').getByText(DESK, { exact: true })
   ).toHaveCount(0);
 
   await toggleActive(adminPage, editor, true);

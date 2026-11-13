@@ -197,18 +197,19 @@ describe('myMonthReservationsInputSchema', () => {
 });
 
 describe('myMonthReservationsOutputSchema', () => {
+  const extras = { reservations: [], waitlist: [] };
   it('accepts the reserved dates, the count and the cap', () => {
-    const output = { month: '2026-09', reservedDates: [DATE_A], count: 1, cap: 5 };
+    const output = { month: '2026-09', reservedDates: [DATE_A], count: 1, cap: 5, ...extras };
     expect(myMonthReservationsOutputSchema.parse(output)).toEqual(output);
   });
 
   it('accepts an empty month', () => {
-    const output = { month: '2026-09', reservedDates: [], count: 0, cap: 5 };
+    const output = { month: '2026-09', reservedDates: [], count: 0, cap: 5, ...extras };
     expect(myMonthReservationsOutputSchema.parse(output)).toEqual(output);
   });
 
   it('accepts a null cap — no cap applies to this month today', () => {
-    const output = { month: '2026-09', reservedDates: [], count: 7, cap: null };
+    const output = { month: '2026-09', reservedDates: [], count: 7, cap: null, ...extras };
     expect(myMonthReservationsOutputSchema.parse(output)).toEqual(output);
   });
 
@@ -219,14 +220,46 @@ describe('myMonthReservationsOutputSchema', () => {
         reservedDates: [],
         count: -1,
         cap: 5,
+        ...extras,
       }).success
     ).toBe(false);
   });
 
   it('rejects a missing cap — it is required, not defaulted', () => {
     expect(
-      myMonthReservationsOutputSchema.safeParse({ month: '2026-09', reservedDates: [], count: 0 })
-        .success
+      myMonthReservationsOutputSchema.safeParse({
+        month: '2026-09',
+        reservedDates: [],
+        count: 0,
+        ...extras,
+      }).success
+    ).toBe(false);
+  });
+
+  it('accepts the spot detail and waitlist places', () => {
+    const output = {
+      month: '2026-09',
+      reservedDates: [DATE_A],
+      count: 1,
+      cap: 5,
+      reservations: [
+        { date: DATE_A, reservationId: UUID_A, parkingSpotId: UUID_B, parkingSpotLabel: 'E2.92' },
+      ],
+      waitlist: [{ date: DATE_A, parkingSpotId: UUID_B, parkingSpotLabel: 'E2.93', position: 2 }],
+    };
+    expect(myMonthReservationsOutputSchema.parse(output)).toEqual(output);
+  });
+
+  it('rejects a waitlist position below 1', () => {
+    expect(
+      myMonthReservationsOutputSchema.safeParse({
+        month: '2026-09',
+        reservedDates: [],
+        count: 0,
+        cap: 5,
+        reservations: [],
+        waitlist: [{ date: DATE_A, parkingSpotId: UUID_B, parkingSpotLabel: 'E2', position: 0 }],
+      }).success
     ).toBe(false);
   });
 });

@@ -12,6 +12,7 @@ import { implementer } from '../orpc/implementer';
 import { RpcRouteHandler } from '../orpc/rpc-route-handler';
 import { RPC_ROUTE_PREFIX } from '../orpc/rpc-route';
 import { RpcRoute } from '../orpc/rpc-route.decorator';
+import { DeskBulkService } from './desk-bulk.service';
 import { DeskRequestsService } from './desk-requests.service';
 import { DesksService } from './desks.service';
 
@@ -22,6 +23,7 @@ export class DesksController {
   constructor(
     desks: DesksService,
     requests: DeskRequestsService,
+    bulk: DeskBulkService,
     @InjectPinoLogger(DesksController.name) logger: PinoLogger
   ) {
     const desk = implementer.desk;
@@ -35,6 +37,12 @@ export class DesksController {
             desks.previewSeries(input, context.user)
           ),
           reserve: desk.reserve.handler(({ input, context }) => desks.reserve(input, context.user)),
+          previewBulk: desk.previewBulk.handler(({ input, context }) =>
+            bulk.preview(input, context.user)
+          ),
+          confirmBulk: desk.confirmBulk.handler(({ input, context }) =>
+            bulk.confirm(input, context.user)
+          ),
           cancel: desk.cancel.handler(({ input, context }) => desks.cancel(input, context.user)),
           myReservations: desk.myReservations.handler(({ context }) =>
             desks.myReservations(context.user)
@@ -75,6 +83,16 @@ export class DesksController {
 
   @RpcRoute('desk', 'reserve')
   reserve(): Promise<void> {
+    throw new Error('replaced by @RpcRoute');
+  }
+
+  @RpcRoute('desk', 'previewBulk')
+  previewBulk(): Promise<void> {
+    throw new Error('replaced by @RpcRoute');
+  }
+
+  @RpcRoute('desk', 'confirmBulk')
+  confirmBulk(): Promise<void> {
     throw new Error('replaced by @RpcRoute');
   }
 

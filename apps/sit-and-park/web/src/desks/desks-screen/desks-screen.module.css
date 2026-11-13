@@ -63,3 +63,12 @@
   color: rgb(var(--foreground--neutral-medium-default--light));
   font-size: 14px;
 }
+
+.selection {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-xl);
+  font-weight: 600;
+}

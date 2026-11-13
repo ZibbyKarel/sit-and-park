@@ -26,14 +26,14 @@ export const DESKS_ROUTE = '/desks';
 /** The signed-out screen with the single Okta button. */
 export const LOGIN_ROUTE = '/login';
 
-/** Personal settings: licence plate, preferred spot, ICS feed (Task 26). */
+/** Personal settings: licence plate, preferred spot, preferred desk, ICS feed (Task 26). */
 export const SETTINGS_ROUTE = '/settings';
 
 /** Administration: users, spots, reservation window (Task 27). Admins only. */
 export const ADMIN_ROUTE = '/admin';
 
-/** The caller's own desk reservations, releases and approval requests. */
-export const MY_DESKS_ROUTE = '/desks/my';
+/** The caller's own calendar: parking, desk reservations, releases and approval requests. */
+export const MY_RESERVATIONS_ROUTE = '/reservations';
 
 /** Auth.js's own endpoints. Never proxied, never protected. */
 export const AUTH_API_ROUTE_PREFIX = '/api/auth';

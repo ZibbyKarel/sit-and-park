@@ -53,6 +53,7 @@ export const userFixture = {
   active: true,
   icsToken: 'ics-token-abc',
   preferredParkingSpotId: UUID_B,
+  preferredDeskId: null,
   officeId: UUID_C,
   hibobId: null,
   manualAccount: false,

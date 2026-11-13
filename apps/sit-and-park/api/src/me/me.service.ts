@@ -71,6 +71,9 @@ export class MeService {
     if (input.preferredParkingSpotId !== undefined && input.preferredParkingSpotId !== null) {
       await this.requireSelectableSpot(input.preferredParkingSpotId, userId);
     }
+    if (input.preferredDeskId !== undefined && input.preferredDeskId !== null) {
+      await this.requireSelectableDesk(input.preferredDeskId, existing.officeId);
+    }
 
     const data: Prisma.UserUpdateInput = {
       ...(input.licensePlate === undefined ? {} : { licensePlate: input.licensePlate }),
@@ -81,6 +84,14 @@ export class MeService {
               input.preferredParkingSpotId === null
                 ? { disconnect: true }
                 : { connect: { id: input.preferredParkingSpotId } },
+          }),
+      ...(input.preferredDeskId === undefined
+        ? {}
+        : {
+            preferredDesk:
+              input.preferredDeskId === null
+                ? { disconnect: true }
+                : { connect: { id: input.preferredDeskId } },
           }),
     };
 
@@ -97,10 +108,12 @@ export class MeService {
         before: {
           licensePlate: existing.licensePlate,
           preferredParkingSpotId: existing.preferredParkingSpotId,
+          preferredDeskId: existing.preferredDeskId,
         },
         after: {
           licensePlate: row.licensePlate,
           preferredParkingSpotId: row.preferredParkingSpotId,
+          preferredDeskId: row.preferredDeskId,
         },
       },
     });
@@ -189,6 +202,27 @@ export class MeService {
       throw new DomainError('VALIDATION_FAILED', {
         message: 'A retired parking spot cannot be a preferred spot.',
         details: { parkingSpotId: spotId },
+      });
+    }
+  }
+
+  /**
+   * A preferred desk must exist (`NOT_FOUND`), be active and be in the
+   * caller's office (`VALIDATION_FAILED`): desk bulk booking only ever
+   * allocates desks of the person's own office.
+   */
+  private async requireSelectableDesk(deskId: string, officeId: string | null): Promise<void> {
+    const desk = await this.prisma.client.desk.findUnique({
+      where: { id: deskId },
+      select: { officeId: true, active: true },
+    });
+    if (desk === null) {
+      throw new DomainError('NOT_FOUND', { message: 'No such desk.' });
+    }
+    if (!desk.active || desk.officeId !== officeId) {
+      throw new DomainError('VALIDATION_FAILED', {
+        message: 'A preferred desk must be an active desk of your office.',
+        details: { deskId },
       });
     }
   }

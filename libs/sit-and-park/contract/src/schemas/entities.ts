@@ -39,6 +39,12 @@ export const userSchema = z.object({
   icsToken: z.string().min(1),
   /** First choice when bulk booking. Never applied to a single-day reservation. */
   preferredParkingSpotId: idSchema.nullable(),
+  /**
+   * First choice when bulk booking desks. Set only to an active desk of the
+   * user's office, and cleared when the user changes office or the desk is
+   * deactivated or moved to another office, so it never points elsewhere.
+   */
+  preferredDeskId: idSchema.nullable(),
   /** The office whose desks and spots the user sees and books; `null` = none yet. */
   officeId: idSchema.nullable(),
   /** HiBob employee id, set by the employee sync. Unique. */

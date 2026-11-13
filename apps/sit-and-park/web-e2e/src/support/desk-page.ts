@@ -1,5 +1,5 @@
 /**
- * The desk screens (`/desks`, `/desks/my`), as the specs talk to them.
+ * The desk screens (`/desks`, `/reservations`), as the specs talk to them.
  *
  * Same rules as `lot-page.ts`: roles and the Czech accessible names the UI
  * renders (`messages/cs.json`'s `desks` and `myDesks` namespaces), no
@@ -14,7 +14,7 @@ import type { DateOnly } from '@sit-and-park/shared-types';
 import { FIRST_ROUTE_VISIT_TIMEOUT_MS } from './lot-page';
 
 export const DESKS_PATH = '/desks';
-export const MY_DESKS_PATH = '/desks/my';
+export const MY_RESERVATIONS_PATH = '/reservations';
 
 /** `desks.status*` of `cs.json`: what a desk's accessible name says it is. */
 export const DESK_STATUS = {
@@ -80,9 +80,12 @@ export async function cancelMyDesk(page: Page, code: string): Promise<void> {
   await expect(dialog).toBeHidden();
 }
 
-/** Opens `/desks/my` and waits for the first section. */
-export async function goToMyDesks(page: Page): Promise<void> {
-  await page.goto(MY_DESKS_PATH);
+/** Opens `/reservations`, switches to the "Seznam" tab and waits for the first section. */
+export async function goToMyReservations(page: Page): Promise<void> {
+  await page.goto(MY_RESERVATIONS_PATH);
+  await page
+    .getByRole('radio', { name: 'Seznam' })
+    .click({ timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS });
   await expect(page.getByRole('heading', { name: 'Moje rezervace stolů' })).toBeVisible({
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
@@ -91,7 +94,7 @@ export async function goToMyDesks(page: Page): Promise<void> {
   await expect(page.getByRole('status').filter({ hasText: 'Načítá se' })).toHaveCount(0);
 }
 
-/** A section of `/desks/my` by its heading. */
-export function myDesksSection(page: Page, heading: string): Locator {
+/** A section of the "Seznam" tab of `/reservations` by its heading. */
+export function myReservationsSection(page: Page, heading: string): Locator {
   return page.getByRole('region', { name: heading });
 }

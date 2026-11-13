@@ -76,7 +76,7 @@ describe('ReservationsService.myMonth against a real PostgreSQL', () => {
   it('includes the last day of the month and excludes the first day of the next', async () => {
     const spot = await seedSpot(client);
     const user = await seedUser(client);
-    await client.reservation.create({
+    const kept = await client.reservation.create({
       data: { parkingSpotId: spot.id, userId: user.id, date: toDateColumn('2026-09-30') },
     });
     await client.reservation.create({
@@ -94,6 +94,36 @@ describe('ReservationsService.myMonth against a real PostgreSQL', () => {
       reservedDates: ['2026-09-30'],
       count: 1,
       cap: DEFAULT_MONTHLY_RESERVATION_CAP,
+      reservations: [
+        {
+          date: '2026-09-30',
+          reservationId: kept.id,
+          parkingSpotId: spot.id,
+          parkingSpotLabel: spot.label,
+        },
+      ],
+      waitlist: [],
     });
+  });
+
+  it('reports a waitlist entry with its queue position', async () => {
+    const spot = await seedSpot(client);
+    const [first, second] = [await seedUser(client), await seedUser(client)];
+    for (const user of [first, second]) {
+      await client.waitlistEntry.create({
+        data: { parkingSpotId: spot.id, userId: user.id, date: toDateColumn('2026-09-15') },
+      });
+    }
+
+    const result = await reservations.myMonth(
+      { month: '2026-09' },
+      authenticated(second.id),
+      '2026-08-31'
+    );
+
+    expect(result.waitlist).toEqual([
+      { date: '2026-09-15', parkingSpotId: spot.id, parkingSpotLabel: spot.label, position: 2 },
+    ]);
+    expect(result.count).toBe(0);
   });
 });

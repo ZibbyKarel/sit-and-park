@@ -102,6 +102,7 @@ import type { DomainEvent, WaitlistPromotionNotice } from './reservation-events'
 import { DomainEventPublisher } from './reservation-events';
 import { ReservationPolicy } from './reservation-policy';
 import { RESERVATION_TRANSACTION_OPTIONS } from './transaction-options';
+import { WAITLIST_ORDER } from './waitlist-order';
 import { WaitlistPromotionService } from './waitlist-promotion.service';
 import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
 
@@ -271,7 +272,9 @@ export class ReservationsService {
   }
 
   /**
-   * The caller's own confirmed reservations in one calendar month.
+   * The caller's own confirmed reservations in one calendar month, plus what
+   * only their own calendar shows: each reservation's spot (from the rows
+   * {@link monthSummary} already read) and their waitlist places.
    *
    * See {@link monthSummary} for why this and `userMonth` share one body.
    */
@@ -280,7 +283,65 @@ export class ReservationsService {
     actor: AuthenticatedUser,
     today: DateOnly = todayInPrague()
   ): Promise<MyMonthReservationsOutput> {
-    return this.monthSummary(actor.id, input.month, today);
+    const { rows, ...summary } = await this.monthSummary(actor.id, input.month, today);
+    return {
+      ...summary,
+      reservations: rows.map((row) => ({
+        date: toDateOnly(row.date),
+        reservationId: row.id,
+        parkingSpotId: row.parkingSpotId,
+        parkingSpotLabel: row.parkingSpot.label,
+      })),
+      waitlist: await this.waitlistInMonth(actor.id, input.month),
+    };
+  }
+
+  /**
+   * The caller's waitlist entries in `month`, each with its place in that
+   * spot's queue for that day.
+   *
+   * Positions come from one extra read of every queue the caller stands in
+   * (same spots, same month, `WAITLIST_ORDER`), so they are the numbers
+   * `WaitlistPromotionService` will act on. The read is skipped when the
+   * caller has no entries.
+   */
+  private async waitlistInMonth(userId: string, month: YearMonth) {
+    const from = startOfYearMonth(month);
+    const range = { gte: toDateColumn(from), lte: toDateColumn(endOfMonth(from)) };
+    const mine = await this.prisma.client.waitlistEntry.findMany({
+      where: { userId, date: range },
+      select: {
+        id: true,
+        date: true,
+        parkingSpotId: true,
+        parkingSpot: { select: { label: true } },
+      },
+    });
+    if (mine.length === 0) {
+      return [];
+    }
+    const queues = await this.prisma.client.waitlistEntry.findMany({
+      where: { parkingSpotId: { in: [...new Set(mine.map((e) => e.parkingSpotId))] }, date: range },
+      orderBy: WAITLIST_ORDER,
+      select: { id: true, date: true, parkingSpotId: true },
+    });
+    const queueKey = (e: { parkingSpotId: string; date: Date }) =>
+      `${e.parkingSpotId}|${e.date.getTime()}`;
+    const places = new Map<string, string[]>();
+    for (const entry of queues) {
+      places.set(queueKey(entry), [...(places.get(queueKey(entry)) ?? []), entry.id]);
+    }
+    return mine
+      .map((entry) => ({
+        date: toDateOnly(entry.date),
+        parkingSpotId: entry.parkingSpotId,
+        parkingSpotLabel: entry.parkingSpot.label,
+        position: (places.get(queueKey(entry)) ?? []).indexOf(entry.id) + 1,
+      }))
+      .sort(
+        (a, b) =>
+          a.date.localeCompare(b.date) || a.parkingSpotLabel.localeCompare(b.parkingSpotLabel)
+      );
   }
 
   /**
@@ -302,7 +363,8 @@ export class ReservationsService {
     _actor: AuthenticatedUser,
     today: DateOnly = todayInPrague()
   ): Promise<MonthReservations> {
-    return this.monthSummary(input.userId, input.month, today);
+    const { rows: _rows, ...summary } = await this.monthSummary(input.userId, input.month, today);
+    return summary;
   }
 
   /**
@@ -310,8 +372,9 @@ export class ReservationsService {
    * (`./monthly-reservation-cap.ts`), which this must never diverge from: both
    * read the same `[startOfYearMonth(month), endOfMonth(...)]` range for the
    * same `userId`. One body, two procedures — `myMonth` supplies the caller's
-   * id and `userMonth` a named one, and that is the *only* difference between
-   * them, so it is the only thing either method says.
+   * id and `userMonth` a named one; the shared summary is identical for both.
+   * It also returns the `rows` themselves (with the spot label): `myMonth`
+   * maps them into its `reservations` detail, `userMonth` drops them.
    *
    * Unlike the cap check, this takes no lock — it answers "what does this user
    * currently hold", not "may an insert proceed", so there is nothing here for
@@ -327,11 +390,7 @@ export class ReservationsService {
    * `cap` is `null` whenever the writers would not enforce it — the same
    * `isMonthlyCapInForce` they call, over the same settings.
    */
-  private async monthSummary(
-    userId: string,
-    month: YearMonth,
-    today: DateOnly
-  ): Promise<MonthReservations> {
+  private async monthSummary(userId: string, month: YearMonth, today: DateOnly) {
     const from = startOfYearMonth(month);
     const to = endOfMonth(from);
 
@@ -341,7 +400,12 @@ export class ReservationsService {
           userId,
           date: { gte: toDateColumn(from), lte: toDateColumn(to) },
         },
-        select: { date: true },
+        select: {
+          id: true,
+          date: true,
+          parkingSpotId: true,
+          parkingSpot: { select: { label: true } },
+        },
         // `id` is a tiebreaker that can never fire: `Reservation (userId, date)`
         // is a unique index, so this `userId` has at most one row per `date`.
         // Included anyway because it is the one `orderBy` shape `PrismaDouble`
@@ -354,6 +418,7 @@ export class ReservationsService {
     ]);
 
     return {
+      rows,
       month,
       reservedDates: rows.map((row) => toDateOnly(row.date)),
       count: rows.length,

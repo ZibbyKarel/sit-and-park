@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * What a failed write on "Moje stoly" says. The shared `errors` catalogue is
+ * What a failed write on "Moje rezervace" says. The shared `errors` catalogue is
  * written for reservation screens, so three codes get this screen's own
  * sentence where the catalogue's would be a true code with a false story:
  * `PAST_DATE` on cancel and release, `VALIDATION_FAILED` on a decision.

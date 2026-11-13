@@ -71,3 +71,23 @@ export function panBy(
     planHeight
   );
 }
+
+const LINE_PX = 16;
+const WHEEL_ZOOM_STEP = 1.15;
+const WHEEL_ZOOM_STEP_DELTA = 100;
+
+/** Wheel delta -> pixels (`deltaMode`: 0 pixels, 1 lines, 2 pages). */
+export function wheelDeltaToPixels(delta: number, deltaMode: number, pageSize: number): number {
+  if (deltaMode === 1) return delta * LINE_PX;
+  if (deltaMode === 2) return delta * pageSize;
+  return delta;
+}
+
+/**
+ * Zoom factor of a Ctrl/Cmd wheel or pinch event from a delta in pixels (normalise `deltaMode`
+ * with `wheelDeltaToPixels` first). A mouse notch (|delta| >= 100) is one 1.15 step; the small deltas of a trackpad pinch scale proportionally, so it feels continuous.
+ */
+export function wheelZoomFactor(deltaY: number): number {
+  const d = clamp(deltaY, -WHEEL_ZOOM_STEP_DELTA, WHEEL_ZOOM_STEP_DELTA);
+  return Math.pow(WHEEL_ZOOM_STEP, -d / WHEEL_ZOOM_STEP_DELTA);
+}

@@ -18,9 +18,9 @@ import { todayInPrague, useDateFormatters, useTranslations } from '@sit-and-park
 import { Button, H2, Stack, Text, Strong } from '@shoptet/ui';
 import { useApi } from '../../shell/api-provider/api-provider';
 import { useNotify } from '../../shell/notifications/toast-provider';
-import { useDeskWriteError } from './my-desks-errors';
-import { releaseRange } from './my-desks-view';
-import styles from './my-desks.module.css';
+import { useDeskWriteError } from './my-reservations-errors';
+import { releaseRange } from './my-reservations-view';
+import styles from './my-reservations.module.css';
 
 const rangeSchema = z.object({ from: z.string(), to: z.string() });
 type RangeValues = z.infer<typeof rangeSchema>;

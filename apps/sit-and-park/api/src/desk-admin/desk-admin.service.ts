@@ -416,6 +416,9 @@ export class DeskAdminService {
       if (clearHolder) {
         await deleteUnbookedReleases(tx, before.id, today);
       }
+      if ((before.active && !target.active) || target.officeId !== before.officeId) {
+        await this.cleanup.clearPreferredDesk(tx, before.id);
+      }
       results.push({ before, row, events });
     }
 

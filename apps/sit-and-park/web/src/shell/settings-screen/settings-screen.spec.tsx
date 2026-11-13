@@ -4,6 +4,7 @@ import { createApiClient } from '@sit-and-park/api-client';
 import { IntlProvider } from '@sit-and-park/i18n';
 import type { MyProfile, ParkingSpot } from '@sit-and-park/contract';
 import cs from '../../../messages/cs.json';
+import { directoryDesk } from '../../desks/desk.test-helpers';
 import { selectOption } from '../../test-utils/select-option';
 import { ToastProvider } from '../notifications/toast-provider';
 import { SettingsScreen } from './settings-screen';
@@ -60,6 +61,7 @@ const PROFILE: MyProfile = {
   active: true,
   icsToken: 'ics-token-abc',
   preferredParkingSpotId: 'spot-1',
+  preferredDeskId: null,
   officeId: 'office-1',
   hibobId: null,
   manualAccount: false,
@@ -288,6 +290,71 @@ describe('SettingsScreen — the form', () => {
     await user.click(screen.getByRole('button', { name: 'save' }));
 
     expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ preferredParkingSpotId: null }));
+  });
+
+  describe('preferred desk', () => {
+    const DESKS = [
+      directoryDesk({ id: 'desk-1', code: 'D-001', zoneName: 'Zóna A' }),
+      directoryDesk({ id: 'desk-2', code: 'D-002', zoneName: 'Zóna B' }),
+      directoryDesk({ id: 'desk-off', code: 'D-099', active: false }),
+    ];
+
+    it('is hidden without a desk list (no office), and a save leaves the desk untouched', async () => {
+      const { onSave, user } = renderScreen();
+
+      expect(screen.queryByLabelText('preferredDeskLabel')).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'save' }));
+      expect(onSave.mock.calls[0]?.[0]).not.toHaveProperty('preferredDeskId');
+    });
+
+    it('shows an inline error with a retry when the directory failed, and saves no desk', async () => {
+      const onRetryDesks = jest.fn();
+      const { onSave, user } = renderScreen({ desksError: true, onRetryDesks });
+
+      expect(screen.getByText(/preferredDeskLoadError/)).toBeInTheDocument();
+      expect(screen.queryByLabelText('preferredDeskLabel')).not.toBeInTheDocument();
+      await user.click(screen.getByRole('button', { name: 'retry' }));
+      expect(onRetryDesks).toHaveBeenCalledTimes(1);
+      await user.click(screen.getByRole('button', { name: 'save' }));
+      expect(onSave.mock.calls[0]?.[0]).not.toHaveProperty('preferredDeskId');
+    });
+
+    it('lists active desks as "code · zone" plus a no-preference option', async () => {
+      const { user } = renderScreen({ desks: DESKS });
+
+      await user.click(screen.getByLabelText('preferredDeskLabel'));
+      const options = within(await screen.findByRole('listbox')).getAllByRole('option');
+
+      expect(options.map((option) => option.textContent)).toEqual([
+        'preferredDeskNone',
+        'D-001 · Zóna A',
+        'D-002 · Zóna B',
+      ]);
+    });
+
+    it('saves the chosen desk, and null for no preference', async () => {
+      const { onSave, user } = renderScreen({ desks: DESKS });
+
+      await selectOption(user, 'preferredDeskLabel', 'D-002 · Zóna B');
+      await user.click(screen.getByRole('button', { name: 'save' }));
+      expect(onSave).toHaveBeenLastCalledWith(
+        expect.objectContaining({ preferredDeskId: 'desk-2' })
+      );
+
+      await selectOption(user, 'preferredDeskLabel', 'preferredDeskNone');
+      await user.click(screen.getByRole('button', { name: 'save' }));
+      expect(onSave).toHaveBeenLastCalledWith(expect.objectContaining({ preferredDeskId: null }));
+    });
+
+    it('treats a stored desk the directory no longer lists as no preference', async () => {
+      const { onSave, user } = renderScreen({
+        desks: DESKS,
+        profile: { ...PROFILE, preferredDeskId: 'desk-off' },
+      });
+
+      await user.click(screen.getByRole('button', { name: 'save' }));
+      expect(onSave).toHaveBeenCalledWith(expect.objectContaining({ preferredDeskId: null }));
+    });
   });
 
   it('cancels without saving', async () => {

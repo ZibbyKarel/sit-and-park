@@ -51,7 +51,7 @@ src/app/
     loading.tsx                 route-level <ScreenLoading>
     page.tsx                    /          parking overview
     desks/page.tsx              /desks     desks for a day (floor plan + list)
-    desks/my/page.tsx           /desks/my  my desk reservations, releases, requests
+    reservations/page.tsx        /reservations  my reservations: calendar + lists (desks/my redirects)
     settings/page.tsx           /settings  settings
     admin/page.tsx              /admin     administration (admin only)
 ```
@@ -61,7 +61,7 @@ screen/panel pair per tab (ten tabs, five of them for desks and sync: `doc/desks
 banner and the lock-mode control. See `doc/admin.md`.
 
 Every route is declared once, in
-`src/routes.ts` — `LOT_ROUTE`, `DESKS_ROUTE`, `MY_DESKS_ROUTE`, `LOGIN_ROUTE`, `SETTINGS_ROUTE`, `ADMIN_ROUTE`,
+`src/routes.ts` — `LOT_ROUTE`, `DESKS_ROUTE`, `MY_RESERVATIONS_ROUTE`, `LOGIN_ROUTE`, `SETTINGS_ROUTE`, `ADMIN_ROUTE`,
 `AUTH_API_ROUTE_PREFIX`, `HEALTH_ROUTE`. `auth.ts` and `proxy.ts` both read
 `LOGIN_ROUTE` from there, which is what makes a redirect loop unconstructible:
 the path Auth.js redirects _to_ and the path the proxy exempts cannot drift
@@ -176,24 +176,27 @@ which would publish it to every visitor.
 - The mock server's access token carries `aud: "default"`. The API's
   `AUTH_OKTA_AUDIENCE` has to match it, or every request is a plain 401.
 
-## Desks (`/desks`, `/desks/my`)
+## Desks (`/desks`, `/reservations`)
 
 `src/desks/`: `desks-screen/` (the day in the URL, `desk.directory`, floor plan or list,
 filters, kept live by `use-desk-realtime.ts`, which refetches on `desk:reserved` /
 `desk:released` for the open day), `desk-dialog/` (book a series with a `previewSeries`
-preview, request approval, withdraw, cancel) and `my-desks/` (reservations, releases,
-my requests, the owner's inbox). Rules are pure functions in `desk-view.ts` and
-`my-desks/my-desks-view.ts`. The plan itself is `src/ui/floor-plan/`, a domain-free
-component: it draws an `<image>` background and shapes it is given (pan, wheel zoom
-only with Ctrl/Cmd, pinch, keyboard-reachable shapes); the desk geometry comes from
-the API, never from parsing the SVG. Domain: `doc/desks.md`.
+preview, request approval, withdraw, cancel) and `desk-bulk-modal/` (bulk desk booking:
+pick days, review the proposed schedule, confirm). "My reservations" lives in
+`src/reservations/my-reservations/` (calendar, reservations, releases, my requests, the
+owner's inbox). Rules are pure functions in `desk-view.ts`, `desk-bulk-view.ts` and
+`reservations/my-reservations/my-reservations-view.ts`. The plan itself is `src/ui/floor-plan/`, a domain-free
+component: it draws an `<image>` background and shapes it is given (plain wheel pans,
+Ctrl/Cmd+wheel and pinch zoom, a CSS-only fullscreen that keeps dialogs and toasts on top,
+keyboard-reachable shapes); the desk geometry comes from the API, never from parsing the
+SVG. Domain: `doc/desks.md`.
 
 ## The top bar
 
 `shell/top-bar/top-bar.tsx` is **presentational** — props in, callbacks out, no data
 fetching — and `shell/app-top-bar.tsx` is the connected wrapper. Left: the
 brand, wrapped in a link to `/`, then the primary navigation (`Parkování`, `Stoly`,
-`Moje stoly`; `nav` keys in `top-bar.tsx`). Right: an `Admin` badge for administrators,
+`Moje rezervace`; `nav` keys in `top-bar.tsx`). Right: an `Admin` badge for administrators,
 then the avatar with the user's initials, their name, and a dropdown holding
 their name and email, `Nastavení (SPZ auta)`, `Správa` (administrators only)
 and `Odhlásit se`.
@@ -221,11 +224,11 @@ as `TopBar`/`AppTopBar` and `AdminScreen`/`admin/page.tsx`.
 The screen renders as `@shoptet/ui`'s `Modal` (`doc/decision/0150-*`)
 rather than a bespoke dialog, with its × hidden and `closeOnScrimClick={false}`
 (the design draws no ×, and this dialog holds unsaved input — fix-round note
-in `doc/decision/0150-*`): a licence-plate/preferred-spot form built with
+in `doc/decision/0150-*`): a licence-plate/preferred-spot/preferred-desk form built with
 `useAppForm`/`FormField` (`@sit-and-park/form`), submitted through
 `me.updateSettings`'s three-valued input (absent = leave alone, `null` =
 clear, a value = set — `toUpdateInput` turns an empty string into `null` for
-both fields). The fields sit inside a real `<form id="settings-form">`; the
+all three fields; the desk is only sent when the picker is shown). The fields sit inside a real `<form id="settings-form">`; the
 Save button lives in `Modal`'s `footer` (outside that `<form>`'s own DOM
 subtree) and is linked to it with the standard `form="settings-form"`
 attribute, which is also what makes pressing Enter in a field submit natively.
@@ -244,7 +247,11 @@ in that situation, rather than silently resubmitting an id nobody can see
 selected (Task 26 review, I1). `spotsPending`/`spotsError`, passed down from
 `SettingsPage`'s `spot.list` query, also drive a loading hint and an inline
 error under the picker, so a failed spot list is not silently indistinguishable
-from "no active spots" (review, M8).
+from "no active spots" (review, M8). The preferred desk (third field) comes from
+`desk.directory` for the caller's office, loaded by `SettingsPage`: without an office the
+picker is hidden, and if the directory fails an inline message with "Zkusit znovu"
+(refetch) replaces it; a stored desk that is no longer active is reconciled to "no
+preference" like the spot.
 
 See `doc/admin.md` for the administration section (`/admin`), which follows
 the same screen/panel split, one pair per tab.

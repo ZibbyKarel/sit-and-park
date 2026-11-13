@@ -4,6 +4,21 @@
   gap: var(--spacing-xs, 4px);
 }
 
+/* CSS fullscreen: covers the app but stays below dialogs and toasts (--elevation--modal). */
+.root[data-fullscreen] {
+  position: fixed;
+  inset: 0;
+  z-index: calc(var(--elevation--modal, 11000) - 1);
+  padding: var(--spacing-sm, 8px);
+  background-color: rgb(var(--background--neutral-base-default--light));
+}
+.root[data-fullscreen] .viewport {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  aspect-ratio: auto !important;
+}
+
 .viewport {
   position: relative;
   width: 100%;

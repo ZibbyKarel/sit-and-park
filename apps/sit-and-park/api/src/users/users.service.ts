@@ -138,7 +138,8 @@ export class UsersService {
 
     // Changing the office touches no existing reservation, parking or desk:
     // they were valid bookings when made. It only decides what the user sees
-    // and books from now on (`../common/office-scope.ts`).
+    // and books from now on (`../common/office-scope.ts`) — and drops the
+    // preferred desk, which must be one of the user's office.
     if (changes.officeId !== undefined && changes.officeId !== null) {
       const office = await this.prisma.client.office.findUnique({
         where: { id: changes.officeId },
@@ -157,6 +158,9 @@ export class UsersService {
       ...(changes.active === true ? { active: true } : {}),
       ...(changes.active === true && !existing.active ? { deactivatedAt: null } : {}),
       ...(changes.officeId === undefined ? {} : { officeId: changes.officeId }),
+      ...(changes.officeId !== undefined && changes.officeId !== existing.officeId
+        ? { preferredDeskId: null }
+        : {}),
       ...(changes.manualAccount === undefined ? {} : { manualAccount: changes.manualAccount }),
     };
     await this.prisma.client.user.update({ where: { id }, data });

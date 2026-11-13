@@ -302,6 +302,7 @@ export type DeskWhereInput = {
   reservations?: Prisma.DeskReservationListRelationFilter
   releases?: Prisma.DeskReleaseListRelationFilter
   approvalRequests?: Prisma.DeskApprovalRequestListRelationFilter
+  preferredBy?: Prisma.UserListRelationFilter
 }
 
 export type DeskOrderByWithRelationInput = {
@@ -326,6 +327,7 @@ export type DeskOrderByWithRelationInput = {
   reservations?: Prisma.DeskReservationOrderByRelationAggregateInput
   releases?: Prisma.DeskReleaseOrderByRelationAggregateInput
   approvalRequests?: Prisma.DeskApprovalRequestOrderByRelationAggregateInput
+  preferredBy?: Prisma.UserOrderByRelationAggregateInput
 }
 
 export type DeskWhereUniqueInput = Prisma.AtLeast<{
@@ -354,6 +356,7 @@ export type DeskWhereUniqueInput = Prisma.AtLeast<{
   reservations?: Prisma.DeskReservationListRelationFilter
   releases?: Prisma.DeskReleaseListRelationFilter
   approvalRequests?: Prisma.DeskApprovalRequestListRelationFilter
+  preferredBy?: Prisma.UserListRelationFilter
 }, "id" | "permanentAssigneeId" | "officeId_code">
 
 export type DeskOrderByWithAggregationInput = {
@@ -414,6 +417,7 @@ export type DeskCreateInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateInput = {
@@ -434,6 +438,7 @@ export type DeskUncheckedCreateInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUpdateInput = {
@@ -454,6 +459,7 @@ export type DeskUpdateInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateInput = {
@@ -474,6 +480,7 @@ export type DeskUncheckedUpdateInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateManyInput = {
@@ -607,6 +614,12 @@ export type DeskScalarRelationFilter = {
   isNot?: Prisma.DeskWhereInput
 }
 
+export type DeskCreateNestedOneWithoutPreferredByInput = {
+  create?: Prisma.XOR<Prisma.DeskCreateWithoutPreferredByInput, Prisma.DeskUncheckedCreateWithoutPreferredByInput>
+  connectOrCreate?: Prisma.DeskCreateOrConnectWithoutPreferredByInput
+  connect?: Prisma.DeskWhereUniqueInput
+}
+
 export type DeskCreateNestedOneWithoutPermanentAssigneeInput = {
   create?: Prisma.XOR<Prisma.DeskCreateWithoutPermanentAssigneeInput, Prisma.DeskUncheckedCreateWithoutPermanentAssigneeInput>
   connectOrCreate?: Prisma.DeskCreateOrConnectWithoutPermanentAssigneeInput
@@ -617,6 +630,16 @@ export type DeskUncheckedCreateNestedOneWithoutPermanentAssigneeInput = {
   create?: Prisma.XOR<Prisma.DeskCreateWithoutPermanentAssigneeInput, Prisma.DeskUncheckedCreateWithoutPermanentAssigneeInput>
   connectOrCreate?: Prisma.DeskCreateOrConnectWithoutPermanentAssigneeInput
   connect?: Prisma.DeskWhereUniqueInput
+}
+
+export type DeskUpdateOneWithoutPreferredByNestedInput = {
+  create?: Prisma.XOR<Prisma.DeskCreateWithoutPreferredByInput, Prisma.DeskUncheckedCreateWithoutPreferredByInput>
+  connectOrCreate?: Prisma.DeskCreateOrConnectWithoutPreferredByInput
+  upsert?: Prisma.DeskUpsertWithoutPreferredByInput
+  disconnect?: Prisma.DeskWhereInput | boolean
+  delete?: Prisma.DeskWhereInput | boolean
+  connect?: Prisma.DeskWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.DeskUpdateToOneWithWhereWithoutPreferredByInput, Prisma.DeskUpdateWithoutPreferredByInput>, Prisma.DeskUncheckedUpdateWithoutPreferredByInput>
 }
 
 export type DeskUpdateOneWithoutPermanentAssigneeNestedInput = {
@@ -821,6 +844,51 @@ export type DeskUpdateOneRequiredWithoutApprovalRequestsNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.DeskUpdateToOneWithWhereWithoutApprovalRequestsInput, Prisma.DeskUpdateWithoutApprovalRequestsInput>, Prisma.DeskUncheckedUpdateWithoutApprovalRequestsInput>
 }
 
+export type DeskCreateWithoutPreferredByInput = {
+  id?: string
+  code: string
+  active?: boolean
+  x: number
+  y: number
+  width: number
+  height: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  office: Prisma.OfficeCreateNestedOneWithoutDesksInput
+  zone: Prisma.ZoneCreateNestedOneWithoutDesksInput
+  hive?: Prisma.HiveCreateNestedOneWithoutDesksInput
+  permanentAssignee?: Prisma.UserCreateNestedOneWithoutPermanentDeskInput
+  grants?: Prisma.DeskGrantCreateNestedManyWithoutDeskInput
+  reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
+  releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
+  approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+}
+
+export type DeskUncheckedCreateWithoutPreferredByInput = {
+  id?: string
+  officeId: string
+  zoneId: string
+  code: string
+  active?: boolean
+  hiveId?: string | null
+  permanentAssigneeId?: string | null
+  x: number
+  y: number
+  width: number
+  height: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  grants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutDeskInput
+  reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
+  releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
+  approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+}
+
+export type DeskCreateOrConnectWithoutPreferredByInput = {
+  where: Prisma.DeskWhereUniqueInput
+  create: Prisma.XOR<Prisma.DeskCreateWithoutPreferredByInput, Prisma.DeskUncheckedCreateWithoutPreferredByInput>
+}
+
 export type DeskCreateWithoutPermanentAssigneeInput = {
   id?: string
   code: string
@@ -838,6 +906,7 @@ export type DeskCreateWithoutPermanentAssigneeInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutPermanentAssigneeInput = {
@@ -857,11 +926,63 @@ export type DeskUncheckedCreateWithoutPermanentAssigneeInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutPermanentAssigneeInput = {
   where: Prisma.DeskWhereUniqueInput
   create: Prisma.XOR<Prisma.DeskCreateWithoutPermanentAssigneeInput, Prisma.DeskUncheckedCreateWithoutPermanentAssigneeInput>
+}
+
+export type DeskUpsertWithoutPreferredByInput = {
+  update: Prisma.XOR<Prisma.DeskUpdateWithoutPreferredByInput, Prisma.DeskUncheckedUpdateWithoutPreferredByInput>
+  create: Prisma.XOR<Prisma.DeskCreateWithoutPreferredByInput, Prisma.DeskUncheckedCreateWithoutPreferredByInput>
+  where?: Prisma.DeskWhereInput
+}
+
+export type DeskUpdateToOneWithWhereWithoutPreferredByInput = {
+  where?: Prisma.DeskWhereInput
+  data: Prisma.XOR<Prisma.DeskUpdateWithoutPreferredByInput, Prisma.DeskUncheckedUpdateWithoutPreferredByInput>
+}
+
+export type DeskUpdateWithoutPreferredByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  x?: Prisma.IntFieldUpdateOperationsInput | number
+  y?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  office?: Prisma.OfficeUpdateOneRequiredWithoutDesksNestedInput
+  zone?: Prisma.ZoneUpdateOneRequiredWithoutDesksNestedInput
+  hive?: Prisma.HiveUpdateOneWithoutDesksNestedInput
+  permanentAssignee?: Prisma.UserUpdateOneWithoutPermanentDeskNestedInput
+  grants?: Prisma.DeskGrantUpdateManyWithoutDeskNestedInput
+  reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
+  releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
+  approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+}
+
+export type DeskUncheckedUpdateWithoutPreferredByInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  officeId?: Prisma.StringFieldUpdateOperationsInput | string
+  zoneId?: Prisma.StringFieldUpdateOperationsInput | string
+  code?: Prisma.StringFieldUpdateOperationsInput | string
+  active?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  hiveId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  permanentAssigneeId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  x?: Prisma.IntFieldUpdateOperationsInput | number
+  y?: Prisma.IntFieldUpdateOperationsInput | number
+  width?: Prisma.IntFieldUpdateOperationsInput | number
+  height?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  grants?: Prisma.DeskGrantUncheckedUpdateManyWithoutDeskNestedInput
+  reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
+  releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
+  approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
 }
 
 export type DeskUpsertWithoutPermanentAssigneeInput = {
@@ -892,6 +1013,7 @@ export type DeskUpdateWithoutPermanentAssigneeInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutPermanentAssigneeInput = {
@@ -911,6 +1033,7 @@ export type DeskUncheckedUpdateWithoutPermanentAssigneeInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateWithoutOfficeInput = {
@@ -930,6 +1053,7 @@ export type DeskCreateWithoutOfficeInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutOfficeInput = {
@@ -949,6 +1073,7 @@ export type DeskUncheckedCreateWithoutOfficeInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutOfficeInput = {
@@ -1013,6 +1138,7 @@ export type DeskCreateWithoutZoneInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutZoneInput = {
@@ -1032,6 +1158,7 @@ export type DeskUncheckedCreateWithoutZoneInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutZoneInput = {
@@ -1077,6 +1204,7 @@ export type DeskCreateWithoutHiveInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutHiveInput = {
@@ -1096,6 +1224,7 @@ export type DeskUncheckedCreateWithoutHiveInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutHiveInput = {
@@ -1141,6 +1270,7 @@ export type DeskCreateWithoutGrantsInput = {
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutGrantsInput = {
@@ -1160,6 +1290,7 @@ export type DeskUncheckedCreateWithoutGrantsInput = {
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutGrantsInput = {
@@ -1195,6 +1326,7 @@ export type DeskUpdateWithoutGrantsInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutGrantsInput = {
@@ -1214,6 +1346,7 @@ export type DeskUncheckedUpdateWithoutGrantsInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateWithoutReservationsInput = {
@@ -1233,6 +1366,7 @@ export type DeskCreateWithoutReservationsInput = {
   grants?: Prisma.DeskGrantCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutReservationsInput = {
@@ -1252,6 +1386,7 @@ export type DeskUncheckedCreateWithoutReservationsInput = {
   grants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutReservationsInput = {
@@ -1287,6 +1422,7 @@ export type DeskUpdateWithoutReservationsInput = {
   grants?: Prisma.DeskGrantUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutReservationsInput = {
@@ -1306,6 +1442,7 @@ export type DeskUncheckedUpdateWithoutReservationsInput = {
   grants?: Prisma.DeskGrantUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateWithoutReleasesInput = {
@@ -1325,6 +1462,7 @@ export type DeskCreateWithoutReleasesInput = {
   grants?: Prisma.DeskGrantCreateNestedManyWithoutDeskInput
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutReleasesInput = {
@@ -1344,6 +1482,7 @@ export type DeskUncheckedCreateWithoutReleasesInput = {
   grants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutDeskInput
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutReleasesInput = {
@@ -1379,6 +1518,7 @@ export type DeskUpdateWithoutReleasesInput = {
   grants?: Prisma.DeskGrantUpdateManyWithoutDeskNestedInput
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutReleasesInput = {
@@ -1398,6 +1538,7 @@ export type DeskUncheckedUpdateWithoutReleasesInput = {
   grants?: Prisma.DeskGrantUncheckedUpdateManyWithoutDeskNestedInput
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateWithoutApprovalRequestsInput = {
@@ -1417,6 +1558,7 @@ export type DeskCreateWithoutApprovalRequestsInput = {
   grants?: Prisma.DeskGrantCreateNestedManyWithoutDeskInput
   reservations?: Prisma.DeskReservationCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskUncheckedCreateWithoutApprovalRequestsInput = {
@@ -1436,6 +1578,7 @@ export type DeskUncheckedCreateWithoutApprovalRequestsInput = {
   grants?: Prisma.DeskGrantUncheckedCreateNestedManyWithoutDeskInput
   reservations?: Prisma.DeskReservationUncheckedCreateNestedManyWithoutDeskInput
   releases?: Prisma.DeskReleaseUncheckedCreateNestedManyWithoutDeskInput
+  preferredBy?: Prisma.UserUncheckedCreateNestedManyWithoutPreferredDeskInput
 }
 
 export type DeskCreateOrConnectWithoutApprovalRequestsInput = {
@@ -1471,6 +1614,7 @@ export type DeskUpdateWithoutApprovalRequestsInput = {
   grants?: Prisma.DeskGrantUpdateManyWithoutDeskNestedInput
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutApprovalRequestsInput = {
@@ -1490,6 +1634,7 @@ export type DeskUncheckedUpdateWithoutApprovalRequestsInput = {
   grants?: Prisma.DeskGrantUncheckedUpdateManyWithoutDeskNestedInput
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskCreateManyOfficeInput = {
@@ -1524,6 +1669,7 @@ export type DeskUpdateWithoutOfficeInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutOfficeInput = {
@@ -1543,6 +1689,7 @@ export type DeskUncheckedUpdateWithoutOfficeInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateManyWithoutOfficeInput = {
@@ -1592,6 +1739,7 @@ export type DeskUpdateWithoutZoneInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutZoneInput = {
@@ -1611,6 +1759,7 @@ export type DeskUncheckedUpdateWithoutZoneInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateManyWithoutZoneInput = {
@@ -1660,6 +1809,7 @@ export type DeskUpdateWithoutHiveInput = {
   reservations?: Prisma.DeskReservationUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateWithoutHiveInput = {
@@ -1679,6 +1829,7 @@ export type DeskUncheckedUpdateWithoutHiveInput = {
   reservations?: Prisma.DeskReservationUncheckedUpdateManyWithoutDeskNestedInput
   releases?: Prisma.DeskReleaseUncheckedUpdateManyWithoutDeskNestedInput
   approvalRequests?: Prisma.DeskApprovalRequestUncheckedUpdateManyWithoutDeskNestedInput
+  preferredBy?: Prisma.UserUncheckedUpdateManyWithoutPreferredDeskNestedInput
 }
 
 export type DeskUncheckedUpdateManyWithoutHiveInput = {
@@ -1706,6 +1857,7 @@ export type DeskCountOutputType = {
   reservations: number
   releases: number
   approvalRequests: number
+  preferredBy: number
 }
 
 export type DeskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1713,6 +1865,7 @@ export type DeskCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   reservations?: boolean | DeskCountOutputTypeCountReservationsArgs
   releases?: boolean | DeskCountOutputTypeCountReleasesArgs
   approvalRequests?: boolean | DeskCountOutputTypeCountApprovalRequestsArgs
+  preferredBy?: boolean | DeskCountOutputTypeCountPreferredByArgs
 }
 
 /**
@@ -1753,6 +1906,13 @@ export type DeskCountOutputTypeCountApprovalRequestsArgs<ExtArgs extends runtime
   where?: Prisma.DeskApprovalRequestWhereInput
 }
 
+/**
+ * DeskCountOutputType without action
+ */
+export type DeskCountOutputTypeCountPreferredByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.UserWhereInput
+}
+
 
 export type DeskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -1776,6 +1936,7 @@ export type DeskSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   reservations?: boolean | Prisma.Desk$reservationsArgs<ExtArgs>
   releases?: boolean | Prisma.Desk$releasesArgs<ExtArgs>
   approvalRequests?: boolean | Prisma.Desk$approvalRequestsArgs<ExtArgs>
+  preferredBy?: boolean | Prisma.Desk$preferredByArgs<ExtArgs>
   _count?: boolean | Prisma.DeskCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["desk"]>
 
@@ -1845,6 +2006,7 @@ export type DeskInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   reservations?: boolean | Prisma.Desk$reservationsArgs<ExtArgs>
   releases?: boolean | Prisma.Desk$releasesArgs<ExtArgs>
   approvalRequests?: boolean | Prisma.Desk$approvalRequestsArgs<ExtArgs>
+  preferredBy?: boolean | Prisma.Desk$preferredByArgs<ExtArgs>
   _count?: boolean | Prisma.DeskCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type DeskIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1871,6 +2033,7 @@ export type $DeskPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     reservations: Prisma.$DeskReservationPayload<ExtArgs>[]
     releases: Prisma.$DeskReleasePayload<ExtArgs>[]
     approvalRequests: Prisma.$DeskApprovalRequestPayload<ExtArgs>[]
+    preferredBy: Prisma.$UserPayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -2298,6 +2461,7 @@ export interface Prisma__DeskClient<T, Null = never, ExtArgs extends runtime.Typ
   reservations<T extends Prisma.Desk$reservationsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Desk$reservationsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskReservationPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   releases<T extends Prisma.Desk$releasesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Desk$releasesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskReleasePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   approvalRequests<T extends Prisma.Desk$approvalRequestsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Desk$approvalRequestsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$DeskApprovalRequestPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  preferredBy<T extends Prisma.Desk$preferredByArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.Desk$preferredByArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2872,6 +3036,30 @@ export type Desk$approvalRequestsArgs<ExtArgs extends runtime.Types.Extensions.I
   take?: number
   skip?: number
   distinct?: Prisma.DeskApprovalRequestScalarFieldEnum | Prisma.DeskApprovalRequestScalarFieldEnum[]
+}
+
+/**
+ * Desk.preferredBy
+ */
+export type Desk$preferredByArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the User
+   */
+  select?: Prisma.UserSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the User
+   */
+  omit?: Prisma.UserOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.UserInclude<ExtArgs> | null
+  where?: Prisma.UserWhereInput
+  orderBy?: Prisma.UserOrderByWithRelationInput | Prisma.UserOrderByWithRelationInput[]
+  cursor?: Prisma.UserWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.UserScalarFieldEnum | Prisma.UserScalarFieldEnum[]
 }
 
 /**

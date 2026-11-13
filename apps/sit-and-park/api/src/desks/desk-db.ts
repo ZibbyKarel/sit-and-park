@@ -21,40 +21,68 @@ export type DeskReader = Prisma.TransactionClient;
 export interface LoadedCaller extends DeskCaller {
   name: string;
   active: boolean;
+  preferredDeskId: string | null;
 }
 
-/**
- * Reads the caller's office, role, membership, grants and permanent desk.
- * `AuthenticatedUser` carries none of the desk facts, and the role is re-read
- * so that every fact a decision rests on comes from the same read.
- */
-export async function loadCaller(db: DeskReader, userId: string): Promise<LoadedCaller> {
-  const row = await db.user.findUnique({
-    where: { id: userId },
-    select: {
-      id: true,
-      name: true,
-      active: true,
-      role: true,
-      officeId: true,
-      hiveMembership: { select: { hiveId: true } },
-      permanentDesk: { select: { id: true } },
-      deskGrants: { select: { deskId: true } },
-    },
-  });
-  if (row === null) {
-    throw new DomainError('NOT_FOUND', { message: 'No such user.' });
-  }
+const CALLER_SELECT = {
+  id: true,
+  name: true,
+  active: true,
+  role: true,
+  officeId: true,
+  preferredDeskId: true,
+  hiveMembership: { select: { hiveId: true } },
+  permanentDesk: { select: { id: true } },
+  deskGrants: { select: { deskId: true } },
+} satisfies Prisma.UserSelect;
+
+function toLoadedCaller(
+  row: Prisma.UserGetPayload<{ select: typeof CALLER_SELECT }>
+): LoadedCaller {
   return {
     id: row.id,
     name: row.name,
     active: row.active,
     officeId: row.officeId,
+    preferredDeskId: row.preferredDeskId,
     isAdmin: row.role === 'ADMIN',
     hiveId: row.hiveMembership?.hiveId ?? null,
     grantedDeskIds: new Set(row.deskGrants.map((grant) => grant.deskId)),
     permanentDeskId: row.permanentDesk?.id ?? null,
   };
+}
+
+/**
+ * Reads the caller's office, role, membership, grants, permanent desk, and
+ * (for bulk booking) name, activity and `preferredDeskId`.
+ * `AuthenticatedUser` carries none of the desk facts, and the role is re-read
+ * so that every fact a decision rests on comes from the same read.
+ */
+export async function loadCaller(db: DeskReader, userId: string): Promise<LoadedCaller> {
+  const row = await db.user.findUnique({ where: { id: userId }, select: CALLER_SELECT });
+  if (row === null) {
+    throw new DomainError('NOT_FOUND', { message: 'No such user.' });
+  }
+  return toLoadedCaller(row);
+}
+
+/** {@link loadCaller} for several users, in the order of `userIds`; `NOT_FOUND` if any is missing. */
+export async function loadPeople(
+  db: DeskReader,
+  userIds: readonly string[]
+): Promise<LoadedCaller[]> {
+  const rows = await db.user.findMany({
+    where: { id: { in: [...userIds] } },
+    select: CALLER_SELECT,
+  });
+  const byId = new Map(rows.map((row) => [row.id, row]));
+  return userIds.map((id) => {
+    const row = byId.get(id);
+    if (row === undefined) {
+      throw new DomainError('NOT_FOUND', { message: 'No such user.', details: { userId: id } });
+    }
+    return toLoadedCaller(row);
+  });
 }
 
 /**
@@ -97,6 +125,15 @@ export async function lockUser(
   } else {
     await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ${userId}::uuid FOR SHARE`;
   }
+}
+
+/** {@link lockUser} `FOR SHARE` for several users, ascending id; taken after the desk locks. */
+export async function lockUsersForShare(
+  tx: Prisma.TransactionClient,
+  userIds: readonly string[]
+): Promise<void> {
+  const sorted = [...userIds].sort();
+  await tx.$queryRaw`SELECT "id" FROM "User" WHERE "id" = ANY(${sorted}::uuid[]) ORDER BY "id" FOR SHARE`;
 }
 
 export function toContractDesk(row: DeskRow): Desk {

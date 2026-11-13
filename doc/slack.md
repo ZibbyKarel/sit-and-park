@@ -55,11 +55,11 @@ there and not in `libs/shared/i18n`.
 
 | Trigger                       | Destination                 | Message                                                                                                                              |
 | ----------------------------- | --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| a desk approval request filed | the desk's hive owner       | `Jan Novák žádá o stůl D-014 (Backend) na pondělí 28. září 2026. Žádost vyřídíte v aplikaci v části Moje stoly.`                     |
+| a desk approval request filed | the desk's hive owner       | `Jan Novák žádá o stůl D-014 (Backend) na pondělí 28. září 2026. Žádost vyřídíte v aplikaci v části Moje rezervace.`                     |
 | the request decided           | the requester               | `Vaše žádost o stůl D-014 na pondělí 28. září 2026 byla schválena.` / `… byla zamítnuta.`                                            |
 
 No link: no existing message links into the app and there is no public base-URL
-setting, so the text names the screen (`/desks/my`) instead. Cancelling a request
+setting, so the text names the screen (`/reservations`) instead. Cancelling a request
 and sync-driven rejections send nothing. A desk with no hive owner, or a
 recipient without a Slack account, is `skipped`; failures are isolated exactly as
 for parking.

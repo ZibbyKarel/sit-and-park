@@ -45,6 +45,7 @@ export {
 } from './bulk';
 export * from './spots';
 export * from './desks';
+export * from './desk-bulk';
 export * from './desk-requests';
 export * from './admin-desks';
 export * from './hives';

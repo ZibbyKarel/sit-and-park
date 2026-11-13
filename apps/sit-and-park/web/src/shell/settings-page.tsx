@@ -13,6 +13,7 @@ import { useRouter } from 'next/navigation';
 import type { UpdateMySettingsInput } from '@sit-and-park/contract';
 import { useRequireAuth } from '@sit-and-park/auth/client';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { todayInPrague } from '@sit-and-park/i18n';
 import { LOT_ROUTE } from '../routes';
 import { useApi } from './api-provider/api-provider';
 import { useCurrentUser } from './use-current-user';
@@ -37,6 +38,14 @@ export function SettingsPage({ apiOrigin }: SettingsPageProps) {
   const spotsQuery = useQuery({
     ...api.spot.list.queryOptions(),
     enabled: status === 'authenticated',
+  });
+
+  // Active desks of the caller's office for the preferred-desk picker. Without an
+  // office the query is disabled, so `data` stays undefined and the picker is
+  // hidden; a failure is reported to the screen, which offers a retry.
+  const desksQuery = useQuery({
+    ...api.desk.directory.queryOptions({ input: { date: todayInPrague() } }),
+    enabled: status === 'authenticated' && profileQuery.data?.officeId != null,
   });
 
   // The freshly regenerated token, kept locally so the new feed URL renders
@@ -73,6 +82,9 @@ export function SettingsPage({ apiOrigin }: SettingsPageProps) {
       spots={spotsQuery.data?.spots ?? []}
       spotsPending={spotsQuery.isPending}
       spotsError={spotsQuery.isError}
+      desks={desksQuery.data?.desks}
+      desksError={desksQuery.isError}
+      onRetryDesks={() => void desksQuery.refetch()}
       onSave={(input: UpdateMySettingsInput) => updateSettings.mutate(input)}
       isSaving={updateSettings.isPending}
       saveError={updateSettings.error}

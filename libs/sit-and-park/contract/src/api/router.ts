@@ -22,6 +22,7 @@ import {
   adminUpdateDeskContract,
 } from './admin-desks';
 import { confirmBulkContract, previewBulkContract } from './bulk';
+import { deskBulkConfirmContract, deskBulkPreviewContract } from './desk-bulk';
 import {
   cancelDeskRequestContract,
   decideDeskRequestContract,
@@ -113,6 +114,10 @@ export const contract = {
     directory: deskDirectoryContract,
     previewSeries: previewDeskSeriesContract,
     reserve: reserveDeskContract,
+    /** Read-only desk schedule for several days (and, for an admin, several people). */
+    previewBulk: deskBulkPreviewContract,
+    /** Books an explicit list of (person, day, desk) assignments. */
+    confirmBulk: deskBulkConfirmContract,
     cancel: cancelDeskReservationContract,
     myReservations: myDeskReservationsContract,
     requestApproval: requestDeskApprovalContract,

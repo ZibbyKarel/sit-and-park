@@ -6,7 +6,7 @@
  */
 
 import * as z from 'zod';
-import { reservationSchema } from '../schemas/entities';
+import { parkingSpotSchema, reservationSchema } from '../schemas/entities';
 import { dateOnlySchema, idSchema, yearMonthSchema } from '../schemas/primitives';
 import { authed, contractErrors } from './builder';
 
@@ -134,7 +134,9 @@ export const cancelReservationContract = authed
  * The shape is shared by the two procedures that answer it — the caller-scoped
  * `reservation.myMonth` and the admin-only `admin.reservation.month` — because
  * they are the same question about a different subject, and a second
- * hand-copied object is how the two would drift.
+ * hand-copied object is how the two would drift. `reservation.myMonth` extends
+ * it with the caller's spot detail and waitlist places
+ * ({@link myMonthReservationsOutputSchema}); the admin view answers it as is.
  */
 export const monthReservationsOutputSchema = z.object({
   month: yearMonthSchema,
@@ -168,11 +170,41 @@ export const myMonthReservationsInputSchema = z.object({
 export type MyMonthReservationsInput = z.infer<typeof myMonthReservationsInputSchema>;
 
 /**
- * Kept under its original name: every existing consumer annotates with it, and
- * the caller-scoped procedure's output is genuinely this shape.
+ * `reservation.myMonth`'s output: the shared {@link monthReservationsOutputSchema}
+ * plus what only the caller's own calendar shows — the spot of each
+ * reservation and the waitlist places. Everything in the shared part means the
+ * same as in `admin.reservation.month`.
  */
-export const myMonthReservationsOutputSchema = monthReservationsOutputSchema;
-export type MyMonthReservationsOutput = MonthReservations;
+export const myMonthReservationsOutputSchema = monthReservationsOutputSchema.extend({
+  /**
+   * The same confirmed reservations as `reservedDates`, one per date, with the
+   * spot each one is on — so the calendar can say "Parkování · E2.92" without a
+   * second request per day.
+   */
+  reservations: z.array(
+    z.object({
+      date: dateOnlySchema,
+      reservationId: idSchema,
+      parkingSpotId: idSchema,
+      parkingSpotLabel: parkingSpotSchema.shape.label,
+    })
+  ),
+  /**
+   * The caller's waitlist entries in the month, by date then spot label.
+   * Never part of `reservedDates` or `count`: a queue place is not a booking
+   * and does not spend the monthly cap.
+   */
+  waitlist: z.array(
+    z.object({
+      date: dateOnlySchema,
+      parkingSpotId: idSchema,
+      parkingSpotLabel: parkingSpotSchema.shape.label,
+      /** 1-based place in the spot's queue for that day, in promotion order. */
+      position: z.int().positive(),
+    })
+  ),
+});
+export type MyMonthReservationsOutput = z.infer<typeof myMonthReservationsOutputSchema>;
 
 /**
  * Read-only, like `getDayOverviewContract`: any month is viewable by its own

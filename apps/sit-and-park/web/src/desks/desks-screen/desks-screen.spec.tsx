@@ -157,7 +157,7 @@ describe('DesksScreen', () => {
     expect(await screen.findByText('bannerPermanent: code=D-100')).toBeInTheDocument();
     expect(screen.getByRole('link', { name: 'bannerPermanentLink' })).toHaveAttribute(
       'href',
-      '/desks/my'
+      '/reservations'
     );
   });
 
@@ -345,6 +345,85 @@ describe('DesksScreen', () => {
     expect(within(dialog).getByText('notePast')).toBeInTheDocument();
     expect(within(dialog).queryByRole('button', { name: 'cancelReservation' })).toBeNull();
     mockSearch = '';
+  });
+
+  describe('bulk booking', () => {
+    const SECOND = directoryDesk({ id: 'desk-second', code: 'D-002' });
+    const asAdmin = {
+      'me/get': ok(profile({ role: 'ADMIN' })),
+      'admin/user/list': ok({ users: [] }),
+    };
+
+    async function ctrlClick(user: ReturnType<typeof userEvent.setup>, code: string) {
+      await user.keyboard('{Control>}');
+      await user.click(await screen.findByRole('button', { name: new RegExp(`code=${code},`) }));
+      await user.keyboard('{/Control}');
+    }
+
+    it('opens the bulk modal from the header for a user, without any desk selection UI', async () => {
+      serve({ 'desk/directory': ok(directory([FREE, SECOND])) });
+      const user = renderScreen();
+
+      await user.click(await screen.findByRole('button', { name: 'bulkOpen' }));
+
+      expect(await screen.findByRole('dialog')).toBeInTheDocument();
+      expect(screen.queryByText(/^poolNote/)).not.toBeInTheDocument();
+      expect(screen.queryByText(/^selectionCount/)).not.toBeInTheDocument();
+      expect(screen.queryByText('planMultiHint')).not.toBeInTheDocument();
+    });
+
+    it('admin: Ctrl-click selects desks without opening the dialog, plain click still does', async () => {
+      serve({ 'desk/directory': ok(directory([FREE, SECOND])), ...asAdmin });
+      const user = renderScreen();
+
+      await ctrlClick(user, 'D-001');
+      await ctrlClick(user, 'D-002');
+
+      expect(await screen.findByText('selectionCount: count=2')).toBeInTheDocument();
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'selectionClear' }));
+      expect(screen.queryByText(/^selectionCount/)).not.toBeInTheDocument();
+
+      await openDesk(user, FREE);
+      expect(screen.getByRole('dialog')).toBeInTheDocument();
+    });
+
+    it('admin: ticking desks in the list and opening the modal passes them as deskIds', async () => {
+      const api = serve({
+        'desk/directory': ok(directory([FREE, SECOND])),
+        'desk/previewBulk': ok({
+          month: '2026-11',
+          people: [
+            { id: 'user-viewer', name: 'Karel', officeId: 'office-1', preferredDeskId: null },
+          ],
+          rows: [{ outcome: 'UNASSIGNED', userId: 'user-viewer', date: '2026-11-16' }],
+          freeDesks: [],
+        }),
+        ...asAdmin,
+      });
+      const user = renderScreen();
+
+      await user.click(await screen.findByRole('tab', { name: 'viewList' }));
+      await user.click(screen.getByRole('checkbox', { name: 'selectDesk: code=D-002' }));
+      expect(await screen.findByText('selectionCount: count=1')).toBeInTheDocument();
+
+      await user.click(screen.getByRole('button', { name: 'bulkOpen' }));
+      const dialog = await screen.findByRole('dialog');
+      expect(within(dialog).getByText('poolNote: count=1')).toBeInTheDocument();
+      await user.click(
+        within(dialog)
+          .getAllByRole('button')
+          .find((b) => b.textContent === '16') as HTMLElement
+      );
+      await user.click(within(dialog).getByRole('button', { name: 'ctaGenerate: count=1' }));
+
+      await waitFor(async () =>
+        expect(await bodiesOf(api, 'desk/previewBulk')).toEqual([
+          { dates: ['2026-11-16'], userIds: ['user-viewer'], deskIds: ['desk-second'] },
+        ])
+      );
+    });
   });
 
   it('refetches the directory when the socket comes back', async () => {

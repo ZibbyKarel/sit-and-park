@@ -14,8 +14,8 @@ import {
   DESK_STATUS,
   expectDeskStatus,
   goToDesksDay,
-  goToMyDesks,
-  myDesksSection,
+  goToMyReservations,
+  myReservationsSection,
   openDesk,
 } from './support/desk-page';
 import { expect, test } from './support/fixtures';
@@ -39,8 +39,8 @@ test('two non-members ask for Sales desks on the same day', async ({ userPage, u
   await requestDesk(userPage, APPROVED_DESK);
   await requestDesk(userTwoPage, REJECTED_DESK);
 
-  await goToMyDesks(userPage);
-  const mine = myDesksSection(userPage, 'Moje žádosti o schválení');
+  await goToMyReservations(userPage);
+  const mine = myReservationsSection(userPage, 'Moje žádosti o schválení');
   await expect(mine.getByRole('listitem').filter({ hasText: APPROVED_DESK })).toContainText(
     'Čeká na schválení'
   );
@@ -49,8 +49,8 @@ test('two non-members ask for Sales desks on the same day', async ({ userPage, u
 test('an admin approves one request and rejects the other from the inbox', async ({
   adminPage,
 }) => {
-  await goToMyDesks(adminPage);
-  const inbox = myDesksSection(adminPage, 'Žádosti ke schválení');
+  await goToMyReservations(adminPage);
+  const inbox = myReservationsSection(adminPage, 'Žádosti ke schválení');
 
   await inbox
     .getByRole('button', { name: `Schválit žádost na stůl ${APPROVED_DESK} pro Dev User` })
@@ -72,21 +72,21 @@ test('the approved requester holds the desk; the rejected one sees the rejection
   await goToDesksDay(userPage, DATE);
   await expectDeskStatus(userPage, APPROVED_DESK, DESK_STATUS.mine);
 
-  await goToMyDesks(userPage);
+  await goToMyReservations(userPage);
   await expect(
-    myDesksSection(userPage, 'Moje rezervace stolů')
+    myReservationsSection(userPage, 'Moje rezervace stolů')
       .getByRole('listitem')
       .filter({ hasText: APPROVED_DESK })
   ).toContainText(dayAndMonthCzech(DATE));
   await expect(
-    myDesksSection(userPage, 'Moje žádosti o schválení')
+    myReservationsSection(userPage, 'Moje žádosti o schválení')
       .getByRole('listitem')
       .filter({ hasText: APPROVED_DESK })
   ).toContainText('Schváleno');
 
-  await goToMyDesks(userTwoPage);
+  await goToMyReservations(userTwoPage);
   await expect(
-    myDesksSection(userTwoPage, 'Moje žádosti o schválení')
+    myReservationsSection(userTwoPage, 'Moje žádosti o schválení')
       .getByRole('listitem')
       .filter({ hasText: REJECTED_DESK })
   ).toContainText('Zamítnuto');

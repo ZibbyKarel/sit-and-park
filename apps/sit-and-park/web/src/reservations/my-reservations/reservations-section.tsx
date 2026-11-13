@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * "Moje rezervace stolů": upcoming and past reservations, as a list or a
- * Monday-to-Friday month calendar, with single and bulk cancel.
+ * "Moje rezervace stolů": upcoming and past reservations as a list, with
+ * single and bulk cancel. (The month calendar is `reservations-calendar.tsx`.)
  *
  * Bulk cancel loops `desk.cancel` — the contract has no bulk procedure — and
  * keeps the ones that failed selected so a retry is one click.
@@ -11,25 +11,22 @@
 import { useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useRequireAuth } from '@sit-and-park/auth/client';
-import { addMonths, todayInPrague, useDateFormatters, useTranslations } from '@sit-and-park/i18n';
-import type { DateOnly } from '@sit-and-park/i18n';
+import { todayInPrague, useDateFormatters, useTranslations } from '@sit-and-park/i18n';
 import type { MyDeskReservation } from '@sit-and-park/contract';
-import { Button, CheckboxField, H2, SegmentedControl, Stack, Text, Strong } from '@shoptet/ui';
+import { Button, CheckboxField, H2, Stack, Text, Strong } from '@shoptet/ui';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
 import { useApi } from '../../shell/api-provider/api-provider';
 import { useNotify } from '../../shell/notifications/toast-provider';
 import { ScreenDataGuard, screenDataOf } from '../../shell/screen-state/screen-state';
 import { useCurrentUser } from '../../shell/use-current-user';
-import { useDeskWriteError } from './my-desks-errors';
-import { buildBookingsCalendar, reservationDetail, splitReservations } from './my-desks-view';
-import styles from './my-desks.module.css';
+import { useDeskWriteError } from './my-reservations-errors';
+import { reservationDetail, splitReservations } from './my-reservations-view';
+import styles from './my-reservations.module.css';
 
-type View = 'list' | 'calendar';
 type ConfirmTarget = MyDeskReservation | 'bulk' | null;
 
 export function ReservationsSection() {
   const t = useTranslations('myDesks');
-  const bulk = useTranslations('bulk');
   const f = useDateFormatters();
   const api = useApi();
   const queryClient = useQueryClient();
@@ -41,16 +38,9 @@ export function ReservationsSection() {
     ...api.desk.myReservations.queryOptions(),
     enabled: status === 'authenticated',
   });
-  const releasesQuery = useQuery({
-    ...api.desk.myReleases.queryOptions(),
-    enabled: status === 'authenticated',
-  });
-
-  const [view, setView] = useState<View>('list');
   const [historyOpen, setHistoryOpen] = useState(false);
   const [selected, setSelected] = useState<ReadonlySet<string>>(new Set());
   const [confirm, setConfirm] = useState<ConfirmTarget>(null);
-  const [anchor, setAnchor] = useState<DateOnly>(() => todayInPrague());
   const [notice, setNotice] = useState<string | null>(null);
   const [failure, setFailure] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -105,21 +95,7 @@ export function ReservationsSection() {
   return (
     <section className={styles.section} aria-labelledby="my-desks-reservations">
       <Stack gap="lg">
-        <div className={styles.sectionHeader}>
-          <H2 id="my-desks-reservations">{t('reservationsTitle')}</H2>
-          <SegmentedControl
-            aria-label={t('viewLabel')}
-            size="sm"
-            options={[
-              { value: 'list', label: t('viewList') },
-              { value: 'calendar', label: t('viewCalendar') },
-            ]}
-            getOptionValue={(option) => option.value}
-            getOptionLabel={(option) => option.label}
-            value={view}
-            onChange={(value) => setView(value as View)}
-          />
-        </div>
+        <H2 id="my-desks-reservations">{t('reservationsTitle')}</H2>
         <ScreenDataGuard
           state={screenDataOf(reservationsQuery)}
           onRetry={() => void reservationsQuery.refetch()}
@@ -128,93 +104,6 @@ export function ReservationsSection() {
           {({ reservations }) => {
             const today = todayInPrague();
             const { upcoming, history } = splitReservations(reservations, today);
-
-            if (view === 'calendar') {
-              const calendar = buildBookingsCalendar(
-                anchor,
-                reservations,
-                releasesQuery.data ?? null,
-                today
-              );
-              const weekdays = [
-                bulk('weekdayMon'),
-                bulk('weekdayTue'),
-                bulk('weekdayWed'),
-                bulk('weekdayThu'),
-                bulk('weekdayFri'),
-              ];
-              return (
-                <Stack gap="md">
-                  <div className={styles.calendarNav}>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      aria-label={t('calPrev')}
-                      onClick={() => setAnchor(addMonths(anchor, -1))}
-                    >
-                      ‹
-                    </Button>
-                    <Strong>{f.monthAndYear(anchor)}</Strong>
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      aria-label={t('calNext')}
-                      onClick={() => setAnchor(addMonths(anchor, 1))}
-                    >
-                      ›
-                    </Button>
-                    <Text appearance="sm" variant="tertiary">
-                      {t('calCount', { count: calendar.monthCount })}
-                    </Text>
-                  </div>
-                  <div role="grid" aria-label={t('calendarLabel')} className={styles.calendar}>
-                    <div role="row" className={styles.calendarRow}>
-                      {weekdays.map((name) => (
-                        <div key={name} role="columnheader" className={styles.weekday}>
-                          {name}
-                        </div>
-                      ))}
-                    </div>
-                    {calendar.weeks.map((week) => (
-                      <div key={week.key} role="row" className={styles.calendarRow}>
-                        {week.slots.map((slot) => (
-                          <div
-                            key={slot.key}
-                            role="gridcell"
-                            className={styles.cell}
-                            data-empty={slot.day === null}
-                            data-today={slot.day?.isToday}
-                            data-past={slot.day?.isPast}
-                          >
-                            {slot.day === null ? null : (
-                              <>
-                                <span className={styles.cellDay}>{slot.day.day}</span>
-                                {slot.day.chips.map((chip) => (
-                                  <span
-                                    key={chip.kind === 'reservation' ? chip.id : chip.kind}
-                                    className={styles.chip}
-                                    data-kind={chip.kind}
-                                  >
-                                    {chip.kind === 'reservation'
-                                      ? chip.code
-                                      : chip.kind === 'permanent'
-                                        ? t('calPermanent')
-                                        : t('calReleased', { code: chip.code })}
-                                  </span>
-                                ))}
-                              </>
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                    ))}
-                  </div>
-                  <Text appearance="sm" variant="tertiary">
-                    {t('calendarHint')}
-                  </Text>
-                </Stack>
-              );
-            }
 
             if (reservations.length === 0) {
               return <Text variant="tertiary">{t('emptyAll')}</Text>;

@@ -98,7 +98,7 @@ export function waitlistPromotedMessage(spotLabel: string, date: DateOnly): stri
 /**
  * A colleague asks for a desk in the recipient's hive. No link: no existing
  * message links into the app and there is no public base-URL setting, so the
- * text names the screen instead (`/desks/my`, "Moje stoly").
+ * text names the screen instead (`/reservations`, "Moje rezervace").
  */
 export function deskApprovalRequestedMessage(
   requesterName: string,
@@ -106,7 +106,7 @@ export function deskApprovalRequestedMessage(
   hiveName: string,
   date: DateOnly
 ): string {
-  return `${escapeSlackText(requesterName)} žádá o stůl ${escapeSlackText(deskCode)} (${escapeSlackText(hiveName)}) na ${formatCzechFullDate(date)}. Žádost vyřídíte v aplikaci v části Moje stoly.`;
+  return `${escapeSlackText(requesterName)} žádá o stůl ${escapeSlackText(deskCode)} (${escapeSlackText(hiveName)}) na ${formatCzechFullDate(date)}. Žádost vyřídíte v aplikaci v části Moje rezervace.`;
 }
 
 /** The requester learns how their desk request was decided. */

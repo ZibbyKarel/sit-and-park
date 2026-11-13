@@ -245,6 +245,24 @@ describe('UsersService', () => {
         });
       });
 
+      it('drops the preferred desk on an office change, and keeps it otherwise', async () => {
+        const admin = double.seedUser({ role: 'ADMIN' });
+        const moved = double.seedUser({ preferredDeskId: 'desk-1' });
+        const stays = double.seedUser({ preferredDeskId: 'desk-2' });
+        double.otherOfficeIds.push(OTHER_OFFICE);
+
+        await users.adminUpdate({ id: moved.id, officeId: OTHER_OFFICE }, admin);
+        await users.adminUpdate(
+          { id: stays.id, officeId: DEFAULT_OFFICE_ID, role: 'ADMIN' },
+          admin
+        );
+
+        const preferred = (id: string) =>
+          double.users.find((row) => row.id === id)?.preferredDeskId;
+        expect(preferred(moved.id)).toBeNull();
+        expect(preferred(stays.id)).toBe('desk-2');
+      });
+
       it('clears the office with null', async () => {
         const admin = double.seedUser({ role: 'ADMIN' });
         const target = double.seedUser();

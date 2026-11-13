@@ -1,6 +1,6 @@
 /**
- * The caller's own profile and settings: licence plate, preferred parking spot,
- * and the ICS feed token.
+ * The caller's own profile and settings: licence plate, preferred parking spot
+ * and desk, and the ICS feed token.
  */
 
 import * as z from 'zod';
@@ -48,12 +48,18 @@ export const updateMySettingsInputSchema = z.object({
    * (`doc/decision/0004-*` §Preferred parking spot).
    */
   preferredParkingSpotId: idSchema.nullable().optional(),
+  /**
+   * First choice for desk bulk booking (`desk.previewBulk`). Must be an active
+   * desk of the caller's office.
+   */
+  preferredDeskId: idSchema.nullable().optional(),
 });
 export type UpdateMySettingsInput = z.infer<typeof updateMySettingsInputSchema>;
 
 /**
- * `NOT_FOUND` is the preferred spot that does not exist; `VALIDATION_FAILED`
- * covers pointing it at a deactivated one.
+ * `NOT_FOUND` is the preferred spot or desk that does not exist;
+ * `VALIDATION_FAILED` covers pointing it at a deactivated one (or, for a desk,
+ * one outside the caller's office).
  */
 export const updateMySettingsContract = authed
   .input(updateMySettingsInputSchema)

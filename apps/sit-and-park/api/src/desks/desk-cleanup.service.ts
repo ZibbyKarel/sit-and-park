@@ -144,6 +144,20 @@ export class DeskCleanupService {
     return rows.length;
   }
 
+  /**
+   * Clears `preferredDeskId` of everyone who prefers `deskId`: run when the
+   * desk is deactivated or moves to another office, so a preference never
+   * points at a desk its owner could not pick again. Not audited (a setting,
+   * not a booking). Returns how many users were changed.
+   */
+  async clearPreferredDesk(tx: Prisma.TransactionClient, deskId: string): Promise<number> {
+    const { count } = await tx.user.updateMany({
+      where: { preferredDeskId: deskId },
+      data: { preferredDeskId: null },
+    });
+    return count;
+  }
+
   /** Broadcasts what {@link cancelReservations} returned. Call after commit only. */
   publish(events: readonly DeskReleasedEvent[]): void {
     for (const event of events) {

@@ -19,7 +19,12 @@
 
 import { useEffect, useRef, useState } from 'react';
 import * as z from 'zod';
-import type { MyProfile, ParkingSpot, UpdateMySettingsInput } from '@sit-and-park/contract';
+import type {
+  DirectoryDesk,
+  MyProfile,
+  ParkingSpot,
+  UpdateMySettingsInput,
+} from '@sit-and-park/contract';
 import { toContractError } from '@sit-and-park/api-client';
 import { FormField, FormProvider, useAppForm } from '@sit-and-park/form';
 import { Button, Modal, Stack, Text } from '@shoptet/ui';
@@ -54,6 +59,7 @@ export type CopyState = 'idle' | 'copied' | 'failed';
 const settingsFormSchema = z.object({
   licensePlate: z.string().max(16),
   preferredParkingSpotId: z.string(),
+  preferredDeskId: z.string(),
 });
 type SettingsFormValues = z.infer<typeof settingsFormSchema>;
 
@@ -62,12 +68,19 @@ interface SpotOption {
   readonly label: string;
 }
 
-function toUpdateInput(values: SettingsFormValues): UpdateMySettingsInput {
+function toUpdateInput(values: SettingsFormValues, desksShown: boolean): UpdateMySettingsInput {
   const trimmedPlate = values.licensePlate.trim();
   return {
     licensePlate: trimmedPlate === '' ? null : trimmedPlate,
     preferredParkingSpotId:
       values.preferredParkingSpotId === NO_PREFERRED_SPOT ? null : values.preferredParkingSpotId,
+    // Absent = keep: a user without an office (no desk list) must not clear it.
+    ...(desksShown
+      ? {
+          preferredDeskId:
+            values.preferredDeskId === NO_PREFERRED_SPOT ? null : values.preferredDeskId,
+        }
+      : {}),
   };
 }
 
@@ -116,6 +129,15 @@ export interface SettingsScreenProps {
   readonly spotsPending: boolean;
   /** `spot.list` failed. The picker shows an inline notice instead of nothing. */
   readonly spotsError: boolean;
+  /**
+   * Active desks of the caller's office (`desk.directory`, today). `undefined`
+   * hides the preferred-desk picker: no office, or the directory is still
+   * loading or failed (`desksError`).
+   */
+  readonly desks?: readonly DirectoryDesk[] | undefined;
+  /** `desk.directory` failed: an inline notice with a retry replaces the picker. */
+  readonly desksError?: boolean | undefined;
+  readonly onRetryDesks?: (() => void) | undefined;
   readonly onSave: (input: UpdateMySettingsInput) => void;
   readonly isSaving: boolean;
   /** Whatever the failing `me.updateSettings` call threw. */
@@ -148,6 +170,9 @@ export function SettingsScreen({
   spots,
   spotsPending,
   spotsError,
+  desks,
+  desksError = false,
+  onRetryDesks,
   onSave,
   isSaving,
   saveError,
@@ -169,7 +194,11 @@ export function SettingsScreen({
 
   const form = useAppForm<SettingsFormValues>({
     schema: settingsFormSchema,
-    defaultValues: { licensePlate: '', preferredParkingSpotId: NO_PREFERRED_SPOT },
+    defaultValues: {
+      licensePlate: '',
+      preferredParkingSpotId: NO_PREFERRED_SPOT,
+      preferredDeskId: NO_PREFERRED_SPOT,
+    },
   });
 
   // The form is created once, unconditionally, so the footer's Save button
@@ -187,6 +216,7 @@ export function SettingsScreen({
       form.reset({
         licensePlate: profile.licensePlate ?? '',
         preferredParkingSpotId: profile.preferredParkingSpotId ?? NO_PREFERRED_SPOT,
+        preferredDeskId: profile.preferredDeskId ?? NO_PREFERRED_SPOT,
       });
     }
   }, [profile, form]);
@@ -204,6 +234,27 @@ export function SettingsScreen({
       form.setValue('preferredParkingSpotId', NO_PREFERRED_SPOT, { shouldDirty: false });
     }
   }, [spots, spotsPending, spotsError, form]);
+
+  // Same reconciliation as the spot above: a stored desk the directory no
+  // longer lists (deactivated) is shown as, and saved as, "Bez preference".
+  // Only once the directory has loaded: while it is loading or failed `desks` is
+  // undefined and the stored desk is left alone (and not sent on save).
+  const activeDesks = (desks ?? []).filter((desk) => desk.active);
+  useEffect(() => {
+    const current = form.getValues('preferredDeskId');
+    if (
+      desks !== undefined &&
+      current !== NO_PREFERRED_SPOT &&
+      !desks.some((desk) => desk.active && desk.id === current)
+    ) {
+      form.setValue('preferredDeskId', NO_PREFERRED_SPOT, { shouldDirty: false });
+    }
+  }, [desks, form]);
+
+  const deskOptions: SpotOption[] = [
+    { value: NO_PREFERRED_SPOT, label: t('preferredDeskNone') },
+    ...activeDesks.map((desk) => ({ value: desk.id, label: `${desk.code} · ${desk.zoneName}` })),
+  ];
 
   const spotOptions: SpotOption[] = [
     { value: NO_PREFERRED_SPOT, label: t('preferredSpotNone') },
@@ -234,7 +285,9 @@ export function SettingsScreen({
     // only through `saveErrorMessage`, not `regenerateErrorMessage` — but it
     // is harmless, and correct, either way.
     if (contractError.code === 'VALIDATION_FAILED') {
-      return t('preferredSpotUnavailable');
+      return desks === undefined
+        ? t('preferredSpotUnavailable')
+        : t('preferredSpotOrDeskUnavailable');
     }
     return errorsT(contractError.code);
   }
@@ -292,7 +345,9 @@ export function SettingsScreen({
               <Stack gap="xl">
                 <form
                   id={SETTINGS_FORM_ID}
-                  onSubmit={form.handleSubmit((values) => onSave(toUpdateInput(values)))}
+                  onSubmit={form.handleSubmit((values) =>
+                    onSave(toUpdateInput(values, desks !== undefined))
+                  )}
                 >
                   <Stack gap="xl">
                     <FormField
@@ -330,6 +385,32 @@ export function SettingsScreen({
                         {t('preferredSpotLoading')}
                       </Text>
                     ) : null}
+                    {desksError && desks === undefined ? (
+                      <Text appearance="sm" variant="tertiary" role="alert">
+                        {t('preferredDeskLoadError')}{' '}
+                        <Button variant="secondary" size="sm" onClick={() => onRetryDesks?.()}>
+                          {shellT('retry')}
+                        </Button>
+                      </Text>
+                    ) : null}
+                    {desks === undefined ? null : (
+                      <FormField
+                        name="preferredDeskId"
+                        render={({ field, error: fieldError }) => (
+                          <SingleSelectField
+                            label={t('preferredDeskLabel')}
+                            options={deskOptions}
+                            getOptionValue={(option) => option.value}
+                            getOptionLabel={(option) => option.label}
+                            name={field.name}
+                            value={field.value}
+                            onChange={(value) => field.onChange(value ?? NO_PREFERRED_SPOT)}
+                            ref={field.ref}
+                            {...(fieldError ? { error: fieldError } : {})}
+                          />
+                        )}
+                      />
+                    )}
                   </Stack>
                 </form>
 

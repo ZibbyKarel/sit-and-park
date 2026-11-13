@@ -289,6 +289,8 @@ export function AdminDesksScreen() {
                             zoomOut: t('planZoomOut'),
                             reset: t('planReset'),
                             hint: t('planHint'),
+                            enterFullscreen: t('planEnterFullscreen'),
+                            exitFullscreen: t('planExitFullscreen'),
                           }}
                         />
                         <section aria-label={t('legendTitle')} className={styles.legend}>

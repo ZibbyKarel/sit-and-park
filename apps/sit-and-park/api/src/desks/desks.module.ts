@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AuditModule } from '../audit/audit.module';
 import { ReservationsModule } from '../reservations/reservations.module';
+import { DeskBulkService } from './desk-bulk.service';
 import { DeskCleanupService } from './desk-cleanup.service';
 import { DeskRequestsService } from './desk-requests.service';
 import { DesksController } from './desks.controller';
@@ -15,7 +16,7 @@ import { DesksService } from './desks.service';
 @Module({
   imports: [AuditModule, ReservationsModule],
   controllers: [DesksController],
-  providers: [DesksService, DeskRequestsService, DeskCleanupService],
+  providers: [DesksService, DeskBulkService, DeskRequestsService, DeskCleanupService],
   exports: [DeskCleanupService],
 })
 export class DesksModule {}

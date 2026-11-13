@@ -39,6 +39,7 @@ export function profile(overrides: Partial<MyProfile> = {}): MyProfile {
     active: true,
     icsToken: 'ics-token',
     preferredParkingSpotId: null,
+    preferredDeskId: null,
     officeId: 'office-1',
     hibobId: null,
     manualAccount: false,

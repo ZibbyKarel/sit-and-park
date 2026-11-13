@@ -209,6 +209,7 @@ const VIEWER: MyProfile = {
   licensePlate: null,
   oktaId: 'okta-viewer',
   preferredParkingSpotId: null,
+  preferredDeskId: null,
   officeId: 'office-1',
   hibobId: null,
   manualAccount: false,

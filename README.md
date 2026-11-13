@@ -167,7 +167,8 @@ the seed puts it back to 7.
 
 ## Desks and the employee sync
 
-The desk screens are `/desks` and `/desks/my`; their administration is in the
+The desk screens are `/desks` and `/reservations` ("Moje rezervace", parking
+and desks in one calendar); their administration is in the
 `/admin` tabs `Hivy`, `Kanceláře`, `Synchronizace`, `Stoly` and `Statistiky stolů`.
 Domain and rules: `doc/desks.md`.
 

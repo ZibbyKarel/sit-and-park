@@ -21,7 +21,13 @@ import { Avatar, Icon, Menu, Stack, Tag, Text } from '@shoptet/ui';
 import type { UserRole } from '@sit-and-park/contract';
 import { LOCALES, LOCALE_LABELS, isLocale, useTranslations, type Locale } from '@sit-and-park/i18n';
 import NextLink from 'next/link';
-import { ADMIN_ROUTE, DESKS_ROUTE, LOT_ROUTE, MY_DESKS_ROUTE, SETTINGS_ROUTE } from '../../routes';
+import {
+  ADMIN_ROUTE,
+  DESKS_ROUTE,
+  LOT_ROUTE,
+  MY_RESERVATIONS_ROUTE,
+  SETTINGS_ROUTE,
+} from '../../routes';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
 import styles from './top-bar.module.css';
 
@@ -40,7 +46,7 @@ export const MENU_LOCALE_PREFIX = 'locale:';
 const NAV_ITEMS = [
   { route: LOT_ROUTE, key: 'parking' },
   { route: DESKS_ROUTE, key: 'desks' },
-  { route: MY_DESKS_ROUTE, key: 'myDesks' },
+  { route: MY_RESERVATIONS_ROUTE, key: 'myReservations' },
 ] as const;
 
 export interface TopBarProps {

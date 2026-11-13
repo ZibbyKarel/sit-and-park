@@ -33,7 +33,8 @@ describe('proxy matcher', () => {
     ['the settings screen', '/settings'],
     ['the administration screen', '/admin'],
     ['the desks screen', '/desks'],
-    ['my desks', '/desks/my'],
+    ['my reservations', '/reservations'],
+    ['the old my desks path', '/desks/my'],
     // Served only to a session: the image request carries the same cookie.
     ['the bundled floor plan', '/floorplans/praha.svg'],
     ['an unknown path', '/whatever'],

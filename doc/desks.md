@@ -27,7 +27,7 @@ Schema and migrations: `doc/database.md`. Procedures and errors: `doc/contract.m
 | `DeskReservation`      | Unique `(deskId, date)` and `(userId, date)`.                                                                                                                                 |
 | `DeskRelease`          | A permanent holder frees the desk for a day; unique `(deskId, date)`.                                                                                                         |
 | `DeskApprovalRequest`  | `PENDING` / `APPROVED` / `REJECTED`; a partial unique on `(deskId, userId, date)` where `PENDING` (hand-written SQL). An author's withdrawal **deletes** the row (`0332`).    |
-| `User` / `ParkingSpot` | Gain `officeId` (spot: required), `User` also `hibobId`, `manualAccount`, `deactivatedAt`.                                                                                    |
+| `User` / `ParkingSpot` | Gain `officeId` (spot: required), `User` also `hibobId`, `manualAccount`, `deactivatedAt`, `preferredDeskId`.                                                                 |
 
 Dates are date-only (`DATE` column, `YYYY-MM-DD` in Europe/Prague).
 `schema-contract-parity.spec.ts` keeps the Prisma models and contract entities
@@ -60,6 +60,41 @@ Preview returns the same plan without writing. Whole-call failures, in order:
 `DESK_NOT_AVAILABLE` (inactive), `DESK_ACCESS_DENIED`; and `NO_FREE_DAY` when
 nothing is bookable (nothing is written). No reservation window, monthly cap or
 waitlist: desks follow the source app, not parking (`0321`).
+
+**Bulk booking** (`desk.previewBulk`, `desk.confirmBulk`; rules in
+`desks/desk-bulk-rules.ts`, service `desk-bulk.service.ts`). Days as parking's
+bulk modal: distinct, one calendar month, at most `MAX_BULK_BOOKING_DAYS`.
+People: the caller by default; anybody else is admin only (`FORBIDDEN`,
+`ReservationPolicy.assertMayNameDeskHolders`), at most `MAX_DESK_BULK_USERS`
+(50). Preview allocates per person (people with a `preferredDeskId` first,
+stable) and date ascending: the preferred desk if bookable and in the optional
+`deskIds` pool (`isPreferred`), else the nearest bookable pool desk (Euclidean
+distance of centres) in the anchor's zone, else `UNASSIGNED`. Anchor = the
+preferred desk when it is active, in the person's office, in the pool and
+`DIRECT`ly accessible; else the bookable pool desk free on most of the days
+(ties: code).
+Auto-allocation uses `DIRECT` access only and never gives a desk twice a day.
+Per-row `UNAVAILABLE` reasons (`DESK_BULK_SKIP_REASONS`): `PAST_DATE`,
+`USER_INACTIVE`, `NO_OFFICE_ASSIGNED`, `PERMANENT_DESK_HOLDER`,
+`ALREADY_RESERVED_OTHER_DESK`. Preview also returns the free desks per office
+and day for a manual pick (an admin: every free active desk; anybody else:
+directly bookable ones). Confirm takes the explicit `{ userId, date, deskId }`
+rows, locks the desks (`lockDesks`) then the users `FOR SHARE`
+(`lockUsersForShare`), re-checks every row and books the valid ones; the rest
+come back in `skipped` (adds `DESK_NOT_AVAILABLE`, `DESK_ACCESS_DENIED`,
+`DESK_ASSIGNED`, `ALREADY_RESERVED_THIS_DESK`, `DESK_TAKEN`). An admin may
+book a hive desk the person has only `APPROVAL` access to. Side effects as
+`desk.reserve`: pending requests rejected (`DESK_TAKEN`, `REQUESTER_HAS_DESK`),
+`DESK_RESERVATION_CREATED` audited with the caller as actor, `desk:reserved`
+after commit. A second row of the batch for a person or desk already booked
+that day by an earlier row is skipped (`ALREADY_RESERVED_OTHER_DESK`,
+`DESK_TAKEN`). A lost race on a `DeskReservation` unique index is `CONFLICT`
+for the whole call (nothing written). `User.preferredDeskId` (nullable,
+`SET NULL`) is set through `me.updateSettings` to an active desk of the user's
+office; it is cleared when an admin changes the user's office
+(`admin.user.update`) and when the desk is deactivated or moved to another
+office (`admin.desk.update` / `bulkUpdate`, via
+`DeskCleanupService.clearPreferredDesk` in the same transaction).
 
 **Permanent desks.** At most one per user (unique). A holder cannot book any
 other desk, even on a day they released. `desk.release` takes 1 to
@@ -114,7 +149,7 @@ touches reservations dated today or later; history is never changed.
 | Hive deleted (`admin.hive.delete`)                                    | Kept; its desks become open (`hiveId` null), memberships cascade                                                                                                                                                                                            | Rejected, `HIVE_DELETED`                                                                 |
 | Permanent holder set (`admin.desk.setPermanentAssignee`)              | Others' reservations of that desk cancelled on every day not released, and the new holder's reservations of other desks cancelled, `PERMANENT_ASSIGNMENT`. Any holder change (also clearing) drops release days nobody booked; booked ones keep both rows. | Untouched (a holder's own requests are blocked at approval)                              |
 | User deactivated (sync or `admin.user.update`, `UserDeactivationService`) | Desk reservations cancelled, `USER_DEACTIVATED`; parking reservations cancelled after commit through the normal cancel path, so the waitlist promotes                                                                                                       | Rejected, `USER_DEACTIVATED`                                                             |
-| Direct booking (`desk.reserve`)                                       | -                                                                                                                                                                                                                                                           | Others' for that desk and day `DESK_TAKEN`; the caller's own for those days `REQUESTER_HAS_DESK` |
+| Direct booking (`desk.reserve`, `desk.confirmBulk`)                   | -                                                                                                                                                                                                                                                           | Others' for that desk and day `DESK_TAKEN`; the caller's own for those days `REQUESTER_HAS_DESK` |
 
 A permanent holder must be an active user of the desk's office and hold no
 other permanent desk (`VALIDATION_FAILED`, `CONFLICT`). A hive owner must be an
@@ -214,12 +249,13 @@ plan can already be created in the admin UI, but their desks cannot be drawn.
 | Route         | Screen                                                                                                                                                                                                             |
 | ------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | `/desks`      | `desks/desks-screen/`: the day (in the URL), floor plan or list, zone, hive, only-free and only-directly-bookable filters, a dialog to book (series with live preview), request approval, withdraw or cancel.                                            |
-| `/desks/my`   | `desks/my-desks/`: upcoming and past reservations, releases (permanent holders), my requests, and the owner's / admin's inbox of pending requests.                                                                  |
+| `/reservations` | `reservations/my-reservations/`: month calendar of parking, desks and requests (`/desks/my` redirects here) and, in tab Seznam, upcoming and past reservations, releases (permanent holders), my requests, and the owner's / admin's inbox of pending requests.                                                                  |
 | `/admin` tabs | `Hivy` (hives, owner, members), `Kanceláře` (offices, zones dialog), `Synchronizace` (live-mode switch, last runs), `Stoly` (list, edit, multi-select bulk edit, grants, permanent holder), `Statistiky stolů` (a day, optional office). Users get office and manual-account fields, spots an office. |
 
-Top navigation (`Parkování`, `Stoly`, `Moje stoly`) is in
+Top navigation (`Parkování`, `Stoly`, `Moje rezervace`) is in
 `shell/top-bar/top-bar.tsx`. Pure rules of the screens are in
-`desks/desk-view.ts`.
+`desks/desk-view.ts`, `reservations/my-reservations/my-reservations-view.ts`
+and `desks/desk-bulk-modal/desk-bulk-view.ts`.
 
 ## Differences from the source app
 

@@ -1,4 +1,12 @@
-import { clamp, IDENTITY_VIEW, MAX_SCALE, panBy, zoomAt } from './floor-plan-view';
+import {
+  clamp,
+  IDENTITY_VIEW,
+  MAX_SCALE,
+  panBy,
+  wheelDeltaToPixels,
+  wheelZoomFactor,
+  zoomAt,
+} from './floor-plan-view';
 
 describe('floor-plan-view', () => {
   it('clamp bounds a value on both sides', () => {
@@ -36,5 +44,22 @@ describe('floor-plan-view', () => {
 
   it('panBy at scale 1 is a no-op', () => {
     expect(panBy(IDENTITY_VIEW, 30, -30, 1000, 500)).toEqual(IDENTITY_VIEW);
+  });
+});
+
+describe('wheel maths', () => {
+  it('converts line and page deltas to pixels', () => {
+    expect(wheelDeltaToPixels(5, 0, 800)).toBe(5);
+    expect(wheelDeltaToPixels(3, 1, 800)).toBe(48);
+    expect(wheelDeltaToPixels(-1, 2, 800)).toBe(-800);
+  });
+
+  it('wheelZoomFactor is one 1.15 step per notch, proportional for small pinch deltas, capped', () => {
+    expect(wheelZoomFactor(-100)).toBe(1.15);
+    expect(wheelZoomFactor(100)).toBeCloseTo(1 / 1.15);
+    expect(wheelZoomFactor(-1000)).toBe(1.15);
+    expect(wheelZoomFactor(0)).toBe(1);
+    expect(wheelZoomFactor(-10)).toBeGreaterThan(1);
+    expect(wheelZoomFactor(-10)).toBeLessThan(1.02);
   });
 });

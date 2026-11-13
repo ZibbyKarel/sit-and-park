@@ -15,8 +15,8 @@ import { useApi } from '../../shell/api-provider/api-provider';
 import { useNotify } from '../../shell/notifications/toast-provider';
 import { ScreenDataGuard, screenDataOf } from '../../shell/screen-state/screen-state';
 import { useCurrentUser } from '../../shell/use-current-user';
-import { useDeskWriteError } from './my-desks-errors';
-import styles from './my-desks.module.css';
+import { useDeskWriteError } from './my-reservations-errors';
+import styles from './my-reservations.module.css';
 
 const STATUS_LEVEL = {
   PENDING: 'alert',

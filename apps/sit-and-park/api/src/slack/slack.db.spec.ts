@@ -304,7 +304,7 @@ describe('Slack over a real database', () => {
       expect(new URLSearchParams(server.requests[0]?.body).get('email')).toBe(owner.email);
       expect(sentChannel(1)).toBe('U0OWNER');
       expect(sentText(1)).toBe(
-        `Jana Žádá žádá o stůl ${desk.code} (${desk.hive?.name}) na pondělí 5. ledna 2099. Žádost vyřídíte v aplikaci v části Moje stoly.`
+        `Jana Žádá žádá o stůl ${desk.code} (${desk.hive?.name}) na pondělí 5. ledna 2099. Žádost vyřídíte v aplikaci v části Moje rezervace.`
       );
     });
 

@@ -19,8 +19,8 @@ import {
   deskShape,
   expectDeskStatus,
   goToDesksDay,
-  goToMyDesks,
-  myDesksSection,
+  goToMyReservations,
+  myReservationsSection,
 } from './support/desk-page';
 import { expect, test } from './support/fixtures';
 
@@ -52,8 +52,8 @@ test('an admin assigns the desk; on an unreleased day nobody else can book it', 
 });
 
 test('the holder releases a day and another user books it', async ({ adminPage, userPage }) => {
-  await goToMyDesks(adminPage);
-  const release = myDesksSection(adminPage, `Můj stálý stůl ${DESK}`);
+  await goToMyReservations(adminPage);
+  const release = myReservationsSection(adminPage, `Můj stálý stůl ${DESK}`);
   await release.getByLabel('Od', { exact: true }).fill(DATE);
   await release.getByLabel('Do', { exact: true }).fill(DATE);
   await release.getByRole('button', { name: 'Uvolnit 1 pracovní den' }).click();
@@ -67,8 +67,8 @@ test('the holder releases a day and another user books it', async ({ adminPage, 
   await bookDesk(userPage, DESK);
   await expectDeskStatus(userPage, DESK, DESK_STATUS.mine);
 
-  await goToMyDesks(adminPage);
-  await expect(myDesksSection(adminPage, `Můj stálý stůl ${DESK}`)).toContainText(
+  await goToMyReservations(adminPage);
+  await expect(myReservationsSection(adminPage, `Můj stálý stůl ${DESK}`)).toContainText(
     'rezervoval(a) Dev User'
   );
 });

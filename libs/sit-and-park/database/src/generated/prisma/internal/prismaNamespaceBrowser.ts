@@ -98,6 +98,7 @@ export const UserScalarFieldEnum = {
   active: 'active',
   icsToken: 'icsToken',
   preferredParkingSpotId: 'preferredParkingSpotId',
+  preferredDeskId: 'preferredDeskId',
   officeId: 'officeId',
   hibobId: 'hibobId',
   manualAccount: 'manualAccount',

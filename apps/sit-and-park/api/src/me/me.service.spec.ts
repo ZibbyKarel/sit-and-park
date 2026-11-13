@@ -109,6 +109,44 @@ describe('MeService', () => {
       ).rejects.toMatchObject({ code: 'VALIDATION_FAILED', details: { parkingSpotId: spot.id } });
     });
 
+    it('sets the preferred desk on an id, keeps it when absent and clears it on null', async () => {
+      const user = double.seedUser();
+      double.desks.push({ id: 'desk-1', permanentAssigneeId: null });
+
+      await expect(
+        me.updateSettings({ preferredDeskId: 'desk-1' }, user.id)
+      ).resolves.toMatchObject({ preferredDeskId: 'desk-1' });
+      await expect(me.updateSettings({}, user.id)).resolves.toMatchObject({
+        preferredDeskId: 'desk-1',
+      });
+      await expect(me.updateSettings({ preferredDeskId: null }, user.id)).resolves.toMatchObject({
+        preferredDeskId: null,
+      });
+    });
+
+    it('rejects a preferred desk that does not exist with NOT_FOUND', async () => {
+      const user = double.seedUser();
+
+      await expect(
+        me.updateSettings({ preferredDeskId: '11111111-1111-4111-8111-111111111111' }, user.id)
+      ).rejects.toMatchObject({ code: 'NOT_FOUND' });
+    });
+
+    it('rejects an inactive desk or one of another office with VALIDATION_FAILED', async () => {
+      const user = double.seedUser();
+      double.desks.push(
+        { id: 'desk-off', permanentAssigneeId: null, active: false },
+        { id: 'desk-far', permanentAssigneeId: null, officeId: 'office-other' }
+      );
+
+      await expect(
+        me.updateSettings({ preferredDeskId: 'desk-off' }, user.id)
+      ).rejects.toMatchObject({ code: 'VALIDATION_FAILED' });
+      await expect(
+        me.updateSettings({ preferredDeskId: 'desk-far' }, user.id)
+      ).rejects.toMatchObject({ code: 'VALIDATION_FAILED' });
+    });
+
     it('writes an audit entry with the before and the after', async () => {
       const user = double.seedUser({ licensePlate: null });
 
@@ -121,8 +159,12 @@ describe('MeService', () => {
           entityId: user.id,
           payload: {
             change: 'settings',
-            before: { licensePlate: null, preferredParkingSpotId: null },
-            after: { licensePlate: '5CD 6789', preferredParkingSpotId: null },
+            before: { licensePlate: null, preferredParkingSpotId: null, preferredDeskId: null },
+            after: {
+              licensePlate: '5CD 6789',
+              preferredParkingSpotId: null,
+              preferredDeskId: null,
+            },
           },
         }),
       ]);

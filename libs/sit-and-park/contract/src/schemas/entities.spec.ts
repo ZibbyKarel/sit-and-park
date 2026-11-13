@@ -26,6 +26,7 @@ const validUser = {
   active: true,
   icsToken: 'f2b1c3d4e5f6',
   preferredParkingSpotId: OTHER_ID,
+  preferredDeskId: OTHER_ID,
   officeId: OTHER_ID,
   hibobId: 'hibob-42',
   manualAccount: false,
@@ -44,6 +45,7 @@ describe('userSchema', () => {
       ...validUser,
       licensePlate: null,
       preferredParkingSpotId: null,
+      preferredDeskId: null,
     });
     expect(result.success).toBe(true);
   });
@@ -65,6 +67,7 @@ describe('userSchema', () => {
     ['active', 'true'],
     ['id', 'nope'],
     ['preferredParkingSpotId', 'nope'],
+    ['preferredDeskId', 'nope'],
     ['createdAt', '2026-08-28'],
   ])('rejects an invalid %s (%p)', (field, value) => {
     expect(userSchema.safeParse({ ...validUser, [field]: value }).success).toBe(false);

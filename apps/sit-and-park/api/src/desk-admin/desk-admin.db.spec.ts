@@ -150,6 +150,46 @@ describe('desk administration against a real PostgreSQL', () => {
     ]);
   });
 
+  it('clears a preference for a desk that is deactivated or moved to another office, in bulk too', async () => {
+    const [p1, p2, p3, p4] = [await user(), await user(), await user(), await user()];
+    const [off, moved, bulkOff, rehived] = [await desk(), await desk(), await desk(), await desk()];
+    const prefers: [UserRow, string][] = [
+      [p1, off],
+      [p2, moved],
+      [p3, bulkOff],
+      [p4, rehived],
+    ];
+    await Promise.all(
+      prefers.map(([person, deskId]) =>
+        client.user.update({ where: { id: person.id }, data: { preferredDeskId: deskId } })
+      )
+    );
+    const elsewhere = await client.office.create({ data: { name: unique('Elsewhere') } });
+    const elsewhereZone = await client.zone.create({
+      data: { officeId: elsewhere.id, key: unique('z'), name: 'Elsewhere' },
+    });
+
+    await deskAdmin.update({ deskId: off, active: false }, admin.id);
+    await deskAdmin.update(
+      { deskId: moved, officeId: elsewhere.id, zoneId: elsewhereZone.id },
+      admin.id
+    );
+    await deskAdmin.bulkUpdate({ deskIds: [bulkOff], active: false }, admin.id);
+    await deskAdmin.bulkUpdate({ deskIds: [rehived], hiveId: await hive(admin.id) }, admin.id);
+
+    const rows = await client.user.findMany({
+      where: { id: { in: [p1.id, p2.id, p3.id, p4.id] } },
+      select: { id: true, preferredDeskId: true },
+    });
+    const byId = new Map(rows.map((row) => [row.id, row.preferredDeskId]));
+    expect([p1, p2, p3, p4].map((person) => byId.get(person.id))).toEqual([
+      null,
+      null,
+      null,
+      rehived,
+    ]);
+  });
+
   it('a bulk hive change rejects the pending requests of every desk but cancels nothing', async () => {
     const [booker, a, b] = [await user(), await user(), await user()];
     const fromHive = await hive(admin.id);

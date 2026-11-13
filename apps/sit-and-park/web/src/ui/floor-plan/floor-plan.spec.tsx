@@ -31,6 +31,8 @@ const labels = {
   zoomOut: 'Zoom out',
   reset: 'Reset',
   hint: 'Hold Ctrl to zoom',
+  enterFullscreen: 'Full screen',
+  exitFullscreen: 'Exit full screen',
 };
 
 function setup(props: Partial<React.ComponentProps<typeof FloorPlan>> = {}) {
@@ -147,16 +149,115 @@ describe('FloorPlan', () => {
     expect(transform()).toBe(initial);
   });
 
-  it('wheel zooms only with Ctrl or Cmd', () => {
+  it('plain wheel pans (pixels, lines); Ctrl/Cmd wheel zooms and always prevents page scroll', () => {
     const { container, transform } = setup();
     const svg = container.querySelector('svg') as SVGSVGElement;
     const initial = transform();
 
-    fireEvent.wheel(svg, { deltaY: -100 });
+    // at scale 1 there is nothing to pan: the page scrolls
+    expect(fireEvent.wheel(svg, { deltaY: 100 })).toBe(true);
     expect(transform()).toBe(initial);
 
-    fireEvent.wheel(svg, { deltaY: -100, ctrlKey: true });
+    expect(fireEvent.wheel(svg, { deltaY: -100, ctrlKey: true })).toBe(false);
     expect(transform()).toContain('scale(1.15)');
+    fireEvent.wheel(svg, { deltaY: -100, metaKey: true });
+    expect(transform()).toMatch(/scale\(1\.32249/);
+
+    const zoomed = transform();
+    expect(fireEvent.wheel(svg, { deltaX: 10, deltaY: 0 })).toBe(false); // pans: prevented
+    expect(transform()).not.toBe(zoomed);
+    const afterPixels = transform();
+    fireEvent.wheel(svg, { deltaX: 0, deltaY: 1, deltaMode: 1 });
+    expect(transform()).not.toBe(afterPixels);
+  });
+
+  it('a wheel that cannot pan any further lets the page scroll', () => {
+    const { container } = setup();
+    const svg = container.querySelector('svg') as SVGSVGElement;
+    fireEvent.wheel(svg, { deltaY: -100, ctrlKey: true });
+    // scroll up at the top-left corner: nothing moves
+    expect(fireEvent.wheel(svg, { deltaY: -50 })).toBe(true);
+  });
+
+  it('Ctrl+wheel in lines (Firefox) zooms like the equivalent pixels', () => {
+    const { container, transform } = setup();
+    const svg = container.querySelector('svg') as SVGSVGElement;
+    // 3 lines = 48 px, a partial step; without normalising it would be a full 1.15 step
+    fireEvent.wheel(svg, { deltaY: -3, deltaMode: 1, ctrlKey: true });
+    const scale = Number(/scale\(([\d.]+)\)/.exec(transform() ?? '')?.[1]);
+    expect(scale).toBeCloseTo(Math.pow(1.15, 0.48), 5);
+  });
+
+  it('wheel pan moves the plan opposite to the scroll direction', () => {
+    const { container, transform } = setup();
+    const svg = container.querySelector('svg') as SVGSVGElement;
+    fireEvent.wheel(svg, { deltaY: -100, ctrlKey: true }); // zoom, tx = ty = 0 or negative
+    fireEvent.wheel(svg, { deltaX: 5, deltaY: 5 });
+    const tx = Number(/translate\((-?[\d.]+) (-?[\d.]+)\)/.exec(transform() ?? '')?.[1]);
+    expect(tx).toBeLessThan(0);
+  });
+
+  describe('fullscreen', () => {
+    afterEach(() => {
+      document.body.style.overflow = '';
+    });
+
+    it('is CSS-only: never calls the Fullscreen API, locks body scroll, toggles by button', async () => {
+      const user = userEvent.setup();
+      const request = jest.fn(() => Promise.resolve());
+      HTMLElement.prototype.requestFullscreen = request;
+      const { container } = setup();
+      const root = container.firstElementChild as HTMLElement;
+
+      const enter = screen.getByRole('button', { name: 'Full screen' });
+      expect(enter).toHaveAttribute('aria-pressed', 'false');
+      await user.click(enter);
+      expect(request).not.toHaveBeenCalled();
+      Reflect.deleteProperty(HTMLElement.prototype, 'requestFullscreen');
+      expect(root).toHaveAttribute('data-fullscreen');
+      expect(document.body.style.overflow).toBe('hidden');
+
+      await user.click(screen.getByRole('button', { name: 'Exit full screen' }));
+      expect(root).not.toHaveAttribute('data-fullscreen');
+      expect(document.body.style.overflow).toBe('');
+    });
+
+    it('Esc leaves it', async () => {
+      const user = userEvent.setup();
+      const { container } = setup();
+      const root = container.firstElementChild as HTMLElement;
+
+      await user.click(screen.getByRole('button', { name: 'Full screen' }));
+      await user.keyboard('{Escape}');
+      expect(root).not.toHaveAttribute('data-fullscreen');
+      expect(screen.getByRole('button', { name: 'Full screen' })).toBeInTheDocument();
+    });
+
+    it('Esc already handled (defaultPrevented) or with a dialog open does not leave it', async () => {
+      const user = userEvent.setup();
+      const { container } = setup();
+      const root = container.firstElementChild as HTMLElement;
+      await user.click(screen.getByRole('button', { name: 'Full screen' }));
+
+      const handled = new KeyboardEvent('keydown', {
+        key: 'Escape',
+        bubbles: true,
+        cancelable: true,
+      });
+      document.body.addEventListener('keydown', (e) => e.preventDefault(), { once: true });
+      document.body.dispatchEvent(handled);
+      expect(root).toHaveAttribute('data-fullscreen');
+
+      const dialog = document.createElement('div');
+      dialog.setAttribute('aria-modal', 'true');
+      document.body.appendChild(dialog);
+      await user.keyboard('{Escape}');
+      expect(root).toHaveAttribute('data-fullscreen');
+      dialog.remove();
+
+      await user.keyboard('{Escape}');
+      expect(root).not.toHaveAttribute('data-fullscreen');
+    });
   });
 
   it('a drag pans the plan and does not activate the shape under it', () => {

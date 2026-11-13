@@ -67,6 +67,7 @@ function build(desk: DeskRow | null) {
   const cleanup = {
     cancelReservations: jest.fn().mockResolvedValue([]),
     rejectPendingRequests: jest.fn().mockResolvedValue(0),
+    clearPreferredDesk: jest.fn().mockResolvedValue(0),
     publish: jest.fn(),
   };
   const audit = { record: jest.fn(), recordMany: jest.fn() };
