@@ -121,7 +121,25 @@ async function togglePerson(user: ReturnType<typeof userEvent.setup>, name: stri
   await waitFor(() => expect(screen.queryByRole('listbox')).not.toBeInTheDocument());
 }
 
+/** The × in the corner. `Modal` renders it without an accessible name. */
+function closeButton(): HTMLElement {
+  const button = document.querySelector<HTMLElement>('.modal__close button');
+  if (button === null) {
+    throw new Error('close button not rendered');
+  }
+  return button;
+}
+
 describe('DeskBulkModal', () => {
+  it('closes with the close button', async () => {
+    serve({});
+    const { user, onClose } = renderModal();
+
+    await user.click(closeButton());
+
+    expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
   it('marks only today in the grid', () => {
     serve({});
     renderModal();

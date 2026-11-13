@@ -1,5 +1,7 @@
 # 0150 – `/settings` renders as a `Modal`, not a bespoke dialog shell
 
+> Partly superseded by 0334: the settings dialog now has a × and closes on a scrim click.
+
 ## What
 
 `apps/garage/web/src/shell/settings-screen/settings-screen.tsx` renders the whole settings screen —

@@ -32,7 +32,6 @@ import { SingleSelectField } from '../../ui/client-select/client-select';
 import { TextField } from '../../ui/text-field/text-field';
 import { isLocale, LOCALE_LABELS, LOCALES, useTranslations, type Locale } from '@sit-and-park/i18n';
 import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
-import { useEscapeToClose } from '../../ui/use-escape-to-close/use-escape-to-close';
 import { useNotify } from '../notifications/toast-provider';
 import { ScreenError, ScreenLoading } from '../screen-state/screen-state';
 import { NO_PREFERRED_SPOT, shouldClearPreferredSpot, toIcsFeedView } from './settings-view';
@@ -157,10 +156,10 @@ export interface SettingsScreenProps {
    */
   readonly ics: SettingsIcs;
   /**
-   * Called for every way out: Cancel, Escape, and a saved form. There is
-   * deliberately no × (the design draws none — `doc/decision/0150-*`) and the
-   * scrim does not close the dialog either (`canBeDismissed={false}` below)
-   * — this modal holds unsaved input, and a stray click must not discard it.
+   * Called for every way out: Cancel, Escape, the scrim, the × and a saved
+   * form (`doc/decision/0334-*`). While the regenerate confirmation is open the
+   * Modal is not dismissible (`canBeDismissed={!confirmOpen}`), so one Escape
+   * closes only the confirmation.
    */
   readonly onClose: () => void;
 }
@@ -335,12 +334,9 @@ export function SettingsScreen({
     }
   }
 
-  // Not while the confirm dialog is open: that one handles its own Escape.
-  useEscapeToClose(!confirmOpen, onClose);
-
   return (
     <>
-      <Modal isOpen onClose={onClose} canBeDismissed={false} maxWidth>
+      <Modal isOpen onClose={onClose} canBeDismissed={!confirmOpen} maxWidth>
         <Modal.Header subheader={ready ? t('description') : undefined}>{t('title')}</Modal.Header>
         <Modal.Content>
           {isPending ? <ScreenLoading /> : null}

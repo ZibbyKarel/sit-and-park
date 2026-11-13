@@ -56,7 +56,7 @@ somewhere far away — that is how `prisma.config.ts`, the database suites'
 migrations directory and the e2e build-identity guard each broke once.
 
 **The documentation map is `doc/README.md`**; it indexes every topic document
-and all 219 decision records. `README.md` is the operational runbook.
+and all 220 decision records. `README.md` is the operational runbook.
 
 Before reading a specific topic document or decision record, check its
 index first — `doc/README.md` for topic documents, `doc/decision/README.md`
