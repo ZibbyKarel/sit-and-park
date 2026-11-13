@@ -55,7 +55,8 @@ describe('shiftMonth', () => {
 });
 
 describe('buildReservationsCalendar', () => {
-  const park = (dates: string[]) => dates.map((date) => ({ date, reservationId: `res-${date}`, parkingSpotLabel: 'A1' }));
+  const park = (dates: string[]) =>
+    dates.map((date) => ({ date, reservationId: `res-${date}`, parkingSpotLabel: 'A1' }));
   const permanent: MyDeskReleasesOutput = {
     deskId: 'desk-9',
     code: 'P-09',
