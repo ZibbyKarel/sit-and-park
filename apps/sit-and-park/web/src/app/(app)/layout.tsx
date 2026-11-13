@@ -19,7 +19,7 @@ import styles from '../container.module.css';
  * That second half used to be a claim about a hook nothing on `/` mounted.
  * `(app)/layout.spec.tsx` now exercises it: flipping the session to
  * `unauthenticated` under this layout calls `signIn`, and a
- * `RefreshTokenError` calls `signOut`. See `doc/decision/0255-*`.
+ * `RefreshTokenError` calls `signOut`.
  */
 export default function AppLayout({ children }: { readonly children: ReactNode }) {
   return (

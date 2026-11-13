@@ -4,13 +4,10 @@ const { buildTransformIgnorePatterns } = require('../../../jest.preset.js');
 /**
  * Packages on this app's test path that are published ESM-only — `"type":
  * "module"`, or a lone `.mjs` build, with no `require` condition — while Jest
- * runs as CommonJS. Same list and same shape as `libs/shared/i18n`'s and
- * `libs/query`'s; the reasoning is in
- * `doc/decision/0020-orpc-is-esm-only-jest-must-transpile-it.md` and
- * `doc/decision/0025-next-intl-esm-jest-transform.md`.
+ * runs as CommonJS. Same list and same shape as `libs/shared/i18n`'s; the reason is that
+ * oRPC and next-intl ship ESM only, so Jest must transpile them.
  *
- * Decision 0020 asks that a third project needing this consolidate the block
- * into the root `jest.preset.js`. **That would not help here**, and neither
+ * A third project needing this should consolidate the block into the root `jest.preset.js`. **That would not help here**, and neither
  * would handing the list to `createJestConfig`. Both were measured on Next
  * 16.1.7 (`next/dist/build/jest/jest.js:197-210`):
  *
@@ -85,8 +82,7 @@ const config = {
   setupFilesAfterEnv: ['<rootDir>/src/test-setup.ts'],
   coverageDirectory: '../../../coverage/apps/sit-and-park/web',
   // jsdom plus the Web APIs it does not implement (`fetch`, `Request`,
-  // `Response`, the stream classes). See `jest-environment-web.cjs` and
-  // `doc/decision/0037-*`.
+  // `Response`, the stream classes). See `jest-environment-web.cjs`.
   testEnvironment: '<rootDir>/jest-environment-web.cjs',
 };
 

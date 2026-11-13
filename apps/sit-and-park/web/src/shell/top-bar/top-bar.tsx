@@ -4,8 +4,7 @@
  * The bar every signed-in screen sits under: the logo on the left, the
  * identity and its menu on the right.
  *
- * Drawn from `doc/design/screens/02-avatar-menu.png` and the markup behind it
- * (`doc/design/sit-and-park-design.dc.html`, the `isApp` branch). The menu's
+ * Drawn from the design's avatar menu. The menu's
  * keyboard behaviour, focus and Escape handling all come from `@shoptet/ui`'s
  * `Menu`.
  *

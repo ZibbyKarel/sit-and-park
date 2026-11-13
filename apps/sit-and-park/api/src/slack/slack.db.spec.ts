@@ -349,7 +349,7 @@ describe('Slack over a real database', () => {
           date: new Date(`${day}T00:00:00.000Z`),
         },
       });
-      // A guest time block (`doc/decision/0314-*`) has no `Reservation` row
+      // A guest time block has no `Reservation` row
       // at all, so the digest must not count this spot free either.
       await client.timedReservation.create({
         data: {

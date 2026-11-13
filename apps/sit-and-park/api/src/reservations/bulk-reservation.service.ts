@@ -22,8 +22,8 @@
  *
  * ## `confirmBulk` never lets a statement fail
  *
- * The rule is: **one day colliding must not discard the batch**. Task 13
- * established why that is hard — a failed statement aborts a PostgreSQL
+ * The rule is: **one day colliding must not discard the batch**. The
+ * reservation service established why that is hard — a failed statement aborts a PostgreSQL
  * transaction, and Prisma exposes no savepoints, which is why
  * `ReservationsService.cancel` retries the whole transaction rather than
  * catching a `P2002` inside it.
@@ -40,7 +40,7 @@
  * ## Deadlock: the ascending-date order is the lock ordering
  *
  * A bulk confirmation touches up to 31 `(spot, date)` cells, which is up to 31
- * uncommitted unique keys held at once — Task 13's deadlock risk, multiplied.
+ * uncommitted unique keys held at once — the cancel/promote deadlock risk, multiplied.
  * What removes the cycle is that **every** confirmation acquires those keys in
  * ascending date order, and that each date takes at most **one** reservation
  * key: a transaction waiting at date *d* holds no key at date *d*, so two of
@@ -54,8 +54,7 @@
  * the earliest offending day in a rejection, and does not reorder the list the
  * allocator sees — that stays `input.dates`, in request order. There was once a
  * second sort there whose returned list fed the allocator, which meant *either*
- * sort could be deleted with every test still green — measured, not assumed. See
- * `doc/decision/0092-*` §"One authority".
+ * sort could be deleted with every test still green — measured, not assumed.
  *
  * The remaining sort is pinned directly by `bulk-allocator.spec.ts` ("comes back
  * in ascending date order, whatever order it was asked in"). It *used* to be
@@ -66,22 +65,20 @@
  * retries a `40P01`, and the retry cannot tell a cell-ordering cycle from the
  * monthly cap's, so a missing sort surfaces only if the retries lose too — which
  * has not been re-measured. Treat `bulk-allocator.spec.ts` as the sort's only
- * reliable guard and see `doc/decision/0307-*` §"What is not tested".
+ * reliable guard.
  *
  * This path takes no `FOR UPDATE` of its own, but that no longer keeps it out of
- * the cancel/promote wait graph in `doc/decision/0065-*`, and the claim that it
- * did is retracted. Since the monthly cap, `confirmOnce` takes a month-scoped
+ * the cancel/promote wait graph. Because of the monthly cap, `confirmOnce` takes a month-scoped
  * `pg_advisory_xact_lock` on `(userId, month)` and then, in `releaseOwnQueues`,
  * `DELETE`s that user's `WaitlistEntry` rows — which can block on a queue row a
  * concurrent `cancel` + `promote` is holding `FOR UPDATE` while *that*
  * transaction blocks on our advisory lock. A real cycle, rare but not
  * impossible, and month scope is exactly what defeats the date-confinement
- * argument the deadlock table in `doc/bulk-reservation.md` used to rest on.
+ * argument the deadlock table in `doc/parking.md` rests on.
  *
  * The resolution is a retry, not an ordering: `committedConfirm` re-runs the
  * whole transaction on any {@link isWriteConflict}, and reports `CONFLICT` when
- * the attempts run out. See `doc/decision/0307-*` and the deadlock table in
- * `doc/bulk-reservation.md`.
+ * the attempts run out; `doc/parking.md` has the deadlock table.
  *
  * ## The one race this deliberately does not close
  *
@@ -100,11 +97,11 @@
  * that queue because they *lost* a race are not affected at all: they queue for
  * the spot whose insert was refused, which is occupied by definition. Same
  * shape of documented, benign gap as `WaitlistService.join`'s
- * `RESERVATION_LIMIT_REACHED` pre-check — see `doc/bulk-reservation.md`.
+ * `RESERVATION_LIMIT_REACHED` pre-check — see `doc/parking.md`.
  *
  * ## Nothing that can block on the network happens inside the transaction
  *
- * Same seam as Task 13: the callback returns its events, and they are published
+ * Same seam as `ReservationsService`: the callback returns its events, and they are published
  * after `await` has resolved. See `reservation-events.ts`.
  */
 
@@ -157,9 +154,9 @@ import { seesParkingOffice } from '../common/office-scope';
  * The reservation fields a created row has to give back.
  *
  * `userId`, `guestName` and `licensePlate` mirror the nullable columns
- * (`doc/decision/0303-*`) even though bulk booking only ever creates a
+ * even though bulk booking only ever creates a
  * user-held row today — the request field a guest reservation needs does not
- * exist until Task 5.
+ * exist here.
  */
 interface CreatedReservation {
   id: string;
@@ -212,7 +209,7 @@ interface ConfirmOutcome {
  *
  * Takes the contract's own {@link CellRef} rather than two positional strings,
  * for the reason `LockService.cellKey` does: `DateOnly` and a spot id are both
- * bare `string` (`doc/decision/0014-*`, `doc/decision/0016-*`), so a
+ * bare `string`, so a
  * transposition at a call site would type-check and produce a key that simply
  * never matches. Named fields make that mistake unrepresentable.
  *
@@ -300,7 +297,7 @@ export class BulkReservationService {
     );
 
     // Honoured per attempt against the world `confirmOnce` re-reads, so a choice
-    // taken since the preview simply falls back (`doc/decision/0333-*`).
+    // taken since the preview simply falls back.
     const spotChoiceByDate = new Map(
       (input.spotChoices ?? []).map((choice) => [choice.date, choice.parkingSpotId])
     );
@@ -326,7 +323,7 @@ export class BulkReservationService {
    *
    * The retry exists for exactly one condition: the deadlock the monthly cap's
    * `(userId, month)` advisory lock introduced between this path and
-   * `cancel` + `promote` (`doc/decision/0307-*`). Everything else this
+   * `cancel` + `promote`. Everything else this
    * transaction can hit is still handled the way the class comment describes —
    * `ON CONFLICT DO NOTHING` turns a lost cell into a missing row rather than an
    * error — so the test is {@link isWriteConflict} and nothing wider. In
@@ -336,14 +333,14 @@ export class BulkReservationService {
    * `isWriteConflict` rather than `code === 'P2034'` because the same `40P01`
    * arrives spelled two ways depending on which statement the server picks as
    * the victim — Prisma's own SQL reports `P2034`, a `$queryRaw` reports `P2010`
-   * wrapping `40P01`. `doc/decision/0240-*`.
+   * wrapping `40P01`.
    *
    * It is also retried on {@link isTimedReservationConflict}: a guest half-hour
    * block committed on the preferred spot between this transaction's
    * `readWorld` and its reservation insert surfaces as a `P2002` on the trigger
    * that enforces spot/day exclusivity, not as a deadlock — the read simply
    * missed a block that exists now. The retry re-reads the world, which sees
-   * the block and routes the allocator around it. `doc/decision/0314-*`.
+   * the block and routes the allocator around it.
    *
    * **Why it terminates.** Not for the reason `ReservationsService.cancel`'s
    * loop does: that one eliminates a candidate per attempt, and a re-run of
@@ -437,8 +434,7 @@ export class BulkReservationService {
     // it on the other side; this was the one writer that could create it. The
     // entry would not corrupt anything — `eligibleInOrder` skips somebody who
     // already holds the day — but the person's day screen would show them queued
-    // for a spot they can never be promoted into while they hold their own. See
-    // `doc/decision/0236-*`.
+    // for a spot they can never be promoted into while they hold their own.
     const releasedCells = await this.releaseOwnQueues(tx, [...createdByDate.keys()], holderId);
 
     // Every day that could still end up on a queue, re-read before it does.
@@ -544,9 +540,8 @@ export class BulkReservationService {
 
     const [spots, holder, reservations, waitlist, timedReservations] = await Promise.all([
       client.parkingSpot.findMany({
-        // Hidden spots are never assigned or queued by a batch, whoever asks
-        // (`doc/decision/0316-*`) — a preferred spot that is hidden simply
-        // misses, and the allocator falls back as for a taken one.
+        // Hidden spots are never assigned or queued by a batch, whoever asks:
+        // a preferred spot that is hidden simply misses, and the allocator falls back as for a taken one.
         where: { active: true, hidden: false },
         select: { id: true, label: true, group: true, officeId: true },
       }),
@@ -818,7 +813,7 @@ export class BulkReservationService {
    * - a day the allocator already decided to queue keeps the spot it chose (the
    *   shortest queue, tiebroken by label);
    * - a day it wanted to **assign** and lost queues for *that same spot* — the
-   *   brief's rule, "a collision does not fail the batch, that day falls onto
+   *   the rule, "a collision does not fail the batch, that day falls onto
    *   the waitlist". The spot it lost is the one spot on that day this
    *   transaction knows for certain is occupied: the insert was skipped, which
    *   only happens when a row is already there. Re-running the shortest-queue
@@ -1013,8 +1008,7 @@ export class BulkReservationService {
    *
    * A day in the past and a closed window are contract errors on the procedure;
    * a weekend, a holiday, a full day and a day the caller is already booked on
-   * are per-day facts reported inside a successful response
-   * (`doc/decision/0090-*`).
+   * are per-day facts reported inside a successful response.
    *
    * The scan runs in ascending order so the error names the **earliest**
    * offending day rather than whichever one the client happened to list first —
@@ -1022,7 +1016,7 @@ export class BulkReservationService {
    * not the first one listed". That sort is deliberately **local to the scan**:
    * the caller's list is left in request order, because the write order has
    * exactly one authority (`allocateBulk`) and a second sort here would make
-   * that one unfalsifiable. See `doc/decision/0092-*` §"One authority".
+   * that one unfalsifiable.
    */
   private assertRequestable(
     dates: readonly DateOnly[],

@@ -11,9 +11,8 @@
  * holder had regenerated through the UI — **re-validating a feed URL they had
  * deliberately revoked**, which is precisely the property `schema.prisma`
  * documents on the column. The same shape would revert a randomly generated
- * token too, which is why this is a separate fix from
- * `doc/decision/0275-*`.
- */
+ * token too, which is why this is a separate fix.
+ * */
 
 import { generateSeedIcsToken } from './ics-token';
 import type { SeedUser } from './seed-data';

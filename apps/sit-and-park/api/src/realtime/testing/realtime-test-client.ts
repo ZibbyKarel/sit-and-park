@@ -104,7 +104,7 @@ export class RealtimeTestClient {
       ...options.query,
     });
     // `SOCKET_IO_PATH` rather than a literal: this was the third undetected
-    // copy of the server's path (`doc/decision/0113-*`) — changing the real
+    // copy of the server's path — changing the real
     // adapter's path alone used to fail nothing here, because this literal
     // agreed with the *old* value by coincidence, not by import.
     const url = `${options.baseUrl.replace(/^http/, 'ws')}${SOCKET_IO_PATH}/?${query.toString()}`;

@@ -15,7 +15,7 @@
  * method it shares a body with (`ReservationsService.monthSummary`).
  *
  * `reservation.previewBulk` / `reservation.confirmBulk` are not here either, but
- * they are no longer absent: Task 30 put them on `BulkReservationController`,
+ * they are no longer absent: they live on `BulkReservationController`,
  * next to the service that owns them.
  */
 

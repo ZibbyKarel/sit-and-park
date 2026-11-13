@@ -2,7 +2,7 @@
   "extends": "./tsconfig.json",
   "compilerOptions": {
     "outDir": "../../../dist/out-tsc",
-    // Same reason as `libs/query/tsconfig.spec.json` (`doc/decision/0038-*`):
+    // Same reason as `libs/query/tsconfig.spec.json`:
     // deliberately **not** `commonjs`. `next-auth` and `@auth/core` are
     // ESM-only, and this program also pulls in `@sit-and-park/api-client` →
     // `@orpc/client`, which is ESM-only too. Inheriting `esnext` from

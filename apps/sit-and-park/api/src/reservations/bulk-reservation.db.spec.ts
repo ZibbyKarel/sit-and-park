@@ -350,7 +350,7 @@ describe('bulk booking against a real PostgreSQL', () => {
      * sort is deliberately *local to the scan*: the dates it hands downstream stay
      * in request order, because the write order has exactly one authority
      * (`allocateBulk`) and a second sort here would make that one unfalsifiable.
-     * See `doc/decision/0092-*` §"One authority". Remove the `.sort` from the scan
+     * Remove the `.sort` from the scan
      * and this case names `2098-01-20` instead.
      */
     it('names the earliest offending day, not the first one listed', async () => {
@@ -814,7 +814,7 @@ describe('bulk booking against a real PostgreSQL', () => {
       // afterwards, because a queue entry held by somebody who already has that
       // day can never be promoted. `confirmBulk` was the one writer that could
       // create it — `allocateBulk` refuses a day the caller already has a
-      // *reservation* on, and nothing did the reverse. See `doc/decision/0236-*`.
+      // *reservation* on, and nothing did the reverse.
       const [booker, holder, behind, contested] = [
         await seedUser(client),
         await seedUser(client),

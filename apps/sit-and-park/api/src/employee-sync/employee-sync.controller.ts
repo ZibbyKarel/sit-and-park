@@ -6,7 +6,7 @@
  * `@Public()` opts out of the Okta guard and the key check below replaces it.
  * `@StrictThrottle()` because it is reachable by anyone. The path and the
  * request/response shapes come from `@sit-and-park/contract`; the body limit for this
- * path alone is raised in `configure-app.ts`. See `doc/employee-sync.md`.
+ * path alone is raised in `configure-app.ts`. See `doc/integrations.md`.
  *
  * Neither the key nor the `Authorization` header is logged
  * (`logging/logger.options.ts` redacts the header).

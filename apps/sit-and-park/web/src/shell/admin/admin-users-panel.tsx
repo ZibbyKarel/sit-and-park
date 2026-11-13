@@ -4,8 +4,8 @@
  * `AdminUsersScreen`, connected to the API. Wiring only.
  *
  * The list is fetched unfiltered — no `role`, no `active`, no `search` — because
- * the table shows every account and filters in the browser
- * (`doc/decision/0162-*`). The contract's filters stay available for a caller
+ * the table shows every account and filters in the browser.
+ * The contract's filters stay available for a caller
  * that needs them.
  */
 

@@ -1,5 +1,5 @@
 /**
- * The Socket.io gateway: the server half of `doc/realtime.md`.
+ * The Socket.io gateway: the server half of `doc/integrations.md`.
  *
  * **What a connected socket may do** — rooms, the editing hold, and the
  * after-commit broadcast. *Who may connect* is the other responsibility, and it
@@ -7,18 +7,16 @@
  * changes when the realtime protocol does. The two meet at
  * {@link RealtimeSocketData}, which the handshake writes and this file reads.
  *
- * `libs/sit-and-park/realtime-client` (Task 21) shipped first and holds guarantees the
+ * `libs/sit-and-park/realtime-client` shipped first and holds guarantees the
  * server is responsible for honouring. Four of them are not obvious from the
  * contract and each is called out where it is implemented:
  *
  * 1. **The token is read from `socket.handshake.auth.token`, and nowhere else.**
- *    See `realtime-handshake.ts`, which holds that guarantee and
- *    `doc/decision/0060-*` with it.
+ *    See `realtime-handshake.ts`, which holds that guarantee.
  * 2. **A refusal must arrive as a CONNECT_ERROR, which means middleware.**
  *    See {@link RealtimeGateway.afterInit}.
  * 3. **`cell:lock` must be acknowledged.** See {@link RealtimeGateway.cellLock}.
- * 4. **A lapsed hold must be broadcast.** See {@link RealtimeGateway.onModuleInit}
- *    and `doc/decision/0111-*`.
+ * 4. **A lapsed hold must be broadcast.** See {@link RealtimeGateway.onModuleInit}.
  *
  * ## Every inbound payload is validated, and the validation cannot be forgotten
  *
@@ -88,7 +86,7 @@ import type { RealtimeServerSocket, RealtimeSocketData } from './realtime-handsh
 export const MAX_DAY_ROOMS_PER_SOCKET = 64;
 
 /**
- * Below this, `doc/decision/0110-*`'s renewal budget starts losing its
+ * Below this, the client's renewal budget starts losing its
  * margin: `CELL_LOCK_RENEW_FRACTION` (0.5) fires the renewal at half the TTL,
  * and two `CELL_LOCK_ACK_TIMEOUT_MS` (5 s) attempts need to resolve before the
  * hold lapses. At 20 s that is a renewal at 10 s and two attempts landing by
@@ -156,8 +154,7 @@ export class RealtimeGateway
    * registered on a path that also has to have run first is a listener that can
    * be missed.
    *
-   * The floor check lives here rather than in `env.ts` (Task 15's review,
-   * Finding 7): a schema `.min()` on `REALTIME_LOCK_TTL_MS` would reject the
+   * The floor check lives here rather than in `env.ts` (a schema `.min()` on `REALTIME_LOCK_TTL_MS` would reject the
    * short TTLs every realtime spec in this workspace deliberately runs at,
    * forcing exactly the environment-conditional exemption
    * `realtime-no-backdoor.spec.ts` polices against. A log line has no such
@@ -168,12 +165,12 @@ export class RealtimeGateway
     if (this.locks.ttlMs < REALTIME_LOCK_TTL_WARN_FLOOR_MS) {
       this.logger.warn(
         { REALTIME_LOCK_TTL_MS: this.locks.ttlMs, floorMs: REALTIME_LOCK_TTL_WARN_FLOOR_MS },
-        'REALTIME_LOCK_TTL_MS is below the documented floor (doc/decision/0110-*): the client renewal budget may no longer fit inside the hold before it lapses'
+        'REALTIME_LOCK_TTL_MS is below the documented floor: the client renewal budget may no longer fit inside the hold before it lapses'
       );
     }
 
     this.locks.onExpired((cell) => {
-      // The whole point of `doc/decision/0111-*`: `useCellLock` puts a
+      // The whole point of broadcasting the expiry: `useCellLock` puts a
       // contended cell into `held-by-other` and then sits still, so a hold that
       // lapses with nothing said leaves every other tile reading "právě
       // upravuje …" for somebody who closed their laptop.
@@ -308,7 +305,7 @@ export class RealtimeGateway
    *
    * A non-admin locking a **hidden** spot is refused the same way an invalid
    * payload is: dropped, with no acknowledgement and no `cell:locked`
-   * broadcast (`doc/decision/0316-*`). Not `HELD_BY_OTHER` — that would name
+   * broadcast. Not `HELD_BY_OTHER` — that would name
    * an admin holder to a caller who is not supposed to know the spot exists
    * at all — and there is no `NOT_FOUND` variant in `cellLockAckSchema` to
    * answer with instead, so silence is the plainest refusal on hand that
@@ -351,7 +348,7 @@ export class RealtimeGateway
    * with, and passing `client.id` here is not bookkeeping: a release keyed by
    * user alone lets one of a user's connections drop the hold another of them
    * is renewing — a second tab, or a page that reloaded before this server
-   * noticed the old socket. `doc/decision/0220-*`.
+   * noticed the old socket.
    */
   @SubscribeMessage('cell:unlock')
   cellUnlock(@ConnectedSocket() client: RealtimeServerSocket, @MessageBody() raw: unknown): void {
@@ -458,8 +455,7 @@ export class RealtimeGateway
   }
 
   /**
-   * A hidden spot's traffic, to the admins in the room only
-   * (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`) —
+   * A hidden spot's traffic, to the admins in the room only:
    * a normal user must not learn from a broadcast who holds, queues for or is
    * editing a spot the lot does not show them.
    *

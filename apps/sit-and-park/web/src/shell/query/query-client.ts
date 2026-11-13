@@ -1,8 +1,7 @@
 /**
  * The one `QueryClient` configuration the app runs on.
  *
- * `@tanstack/react-query` is no longer a wrapped library (`doc/decision/0308-*`
- * — it used to be, via `libs/query`), so this file is not the only place that
+ * `@tanstack/react-query` is no longer a wrapped library, so this file is not the only place that
  * *could* import it, but it stays the one place that sets these defaults —
  * caching and retry behaviour is a product decision, not something each
  * feature re-derives at its own call site.

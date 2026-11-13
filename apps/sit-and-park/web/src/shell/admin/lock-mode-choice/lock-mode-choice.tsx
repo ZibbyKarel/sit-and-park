@@ -1,8 +1,8 @@
 'use client';
 
 /**
- * The "Režim zámku" segmented control
- * (`doc/design/screens/05-admin-window.png`): three pills, exactly one chosen.
+ * The "Režim zámku" segmented control:
+ * three pills, exactly one chosen.
  *
  * ## Why `role="radio"` and not three toggle buttons
  *
@@ -18,8 +18,7 @@
  * it is paid here rather than skipped: **roving tabindex** (the group is one
  * stop in the page's tab order, on the selected pill) plus **arrow keys that
  * move and select**, wrapping at both ends. That is the same pattern, and the
- * same reasoning, as a tab strip
- * (`doc/decision/0054-keyboard-navigation-for-dropdown-and-tabs.md`).
+ * same reasoning, as a tab strip.
  */
 
 import { useId, useRef, type KeyboardEvent } from 'react';

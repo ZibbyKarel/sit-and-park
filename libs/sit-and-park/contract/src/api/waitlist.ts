@@ -2,7 +2,7 @@
  * Waitlist: queueing for a spot somebody else already holds, and leaving that
  * queue. Promotion out of a queue is never a client call — it happens on the
  * backend when the holder cancels, and is announced over
- * `@sit-and-park/contract/realtime` (Task 5).
+ * `@sit-and-park/contract/realtime`.
  */
 
 import * as z from 'zod';
@@ -80,14 +80,8 @@ export type LeaveWaitlistOutput = z.infer<typeof leaveWaitlistOutputSchema>;
  * Leave the queue.
  *
  * **No window errors.** Like cancelling a reservation, leaving a queue is never
- * blocked by a closed or not-yet-open month — see
- * `doc/decision/0233-leaving-a-waitlist-is-exempt-from-the-reservation-window`,
- * which amends `doc/decision/0004-*`. Before `doc/decision/0315-*`, every
- * `AUTO` month was `LOCKED` from its own 1st — the entire period a queue for
- * it could be promoted in — so the window rule made leaving impossible for a
- * queue's whole live life. `0315` lifted that for `AUTO`, but an admin's
- * `FORCE_LOCKED` can still close the month at any time, so the exemption
- * still matters. Leaving moves
+ * blocked by a closed or not-yet-open month (`doc/parking.md`). An admin's `FORCE_LOCKED` can close the month at any
+ * time, so the exemption matters. Leaving moves
  * everyone behind you *up*, which is nearer to cancellation (always allowed)
  * than to creation.
  */

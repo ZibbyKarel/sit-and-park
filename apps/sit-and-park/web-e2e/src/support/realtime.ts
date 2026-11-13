@@ -29,17 +29,16 @@
  *
  * The actual cause was the spec colliding with itself — two tests, one bay, one
  * persona, `fullyParallel: true`, and a `LockService.release` then keyed by
- * user (`cell-lock.spec.ts`'s `SPOTS` map, `doc/decision/0187-*`; that release
- * is keyed by connection since `doc/decision/0220-*`). This module is
+ * user (`cell-lock.spec.ts`'s `SPOTS` map; that release
+ * is now keyed by connection). This module is
  * kept because the race it closes is real regardless, and because a socket that
  * never connects now fails with a sentence instead of a tile that stayed grey.
  *
  * There was a third wrong reading, and it came from *this file's own log*: the
- * "one page in three opens a second socket" defect `doc/decision/0187-*`
- * recorded as unexplained. `page.on('websocket')` spans a whole `Page`, and six
+ * "one page in three opens a second socket" defect an earlier
+ * measurement recorded as unexplained. `page.on('websocket')` spans a whole `Page`, and six
  * of this suite's pages navigate or reload a second time — a second document,
- * which opens a second socket because it should. `doc/decision/0221-*` has the
- * re-measurement. Two things here exist so that reading cannot be made again:
+ * which opens a second socket because it should. Two things here exist so that reading cannot be made again:
  * a `LOAD` line per document in the trace, and
  * {@link installRealtimeSocketCounter}, which counts per document rather than
  * per page.
@@ -145,8 +144,8 @@ export async function recordDayRoomSubscriptions(page: Page, persona = '?'): Pro
   // Every document this page loads, so a socket in the trace can be attributed
   // to the document that opened it. Without this line the log answers "how many
   // sockets did this page open" and gets read as "how many did it hold at
-  // once" — which is the misreading `doc/decision/0187-*` recorded as an
-  // unexplained defect and `doc/decision/0221-*` retires. A page that navigates
+  // once" — which is the misreading that was once recorded as an
+  // unexplained defect. A page that navigates
   // twice opens two sockets and is behaving perfectly.
   //
   // `LOAD` fires when the document's load event completes, which can be *after*
@@ -291,9 +290,8 @@ const COUNTER_KEY = '__sitAndParkRealtimeConnections';
  * This is the instrument the page-level socket trace cannot be: `page.on
  * ('websocket')` spans a whole `Page`, so a page that reloads or navigates
  * twice reports two sockets and reads exactly like one page holding two at
- * once. That reading is what `doc/decision/0187-*` recorded as an unexplained
- * "one page in three opens a second socket" defect, and it was wrong — see
- * `doc/decision/0221-*`.
+ * once. That reading was once recorded as an unexplained
+ * "one page in three opens a second socket" defect, and it was wrong.
  *
  * An init script is the fix, because Playwright runs one **per document**: each
  * navigation gets a fresh realm and therefore a fresh, empty tally, so what

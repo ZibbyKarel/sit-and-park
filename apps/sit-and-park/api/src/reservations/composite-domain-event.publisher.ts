@@ -1,9 +1,8 @@
 /**
  * The after-commit seam with **two** implementations behind it.
  *
- * Task 15 (Socket.io) and Task 16 (Slack) both need the one
- * `DomainEventPublisher` token, and both said so in a comment predicting this
- * file. Nest resolves one
+ * The Socket.io and Slack publishers both need the one
+ * `DomainEventPublisher` token. Nest resolves one
  * provider per token, so the resolution is not a choice between them: it is a
  * composite that forwards every fact to each implementation in turn. Neither
  * branch could write it, because neither could name the other's class — which
@@ -23,7 +22,7 @@
  *   them in prose. That follows from taking a list through a *separate* token;
  *   it has nothing to do with that token being a `Symbol` (see the token's own
  *   comment for why it is one).
- * - The instances are the ones their own modules built. Task 16 needed
+ * - The instances are the ones their own modules built. Slack needs
  *   `useExisting` for exactly that reason (a second `SlackDomainEventPublisher`
  *   would resolve but could not reach the collaborators `SlackModule` does not
  *   export, and would keep its own in-flight set); injecting the concrete

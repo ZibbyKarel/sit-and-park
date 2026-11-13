@@ -27,7 +27,7 @@ const under = (root) => LINTED_EXTENSIONS.map((ext) => `${root}/**/*.${ext}`);
 /**
  * Third-party libraries that application and library code must never import
  * directly. Each one is owned by exactly one wrapper lib, which is the single
- * place in the workspace allowed to import it (see `plan.md`, wrapper table).
+ * place in the workspace allowed to import it (see `doc/frontend.md`, wrapper table).
  *
  * key   = npm package that is banned
  * owner = directory of the wrapper lib that owns it (exempted from the ban)
@@ -153,8 +153,8 @@ export function restrictWrappedLibrariesDynamically(allowedPackages = []) {
  * ## Why a list is mandatory on every tag
  *
  * A tag with **no** `allowedExternalImports` constrains nothing at all — that is
- * how `libs/sit-and-park/shared-types` was free to import Zod despite decision 0003
- * (Task 3 review, S3). An empty array (`[]`) is not the same thing: it bans
+ * how `libs/sit-and-park/shared-types` was free to import Zod despite decision 0003.
+ * An empty array (`[]`) is not the same thing: it bans
  * every npm package. Omission is inert; `[]` is a rule.
  *
  * Lists are deliberately short. When a task needs a package that is not here,
@@ -204,8 +204,7 @@ const NPM_ALLOWLIST = {
     // (`api-query.ts`). Same reasoning as `@hookform/resolvers`: it is not
     // itself a wrapped library (nothing could import it *instead* of
     // something else — it only makes sense paired with `@orpc/client` and
-    // `@tanstack/react-query`, and the latter is not wrapped at all since
-    // `doc/decision/0308-*`), so it is not in `WRAPPED_LIBRARIES`, just
+    // `@tanstack/react-query`, and the latter is not wrapped at all), so it is not in `WRAPPED_LIBRARIES`, just
     // allow-listed here alongside them.
     '@orpc/tanstack-query',
     '@orpc/tanstack-query/*',
@@ -216,7 +215,7 @@ const NPM_ALLOWLIST = {
     // still to come — undoing the narrowness `NPM_ALLOWLIST.contract` is
     // documented to have. Instead `libs/sit-and-park/contract` applies the type itself and
     // exports the result as `ContractClient` (see `libs/sit-and-park/contract/src/api/router.ts`),
-    // which is what a contract lib is for. See `doc/decision/0040-*`.
+    // which is what a contract lib is for.
     // `libs/shared/form` types `useAppForm` against a Zod schema (`z.input`/`z.output`)
     // and its resolver validates with Zod at runtime — it is the one wrapper
     // whose whole job is bridging Zod to react-hook-form, so it needs Zod
@@ -239,13 +238,12 @@ const NPM_ALLOWLIST = {
 
   /**
    * `libs/sit-and-park/contract`. `@orpc/contract` only — never `@orpc/client` or
-   * `@orpc/server`, so the contract can not reach a transport
-   * (`doc/decision/0007-*`).
+   * `@orpc/server`, so the contract can not reach a transport.
    */
   contract: ['tslib', 'zod', 'zod/*', '@orpc/contract', '@orpc/contract/*'],
 
   /**
-   * Data access (`libs/sit-and-park/database`, Task 9). Prisma and nothing else — no HTTP
+   * Data access (`libs/sit-and-park/database`). Prisma and nothing else — no HTTP
    * client, no frontend package.
    */
   data: ['tslib', 'prisma', 'prisma/*', '@prisma/client', '@prisma/*', '.prisma/*'],
@@ -315,7 +313,7 @@ const DEP_CONSTRAINTS = [
   // `type:util` may depend on `type:contract` (that is what
   // `libs/shared/api-client` is for), and `type:contract` depends on
   // `layer:foundation` — not on `type:util` — so the two directions
-  // no longer form a cycle at the tag level (Task 3 review, N3).
+  // no longer form a cycle at the tag level.
   //
   // Applications compose everything; nothing may depend on them.
   {
@@ -352,7 +350,7 @@ const DEP_CONSTRAINTS = [
   // workspace lib and on no npm package. Both empty arrays are
   // load-bearing — `onlyDependOnLibsWithTags: []` rejects every
   // tagged target, `allowedExternalImports: []` rejects every
-  // package. See doc/decision/0003-* and doc/decision/0017-*.
+  // package.
   {
     sourceTag: 'layer:foundation',
     onlyDependOnLibsWithTags: [],
@@ -362,7 +360,6 @@ const DEP_CONSTRAINTS = [
   // --- scope dimension ------------------------------------------
   // Keeps frontend-only libs (e.g. libs/shared/i18n, next-intl) out of
   // apps/sit-and-park/api, and backend-only libs out of apps/sit-and-park/web.
-  // See doc/decision/0003-date-helpers-in-shared-types.md.
   {
     sourceTag: 'scope:web',
     onlyDependOnLibsWithTags: ['scope:web', 'scope:shared'],
@@ -492,8 +489,7 @@ export default [
       // The same ban for `require()` and `import()`, which
       // `no-restricted-imports` cannot see. See
       // `restrictWrappedLibrariesDynamically` for the probe that found the
-      // hole and `doc/decision/0290-*` for why it is worth closing when no
-      // violation exists.
+      // hole; it is worth closing even when no violation exists.
       'no-restricted-syntax': ['error', ...restrictWrappedLibrariesDynamically()],
     },
   },
@@ -536,7 +532,6 @@ export default [
   // apps/sit-and-park/api, libs/sit-and-park/contract and libs/shared/i18n alike. The Nx `type:util` constraint
   // cannot express this, because the same tag covers the wrapper libs, which
   // exist precisely to depend on third-party packages.
-  // See doc/decision/0003-date-helpers-in-shared-types.md.
   {
     basePath: workspaceRoot,
     files: under('libs/sit-and-park/shared-types'),

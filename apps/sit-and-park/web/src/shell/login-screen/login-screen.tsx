@@ -2,15 +2,14 @@
 
 /**
  * The signed-out canvas: the logo, two lines of explanation, one button, one
- * footnote. Drawn from `doc/design/screens/canvas-default.png` and the markup
- * behind it (`doc/design/sit-and-park-design.dc.html`, the `isLogin` branch).
+ * footnote. Drawn from the design's sign-in canvas.
  *
  * The button is a `<form action={…}>` submit rather than an `onClick`, and that
  * is the point of splitting this file from its page: the action is a **Server
  * Action** that calls `libs/sit-and-park/auth`'s server-side `signIn`, so the redirect to
  * Okta is issued by the server and the page works with JavaScript disabled.
  * Nothing about the credential exchange happens in the browser — see
- * `doc/auth.md` §"The flow, end to end".
+ * `doc/auth.md`.
  */
 
 import { Button, Stack } from '@shoptet/ui';

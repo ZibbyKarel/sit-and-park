@@ -58,12 +58,12 @@ export type ParkingSpot = Prisma.ParkingSpotModel
  * 
  * The two unique constraints are the concurrency guarantee of the whole
  * reservation flow: `(parkingSpotId, date)` is what makes double-booking
- * impossible under concurrent requests, and Task 10 maps its `P2002` violation
+ * impossible under concurrent requests, and The API maps its `P2002` violation
  * onto the contract error `SPOT_ALREADY_RESERVED`.
  * 
  * `userId` is nullable so that an admin can book for a guest, who has no `User`
  * row. `Reservation_holder_check` is what keeps that from admitting a row with
- * no holder at all — see `doc/decision/0305-a-reservation-holder-is-a-user-or-a-guest-never-neither`. Because `NULL`s do not collide
+ * no holder at all —. Because `NULL`s do not collide
  * in a Postgres unique index, `(userId, date)` still means "one reservation per
  * user per day" and deliberately does not limit guests.
  */
@@ -77,14 +77,13 @@ export type Reservation = Prisma.ReservationModel
  * day, whereas `Reservation` is one-per-spot-per-day. Storage is minutes
  * since local midnight (`[startMinute, endMinute)`, half-open, multiples of
  * 30, `endMinute` up to `1440`), not the contract's `HH:MM` strings — see
- * `doc/database.md` (§"Where storage differs from the contract").
+ * `doc/backend.md`.
  * 
  * One (spot, day) is either one full-day `Reservation` or any number of
  * non-overlapping `TimedReservation` blocks, never both. Prisma's schema
  * language cannot express that exclusivity rule or the half-open-range
  * `CHECK`, so both live in the migration as hand-written SQL: a `CHECK` on
- * this table and a pair of triggers spanning both tables. See
- * `doc/decision/0314-*`.
+ * this table and a pair of triggers spanning both tables. See `doc/backend.md`.
  */
 export type TimedReservation = Prisma.TimedReservationModel
 /**
@@ -108,12 +107,12 @@ export type AuditLog = Prisma.AuditLogModel
  * contract's `reservationWindowSettingsSchema` has no `id` field at all. The
  * single-row property is enforced by `CHECK ("id" = 1)`, added by hand to the
  * init migration — Prisma's schema language cannot express a CHECK constraint.
- * See `doc/database.md` and `doc/decision/0026-*`.
+ * See `doc/backend.md`.
  */
 export type ReservationWindowSettings = Prisma.ReservationWindowSettingsModel
 /**
  * Model ReservationLimitSettings
- * Singleton settings row holding the reservation limits (TODO item 2).
+ * Singleton settings row holding the reservation limits.
  * 
  * Separate from `ReservationWindowSettings` rather than a column on it: that
  * model drives the *window* — whether a month is open to anybody — and a
@@ -122,13 +121,13 @@ export type ReservationWindowSettings = Prisma.ReservationWindowSettingsModel
  * of defect this repo treats as real. Renaming that model instead would have
  * dragged `AuditLog.entityType` and `action` string values with it, leaving
  * the append-only audit table permanently disagreeing with itself.
- * See `doc/decision/0312-*`.
+ * 
  * 
  * Same singleton arrangement as its neighbour: `id` is a fixed `Int`, never
  * leaves the database (the contract's `reservationLimitSettingsSchema` has no
  * `id` field), and the single-row property is a `CHECK ("id" = 1)` added by
  * hand in the migration, because Prisma's schema language cannot express a
- * CHECK. See `doc/database.md` and `doc/decision/0026-*`.
+ * CHECK. See `doc/backend.md`.
  */
 export type ReservationLimitSettings = Prisma.ReservationLimitSettingsModel
 /**

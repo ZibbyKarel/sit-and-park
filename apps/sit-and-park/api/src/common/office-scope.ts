@@ -1,5 +1,5 @@
 /**
- * Offices for parking (desk merge, stage 6): a user sees and books the
+ * Offices for parking: a user sees and books the
  * parking spots of their own office.
  *
  * A user with `officeId = null` sees **every** office's spots. Parking

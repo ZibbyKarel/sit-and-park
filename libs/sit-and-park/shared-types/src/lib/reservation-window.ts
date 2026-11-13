@@ -1,10 +1,8 @@
 /**
  * The reservation window — pure, parameterised, side-effect free.
  *
- * The algorithm started as the `monthOpen` function of the approved visual
- * design (`doc/design/sit-and-park-design.dc.html`, transcribed by
- * `doc/decision/0004-mvp-scope-includes-design-features.md`) and was amended
- * by `doc/decision/0315-the-monthly-cap-applies-only-inside-the-auto-window.md`:
+ * The algorithm is the `monthOpen` function of the original visual design,
+ * extended so the monthly cap applies only inside the auto window:
  *
  * ```
  * FORCE_OPEN   -> OPEN
@@ -80,7 +78,7 @@ export function isMonthOpen(
  *
  * The two "window" error codes of the contract map straight onto this:
  * `NOT_YET_OPEN` → `OUT_OF_HORIZON`, `LOCKED` → `RESERVATIONS_LOCKED`. Both are
- * raised by the service layer (Task 13), never by a schema.
+ * raised by the service layer, never by a schema.
  */
 export function monthLockState(
   targetDate: DateOnly,
@@ -105,8 +103,7 @@ export function monthLockState(
  * window (`reservationWindowRange`, both ends inclusive).
  *
  * The cap exists to stop one person claiming a spot for the whole month in
- * advance; once the month is running, leftovers are free for anybody
- * (`doc/decision/0315-the-monthly-cap-applies-only-inside-the-auto-window.md`).
+ * advance; once the month is running, leftovers are free for anybody.
  * `FORCE_OPEN` never caps, and under `FORCE_LOCKED` only admins can book at
  * all, uncapped.
  */

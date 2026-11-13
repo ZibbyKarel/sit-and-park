@@ -8,7 +8,7 @@
  * mid-write. This class is the shared answer to all three, so that every job in
  * this application gets them without each job author remembering.
  *
- * It is deliberately small and deliberately *not* a queue. `plan.md` fixes a
+ * It is deliberately small and deliberately *not* a queue. The target is a
  * single-instance deployment for the MVP — no Redis, no BullMQ, no broker — so
  * the guarantee this class can offer is the one an in-process mutex can offer.
  *
@@ -32,7 +32,7 @@
  *    it returns `'skipped-elsewhere'` and logs. The database is already the
  *    only shared thing in the deployment, so this adds no infrastructure. It
  *    replaces the body of {@link claim}/{@link release} below and nothing else.
- *    This is the same shape `LockService` (Task 15) documents for cell locks.
+ *    This is the same shape `LockService` documents for cell locks.
  * 2. **A repeatable-job queue** (BullMQ on Redis) if jobs ever need retries
  *    across a restart, a durable history, or fan-out to workers. At that point
  *    the `@Cron` registration moves to a queue producer, this class becomes the

@@ -16,8 +16,7 @@
  * Handlers still raise their **declared** failures through oRPC's typed
  * `errors.NOT_FOUND(...)`, which is what the contract's error map is for. This
  * is the net under that, not a replacement for it: a code the procedure did not
- * declare arrives with `defined: false`, which the client reads by code anyway
- * (`doc/decision/0039-*`).
+ * declare arrives with `defined: false`, which the client reads by code anyway.
  */
 
 import { ORPCError } from '@orpc/server';

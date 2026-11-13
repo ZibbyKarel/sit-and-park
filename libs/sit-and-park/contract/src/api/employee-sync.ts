@@ -46,7 +46,7 @@ export const adminSetEmployeeSyncLiveModeContract = authed
  * `POST /api/employee-sync` — the second endpoint outside oRPC, after the ICS
  * feed (`./ics.ts`). The caller is a Keboola flow, not a browser, so it cannot
  * speak the RPC envelope; contract-first still binds the path and the shapes.
- * See `doc/employee-sync.md`.
+ * See `doc/integrations.md`.
  * ---------------------------------------------------------------------------
  */
 

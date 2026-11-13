@@ -2,8 +2,8 @@
  * `RealtimeGateway.onModuleInit` warns when `REALTIME_LOCK_TTL_MS` is
  * configured below the documented floor.
  *
- * Task 15's review, Finding 7: the TTL has a documented floor
- * (`doc/decision/0110-*`) below which the client's renewal budget stops
+ * The TTL has a documented floor
+ * below which the client's renewal budget stops
  * having margin, but nothing enforced or even flagged it. A schema `.min()`
  * was rejected in fix round 1 — it would break the short TTLs every other
  * realtime spec in this workspace deliberately runs at — so the fix is a log
@@ -29,7 +29,7 @@ import { startRealtimeTestApp } from './testing/realtime-test-app';
 import { REALTIME_LOCK_TTL_WARN_FLOOR_MS } from './realtime.gateway';
 
 const FLOOR_WARNING_MESSAGE =
-  'REALTIME_LOCK_TTL_MS is below the documented floor (doc/decision/0110-*): the client renewal budget may no longer fit inside the hold before it lapses';
+  'REALTIME_LOCK_TTL_MS is below the documented floor: the client renewal budget may no longer fit inside the hold before it lapses';
 
 describe('the REALTIME_LOCK_TTL_MS floor warning, below the floor', () => {
   let harness: RealtimeTestApp;

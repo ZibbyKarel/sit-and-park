@@ -7,8 +7,7 @@ import type { NextConfig } from 'next';
 // would break those commands whenever a full runtime `.env` isn't present.
 // Fail-fast validation instead lives in `src/instrumentation.ts`'s
 // `register()`, which Next.js calls only when an actual server instance
-// boots (`next dev` / `next start`) — see `doc/decision/0008-*` and
-// `doc/environment.md`.
+// boots (`next dev` / `next start`) — see `doc/workspace.md`.
 
 /**
  * The Content-Security-Policy, and what it deliberately leaves out.
@@ -22,8 +21,7 @@ import type { NextConfig } from 'next';
  * is unaffected).
  *
  * There is **no `default-src`, `script-src`, `style-src` or `connect-src`**,
- * and that is a decision rather than an oversight — see
- * `doc/decision/0259-*`:
+ * and that is a decision rather than an oversight:
  *
  * - Next.js injects its own inline bootstrap and RSC-payload `<script>` tags
  *   into every document. A `script-src` without a per-request nonce would have
@@ -32,7 +30,7 @@ import type { NextConfig } from 'next';
  * - A real nonce has to be minted per request in middleware — and this app's
  *   middleware is `src/proxy.ts`, which is where authentication is decided.
  *   Threading a nonce through it is a change to the auth path, not a header
- *   tweak, and is not something to do in a fix round.
+ *   tweak, and is not something to do casually.
  * - `connect-src` would have to name the API origin, and `headers()` is
  *   resolved into the routes manifest at **build** time while
  *   `NEXT_PUBLIC_API_URL` is supplied at run time. A policy baked from the

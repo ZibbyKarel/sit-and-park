@@ -1,5 +1,5 @@
 /**
- * Who may open a Socket.io connection: the handshake half of `doc/realtime.md`.
+ * Who may open a Socket.io connection: the handshake half of `doc/integrations.md`.
  *
  * This is the file that answers "why was my socket refused?". It owns the
  * credential schema, the rejection taxonomy, the single place a refusal is
@@ -11,17 +11,17 @@
  * one thing: {@link RealtimeSocketData}, which this file writes and the
  * gateway reads.
  *
- * One guarantee `libs/sit-and-park/realtime-client` (Task 21) holds and this file is
+ * One guarantee `libs/sit-and-park/realtime-client` holds and this file is
  * responsible for honouring:
  *
  * **The token is read from `socket.handshake.auth.token`, and nowhere else.**
  * Not the query string (it lands verbatim in every proxy access log), not a
  * header (the browser `WebSocket` API cannot set one, so Socket.io would apply
  * it to the polling transport only and a socket that upgraded would silently
- * stop presenting its credential). `doc/decision/0060-*`.
+ * stop presenting its credential).
  *
  * The companion guarantee — **a refusal must arrive as a CONNECT_ERROR, which
- * means middleware** (`doc/decision/0112-*`) — is a property of *where this is
+ * means middleware** — is a property of *where this is
  * installed*, so it stays with the installation: see
  * `RealtimeGateway.afterInit`, which registers {@link
  * RealtimeHandshakeAuthenticator.authenticate} as `server.use(...)` and turns
@@ -68,7 +68,7 @@ export interface RealtimeSocketData {
   readonly user: UserSummary;
   /**
    * The connecting user's role, at handshake time. Read by the gateway to send
-   * a hidden spot's traffic to admins only (`doc/decision/0316-*`). Never
+   * a hidden spot's traffic to admins only. Never
    * broadcast — `user` is the only part of this that reaches another browser.
    */
   readonly role: UserRole;
@@ -121,9 +121,8 @@ type HandshakeRejectionReason =
  * socket of everybody who may.
  *
  * Installed by `RealtimeGateway.afterInit` as namespace middleware, which is
- * what makes a refusal a CONNECT_ERROR rather than a disconnect
- * (`doc/decision/0112-*`), and what makes a refused handshake a terminal status
- * the client recovers from with a new socket (`doc/decision/0061-*`).
+ * what makes a refusal a CONNECT_ERROR rather than a disconnect, and what makes a refused handshake a terminal status
+ * the client recovers from with a new socket.
  */
 @Injectable()
 export class RealtimeHandshakeAuthenticator {
@@ -144,7 +143,7 @@ export class RealtimeHandshakeAuthenticator {
    *
    * `JwksVerifierService.verifyToken` is the *same* verifier, with the same
    * single `JwksClient` and the same `JwtVerificationRules`, that the HTTP
-   * guard reaches through `passport-jwt` — `doc/decision/0042-*`. A second
+   * guard reaches through `passport-jwt`. A second
    * `jwks-rsa` client here would mean two key caches, two rate limiters and two
    * rotation moments.
    */
@@ -218,8 +217,7 @@ export class RealtimeHandshakeAuthenticator {
    * `AuthenticatedUser` is a token claim short of the row — it has no
    * `licensePlate`, which `userSummarySchema` requires — so the plate is read
    * once here. A row that vanished between the auth resolve and this read
-   * cannot happen (users are deactivated, never deleted:
-   * `doc/decision/0027-*`), but the fallback is the authenticated name rather
+   * cannot happen (users are deactivated, never deleted), but the fallback is the authenticated name rather
    * than a throw, because failing a handshake over a missing plate would be a
    * refusal the client retries three times and then surfaces to the user.
    */

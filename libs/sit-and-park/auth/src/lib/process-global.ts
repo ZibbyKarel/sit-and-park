@@ -6,10 +6,10 @@
  * `/api/auth/*` route handlers and the server components into *separate
  * bundles*, each with its own module registry, so a module-level `Map` gives
  * each of them a private one. Measured on this application: a single
- * `next start` process built **three** `createAuthConfig` instances
- * (`doc/decision/0231-*`). `globalThis` crosses that boundary because all three
+ * `next start` process built **three** `createAuthConfig` instances.
+ * `globalThis` crosses that boundary because all three
  * bundles run in the same V8 realm, which is true here precisely because the
- * proxy runs on the Node.js runtime (`doc/decision/0100-*`).
+ * proxy runs on the Node.js runtime.
  *
  * `Symbol.for` rather than `Symbol`: the global symbol registry is shared by
  * everything in the realm, so two copies of a module resolve the same key. A

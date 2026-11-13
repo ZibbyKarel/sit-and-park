@@ -2,36 +2,14 @@
  * That the API process is up, and that the two routes outside the ordinary
  * pattern behave.
  *
- * ## A correction, and how it was found
+ * ## `GET /api` answers 404
  *
- * This file used to assert that `GET /api` answers `404`, on the stated
- * grounds that "that route was removed when the oRPC transport landed
- * (Task 12)". **It was not removed.** Task 28 ran this suite — the first time
- * anything had, because the `e2e` target is not part of
- * `nx run-many -t lint,typecheck,test,build` — and it came back red: the API's
- * own startup log still reads `Mapped {/api, GET}`, and the scaffold's
- * `AppController` → `{ message: 'Hello API' }` is still registered in
- * `app.module.ts`. What changed in Task 12 was not the route but the *guard*:
- * `JwtAuthGuard` became an `APP_GUARD`, so the stub went from answering
- * everybody to answering nobody without a token, and `404` quietly became
- * `401`.
+ * No scaffold controller is mounted at `/api`: `orpc-route-parity.spec.ts`
+ * enumerates routes from the compiled Nest container and fails on any route
+ * the contract does not declare, so a leftover stub cannot hide.
  *
- * **The follow-up was done, and the answer is now `404` after all.** The final
- * whole-branch review raised the surviving scaffold as a contract-first
- * violation in its own right — a live HTTP endpoint declared in no contract —
- * and it found *why* nothing had caught it: `orpc-route-parity.spec.ts` is
- * titled "registers no route that the contract does not declare", a global
- * property, but iterated a hand-maintained list of the five RPC controllers,
- * which `AppController` was not in. So the assertion was true of the five
- * controllers it was handed and silent about the application. That spec now
- * enumerates routes from the compiled Nest container instead.
- *
- * `AppController`, `AppService` and their specs are deleted, so the route is
- * genuinely gone and the answer is `404` again — for the reason the original
- * comment gave, two tasks after it gave it.
- *
- * The rest of the assertion is unchanged and still worth making: whatever is or
- * is not mounted there, a stranger sees no scaffold body and no stack trace.
+ * The assertion still holds whatever is or is not mounted there: a stranger sees
+ * no scaffold body and no stack trace.
  *
  * `/health/live` is deliberately *not* behind the global `/api` prefix:
  * `configure-app.ts` excludes the health controller from `setGlobalPrefix`, so a

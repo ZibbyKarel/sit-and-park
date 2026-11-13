@@ -3,7 +3,7 @@
  *
  * `apps/sit-and-park/api/src/reservations/reservation-events.ts` declares
  * `DomainEventPublisher` with a no-op default and says in as many words that
- * Task 16 turns `notifyPromotions` into an outbound `chat.postMessage`. This is
+ * this class turns `notifyPromotions` into an outbound `chat.postMessage`. This is
  * that implementation. It reuses the existing seam rather than adding a second
  * one, so the guarantee the seam already carries — the services call it strictly
  * after `COMMIT`, outside the cancel retry loop, so a message is sent once and
@@ -51,7 +51,7 @@
  *
  * ## What sits above this class
  *
- * Task 15 (the Socket.io gateway) implements the *same* `DomainEventPublisher`
+ * The Socket.io gateway implements the *same* `DomainEventPublisher`
  * seam, for `publish`, and one token resolves to one provider. So the token is
  * bound to neither implementation but to
  * `reservations/composite-domain-event.publisher.ts`, which forwards `publish`

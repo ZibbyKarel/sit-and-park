@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The "Uživatelé" tab (`doc/design/screens/03-admin-users.png`): the account
+ * The "Uživatelé" tab: the account
  * list, with a switch per row for the admin role and one for the account being
  * active at all.
  *
@@ -12,8 +12,7 @@
  * (`adminUpdateUserInputSchema` picks exactly `role` and `active`). The second
  * switch is therefore added in the design's own idiom — the same `Switch` the
  * "Aktivní" column of `04-admin-spots.png` uses — rather than as a new control
- * the product has never drawn. See
- * `doc/decision/0160-the-users-table-gets-an-active-switch-the-design-does-not-draw.md`.
+ * the product has never drawn.
  *
  * ## The disabled switch is a courtesy, not the rule
  *
@@ -30,7 +29,7 @@
  * What it does do is take `/správa` away — the tab disappears from the top bar
  * and this screen stops rendering — and only another admin can give it back.
  * One unlabelled click was the whole distance to that, so it goes through a
- * `ConfirmDialog` first. See `doc/decision/0260-*`.
+ * `ConfirmDialog` first.
  *
  * Only *self*-demotion asks. Demoting somebody else is ordinary
  * administration, is visible in the row afterwards, and is undone by the same
@@ -85,8 +84,7 @@ export interface AdminUsersScreenProps {
  * Substring, case-insensitive, against name **or** email — deliberately the
  * same rule `UsersService.adminList` applies to its `search` input, because the
  * two must not disagree about what a search means. Filtering here rather than
- * refetching per keystroke is recorded in
- * `doc/decision/0162-the-user-search-filters-the-loaded-list.md`.
+ * refetching per keystroke is deliberate.
  */
 export function matchesUserSearch(user: AdminUser, term: string): boolean {
   const needle = term.trim().toLocaleLowerCase('cs-CZ');

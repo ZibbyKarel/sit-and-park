@@ -10,11 +10,11 @@
  * dialog opens) are testable with plain props, no session, no query client and
  * no live API.
  *
- * Per `doc/design/screens/11-settings.png`, drawn with `@shoptet/ui`'s `Modal` rather than a
- * bespoke card — `doc/decision/0150-*` records why the whole screen renders as
+ * Drawn with `@shoptet/ui`'s `Modal` rather than a
+ * bespoke card, so the whole screen renders as
  * that shared primitive instead of a second, hand-built dialog shell. The ICS
- * section below the form has no design to copy from; `doc/decision/0151-*`
- * records why it lives here, in the same modal, rather than on its own screen.
+ * section below the form has no design to copy from; it lives here, in the same modal,
+ * rather than on its own screen.
  */
 
 import { useEffect, useRef, useState } from 'react';
@@ -41,8 +41,7 @@ import { IcsSection } from './ics-section';
  * Links the Save button in `Modal.Footer` (outside the `<form>`, by
  * construction) to the `<form>` it submits, via the
  * standard `form="…"` button attribute. This is also what makes pressing
- * Enter in a field submit natively, rather than doing nothing (Task 26
- * review, M4).
+ * Enter in a field submit natively, rather than doing nothing.
  */
 const SETTINGS_FORM_ID = 'settings-form';
 
@@ -121,8 +120,7 @@ export interface SettingsScreenProps {
   /**
    * `spot.list` has not resolved yet. While this is `true`, `spots` may still
    * be `[]` for "not loaded" rather than "no active spots exist" — the
-   * reconciliation effect below must not treat the two the same (see I1 in
-   * the Task 26 review), and the picker shows a loading hint instead of
+   * reconciliation effect below must not treat the two the same, and the picker shows a loading hint instead of
    * silently offering only "Bez preference".
    */
   readonly spotsPending: boolean;
@@ -157,7 +155,7 @@ export interface SettingsScreenProps {
   readonly ics: SettingsIcs;
   /**
    * Called for every way out: Cancel, Escape, the scrim, the × and a saved
-   * form (`doc/decision/0334-*`). While the regenerate confirmation is open the
+   * form. While the regenerate confirmation is open the
    * Modal is not dismissible (`canBeDismissed={!confirmOpen}`), so one Escape
    * closes only the confirmation.
    */
@@ -192,8 +190,8 @@ export function SettingsScreen({
   // Kept here rather than inside `IcsSection`, which is otherwise its only
   // reader, because a successful regeneration clears it: "Odkaz zkopírován"
   // must not stay on screen next to a link that has just been replaced, and
-  // the regeneration is confirmed one level up (`doc/decision/0151-*` keeps
-  // that `ConfirmDialog` above the whole modal). Pushing the state down would
+  // the regeneration is confirmed one level up (that `ConfirmDialog` sits
+  // above the whole modal). Pushing the state down would
   // either lose that reset or replace it with a guess derived from the URL.
   const [copyState, setCopyState] = useState<CopyState>('idle');
 
@@ -284,7 +282,7 @@ export function SettingsScreen({
     // (`MeService.requireSelectableSpot`). The shared error catalogue's
     // `VALIDATION_FAILED` sentence is about reservation-day rules (weekends,
     // public holidays) — a true code paired with a false story. This screen
-    // renders its own copy for that one code instead (Task 26 review, I3).
+    // renders its own copy for that one code instead.
     // `me.regenerateIcsToken` never throws `VALIDATION_FAILED` (it declares
     // nothing beyond the inherited `FORBIDDEN`), so this branch is reachable
     // only through `saveErrorMessage`, not `regenerateErrorMessage` — but it

@@ -31,8 +31,7 @@
  *
  * The cron fires every day; the body returns early on weekends and Czech public
  * holidays, using `isBusinessDay` from `@sit-and-park/shared-types` — the same
- * predicate `ReservationPolicy` refuses a reservation with
- * (`doc/decision/0064-*`). Encoding "weekdays" in the cron expression instead
+ * predicate `ReservationPolicy` refuses a reservation with. Encoding "weekdays" in the cron expression instead
  * would have covered Saturday and Sunday but not 28 September, and would have
  * been a second, weaker definition of a business day.
  *

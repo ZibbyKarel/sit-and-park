@@ -2,7 +2,7 @@
 
 /**
  * The one-sentence notice about a month's reservation window
- * (`doc/design/screens/06-admin-overview.png` — the green band under the date).
+ * (the green band under the date).
  *
  * Markup only. Which sentence, which colour and which glyph is
  * {@link toAdminWindowBannerView}'s decision, including the rule this banner

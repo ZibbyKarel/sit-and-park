@@ -5,7 +5,7 @@ import type { CellLockView } from '../lot-view';
 /**
  * `@sit-and-park/realtime-client` is doubled at the wrapper boundary so this
  * suite can hand the hook an event when it chooses and take the connection
- * away when it chooses. Task 21's own 69 tests already prove a real socket
+ * away when it chooses. The realtime client's own tests already prove a real socket
  * parses a payload and calls the handler; what is under test here is what this
  * screen *does* with one.
  */

@@ -3,7 +3,7 @@
  *
  * The HTTP side reaches this through `JwtStrategy` (`passport-jwt` calls
  * {@link JwksVerifierService.getSigningKey} as its `secretOrKeyProvider`); the
- * Socket.io gateway in Task 15 cannot run a Passport HTTP strategy on a
+ * Socket.io gateway cannot run a Passport HTTP strategy on a
  * handshake, so it calls {@link JwksVerifierService.verifyToken} directly. Both
  * paths share one `JwksClient` — one cache, one rate limiter, one rotation
  * behaviour — and one `jwtVerifyOptions`.
@@ -20,8 +20,7 @@
  * 2. **A cache miss is never an auth bypass.** Every failure path below throws.
  *    There is no branch that returns a token as valid because a key could not
  *    be fetched, and `cacheMaxAgeFallback` (jwks-rsa's "serve a stale key while
- *    the endpoint is down" option) is deliberately not enabled — see
- *    `doc/decision/0043-*`.
+ *    the endpoint is down" option) is deliberately not enabled.
  * 3. **A failure is diagnosable from the logs and opaque to the caller.** Every
  *    rejection here reaches the client as the same bare 401 — that is
  *    deliberate, and unchanged. But the four *operator* problems behind it (a
@@ -269,7 +268,7 @@ export class JwksVerifierService {
    * Verifies a raw token end to end and returns its parsed claims.
    *
    * Signature, issuer, audience and expiry are all checked here, by
-   * `jsonwebtoken` against {@link options}. Task 15's Socket.io handshake calls
+   * `jsonwebtoken` against {@link options}. The Socket.io handshake calls
    * this; the HTTP path reaches the identical checks through `passport-jwt`,
    * which is handed the same options object.
    */
@@ -437,8 +436,7 @@ export class JwksVerifierService {
    * The kind, the configured issuer, a truncated `kid`, and the underlying
    * error's *message*. Deliberately **no `err` object** — the stack adds nothing
    * an operator can act on here and would be repeated every minute for the
-   * duration of an outage; this follows the same call `doc/decision/0035-*` made
-   * for the readiness probe. And, of course, no token: the raw JWT is never
+   * duration of an outage; the readiness probe does the same. And, of course, no token: the raw JWT is never
    * passed to the logger on any path.
    */
   private reportFailure(failure: JwksVerificationError, kid: string | undefined): void {

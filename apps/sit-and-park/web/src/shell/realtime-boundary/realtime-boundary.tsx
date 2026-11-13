@@ -8,11 +8,11 @@
  * things it cannot know on its own — the current session's status and the
  * token provider — without any screen having to. Connecting before a session
  * exists just spends a handshake the gateway is going to refuse
- * (`doc/realtime.md`).
+ * (`doc/integrations.md`).
  *
  * The token reaches the gateway through `socket.handshake.auth`, never a query
  * string; that is `libs/sit-and-park/realtime-client`'s job and nothing here routes around
- * it (`doc/decision/0060-*`).
+ * it.
  */
 
 import type { ReactNode } from 'react';

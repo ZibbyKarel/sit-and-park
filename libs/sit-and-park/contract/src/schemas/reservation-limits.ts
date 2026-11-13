@@ -7,7 +7,7 @@
  * it is. They are different rules with different audiences — an ordinary user
  * meets the window as a banner and the cap as a greyed-out day — and the
  * window model's own doc comment says it drives the window, which a per-user
- * quota does not. See `doc/decision/0312-*`.
+ * quota does not.
  */
 
 import * as z from 'zod';

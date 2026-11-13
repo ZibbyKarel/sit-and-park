@@ -3,8 +3,7 @@
  * spec that keeps the two answers the same.
  *
  * `libs/sit-and-park/shared-types` is `layer:foundation` with `allowedExternalImports: []`
- * and a `no-restricted-imports` rule naming Zod (`eslint.config.mjs:283`,
- * `:623-637`, `doc/decision/0003-*`, `doc/decision/0017-*`), so it cannot use
+ * and a `no-restricted-imports` rule naming Zod (`eslint.config.mjs`), so it cannot use
  * `dateOnlySchema`; `libs/sit-and-park/contract` would not want a second validation path.
  * Two implementations is the correct answer — but they are the front and back
  * door to one invariant. The API accepts what `dateOnlySchema` accepts, and the

@@ -13,7 +13,7 @@ const cs = createDateFormatters('cs');
  * as a prop. This suite checks it renders what it is given and reports every
  * control back through its callback, never a raw DOM event — the same
  * contract the sticky bar's own suite once checked, before `LotHeader`
- * absorbed it (`doc/decision/0140-*` revisited).
+ * absorbed it.
  */
 
 const DATE = '2026-09-28';

@@ -1,17 +1,15 @@
 'use client';
 
 /**
- * The "Přehled parkoviště" tab: an admin's read of one day
- * (`doc/design/screens/06-admin-overview.png`).
+ * The "Přehled parkoviště" tab: an admin's read of one day.
  *
  * ## What this renders, and what it deliberately does not
  *
  * The design for this tab is the **lot screen** — a page of its own, with the
  * painted car grid, the date bar along the bottom and no tab strip on it. That
- * screen belongs to Task 24 and is the only place the grid is drawn; building a
+ * screen belongs to the lot screen and is the only place the grid is drawn; building a
  * second one here would give the product two implementations of the same canvas
- * that could disagree about the same day. See
- * `doc/decision/0161-the-admin-day-tab-summarises-the-lot-it-does-not-redraw-it.md`.
+ * that could disagree about the same day.
  *
  * What is here instead is the part of that screen an admin actually needs while
  * they are in `/admin`, drawn out of pieces that already exist: the date, the

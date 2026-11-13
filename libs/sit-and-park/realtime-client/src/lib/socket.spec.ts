@@ -38,7 +38,7 @@ describe('DEFAULT_SOCKET_PATH', () => {
     // server's configured path against the same import. Each side fails its
     // own suite the moment it stops importing `SOCKET_IO_PATH` and hardcodes a
     // literal instead — which is the only way the two halves could disagree
-    // without either failing on its own (`doc/decision/0113-*`).
+    // without either failing on its own.
     expect(DEFAULT_SOCKET_PATH).toBe(SOCKET_IO_PATH);
   });
 });

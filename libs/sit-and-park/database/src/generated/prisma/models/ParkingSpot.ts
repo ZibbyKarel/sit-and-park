@@ -1123,13 +1123,12 @@ export type $ParkingSpotPayload<ExtArgs extends runtime.Types.Extensions.Interna
     group: $Enums.ParkingGroup
     active: boolean
     /**
-     * Seen and booked by admins only (`doc/decision/0316-hidden-spots-are-seen-and-booked-by-admins-only`).
+     * Seen and booked by admins only.
      * Not a retirement: a hidden spot stays bookable by an admin, for anybody.
      */
     hidden: boolean
     /**
-     * Has a charger for electric cars. Informational only, shown to everybody
-     * (`doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`).
+     * Has a charger for electric cars. Informational only, shown to everybody.
      */
     evCharger: boolean
     /**

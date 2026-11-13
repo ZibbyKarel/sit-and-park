@@ -325,7 +325,7 @@ describe('reservationSchema / waitlistEntrySchema', () => {
     ['waitlistEntrySchema', waitlistEntrySchema, validWaitlistEntry],
   ] as const)('%s does not judge the date against the horizon', (_name, schema, valid) => {
     // Both the "not in the past" and the reservation-window checks live in the
-    // service layer (Task 13), on top of monthLockState().
+    // service layer, on top of monthLockState().
     expect(schema.safeParse({ ...valid, date: '2020-01-01' }).success).toBe(true);
     expect(schema.safeParse({ ...valid, date: '2099-12-31' }).success).toBe(true);
   });

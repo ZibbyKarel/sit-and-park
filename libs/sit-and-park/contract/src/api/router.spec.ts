@@ -172,10 +172,7 @@ const EXPECTED_ERROR_CODES: Record<string, readonly string[]> = {
     'CONFLICT',
   ],
   // `waitlist.leave` deliberately carries neither window error. Leaving a queue
-  // is not gated by the reservation window — see
-  // `doc/decision/0233-leaving-a-waitlist-is-exempt-from-the-reservation-window`,
-  // which amends `doc/decision/0004-*`'s "enforcing the lock on
-  // create/join/leave". Under the shipped `AUTO`/`openDaysBefore=7` defaults the
+  // is not gated by the reservation window — see `doc/parking.md`. Under the shipped `AUTO`/`openDaysBefore=7` defaults the
   // old rule made leaving impossible for the whole month a queue is live in.
   'waitlist.leave': ['FORBIDDEN', 'NOT_FOUND', 'CONFLICT'],
   'spot.list': ['FORBIDDEN'],
@@ -368,7 +365,7 @@ describe('contract router', () => {
   it('declares both window errors on every write gated by the window', () => {
     // `waitlist.leave` is absent on purpose, and its absence is asserted
     // separately below rather than left implicit: taking a place is gated by the
-    // window, giving one back is not. `doc/decision/0233-*`.
+    // window, giving one back is not.
     for (const path of [
       'reservation.create',
       'waitlist.join',
@@ -383,7 +380,7 @@ describe('contract router', () => {
 
   it('gates taking a place on the window and giving one back on nothing', () => {
     // The pair that `reservation.cancel` and `waitlist.leave` form is the whole
-    // point of `doc/decision/0233-*`, so assert it against the real `errorMap`
+    // point of that exemption, so assert it against the real `errorMap`
     // rather than against `EXPECTED_ERROR_CODES` — a table this file maintains
     // by hand would otherwise be asserting against itself.
     for (const giveBack of [contract.reservation.cancel, contract.waitlist.leave]) {
@@ -401,8 +398,8 @@ describe('contract router', () => {
 
   it('exports ContractClient covering every procedure with contract-derived types', () => {
     // `ContractClient` is what `libs/shared/api-client` types its client as, so that
-    // `@orpc/contract` stays allow-listed for `type:contract` alone
-    // (`doc/decision/0040-*`). It is a type, so the check is a compile-time one:
+    // `@orpc/contract` stays allow-listed for `type:contract` alone.
+    // It is a type, so the check is a compile-time one:
     // each assignment below stops compiling if the client stops mirroring the
     // router, or if its input/output stop coming from the Zod schemas.
     type Client = ContractClient;
@@ -457,7 +454,7 @@ describe('contract router', () => {
   });
 
   it('puts every admin-only procedure under the admin subtree', () => {
-    // Grouping is the authorization boundary Task 12 implements against.
+    // Grouping is the authorization boundary the API implements against.
     expect(procedurePaths.filter((path) => path.startsWith('admin.')).sort()).toEqual(
       [
         'admin.desk.list',
@@ -499,7 +496,7 @@ describe('contract router', () => {
   });
 
   it('describes every desk-merge procedure for MCP-style consumers', () => {
-    // `doc/desk-merge-plan.md` Stage 3: every new procedure carries a human
+    // `doc/desks.md` Stage 3: every new procedure carries a human
     // description through `.route()`, so a tool listing can be generated from
     // the contract alone.
     for (const [path, procedure] of procedures) {

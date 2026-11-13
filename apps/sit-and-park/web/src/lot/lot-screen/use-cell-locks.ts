@@ -93,9 +93,8 @@ export function nextLockExpiryAt(locks: CellLockMap): number | null {
  * - **a hold expiring** — see {@link pruneExpiredLocks}.
  *
  * After a reconnect the map starts empty and refills from the renewal
- * heartbeat every holder is sending (`cell:lock` re-sent at half the TTL,
- * `doc/decision/0062-*`), *provided the gateway re-broadcasts a renewal*.
- * Whether it does is Task 15's to settle; if it does not, a hold taken before
+ * heartbeat every holder is sending (`cell:lock` re-sent at half the TTL), *provided the gateway re-broadcasts a renewal*.
+ * Whether it does is the gateway's to settle; if it does not, a hold taken before
  * the drop stays invisible until it is next renewed or released. Being briefly
  * blind is the safe direction — the lock is a courtesy, and the API re-checks
  * everything on `reservation.create` regardless.

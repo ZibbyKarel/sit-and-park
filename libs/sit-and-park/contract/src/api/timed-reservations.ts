@@ -9,7 +9,7 @@
  * honest answer: the spot already has a full-day `Reservation` that day, or
  * the requested block overlaps another `TimedReservation` on it. Both are
  * "this time on this spot is taken" from the caller's point of view, and the
- * database trigger backing the exclusivity (`doc/decision/0314-*`) does not
+ * database trigger backing the exclusivity does not
  * distinguish them either.
  *
  * `PAST_DATE` and `VALIDATION_FAILED` (a non-business day) come from

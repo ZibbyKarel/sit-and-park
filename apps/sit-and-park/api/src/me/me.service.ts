@@ -22,8 +22,7 @@ import { parkingOfficeOf, seesParkingOffice } from '../common/office-scope';
  * How many times a fresh `icsToken` is retried after a unique-constraint
  * collision.
  *
- * The contract deliberately declares **no** error on `me.regenerateIcsToken`
- * (`doc/decision/0021-*`): a collision between two 32-byte random values is not
+ * The contract deliberately declares **no** error on `me.regenerateIcsToken`: a collision between two 32-byte random values is not
  * a state a client can act on, it is an instruction to retry, and the UI has no
  * copy for it. So the retry happens here. Three attempts, for the same reason
  * `AuthUserService` bounds its provisioning loop: an unresolvable P2002 must
@@ -184,7 +183,7 @@ export class MeService {
    * person at the screen: an id that does not exist is a stale client, while a
    * retired spot is a real spot they can see was taken out of service. A
    * hidden spot answers as a missing one: bulk booking never assigns it, and
-   * to a normal user it does not exist (`doc/decision/0316-*`).
+   * to a normal user it does not exist.
    */
   private async requireSelectableSpot(spotId: string, userId: string): Promise<void> {
     const spot = await this.prisma.client.parkingSpot.findUnique({ where: { id: spotId } });

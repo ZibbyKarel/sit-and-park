@@ -192,7 +192,7 @@ describe('the ICS feed hides whether a token exists', () => {
    * The whole security model of the feed is the secret in its path, so the
    * response to a wrong one must be indistinguishable from the response to a
    * path that matches no route at all — otherwise the status code alone is an
-   * oracle for enumerating valid tokens (`doc/decision/0080-*`).
+   * oracle for enumerating valid tokens.
    */
   it('answers an unknown token exactly as it answers an unrouted path', async () => {
     const unknownToken = await axios.get('/api/calendar/there-is-no-such-token.ics', anyStatus);

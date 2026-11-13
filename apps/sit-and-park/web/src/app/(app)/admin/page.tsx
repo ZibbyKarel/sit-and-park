@@ -2,8 +2,8 @@
 
 /**
  * Administration: the day overview, users, parking spots, the reservation
- * window (Task 27) and the reservation limits. Task 23 routed the top bar's
- * `Správa` tab here and closed the door behind it; this file now
+ * window and the reservation limits. The top bar's
+ * `Správa` tab routes here and the door is closed behind it; this file
  * hands `AdminScreen` the five tab bodies.
  *
  * The whole file is the wiring — where the profile comes from, what retry does,

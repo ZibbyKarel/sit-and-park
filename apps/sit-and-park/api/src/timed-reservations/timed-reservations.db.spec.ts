@@ -2,7 +2,7 @@
  * Admin-only guest half-hour blocks — against a real PostgreSQL 17.
  *
  * Everything here rests on the (spot, day) exclusivity triggers from migration
- * `20260924120000_timed_reservation` (`doc/decision/0314-*`), which is why
+ * `20260924120000_timed_reservation`, which is why
  * this is a `.db.spec.ts` rather than a `PrismaDouble` unit test:
  * `reservations.db.spec.ts`'s own opening comment makes the same argument for
  * `FOR UPDATE` and `P2002`, and it applies here word for word.

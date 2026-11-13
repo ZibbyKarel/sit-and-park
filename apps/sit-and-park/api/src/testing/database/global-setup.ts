@@ -4,7 +4,7 @@
  * Creates the run's throwaway database, applies the committed migrations to it,
  * and repoints `DATABASE_URL` at it. Jest runs this in the main process before
  * any worker starts, so the environment it leaves behind is the one every spec
- * sees — including Task 12's `database-contract.db.spec.ts`, which reads
+ * sees — including `database-contract.db.spec.ts`, which reads
  * `DATABASE_URL` itself and is now isolated from the developer's data too.
  *
  * If `DATABASE_URL` is absent this **throws**, and the run exits non-zero. See

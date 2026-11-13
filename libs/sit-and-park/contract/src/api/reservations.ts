@@ -19,7 +19,7 @@ import { authed, contractErrors, noInputSchema } from './builder';
  *
  * `licensePlate` overrides the holder's stored `User.licensePlate` **for this
  * reservation only** — `null` means "use whatever they have on their profile",
- * and this flow never writes the profile (`doc/decision/0306-an-admin-names-the-holder-and-defaults-to-themselves`). For a guest it
+ * and this flow never writes the profile. For a guest it
  * is the only plate there is.
  *
  * **Only an admin may name a holder other than themselves.** That is not
@@ -60,7 +60,7 @@ export type CreateReservationOutput = z.infer<typeof createReservationOutputSche
 /**
  * Create a reservation for one spot on one day.
  *
- * Window rules (`doc/decision/0004-*`, ruling window-1): a normal user may only
+ * Window rules: a normal user may only
  * create inside an open month, so both window codes are reachable —
  * `OUT_OF_HORIZON` when the target month is `NOT_YET_OPEN` and
  * `RESERVATIONS_LOCKED` when it is `LOCKED`. An admin is not restricted by the
@@ -149,8 +149,7 @@ export const monthReservationsOutputSchema = z.object({
    * The monthly cap **in force for this month today**, or `null` when none
    * applies. The number is the `ReservationLimitSettings` singleton's
    * `monthlyReservationCap`; it is only in force under `AUTO` while today lies
-   * inside the month's reservation window (`isMonthlyCapInForce`,
-   * `doc/decision/0315-the-monthly-cap-applies-only-inside-the-auto-window`).
+   * inside the month's reservation window (`isMonthlyCapInForce`).
    * Once the month is running, and under either admin override, it is `null`
    * and a client must not bound the selection at all.
    *

@@ -56,7 +56,7 @@ export function CalendarTable({ days, t, picker }: CalendarTableProps) {
   // No empty-list branch: both procedures answer one entry per requested day
   // and the call to action is disabled at zero selection, so `rows` cannot be
   // empty. A branch that cannot render is copy nobody will ever proof-read
-  // (`doc/decision/0021-*`'s unreachable-member rule, applied to a catalog).
+  // (no unreachable-member copy in the catalog).
   // Only a preview that filtered days out of its response would change that.
   const rows = toScheduleRows(days);
   return (

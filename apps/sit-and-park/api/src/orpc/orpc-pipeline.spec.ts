@@ -21,8 +21,7 @@
  *
  *   A **401** does not. An unauthenticated request comes back as Nest's own
  *   `{"statusCode":401,"message":"Unauthorized"}`, with no `{ json, meta }`
- *   wrapper, so the client falls back to deriving a code from the HTTP status
- *   (`doc/decision/0039-*`). Stated here rather than glossed: this suite
+ *   wrapper, so the client falls back to deriving a code from the HTTP status. Stated here rather than glossed: this suite
  *   asserts the envelope for 403 and only the status for 401.
  *
  * The database is `PrismaDouble` and the issuer is the same in-process OIDC
@@ -430,9 +429,9 @@ describe('the oRPC transport through the assembled application', () => {
       expect(response.status).toBe(404);
     });
 
-    it('Task 30’s bulk route reaches the bulk service', async () => {
-      // Same assertion as the case below, for the pair that was unmounted until
-      // Task 30: a domain answer rather than a 404 proves the route exists, the
+    it('the bulk route reaches the bulk service', async () => {
+      // Same assertion as the case below, for the bulk pair:
+      // a domain answer rather than a 404 proves the route exists, the
       // guard let an ordinary user through, oRPC decoded the body against
       // `bulkBookingInputSchema`, and `BulkReservationService` got as far as the
       // window rule.
@@ -448,7 +447,7 @@ describe('the oRPC transport through the assembled application', () => {
       });
     });
 
-    it('and so does Task 13’s reservation route', async () => {
+    it('and so does the reservation route', async () => {
       // A domain answer rather than a 404 is the whole assertion: the route
       // exists, the guard let an ordinary user through, oRPC decoded the body,
       // and `ReservationsService` got as far as the window rule. 2099-01 is

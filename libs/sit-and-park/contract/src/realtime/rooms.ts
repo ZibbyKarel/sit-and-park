@@ -25,7 +25,7 @@ export const DAY_ROOM_PREFIX = 'day:';
  * Pure: same input, same output, no state, no I/O.
  *
  * It **throws** on anything that is not a calendar-valid `YYYY-MM-DD`, via the
- * single date-only guard in `@sit-and-park/shared-types` (`doc/decision/0003-*`).
+ * single date-only guard in `@sit-and-park/shared-types`.
  * A date reaching this function has normally already been validated by the
  * gateway against `dayRoomCommandSchema`, so the throw is defence in depth —
  * but it is worth having, because a room name is a broadcast target and an

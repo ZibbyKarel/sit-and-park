@@ -10,10 +10,10 @@
  * `apps/sit-and-park/web/messages/*.json` (`TODO.md` item 9), and `libs/shared/i18n` is
  * `scope:web`: an Nx lib cannot import from an app. The dependency is
  * therefore inverted — the app supplies the messages, the lib supplies the
- * runtime. See `doc/decision/0303-*`.
+ * runtime.
  *
  * The time zone stays fixed: reservation days are Europe/Prague calendar days
- * regardless of the reader's language (`plan.md`, `doc/decision/0014-*`).
+ * regardless of the reader's language.
  */
 
 import type { ReactNode } from 'react';

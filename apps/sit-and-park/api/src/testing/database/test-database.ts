@@ -3,16 +3,14 @@
  *
  * ## Why a whole database rather than a rollback
  *
- * Task 12's `database-contract.db.spec.ts` leaves nothing behind by running
- * every case inside a transaction it always rolls back. Task 13 cannot do that
- * for its concurrency tests, and the reason is the point of those tests:
+ * `database-contract.db.spec.ts` leaves nothing behind by running
+ * every case inside a transaction it always rolls back. The concurrency suites cannot do that, and the reason is the point of those tests:
  * **two transactions racing must actually commit**, or there is no race — an
  * uncommitted row is invisible to the other connection, so a "concurrency test"
  * built on rollbacks would test nothing at all.
  *
  * Committing means residue, and the residue cannot be cleaned up: promotion
- * writes an `AuditLog` row, `AuditLog` rejects `DELETE` by trigger
- * (`doc/decision/0027-*`), and the fixture users those rows point at are then
+ * writes an `AuditLog` row, `AuditLog` rejects `DELETE` by trigger, and the fixture users those rows point at are then
  * pinned by `ON DELETE RESTRICT`. There is no order of deletions that empties
  * the tables again. So the suite gets its own database, created before the run
  * and dropped after it, and the developer's seeded `sit-and-park` is never written
@@ -35,8 +33,7 @@
  * before creating its own, so the next run cleans up after the last one — but
  * only databases old enough that no real run could still be using them
  * ({@link isStaleTestDatabase}). Two `api:test-db` runs started around the same
- * time must not be able to drop each other's still-in-progress database
- * (`doc/decision/0066-*` §Risk).
+ * time must not be able to drop each other's still-in-progress database.
  */
 
 import { randomUUID } from 'node:crypto';

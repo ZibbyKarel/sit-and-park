@@ -4,7 +4,7 @@
     "outDir": "../../../dist/out-tsc",
     // Deliberately **not** `module: commonjs` (which the generator emits), the
     // same way `libs/sit-and-park/auth/tsconfig.spec.json` and
-    // `libs/query/tsconfig.spec.json` omit it (`doc/decision/0038-*`). This is
+    // `libs/query/tsconfig.spec.json` omit it. This is
     // consistency with the two sibling wrapper libs that also reach
     // `@sit-and-park/api-client`, plus `bundler` + `esnext` being what actually
     // bundles this code — **not** a fix for a failure this lib has.

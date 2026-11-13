@@ -1,10 +1,9 @@
 /**
  * `@sit-and-park/i18n` — the only place in the workspace allowed to import
- * `next-intl` (enforced in `eslint.config.mjs`, see `doc/i18n.md`).
+ * `next-intl` (enforced in `eslint.config.mjs`, see `doc/frontend.md`).
  *
  * Re-exports `libs/sit-and-park/shared-types`' Europe/Prague date logic (holidays,
- * weekends, `DateOnly` arithmetic) under the same names, per
- * `doc/decision/0003-date-helpers-in-shared-types.md`, so feature code never
+ * weekends, `DateOnly` arithmetic) under the same names, so feature code never
  * has to import `@sit-and-park/shared-types` directly for that.
  */
 export * from '@sit-and-park/shared-types';

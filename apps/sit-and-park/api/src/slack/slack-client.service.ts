@@ -3,7 +3,7 @@
  *
  * Everything the rest of the codebase needs from Slack is two calls —
  * `chat.postMessage` and `users.lookupByEmail` — and this class is the whole
- * surface. That isolation is what `plan.md`'s scope boundary is for:
+ * surface. That isolation is what the scope boundary is for:
  * **outbound only**. There is no Slack request handler anywhere in `apps/sit-and-park/api`,
  * no slash command, no interactive Block Kit, no signature verification, no
  * `POST /slack/*` route — because nothing from Slack is ever accepted. A
@@ -18,7 +18,7 @@
  * therefore runs its full path — read the data, render the Czech copy, hand it over — whether Slack is
  * on or off, so a message that would crash while being built crashes in
  * development too. There is deliberately no `NODE_ENV` check and no
- * "pretend to send" flag: `doc/decision/0130-*` explains why the difference
+ * "pretend to send" flag: the difference
  * between a developer's laptop and production is an env *value*.
  *
  * **The timeout.** A Slack call is made after a database transaction has
@@ -48,7 +48,7 @@
  * `AbortController`, wired into the `WebClient`'s axios instance via
  * `requestInterceptor` (see {@link DefaultSlackWebClientFactory}), *before*
  * classifying the failure or sleeping the backoff, so the abort always reaches
- * the connection before the retry goes out. `doc/slack.md` §4 spells out
+ * the connection before the retry goes out. `doc/integrations.md` spells out
  * exactly what guarantee this does and does not buy: at-least-once, with the
  * loser of the race torn down the moment it is known to have lost, not
  * exactly-once — a request that had already reached Slack and been accepted
@@ -169,7 +169,7 @@ export class SlackClient {
    * retry). `SlackDomainEventPublisher.publish` detaches one un-awaited chain
    * per event, so two overlapping cancellations reach this. An
    * `AsyncLocalStorage` store survives the interceptor's microtask hop and is
-   * per call by construction. See `doc/decision/0237-*`.
+   * per call by construction.
    */
   private readonly inFlight = new AsyncLocalStorage<AbortController>();
 

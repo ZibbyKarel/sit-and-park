@@ -3,7 +3,7 @@ import { SettingsPage } from '../../../shell/settings-page';
 
 /**
  * `/settings` — personal settings: licence plate, preferred parking spot, and
- * the ICS feed URL with its regenerate button (Task 26).
+ * the ICS feed URL with its regenerate button.
  *
  * A Server Component only so it can read `NEXT_PUBLIC_API_URL` the same way
  * `app/layout.tsx` does, for the same reason: the browser should get the

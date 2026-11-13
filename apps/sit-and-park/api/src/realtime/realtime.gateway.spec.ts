@@ -615,7 +615,7 @@ describe('the realtime gateway', () => {
       // within half a TTL (~15 s at the shipped 30 s). Closing it properly
       // means changing how a hold is *acquired*, which is a product decision
       // about what a courtesy lock means across a user's own tabs — see
-      // `doc/decision/0220-*` §"What it costs" and `doc/realtime.md`.
+      // `doc/integrations.md`.
       const older = await connectAs(alice);
       const newer = await connectAs(alice);
       const neighbour = await connectAs(bob);
@@ -647,7 +647,7 @@ describe('the realtime gateway', () => {
       // into `held-by-other` and then **sits still** — it deliberately does not
       // poll. Without this broadcast, a user who closes their laptop mid-edit
       // leaves "právě upravuje …" on every other tile until the page is
-      // reloaded. It was parked at Task 21 to be confirmed here.
+      // reloaded. It is confirmed here.
       const holder = await connectAs(alice);
       const neighbour = await connectAs(bob);
       const cell = freshCell();
@@ -730,11 +730,10 @@ describe('the realtime gateway', () => {
 
   describe('the after-commit publisher', () => {
     it('reaches the realtime publisher in the assembled application', () => {
-      // Task 13 bound this token to `NoopDomainEventPublisher` and said Task 15
-      // would swap it. Without this assertion every broadcast test in this file
+      // The token defaults to `NoopDomainEventPublisher`. Without this assertion every broadcast test in this file
       // could pass while the reservation services still published into a void.
       //
-      // Since Task 16 the seam is a composite (Socket.io *and* Slack both
+      // The seam is a composite (Socket.io *and* Slack both
       // implement it), so "is the realtime publisher" is now "fans out to the
       // realtime publisher" — and specifically to the instance `RealtimeModule`
       // built, the one holding this app's gateway. A second instance would

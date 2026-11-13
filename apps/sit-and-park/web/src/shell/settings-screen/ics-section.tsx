@@ -22,7 +22,7 @@ const COPY_FEEDBACK_TONE: Record<'copied' | 'failed', ToastTone> = {
 };
 
 /**
- * The section `doc/decision/0151-*` adds to this modal: the ICS subscription
+ * The section of this modal that holds the ICS subscription
  * URL, a copy button, and token regeneration behind `ConfirmDialog` (rendered
  * one level up, so it sits above the whole modal rather than inside it).
  */

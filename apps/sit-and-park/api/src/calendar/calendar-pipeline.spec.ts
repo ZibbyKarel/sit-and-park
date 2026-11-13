@@ -311,7 +311,7 @@ describe('the ICS feed through the assembled application', () => {
 
       expect(response.status).toBe(404);
       // A 401 would confirm the route exists and the token was merely wrong,
-      // which is the enumeration oracle `doc/decision/0080-*` removes.
+      // which is the enumeration oracle the 404 removes.
       expect(response.status).not.toBe(401);
       expect(response.headers.get('www-authenticate')).toBeNull();
     });
@@ -367,11 +367,10 @@ describe('the ICS feed through the assembled application', () => {
       //
       // That difference reveals exactly one thing — that a URL ending in `.ics`
       // under `/api/calendar` matches a route — which is public knowledge: the
-      // path is in `libs/sit-and-park/contract`, in `doc/ics.md` and on the settings screen.
+      // path is in `libs/sit-and-park/contract`, in `doc/integrations.md` and on the settings screen.
       // It says nothing about any token. Closing it would mean echoing the
       // request path, i.e. reflecting somebody's *token* back into an error
-      // body that may be logged by a proxy, which is a worse trade. See
-      // `doc/decision/0080-*`.
+      // body that may be logged by a proxy, which is a worse trade.
       const unrouted = await get('/api/calendar/there-is-no-such-thing');
       const unknown = await feed(UNKNOWN_TOKEN);
 
@@ -396,7 +395,7 @@ describe('the ICS feed through the assembled application', () => {
 
   describe('token regeneration', () => {
     it('makes the old URL stop working while the new one serves the same events', async () => {
-      // `me.regenerateIcsToken` is Task 12's; what is checked here is the
+      // `me.regenerateIcsToken` is covered elsewhere; what is checked here is the
       // consequence at the feed, which is the half nobody had exercised.
       const reservation = seedHolderWithOneReservation();
       const before = await feed(VALID_TOKEN);
@@ -489,7 +488,7 @@ describe('the ICS feed through the assembled application', () => {
     it('does not rate-limit the rest of the API at the strict limit', async () => {
       // `@nestjs/throttler` applies every *registered* throttler to every route,
       // so the strict tier had to be an override of the single registered one
-      // rather than a second registration (`doc/decision/0034-*`). This is what
+      // rather than a second registration. This is what
       // that means in practice.
       const rpcResponse = await fetch(`${strictHarness.baseUrl}/api/rpc/spot/list`, {
         method: 'POST',

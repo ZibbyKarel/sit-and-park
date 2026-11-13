@@ -7,14 +7,14 @@
  * `/authorize` redirect with PKCE and `state`, the issuer's login form, the
  * callback at `/api/auth/callback/okta`, the code exchange, the session cookie
  * — and the only thing that differs from production is the value of
- * `AUTH_OKTA_ISSUER` (see `doc/decision/0009-*`, `doc/environment.md`). Nothing
+ * `AUTH_OKTA_ISSUER` (see `doc/workspace.md`). Nothing
  * here injects a token,
  * sets a cookie by hand, or asks the application to trust a header.
  *
  * The one thing it types that a real Okta login does not is the mock server's
  * *Optional claims JSON* field — because `mock-oauth2-server` issues no `email`
  * or `name` claim of its own, and the API needs both to provision a user it has
- * never seen. See `./personas.ts` and `doc/decision/0180-*`.
+ * never seen. See `./personas.ts`.
  */
 
 import { expect, type Page } from '@playwright/test';

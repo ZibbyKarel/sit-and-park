@@ -5,7 +5,7 @@
  * **The exclusivity rule is not checked here.** One (spot, day) is either one
  * full-day `Reservation` or any number of non-overlapping `TimedReservation`
  * blocks, never both — a `CHECK` and a pair of triggers in the migration
- * enforce that (`doc/decision/0314-*`), and their `P2002` is mapped onto
+ * enforce that, and their `P2002` is mapped onto
  * `SPOT_ALREADY_RESERVED` by `mapUniqueConstraintViolation`, the same mapping
  * `ReservationsService` relies on for the plain one-per-day rule. A
  * read-then-write check here could not be made safe against a concurrent

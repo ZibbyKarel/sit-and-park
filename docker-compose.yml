@@ -7,12 +7,11 @@
 # will sign a token for any subject asked of it, and a default that starts it
 # is a default that eventually starts it in production. Naming the profile
 # costs a reader one flag; the alternative costs an authentication bypass.
-# doc/decision/0208-every-service-carries-a-profile-and-the-database-is-a-choice.
 #
 #   docker compose --profile dev up -d
 #       Infrastructure only: PostgreSQL, the mock OIDC issuer, adminer. The
 #       apps run on the host (`nx serve api`, `nx run web:dev`). This is the
-#       development and e2e path and it is unchanged — see doc/environment.md
+#       development and e2e path and it is unchanged — see doc/workspace.md
 #       and doc/testing.md.
 #
 #   docker compose --env-file .env.docker --profile dev --profile app up -d --build
@@ -56,7 +55,7 @@ services:
   # and when it is on the `service_healthy` condition still holds and they wait.
   # Without `required: false` Compose rejects the whole file the moment the
   # profile is off — `service "migrate" depends on undefined service
-  # "postgres"` — see doc/decision/0208-*.
+  # "postgres"`.
   postgres:
     image: postgres:17
     profiles: ['dev', 'db']
@@ -93,7 +92,7 @@ services:
   #     127.0.0.1 sit-and-park-api sit-and-park-oidc
   #
   # Reach it by a different name from either side and sign-in succeeds while
-  # every API call 401s on a mismatched `iss` — see doc/decision/0201-*.
+  # every API call 401s on a mismatched `iss`.
   mock-oauth2-server:
     image: ghcr.io/navikt/mock-oauth2-server:latest
     restart: unless-stopped
@@ -182,7 +181,7 @@ services:
     # `apps/sit-and-park/web/src/instrumentation-node.ts`), which names the variable and
     # exits. `AUTH_URL` is the one exception — it is Auth.js's, not in
     # `webEnvSchema` — and shows up instead as a bad post-login redirect on the
-    # first sign-in. See doc/decision/0205-*.
+    # first sign-in.
     environment:
       - NODE_ENV=production
       - PORT=3000
@@ -200,11 +199,10 @@ services:
       - THROTTLE_LIMIT
       - THROTTLE_STRICT_TTL_MS
       - THROTTLE_STRICT_LIMIT
-      # Slack. These belong to `apps/sit-and-park/api/src/slack` (`doc/slack.md`). Listed,
+      # Slack. These belong to `apps/sit-and-park/api/src/slack` (`doc/integrations.md`). Listed,
       # not defaulted: a bare entry is forwarded only when it is set, so an
       # unset Slack is a working Slack-less API rather than a broken one —
-      # `SLACK_ENABLED` defaults to `false` in `apps/sit-and-park/api/src/env.ts`
-      # (`doc/decision/0130-slack-is-off-by-default-and-there-is-no-dev-only-branch`).
+      # `SLACK_ENABLED` defaults to `false` in `apps/sit-and-park/api/src/env.ts`.
       #
       # **`SLACK_BOT_TOKEN` is a secret, and no committed file carries its
       # value.** `.env.docker.example` names it — commented and empty, beside
@@ -256,7 +254,6 @@ services:
       # session cookie already set. With it, the same run reaches `/`. The
       # redirect_uri is *not* affected (it was correct either way), which is
       # what makes this fail so late and look like an issuer problem.
-      # See doc/decision/0202-*.
       - AUTH_URL
       - AUTH_SECRET
       - AUTH_OKTA_ISSUER

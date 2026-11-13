@@ -33,7 +33,7 @@ const INFERRED_VARIABLES = [
 /**
  * The four variables whose presence would otherwise make `trustHost` true, plus
  * `NODE_ENV`. Removing all of them and setting `NODE_ENV=production` reproduces
- * the deployment `apps/sit-and-park/web` will actually run in (Task 29): a container behind
+ * the deployment `apps/sit-and-park/web` will actually run in: a container behind
  * a reverse proxy, on none of the hosting platforms Auth.js special-cases.
  */
 const TRUST_HOST_VARIABLES = ['AUTH_URL', 'NEXTAUTH_URL', 'AUTH_TRUST_HOST', 'VERCEL', 'CF_PAGES'];

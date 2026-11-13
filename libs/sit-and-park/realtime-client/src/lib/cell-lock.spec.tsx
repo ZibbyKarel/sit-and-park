@@ -170,7 +170,7 @@ describe('CellLockState', () => {
   it('cannot describe a contended cell without the expiry that un-sticks it', () => {
     // Both mechanisms that end a `held-by-other` need this expiry — the
     // backstop timer takes a non-nullable `string` — so a `null` here is the
-    // frozen "právě upravuje …" of `doc/decision/0111-*`, signed off by the
+    // frozen "právě upravuje …" of the stale lock the unlock broadcast prevents, signed off by the
     // compiler.
     // @ts-expect-error `expiresAt` and `lockedBy` are required on this member
     const stuck: CellLockState = { status: 'held-by-other', expiresAt: null, lockedBy: null };
@@ -364,7 +364,7 @@ describe('useCellLock', () => {
     const offline = await connect();
     await refuse(offline);
 
-    // The backstop `doc/decision/0111-*` asks for by name. The gateway does
+    // The backstop the lock protocol requires. The gateway does
     // broadcast an expiry, but a client that only believed the broadcast would
     // be frozen by any path that loses it, and 0111 says in as many words that
     // neither side should assume the other did it.

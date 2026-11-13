@@ -10,10 +10,10 @@
  * - {@link createApiQueryUtils} / {@link ApiQueryUtils} — the bridge from this
  *   client to TanStack Query's query/mutation options, contract-derived so no
  *   caller ever hand-writes a query key. `@tanstack/react-query` itself is not
- *   wrapped (`doc/decision/0308-*`) — this only re-exports the part that is
+ *   wrapped — this only re-exports the part that is
  *   specific to *this* client, built on `@orpc/tanstack-query`.
  *
- * See `doc/wrappers.md` for why the direct `@orpc/client` import is banned
+ * See `doc/frontend.md` for why the direct `@orpc/client` import is banned
  * everywhere else.
  */
 export type { AccessTokenProvider, ApiClient, ApiClientOptions, ApiFetch } from './lib/api-client';

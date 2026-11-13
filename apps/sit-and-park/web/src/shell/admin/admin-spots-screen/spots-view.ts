@@ -137,7 +137,7 @@ interface CategoryCount {
  * count while showing them in the list would make the two disagree. Every
  * category is listed even at zero: the band's other job is to say which
  * categories exist at all, and a closed enum with a missing member reads as a
- * category that was removed (`doc/decision/0164-*`).
+ * category that was removed.
  */
 export function toCategoryCounts(spots: readonly ParkingSpot[]): readonly CategoryCount[] {
   return PARKING_GROUPS.map((group) => ({

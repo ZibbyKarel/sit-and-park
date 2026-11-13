@@ -17,8 +17,7 @@ export const USER_ROLES = ['USER', 'ADMIN'] as const;
 export type UserRole = (typeof USER_ROLES)[number];
 
 /**
- * Admin override of the reservation window
- * (see `doc/decision/0004-mvp-scope-includes-design-features.md`).
+ * Admin override of the reservation window.
  *
  * - `AUTO`         — the window is derived from `openDaysBefore`.
  * - `FORCE_OPEN`   — reservations are open regardless of the date.
@@ -49,8 +48,8 @@ export const MAX_OPEN_DAYS_BEFORE = 31;
 export const DEFAULT_RESERVATION_LOCK_MODE: ReservationLockMode = 'AUTO';
 
 /**
- * What the bulk-booking allocator managed to do with one selected day
- * (`doc/decision/0004-*`, §Bulk reservation). The same three outcomes describe
+ * What the bulk-booking allocator managed to do with one selected day.
+ * The same three outcomes describe
  * the read-only proposal (`previewBulk`) and the real result (`confirmBulk`), so
  * the UI can lay the two side by side and show where reality differed.
  *
@@ -150,7 +149,7 @@ export const MAX_MONTH_WINDOW_SPAN = 24;
  * There is exactly one member today, and that is deliberate: the API contract
  * has no procedure that moves an existing reservation between users, so an
  * `ADMIN_REASSIGNMENT` member would be a cause nothing can emit — the
- * over-declaration `doc/decision/0021-*` forbids. Add the member in the same
+ * over-declaration the contract rules forbid. Add the member in the same
  * change that adds the procedure.
  */
 export const RESERVATION_REASSIGN_CAUSES = ['WAITLIST_PROMOTION'] as const;
@@ -172,7 +171,7 @@ export type CellLockResult = (typeof CELL_LOCK_RESULTS)[number];
  *
  * A request its author withdraws is **deleted**, not given a status, so there
  * is no `CANCELLED` member: the three below are the only states a stored row
- * can be in (`doc/desk-merge-plan.md` §"Data model").
+ * can be in (`doc/desks.md`).
  */
 export const DESK_APPROVAL_STATUSES = ['PENDING', 'APPROVED', 'REJECTED'] as const;
 export type DeskApprovalStatus = (typeof DESK_APPROVAL_STATUSES)[number];

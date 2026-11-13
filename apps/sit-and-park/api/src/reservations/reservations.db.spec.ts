@@ -1,7 +1,7 @@
 /**
  * Reservations, cancellation and auto-promotion — against a real PostgreSQL 17.
  *
- * The sequential half of Task 13's integration suite: the rules, the audit
+ * The sequential half of the reservation integration suite: the rules, the audit
  * trail, the window, and promotion when nothing else is happening at the same
  * time. The races live in `waitlist-concurrency.db.spec.ts`.
  *
@@ -880,7 +880,7 @@ describe('reservations against a real PostgreSQL', () => {
       // Three events, not two: the promotion emptied `first`'s queue on
       // `otherSpot` as well, and a queue that got shorter and told nobody leaves
       // that cell's badge reading "1 waiting" on every open day view until an
-      // unrelated event forces a refetch (`doc/decision/0234-*`).
+      // unrelated event forces a refetch.
       expect(harness.publisher.events.map((event) => event.name)).toEqual([
         'reservation:reassigned',
         'waitlist:updated',

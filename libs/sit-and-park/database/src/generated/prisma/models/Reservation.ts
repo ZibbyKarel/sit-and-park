@@ -18,12 +18,12 @@ import type * as Prisma from "../internal/prismaNamespace"
  * 
  * The two unique constraints are the concurrency guarantee of the whole
  * reservation flow: `(parkingSpotId, date)` is what makes double-booking
- * impossible under concurrent requests, and Task 10 maps its `P2002` violation
+ * impossible under concurrent requests, and The API maps its `P2002` violation
  * onto the contract error `SPOT_ALREADY_RESERVED`.
  * 
  * `userId` is nullable so that an admin can book for a guest, who has no `User`
  * row. `Reservation_holder_check` is what keeps that from admitting a row with
- * no holder at all — see `doc/decision/0305-a-reservation-holder-is-a-user-or-a-guest-never-neither`. Because `NULL`s do not collide
+ * no holder at all —. Because `NULL`s do not collide
  * in a Postgres unique index, `(userId, date)` still means "one reservation per
  * user per day" and deliberately does not limit guests.
  */

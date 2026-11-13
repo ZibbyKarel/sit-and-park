@@ -179,8 +179,7 @@ describe('the ICS feed against a real PostgreSQL', () => {
     });
 
     /**
-     * The claim `doc/api-modules.md` §2 calls out as "not exercised against a
-     * real Postgres in this environment". It is now.
+     * The claim that the date-only mapping holds against a real Postgres.
      *
      * A `@db.Date` has no time and no zone; the adapter hands Prisma a `Date` at
      * **UTC** midnight and `toDateOnly` reads it back with UTC getters. If

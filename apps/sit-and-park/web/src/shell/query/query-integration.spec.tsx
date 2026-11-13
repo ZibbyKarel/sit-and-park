@@ -2,9 +2,8 @@
  * A feature component reading, mutating and invalidating through TanStack
  * Query and `@sit-and-park/api-client`, end to end.
  *
- * Ported from `libs/query`'s `app-usage.spec.tsx`, which existed to
- * demonstrate the (now-removed) wrapper's API was sufficient for real feature
- * code. That demonstration's premise is gone (`doc/decision/0308-*`), so the
+ * Ported from a test that demonstrated the (now-removed) query wrapper was
+ * sufficient for real feature code. That premise is gone, so the
  * one test that read its own source to prove no `@tanstack/*`/`@orpc/*` import
  * was needed is dropped; the rest is still exactly the coverage this app's
  * query wiring needs — a real `RPCLink` with only `fetch` stubbed, so a

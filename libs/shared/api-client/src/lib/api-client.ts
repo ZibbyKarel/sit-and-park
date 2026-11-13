@@ -2,7 +2,7 @@
  * The oRPC client, typed from `libs/sit-and-park/contract` and nothing else.
  *
  * This is the only place in the workspace allowed to import `@orpc/client`
- * (`eslint.config.mjs`, `WRAPPED_LIBRARIES`; `doc/wrappers.md`). Everything else
+ * (`eslint.config.mjs`, `WRAPPED_LIBRARIES`; `doc/frontend.md`). Everything else
  * — feature code, `libs/query` — reaches the API through `ApiClient`, whose
  * every procedure, input, output and error code is derived from the contract.
  * No endpoint can be called that the contract does not declare, and no shape
@@ -43,7 +43,7 @@ export type ApiFetch = NonNullable<RPCLinkOptions<ApiClientContext>['fetch']>;
 /**
  * Supplies the access token for the `Authorization` header.
  *
- * `libs/sit-and-park/auth` (Task 20) provides the real implementation; until then any caller
+ * `libs/sit-and-park/auth` provides the real implementation; until then any caller
  * can inject one. It is a function rather than a string because the token is
  * refreshed independently of the client — reading it per request is what keeps
  * a long-lived client from pinning an expired token.

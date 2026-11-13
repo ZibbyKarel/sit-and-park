@@ -161,8 +161,8 @@ describe('applyReservationReassigned', () => {
   };
 
   it('swaps the holder in one step, never through an empty cell', () => {
-    // One committed transaction produces exactly one event
-    // (`doc/decision/0022-*`), so the cell must never be observed empty.
+    // One committed transaction produces exactly one event,
+    // so the cell must never be observed empty.
     const next = applyReservationReassigned(held, event);
     expect(next.spots[0]?.reservation?.id).toBe('res-2');
     expect(next.spots[0]?.reservation?.holder).toMatchObject({ kind: 'USER', userId: VIEWER });

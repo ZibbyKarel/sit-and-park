@@ -319,8 +319,7 @@ describe('assertWithinMonthlyReservationCap against a real PostgreSQL', () => {
 
     /**
      * `AUTO` with the suite's `TODAY` (2098-12-29), which lies inside
-     * January 2099's window: the cap only applies there
-     * (`doc/decision/0315-the-monthly-cap-applies-only-inside-the-auto-window`),
+     * January 2099's window: the cap only applies there,
      * so `FORCE_OPEN` — used here before — would switch it off.
      */
     beforeEach(async () => {

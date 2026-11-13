@@ -70,7 +70,7 @@ describe('GracefulShutdownService', () => {
     expect(calls).toEqual(['second']);
   });
 
-  it('is a no-op when nothing registered — Task 15 has not landed yet', async () => {
+  it('is a no-op when nothing registered — nothing has registered a closer', async () => {
     await expect(service.onApplicationShutdown('SIGTERM')).resolves.toBeUndefined();
     expect(service.registeredClosers()).toEqual([]);
   });

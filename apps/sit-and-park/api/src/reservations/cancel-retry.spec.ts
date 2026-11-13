@@ -142,7 +142,7 @@ describe('a cancellation whose retries all lose', () => {
   });
 
   it('retries the same deadlock when it arrives from a raw statement, as P2010', async () => {
-    // The regression `doc/decision/0240-*` records. `promote`'s cross-cell
+    // The regression: `promote`'s cross-cell
     // `DELETE … RETURNING` is a `$queryRaw`, so when *it* is the deadlock victim
     // the driver's error is wrapped rather than translated, and the code is
     // `P2010`, not `P2034`. A predicate that tested only `P2034` stopped

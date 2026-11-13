@@ -17,7 +17,7 @@ describe('contractErrorBody', () => {
     });
   });
 
-  it('keeps OUT_OF_HORIZON and RESERVATIONS_LOCKED distinct (ruling window-3)', () => {
+  it('keeps OUT_OF_HORIZON and RESERVATIONS_LOCKED distinct', () => {
     const notYetOpen = contractErrorBody('OUT_OF_HORIZON');
     const alreadyClosed = contractErrorBody('RESERVATIONS_LOCKED');
 
@@ -26,7 +26,7 @@ describe('contractErrorBody', () => {
     expect(alreadyClosed.status).toBe(423);
   });
 
-  it('produces a body that satisfies the Task 3 error contract', () => {
+  it('produces a body that satisfies the error contract', () => {
     const body = contractErrorBody('SPOT_ALREADY_RESERVED', { reservationId: 'abc' });
 
     // `data` is `details` under oRPC's name for the same field (decision 0018).

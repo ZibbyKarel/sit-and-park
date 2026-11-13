@@ -1,7 +1,7 @@
 /**
  * The whole point of `libs/shared/form` is that a real, validated, submittable form
  * can be built from `@sit-and-park/form` plus plain elements without ever importing
- * `react-hook-form` directly (`doc/wrappers.md`). This file's own import list —
+ * `react-hook-form` directly (`doc/frontend.md`). This file's own import list —
  * `@sit-and-park/form` and `zod`, nothing else — *is* that proof, and the last test
  * below reads this file's own source back off disk to make the claim
  * self-checking rather than something a reviewer has to take on faith.

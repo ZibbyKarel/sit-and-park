@@ -12,7 +12,7 @@ import type { RealtimeTestApp } from './testing/realtime-test-app';
 import { startRealtimeTestApp } from './testing/realtime-test-app';
 
 const FLOOR_WARNING_MESSAGE =
-  'REALTIME_LOCK_TTL_MS is below the documented floor (doc/decision/0110-*): the client renewal budget may no longer fit inside the hold before it lapses';
+  'REALTIME_LOCK_TTL_MS is below the documented floor: the client renewal budget may no longer fit inside the hold before it lapses';
 
 describe('the REALTIME_LOCK_TTL_MS floor warning, at a normal TTL', () => {
   let harness: RealtimeTestApp;

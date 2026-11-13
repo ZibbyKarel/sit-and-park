@@ -17,7 +17,7 @@
 # `**/`, not a bare `.env`. A .dockerignore pattern with no wildcard is
 # anchored at the context root, so `.env` excludes `/.env` and nothing else —
 # and this repository has a *second* one, `apps/sit-and-park/web/.env`, because Next.js
-# resolves env files relative to its own directory (doc/decision/0009-*). It
+# resolves env files relative to its own directory. It
 # was measured, not predicted: with a bare `.env` here, `docker build` shipped
 # the developer's `apps/sit-and-park/web/.env` — AUTH_SECRET, AUTH_OKTA_CLIENT_SECRET and
 # DATABASE_URL — into `.next/standalone/apps/sit-and-park/web/.env` inside the image, which
@@ -45,7 +45,7 @@
 #
 # `personas.ts` now resolves against the workspace root, so the doubled path is
 # gone as well — two fixes for one hole, because the pattern has to be right
-# for a path that a future refactor moves again. `doc/decision/0287-*`.
+# for a path that a future refactor moves again.
 **/.auth/
 **/storage-state*.json
 
@@ -79,7 +79,6 @@ doc
 README.md
 CLAUDE.md
 TODO.md
-plan.md
 handoff.md
 docker-compose.yml
 **/Dockerfile

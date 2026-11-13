@@ -31,7 +31,7 @@ describe('SpotDialog', () => {
    * `showPrimary`'s `!isInfo` conjunct apart from the rest of the expression:
    * both are measured to fail 0 tests when deleted from a suite that only
    * ever sees consistent props. These two exercise the inconsistent
-   * combinations a future reuse (Task 31's bulk flow is the obvious
+   * combinations a future reuse (the bulk flow is the obvious
    * candidate) could pass by accident.
    */
   it('does not offer cancelling on a free bay, even to an admin', () => {

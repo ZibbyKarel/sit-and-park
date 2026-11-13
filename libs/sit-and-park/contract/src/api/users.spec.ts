@@ -24,7 +24,7 @@ describe('adminUserSchema', () => {
   });
 
   it('does not grow when the user entity grows', () => {
-    // The whole reason this is a `pick` and not an `omit` (`doc/decision/0247-*`).
+    // The whole reason this is a `pick` and not an `omit`.
     // Exercised rather than argued: widen `userSchema` the way the next task to
     // add a per-user secret would, and check both directions against it.
     const widened = userSchema.extend({ passwordResetToken: z.string().min(1) });

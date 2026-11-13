@@ -17,8 +17,8 @@ import { RealtimeDomainEventPublisher } from './realtime.publisher';
  * implementation of it lives here, because this is where they are *delivered*.
  *
  * What this module exports is the **concrete** {@link
- * RealtimeDomainEventPublisher}, not the `DomainEventPublisher` token. Task 15
- * did bind the token here, but Task 16 (outbound Slack) implements the same
+ * RealtimeDomainEventPublisher}, not the `DomainEventPublisher` token. The
+ * token is not bound here because Slack (outbound) implements the same
  * seam, and one token resolves to one provider: binding it in either module
  * would silently exclude the other. So `ReservationsModule` — the module that
  * declares the token and is the only place that can name both implementations
@@ -31,14 +31,13 @@ import { RealtimeDomainEventPublisher } from './realtime.publisher';
  *
  * `AuthModule` is imported for `JwksVerifierService` and `AuthUserService`,
  * which {@link RealtimeHandshakeAuthenticator} injects and which it exports for
- * exactly this reason (`doc/decision/0042-*`): the handshake must reuse the
+ * exactly this reason: the handshake must reuse the
  * process's single JWKS client rather than open a second one with its own
  * cache, rate limiter and rotation moment. `PrismaService` and
  * `GracefulShutdownService` arrive from global modules.
  *
  * `SpotsModule` is imported for `SpotsService.isHidden`, which the gateway
- * reads on every broadcast to decide whether it may reach a non-admin
- * (`doc/decision/0316-*`). `SpotsModule` imports nothing from `realtime/`, so
+ * reads on every broadcast to decide whether it may reach a non-admin. `SpotsModule` imports nothing from `realtime/`, so
  * this does not close a cycle.
  */
 @Module({

@@ -1266,7 +1266,7 @@ describe('BulkReservationModal — the confirmed result against the proposal', (
   });
 
   it('shows the difference when a promised spot turned into a queue place', async () => {
-    // The race `doc/decision/0092-*` deliberately leaves open. Confirming
+    // The preview-to-confirm race is deliberately left open. Confirming
     // something quietly different from the proposal is the failure this whole
     // two-step flow exists to prevent.
     const { user } = setup({
@@ -1357,8 +1357,7 @@ describe('BulkReservationModal — the confirmed result against the proposal', (
 
   it('invalidates a day even when nothing could be done for it', async () => {
     // Over-invalidating is nearly free; deciding client-side which days the
-    // server actually touched would be the re-derivation `doc/decision/0120-*`
-    // rules out.
+    // server actually touched would be the client-side re-derivation we avoid.
     const { user, invalidate } = setup({
       confirmOutput: confirmed({
         days: [
@@ -1393,7 +1392,7 @@ describe('BulkReservationModal — what each typed failure says', () => {
   it('does not reuse the single-day reservation copy for a rejected batch', async () => {
     // `errors.VALIDATION_FAILED` says "weekend or holiday", which for a bulk
     // request is never the reason: a weekend is a per-day fact inside a
-    // *successful* response (`doc/decision/0090-*`).
+    // *successful* response.
     const { user } = setup({
       previewFailure: await contractFailure('VALIDATION_FAILED'),
     });
@@ -1496,7 +1495,7 @@ describe('BulkReservationModal — the locked month is blocked, not merely hidde
     // between, `canReserveMonth` comes back false while the reservations exist.
     // Refusing here would replace the difference panel with "hromadnou
     // rezervaci teď založit nelze" over bookings the user just made: the exact
-    // silent difference this flow exists to prevent (`doc/decision/0176-*`).
+    // silent difference this flow exists to prevent.
     const { user, rerender, onClose } = setup({
       confirmOutput: confirmed({
         days: [

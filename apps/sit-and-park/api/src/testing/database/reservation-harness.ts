@@ -3,8 +3,8 @@
  * real PostgreSQL, with nothing faked but the publisher.
  *
  * There is deliberately **no `PrismaDouble` here**. The double is the right tool
- * for the Task 12 services, whose logic is branches; it is the wrong tool for
- * this task, whose correctness is `FOR UPDATE`, transaction isolation and the
+ * for the services whose logic is branches; it is the wrong tool for
+ * these suites, whose correctness is `FOR UPDATE`, transaction isolation and the
  * exact shape of a `P2002` — none of which a double can model, and the last of
  * which this project has already been burned by faking
  * (`database-contract.db.spec.ts`, first paragraph).

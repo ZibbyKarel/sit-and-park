@@ -74,7 +74,7 @@ describe('AuditLogService', () => {
   });
 
   it('writes through the client it is handed, so a caller in a transaction stays in it', async () => {
-    // Task 13 passes the `$transaction` client so the entry rolls back with the
+    // Reservations pass the `$transaction` client so the entry rolls back with the
     // change it describes. Modelled here as a second, separate store: if `record`
     // ignored its `writer` argument the row would land in the default one.
     const transaction = new PrismaDouble();
@@ -247,7 +247,7 @@ describe('AuditLogService', () => {
   });
 
   it('exposes no way to change or remove an entry', () => {
-    // The real guarantee is a pair of database triggers (`doc/decision/0027-*`);
+    // The real guarantee is a pair of database triggers;
     // this only pins that the service does not offer a shortcut past them.
     const methods = Object.getOwnPropertyNames(AuditLogService.prototype).filter(
       (name) => name !== 'constructor'

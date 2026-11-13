@@ -1,5 +1,5 @@
 /**
- * Offices for parking (desk merge, stage 6), against a real PostgreSQL: a user
+ * Offices for parking, against a real PostgreSQL: a user
  * books and queues only spots of their own office, a spot elsewhere answers
  * `NOT_FOUND` exactly like a hidden one, an admin books across offices, a user
  * without an office sees every office, and bulk booking allocates only in the

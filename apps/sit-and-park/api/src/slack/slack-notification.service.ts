@@ -22,8 +22,7 @@
  * ## Failures this class turns into outcomes, and one it does not
  *
  * A missing spot row, an unreachable Slack, a user with no Slack account — all
- * of them return an outcome and log, never a rejection. `plan.md` is explicit
- * that a Slack failure never breaks a domain operation, and the cheapest way to
+ * of them return an outcome and log, never a rejection. A Slack failure never breaks a domain operation, and the cheapest way to
  * guarantee that at every *Slack* call site is to leave nothing to catch.
  *
  * That does not extend to the database reads above the Slack call in each
@@ -97,8 +96,7 @@ export class SlackNotificationService {
       return 'skipped';
     }
     if (spot.hidden) {
-      // The channel is everybody; a hidden spot is nobody's but the admins'
-      // (`doc/decision/0316-*`). Not a warning — nothing went wrong.
+      // The channel is everybody; a hidden spot is nobody's but the admins'. Not a warning — nothing went wrong.
       this.logger.debug(
         { parkingSpotId: notice.parkingSpotId, reservationId: notice.reservationId },
         'Freed spot is hidden; Slack notice skipped'
@@ -229,11 +227,10 @@ export class SlackNotificationService {
    * spots rather than by a `NOT EXISTS` query, because the message lists the
    * free spots by **label** in the same order the lot screen does
    * (`SpotsService.listActive`), and re-deriving that order in SQL would be a
-   * second definition of it. Guest time blocks (`TimedReservation`,
-   * `doc/decision/0314-*`) make a spot unavailable for a full day too, even
+   * second definition of it. Guest time blocks (`TimedReservation`) make a spot unavailable for a full day too, even
    * though the cell has no `Reservation` row, so they are subtracted the same
    * way. Hidden spots are left out of both the count and the list — the
-   * channel is read by everybody (`doc/decision/0316-*`).
+   * channel is read by everybody.
    */
   private async collectDailySummary(date: DateOnly): Promise<DailySummary> {
     const dateColumn = toDateColumn(date);

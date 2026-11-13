@@ -40,7 +40,7 @@ import { authed, contractErrors } from './builder';
  * rule this file now states rather than a coincidence.
  *
  * The switch itself moved no response shape (the same ten keys the `omit`
- * produced; `doc/decision/0247-*`). The desk merge then widened it on purpose
+ * produced). The desk merge then widened it on purpose
  * by the four non-secret columns it added to `User`.
  */
 export const ADMIN_USER_FIELDS = {

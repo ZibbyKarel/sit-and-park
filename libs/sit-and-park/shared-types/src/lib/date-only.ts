@@ -14,9 +14,8 @@
  * 23 and 25 hours long in Europe/Prague and would break any implementation
  * based on adding 86_400_000 ms to a local timestamp.
  *
- * `DateOnly` is deliberately an unbranded alias of `string` — see
- * `doc/decision/0014-dateonly-is-an-unbranded-string.md`.
- */
+ * `DateOnly` is deliberately an unbranded alias of `string`.
+ * */
 
 /** ISO 8601 calendar date, `YYYY-MM-DD`. */
 export type DateOnly = string;

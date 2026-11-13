@@ -1,13 +1,12 @@
 /**
  * The error table: one definition per domain error code.
  *
- * Bridge between the Task 3 error contract (`ERROR_CODES`, `errorShapeSchema`)
+ * Bridge between the error contract (`ERROR_CODES`, `errorShapeSchema`)
  * and oRPC's typed-error mechanism.
  *
  * oRPC carries errors as `{ code, message, data }`, where `code` is the key of
  * the procedure's error map. Our contract calls the third field `details`, but
- * it is the same field — see
- * `doc/decision/0018-mapping-error-contract-to-orpc.md`. Nothing here invents
+ * it is the same field — see `doc/contract.md`. Nothing here invents
  * a new code: the map below is keyed by `ErrorCode` and TypeScript rejects a
  * key that is not in `ERROR_CODES`.
  *

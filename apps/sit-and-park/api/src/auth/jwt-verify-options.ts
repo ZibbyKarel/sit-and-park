@@ -2,7 +2,7 @@
  * The **one** set of JWT verification rules in this application.
  *
  * Two callers verify tokens — the `passport-jwt` strategy on the HTTP side and
- * `JwksVerifierService.verifyToken()` (which the Socket.io gateway in Task 15
+ * `JwksVerifierService.verifyToken()` (which the Socket.io gateway
  * uses, because a Passport HTTP strategy cannot run on a WebSocket handshake).
  * Both must apply *identical* rules, so the rules are built once here and
  * `JwtStrategy` spreads the very object the verifier holds, rather than

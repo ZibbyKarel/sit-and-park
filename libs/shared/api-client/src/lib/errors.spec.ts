@@ -17,8 +17,8 @@ const URL_BASE = 'https://api.test/rpc';
  * A domain error in oRPC's wire shape, `ORPCErrorJSON`.
  *
  * `defined: false` because an error the server did not declare on the procedure
- * carries that flag — which is every domain error this backend sends
- * (`doc/decision/0033-*`), and the reason `toContractError` reads the code
+ * carries that flag — which is every domain error this backend sends,
+ * and the reason `toContractError` reads the code
  * rather than that flag.
  *
  * This is a **local restatement**, not a shared fixture: nothing here is
@@ -132,7 +132,7 @@ describe('toContractError', () => {
 
   it('returns null for a transport failure the contract has no code for', async () => {
     // The throttler's 429 keeps Nest's `{ statusCode, message }` shape and
-    // carries no `code` at all (`doc/decision/0033-*`).
+    // carries no `code` at all.
     const error = await failedCall({
       status: 429,
       body: { statusCode: 429, message: 'ThrottlerException: Too Many Requests' },
@@ -167,11 +167,11 @@ describe('toContractError', () => {
    * It does not fail closed: the wrong domain error arrives looking valid.
    *
    * `apps/sit-and-park/api` **used to** write its error body at the top level
-   * (`response.status(...).json(body)`, `doc/decision/0033-*`), which produced
+   * (`response.status(...).json(body)`), which produced
    * exactly this failure against a real server. It no longer does:
    * `rpcEnvelope` in `apps/sit-and-park/api/src/common/errors/error-body.ts` wraps every
-   * contract-error body on an `/api/rpc` path in `{ json: … }`
-   * (`doc/decision/0058-*`), and the guard
+   * contract-error body on an `/api/rpc` path in `{ json: … }`,
+   * and the guard
    * that watches it lives in `apps/sit-and-park/api/src/orpc/orpc-pipeline.spec.ts`, which
    * asserts the enveloped shape against a live server. That is where the guard
    * has to be: the coupling cannot be written from here, because the Nx
@@ -183,7 +183,7 @@ describe('toContractError', () => {
    * filter produces. It is kept because the oRPC behaviour it pins is
    * load-bearing for `toContractError` and is not obvious from the package's
    * documentation: it is the reason `toContractError` must **not** be loosened
-   * to read a top-level body (`doc/decision/0039-*`, "Risk if this is wrong").
+   * to read a top-level body.
    */
   it('loses the domain code when a body is not wrapped in the RPC envelope', async () => {
     const error = await failedCall({

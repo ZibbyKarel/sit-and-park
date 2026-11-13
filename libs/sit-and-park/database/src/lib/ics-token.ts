@@ -13,11 +13,10 @@
  * `GET /api/calendar/:icsToken.ics` is `@Public()` by design: the token *is*
  * the credential. So those four lines published every seeded account's whole
  * reservation calendar to anyone who had read the repository, and
- * `doc/decision/0080-*` — which makes a wrong token's 404 indistinguishable
+ * the 404 policy — which makes a wrong token's 404 indistinguishable
  * from an unrouted 404, so tokens cannot be enumerated — protected nothing for
  * them, because they needed no enumerating. The final review raised it as its
- * only Critical; see
- * `doc/decision/0275-the-development-seed-generates-its-ics-tokens.md`.
+ * only Critical.
  *
  * ## Why base64url and not hex
  *

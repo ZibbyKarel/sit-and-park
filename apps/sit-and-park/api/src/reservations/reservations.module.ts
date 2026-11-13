@@ -38,16 +38,15 @@ import { WaitlistService } from './waitlist.service';
  *
  * `DomainEventPublisher` is an abstract class used as the injection token
  * rather than a `Symbol`, so the seam is discoverable from the type and a
- * replacement cannot silently have the wrong shape. Task 13 bound it to
- * `NoopDomainEventPublisher`; Task 15 (Socket.io broadcasts) and Task 16
- * (outbound Slack) each then claimed it, and each predicted the collision in a
- * comment. Nest resolves one provider per token, so the resolution is not a
+ * replacement cannot silently have the wrong shape. It defaults to
+ * `NoopDomainEventPublisher`; the Socket.io broadcasts and the outbound Slack
+ * notifications each claim it. Nest resolves one provider per token, so the resolution is not a
  * choice between them: it is {@link CompositeDomainEventPublisher}, bound here
  * and fanning every fact out to both.
  *
  * The delegate list is built by a factory injecting the *concrete* publisher
  * classes, which `RealtimeModule` and `SlackModule` provide and export. That is
- * what preserves the guarantee Task 16 needed `useExisting` for: the Slack
+ * what preserves the guarantee Slack needs `useExisting` for: the Slack
  * publisher is the instance `SlackModule` built, not a second one Nest would
  * construct here — which would resolve, keep its own in-flight set, and fail on
  * the collaborators that module deliberately does not export. The same holds
@@ -91,7 +90,7 @@ import { WaitlistService } from './waitlist.service';
     { provide: DomainEventPublisher, useClass: CompositeDomainEventPublisher },
   ],
   // `ReservationPolicy` and `DomainEventPublisher` are exported so that
-  // `TimedReservationsModule` (Task 4 of the guest-half-hour-blocks plan) can
+  // `TimedReservationsModule` can
   // reuse this module's day-eligibility rule and its one after-commit
   // publisher instance, instead of importing `RealtimeModule`/`SlackModule`
   // itself and standing up a second `CompositeDomainEventPublisher` that would

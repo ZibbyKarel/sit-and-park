@@ -11,7 +11,7 @@
 /**
  * Czech month names in the **locative** case, 1-based, for the one sentence in
  * the UI that puts a month after a preposition: the bulk modal's
- * "Vyberte dny v září." (`doc/design/screens/10-modal-bulk.png`).
+ * "Vyberte dny v září.".
  *
  * A hand-written table, unlike everything else in this module, because `Intl`
  * genuinely cannot produce it. CLDR carries two Czech month forms — the

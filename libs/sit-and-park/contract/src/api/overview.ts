@@ -3,7 +3,7 @@
  * given day: every spot, who holds it, how many people are queued for it, where
  * the caller stands, **and** the reservation-window state of that day.
  *
- * The window travels with the payload on purpose (Task 4 brief): the banner and
+ * The window travels with the payload on purpose: the banner and
  * the "reservations locked" tiles are rendered from the same response, so the
  * frontend never needs a second round trip and can never render a day's grid
  * against a stale window.
@@ -36,8 +36,8 @@ export const daySpotOverviewSchema = z.object({
   viewerWaitlistPosition: z.int().positive().nullable(),
   /**
    * Guest blocks on this spot this day, ascending by `startTime`. Non-empty
-   * only while `reservation` is `null` — the database refuses both at once
-   * (`doc/decision/0314-*`). A spot with blocks cannot take a full-day
+   * only while `reservation` is `null` — the database refuses both at once.
+   * A spot with blocks cannot take a full-day
    * reservation, but an admin may add further non-overlapping blocks.
    */
   timedReservations: z.array(publicTimedReservationSchema),
@@ -75,10 +75,10 @@ export const dayOverviewOutputSchema = z.object({
    * booking modal, which offers a whole month's grid from whatever day the user
    * happens to be looking at — must read this one, or it switches itself off on
    * every weekend, every Czech public holiday and every past day of an open
-   * month (`doc/decision/0175-*`).
+   * month.
    *
    * It is a separate field rather than something the client derives, for the
-   * same reason `canReserve` is (`doc/decision/0120-*`): the admin exemption
+   * same reason `canReserve` is: the admin exemption
    * does not appear anywhere in `window`, so `window.state === 'OPEN'` is not
    * this value and never can be.
    */
@@ -87,7 +87,7 @@ export const dayOverviewOutputSchema = z.object({
    * Every active spot the caller may see, in a stable order chosen by the
    * backend: all of them for an admin (hidden ones with `spot.hidden: true`),
    * and for anybody else the visible ones plus a hidden one they hold or are
-   * queued for that day (`doc/decision/0316-*`).
+   * queued for that day.
    */
   spots: z.array(daySpotOverviewSchema),
   /**

@@ -4,23 +4,20 @@
  *
  * Separate from the filter that writes these bodies, because "what does an
  * error look like on an RPC route versus a plain one" is a question about the
- * transport contract, not about exception handling. Governed by
- * `doc/decision/0058-error-bodies-on-rpc-routes-carry-the-rpc-envelope` and
- * `doc/decision/0033-transport-errors-keep-the-nest-shape`.
+ * transport contract, not about exception handling.
  *
  * Domain errors use oRPC's error JSON (`ORPCErrorJSON` in `@orpc/client`):
  * `{ defined, code, status, message, data? }`. The frontend reads errors
  * through the oRPC client, which only understands that shape, so a body in any
  * other shape would be unreadable to it. `data` is the contract's `details`
- * under oRPC's name for the same field — see
- * `doc/decision/0018-mapping-error-contract-to-orpc.md`. `defined` is `false`
+ * under oRPC's name for the same field.
+ * `defined` is `false`
  * because an error that reached the global filter is by definition one the
  * procedure did not declare.
  *
  * Transport-level failures (an unmatched route, a throttled request, a body
  * over the size limit) keep Nest's `{ statusCode, message }` shape: they are
- * not domain errors and the closed enum has no member for them. See
- * `doc/decision/0033-*`.
+ * not domain errors and the closed enum has no member for them.
  */
 
 import { HttpStatus } from '@nestjs/common';
@@ -67,9 +64,7 @@ export const INTERNAL_ERROR_BODY: TransportErrorBody = {
  * fails oRPC's `isORPCErrorJson`, and the client then **synthesises a code from
  * the HTTP status** — so a 409 `SPOT_ALREADY_RESERVED` used to arrive as
  * `CONFLICT`, which is also a member of `ERROR_CODES` and therefore did not fail
- * closed: the UI would have shown the wrong domain error, confidently. Recorded
- * as known-and-unguarded in `doc/decision/0039-*`, which routed the fix to
- * whoever owned `apps/sit-and-park/api` next; that is Task 12.
+ * closed: the UI would have shown the wrong domain error, confidently.
  *
  * There is deliberately **no `meta` key**. `meta` is oRPC's list of type
  * annotations for values JSON cannot carry (dates, bigints, sets); an error body
@@ -94,7 +89,7 @@ export function rpcEnvelope<T>(body: T): RpcEnvelope<T> {
  * True for a request that will be read by an oRPC client.
  *
  * Scoped by path rather than applied everywhere on purpose: the health probes
- * and the ICS feed (Task 14) are read by an orchestrator and by calendar
+ * and the ICS feed are read by an orchestrator and by calendar
  * clients, neither of which knows what a `{ json, meta }` envelope is.
  */
 export function isRpcRequest(request: Request): boolean {

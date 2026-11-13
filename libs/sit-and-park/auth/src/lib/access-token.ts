@@ -1,11 +1,11 @@
 /**
  * The seam between the session and the transports.
  *
- * `libs/shared/api-client` was built (Task 19) around an injectable
+ * `libs/shared/api-client` was built around an injectable
  * `AccessTokenProvider` — a function read once **per request** rather than a
  * string captured at construction — precisely so that this lib could supply it
  * without either lib importing the other's third-party package.
- * `libs/sit-and-park/realtime-client` (Task 21) takes the same function for its Socket.io
+ * `libs/sit-and-park/realtime-client` takes the same function for its Socket.io
  * handshake.
  *
  * Nothing here touches `localStorage`, `sessionStorage`, a cookie written from

@@ -13,7 +13,7 @@
  *
  * ## The window ruling, in one place
  *
- * `doc/decision/0004-*` (ruling window-1), restated by the Task 13 brief:
+ * The rule:
  *
  * | action | window applies? |
  * | --- | --- |
@@ -34,10 +34,10 @@
  * not bookable — `DayOverviewService.canReserve` already reports `false` for
  * one, and a backend that then accepted the write would be contradicting its own
  * screen. `ERROR_CODES` has no `NOT_A_BUSINESS_DAY` member, and adding one would
- * have widened a closed contract enum shared by every task. It did not need to
- * be: Task 17 already shipped the Czech copy for `VALIDATION_FAILED` as
+ * have widened a closed contract enum shared by every consumer. It did not need to
+ * be: the Czech copy for `VALIDATION_FAILED` as
  * *"Požadavek porušuje pravidlo rezervací (např. víkend nebo svátek)"* — the
- * weekend case is literally the example it names. See `doc/decision/0064-*`.
+ * weekend case is literally the example it names.
  */
 
 import { Injectable } from '@nestjs/common';

@@ -25,7 +25,7 @@
  * no `signIn()` and no message. `/admin` was no better — `AdminScreen`
  * early-returns while the profile is pending, so the panels that *do* call
  * `useRequireAuth` were never mounted in exactly the states that need it.
- * See `doc/decision/0255-*`.
+ *
  *
  * The proxy (`src/proxy.ts`) still refuses the *navigation*; this is the other
  * half, and the two do not overlap.

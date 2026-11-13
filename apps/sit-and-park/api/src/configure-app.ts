@@ -74,7 +74,7 @@ export function configureApp(app: INestApplication, config: HttpConfig): void {
   app.use(json({ limit: config.BODY_LIMIT }));
   app.use(urlencoded({ extended: true, limit: config.BODY_LIMIT }));
 
-  // The Socket.io server (Task 15). Here rather than in `main.ts` for this
+  // The Socket.io server. Here rather than in `main.ts` for this
   // file's whole reason to exist: the specs that stand up the assembled
   // application get the *same* socket server the running one does — the same
   // path, the same CORS allow-list — instead of a hand-rebuilt copy that can
@@ -84,7 +84,7 @@ export function configureApp(app: INestApplication, config: HttpConfig): void {
 
   // Stop accepting connections on SIGTERM/SIGINT, let in-flight requests
   // finish, then run `onModuleDestroy` (closes the database pool) and
-  // `onApplicationShutdown` (`GracefulShutdownService`, which Task 15 uses to
-  // close Socket.io).
+  // `onApplicationShutdown` (`GracefulShutdownService`, which closes
+  // Socket.io).
   app.enableShutdownHooks();
 }

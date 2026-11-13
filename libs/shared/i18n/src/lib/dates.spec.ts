@@ -4,7 +4,6 @@ const cs = createDateFormatters('cs');
 
 describe('cs.fullDate', () => {
   it('matches the design exactly: weekday, day with an ordinal dot, genitive month, year', () => {
-    // doc/design/screens/07-lot.png
     expect(cs.fullDate('2026-09-28')).toBe('pondělí 28. září 2026');
   });
 
@@ -22,7 +21,7 @@ describe('cs.fullDate', () => {
 
 describe('cs.dayAndMonth', () => {
   it('formats day and genitive month without a year', () => {
-    // doc/design/screens/05-admin-window.png — "otevřeno 25. srpna – 31. srpna"
+    // "otevřeno 25. srpna – 31. srpna"
     expect(cs.dayAndMonth('2026-08-25')).toBe('25. srpna');
     expect(cs.dayAndMonth('2026-08-31')).toBe('31. srpna');
   });
@@ -38,7 +37,7 @@ describe('cs.dayAndMonth', () => {
 
 describe('cs.dayMonthAndYear', () => {
   it('matches the design exactly: day, genitive month, year, and no weekday', () => {
-    // doc/design/screens/05-admin-window.png — "dnes je 28. srpna 2026"
+    // "dnes je 28. srpna 2026"
     expect(cs.dayMonthAndYear('2026-08-28')).toBe('28. srpna 2026');
   });
 
@@ -62,7 +61,7 @@ describe('cs.dayMonthAndYear', () => {
 
 describe('cs.monthAndYear', () => {
   it('formats the nominative month with the year — the month-status heading', () => {
-    // doc/design/screens/05-admin-window.png — "srpen 2026", "září 2026", …
+    // "srpen 2026", "září 2026", …
     expect(cs.monthAndYear('2026-08-01')).toBe('srpen 2026');
     expect(cs.monthAndYear('2026-09-15')).toBe('září 2026');
     expect(cs.monthAndYear('2026-11-30')).toBe('listopad 2026');
@@ -145,7 +144,7 @@ describe('cs.monthLocative', () => {
 
 describe('cs.weekdayName', () => {
   it('names every Czech weekday in the nominative, Monday first', () => {
-    // 2026-09-28 is a Monday (doc/design/screens/07-lot.png), so this week
+    // 2026-09-28 is a Monday, so this week
     // runs Monday to Sunday with no arithmetic of its own.
     const week = [
       '2026-09-28',

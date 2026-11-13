@@ -10,7 +10,7 @@ import { RealtimeBoundary } from './realtime-boundary';
  * Both seams are stubbed at the **wrapper**: `@sit-and-park/realtime-client` and
  * `@sit-and-park/auth/client`. Nothing here names `socket.io-client` or
  * `next-auth`, which `apps/sit-and-park/web` may not import at all; a real socket would need
- * a running gateway, and that is Task 15's suite and the e2e run, not this one.
+ * a running gateway, and that is the API's suite and the e2e run, not this one.
  *
  * The stub renders its children so the boundary is still shown to be
  * transparent: holding the connection closed must not hold the application

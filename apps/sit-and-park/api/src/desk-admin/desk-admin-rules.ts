@@ -26,8 +26,7 @@ export interface DeskChangeEffects {
 }
 
 /**
- * The orphan handling the source app lacked (`doc/desk-merge-plan.md`, defect
- * table). Deactivating or moving a desk to another office takes away what was
+ * The orphan handling the source app lacked. Deactivating or moving a desk to another office takes away what was
  * booked on it from today on and what was requested for it; changing (or
  * clearing) its hive only invalidates requests, which were addressed to the
  * old hive's owner — reservations stay valid, they were made with access.

@@ -280,7 +280,7 @@ test('regenerating the calendar link changes the URL, revokes the old one, and t
     // (`calendar.controller.ts`) sets `Content-Type`/`Cache-Control`/
     // `X-Robots-Tag` only *after* that lookup succeeds, so a revoked token's
     // 404 carries none of them — established by reading both files, not
-    // measured behaviourally, per `doc/decision/0080-*` on why every failure
+    // measured behaviourally; every failure
     // here is a 404 rather than a 401 (a 401 would let a token be enumerated
     // by response code alone).
     const revoked = await anonymous.get(oldUrl);

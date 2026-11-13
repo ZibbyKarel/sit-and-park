@@ -456,7 +456,7 @@ describe('JwksVerifierService', () => {
         expect(serialised).not.toContain(part);
       }
       // And no `Error` object, so no stack is repeated every minute of an
-      // outage — the same call `doc/decision/0035-*` made for the probe.
+      // outage — as for the readiness probe.
       expect(serialised).not.toContain('"err"');
     });
 

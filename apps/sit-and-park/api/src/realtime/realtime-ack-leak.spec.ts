@@ -23,7 +23,7 @@
  * a real Socket.io handshake, a real ack over the wire, a real room broadcast.
  *
  * The secret at stake is `icsToken`, which is the whole of the authentication
- * on a personal calendar feed (`doc/decision/0053-*`) — and the ack crosses to
+ * on a personal calendar feed — and the ack crosses to
  * *another user's* browser, which is what makes it worse than a self-leak.
  */
 

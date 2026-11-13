@@ -314,8 +314,7 @@ describe('buildReservationCalendar', () => {
   });
 
   it('is a pure function of its input: the same feed months apart is the same bytes', () => {
-    // This is what lets Express answer a polling client with 304
-    // (`doc/decision/0081-*`).
+    // This is what lets Express answer a polling client with 304.
     //
     // The clock is moved between the two calls, and that is not decoration:
     // `ical-generator` formats `DTSTAMP` to whole seconds, so a naive version

@@ -55,7 +55,7 @@ export const authed = oc.errors(contractErrors('FORBIDDEN'));
  * `undefined` for an argument-less call, while oRPC's OpenAPI input mapping
  * merges path/query/body into an object and hands a parameter-less GET an empty
  * one. `z.void()` would pass the first and reject the second, which would turn
- * the handler choice in Task 12 into a runtime break here. Anything with a key
+ * the handler choice in the API into a runtime break here. Anything with a key
  * in it is still rejected.
  */
 export const noInputSchema = z.strictObject({}).optional();

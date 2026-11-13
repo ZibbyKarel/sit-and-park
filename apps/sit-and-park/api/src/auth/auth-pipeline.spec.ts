@@ -299,7 +299,7 @@ describe('authentication through the assembled application', () => {
       // `ProtectedController` carries no auth decorator of any kind; it is
       // protected because `JwtAuthGuard` is an APP_GUARD. This used to probe
       // `GET /api`, the Nx scaffold's `AppController`, which was deleted as a
-      // route in no contract (`doc/decision/0239-*`) — a locally declared
+      // route in no contract — a locally declared
       // controller makes the same point without depending on a stub existing.
       const response = await get('/api/protected');
 

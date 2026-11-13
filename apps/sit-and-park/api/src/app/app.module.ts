@@ -66,7 +66,7 @@ import { UsersModule } from '../users/users.module';
     DatabaseModule,
     HealthModule,
     AuthModule,
-    // Domain modules (Task 12). Each one mounts its share of the oRPC contract;
+    // Domain modules. Each one mounts its share of the oRPC contract;
     // `orpc-route-parity.spec.ts` fails if the routes and the contract drift.
     SpotsModule,
     UsersModule,
@@ -74,12 +74,12 @@ import { UsersModule } from '../users/users.module';
     ReservationWindowModule,
     ReservationLimitsModule,
     OverviewModule,
-    // Task 15. The Socket.io gateway and the editing-hold registry. Listed
+    // The Socket.io gateway and the editing-hold registry. Listed
     // explicitly even though `ReservationsModule` also imports it (for the
     // after-commit publisher), because a gateway that exists only as somebody
     // else's transitive import is a gateway one refactor away from vanishing.
     RealtimeModule,
-    // Task 13. Reservations, the waitlist, and the auto-promotion that couples
+    // Reservations, the waitlist, and the auto-promotion that couples
     // them inside one transaction.
     ReservationsModule,
     // Admin-only guest half-hour blocks. Imported after `ReservationsModule`
@@ -94,10 +94,10 @@ import { UsersModule } from '../users/users.module';
     // `POST /api/employee-sync` (outside oRPC, bearer key) and
     // `admin.employeeSync.*`; also the user deactivation `UsersModule` reuses.
     EmployeeSyncModule,
-    // The ICS feed (Task 14). The one controller outside the oRPC contract —
-    // see its class comment and `doc/decision/0080-*`.
+    // The ICS feed. The one controller outside the oRPC contract —
+    // see its class comment.
     CalendarModule,
-    // Outbound Slack notifications and the daily-summary job (Task 16).
+    // Outbound Slack notifications and the daily-summary job.
     // Imported here as well as by `ReservationsModule` so the composition root
     // shows it: the job is not a reservations concern, and Nest resolves the
     // same singleton either way.
@@ -106,7 +106,7 @@ import { UsersModule } from '../users/users.module';
   // No controllers of its own. The Nx scaffold's `AppController`
   // (`GET /api` → `{"message":"Hello API"}`) lived here and was deleted: it
   // existed in no contract, which global constraint 1 forbids, and nothing
-  // called it. See `doc/decision/0239-*`.
+  // called it.
   providers: [
     // Registered as a provider rather than via `app.useGlobalFilters(...)` so
     // that Nest can inject the pino logger into it.

@@ -13,15 +13,14 @@ import * as z from 'zod';
  * Closed enumeration of domain error codes.
  *
  * The two window-related codes are distinct on purpose, because the user-facing
- * explanation differs (see `doc/decision/0004-*`):
+ * explanation differs:
  *
  * - `OUT_OF_HORIZON` — the target month is `NOT_YET_OPEN`; reservations for it
  *   have not opened yet ("Zatím neotevřeno").
  * - `RESERVATIONS_LOCKED` — the target month is `LOCKED`, which only an
- *   admin's `FORCE_LOCKED` produces; under `AUTO` a started month stays open
- *   (`doc/decision/0315-*`).
+ *   admin's `FORCE_LOCKED` produces; under `AUTO` a started month stays open.
  *
- * Both are raised by the service layer (Task 13) on top of `monthLockState()`,
+ * Both are raised by the service layer on top of `monthLockState()`,
  * never by a schema.
  */
 export const ERROR_CODES = [
@@ -38,7 +37,7 @@ export const ERROR_CODES = [
   'VALIDATION_FAILED',
   'CONFLICT',
   'RESERVATIONS_LOCKED',
-  // Desk booking (`doc/desk-merge-plan.md`). Desk-level blockers fail a whole
+  // Desk booking (`doc/desks.md`). Desk-level blockers fail a whole
   // call; per-day reasons of a series travel as `DeskSkipReason` instead.
   'DESK_ALREADY_RESERVED',
   'DESK_RESERVATION_LIMIT_REACHED',
@@ -60,9 +59,8 @@ export type ErrorCode = z.infer<typeof errorCodeSchema>;
  * Structured context carried alongside an error code, e.g. the id of the
  * conflicting reservation. Free-form on purpose: its keys depend on `code`.
  *
- * On the wire this is oRPC's `data` field — see
- * `doc/decision/0018-mapping-error-contract-to-orpc.md`.
- */
+ * On the wire this is oRPC's `data` field.
+ * */
 export const errorDetailsSchema = z.record(z.string(), z.unknown());
 export type ErrorDetails = z.infer<typeof errorDetailsSchema>;
 

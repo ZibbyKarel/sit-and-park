@@ -1,6 +1,6 @@
 {
   "name": "@sit-and-park/source",
-  "// name": "The root package shares the `@sit-and-park` scope with every lib, because Nx generators derive a new lib's alias scope from this name (doc/decision/0006-*).",
+  "// name": "The root package shares the `@sit-and-park` scope with every lib, because Nx generators derive a new lib's alias scope from this name.",
   "version": "0.0.0",
   "license": "MIT",
   "// engines": "The Node major was pinned in three places that pnpm never reads: `.nvmrc`, `node-version-file` in CI, and `node:24-alpine` in both Dockerfiles. A developer on Node 22 got no warning from `pnpm install` and found out later, somewhere unrelated. This is the same pin in the one file pnpm does read; `.nvmrc` stays the source of truth for the exact version.",

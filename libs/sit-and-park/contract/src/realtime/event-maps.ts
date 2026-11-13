@@ -33,7 +33,7 @@ import {
 /**
  * Every server → client event, with the schema of its payload.
  *
- * Runtime value, not just a type: Task 15 can validate what it is about to
+ * Runtime value, not just a type: the gateway can validate what it is about to
  * broadcast in development, and a test can assert the two maps are exhaustive.
  */
 export const SERVER_TO_CLIENT_EVENT_SCHEMAS = {
@@ -51,7 +51,7 @@ export const SERVER_TO_CLIENT_EVENT_SCHEMAS = {
 /**
  * Every client → server command, with the schema of its payload.
  *
- * **This is the gateway's validation table.** Task 15 looks the inbound event
+ * **This is the gateway's validation table.** The gateway looks the inbound event
  * name up here and `safeParse`s the payload before any handler runs; an event
  * name that is not a key is not handled at all.
  */

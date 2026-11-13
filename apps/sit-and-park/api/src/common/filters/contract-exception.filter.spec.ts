@@ -426,7 +426,7 @@ describe('ContractExceptionFilter', () => {
   });
 
   /**
-   * The guard `doc/decision/0039-*` routed here, and the defect it describes.
+   * The guard against that defect, and the defect it describes.
    *
    * A domain error written at the top level of the body deserialises to
    * `undefined` in `@orpc/client`, which then synthesises a code from the HTTP
@@ -469,7 +469,7 @@ describe('ContractExceptionFilter', () => {
     });
 
     it('leaves a transport failure in Nest’s shape, even on an RPC path', () => {
-      // `doc/decision/0033-*`: the closed enum has no member for "too many
+      // The closed enum has no member for "too many
       // requests", and the oRPC client derives a code from the status for these.
       const { host, captured } = createHost(RPC_PATH);
 

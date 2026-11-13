@@ -15,8 +15,7 @@
  *
  * - **`fail(info)`** — no token, bad signature, expired, wrong issuer, wrong
  *   audience. Nest sees `user === false` and throws `UnauthorizedException`
- *   → `401 { statusCode, message }` (a transport error, per
- *   `doc/decision/0033-*`).
+ *   → `401 { statusCode, message }` (a transport error).
  * - **`error(err)`** — the verify callback threw. `@nestjs/passport`'s mixin
  *   catches a rejected `validate()` and calls `done(err)`, so anything thrown
  *   below travels this leg. Nest rethrows it unchanged, and
@@ -51,7 +50,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, JWT_STRATEGY_NAME) {
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
 
       // The one JWKS client in the process, not a second one built by
-      // `jwksRsa.passportJwtSecret()` — see `doc/decision/0042-*`.
+      // `jwksRsa.passportJwtSecret()`.
       secretOrKeyProvider: (_request, rawJwtToken: string, done) => {
         verifier.getSigningKey(rawJwtToken).then(
           (key) => {

@@ -6,11 +6,11 @@
  * through the DOM. So the decisions live here — no React, no hooks, no
  * network — and the components below take the result and draw it. Each
  * function is transcribed from the design's own state machine
- * (`doc/design/sit-and-park-design.dc.html`, the `renderVals()` method), which is
+ * (its `renderVals()` method), which is
  * the source of truth for this screen.
  *
  * Two rules the design does not state but the contract does, and which win
- * where they differ (see `doc/decision/0121-*`):
+ * where they differ:
  *
  * 1. **`canReserve` is the backend's answer, never re-derived here.**
  *    `dayOverviewOutputSchema` says so in as many words: it already accounts
@@ -53,7 +53,7 @@ export const CAR_COLOR_PALETTE = ['#fcaf00', '#00e25a', '#3b88ff'] as const;
 /**
  * Which of the three car colours a user's car is drawn in.
  *
- * `doc/design/README.md` requires this be "deterministically per user, not
+ * The design requires this be "deterministically per user, not
  * randomly — otherwise a car's color would change on every render".
  *
  * FNV-1a over the UTF-16 code units of the id, folded to 32 bits. Any stable
@@ -139,7 +139,7 @@ export type SpotAction = 'reserve' | 'queue' | 'mine' | 'info' | 'none';
 /**
  * How a tile is drawn. Mirrors the design's four `sc-if` branches, plus
  * `'timed'`: free of a full-day holder but carrying one or more guest blocks
- * for part of the day (Task 6). Drawn like `'free'` — same frame, no car
+ * for part of the day. Drawn like `'free'` — same frame, no car
  * glyph — with the blocks' time ranges in place of "Volné".
  */
 export type SpotAppearance = 'free' | 'taken' | 'window-locked' | 'editing' | 'timed';
@@ -171,13 +171,12 @@ export interface SpotView {
   /**
    * The spot is hidden and the viewer is an admin — the only viewer who sees
    * it as such. A normal user shown their own hidden spot sees an ordinary
-   * tile (`doc/decision/0316-*`).
+   * tile.
    */
   readonly hidden: boolean;
   /**
    * The spot has an EV charger. Shown to **every** viewer, unlike `hidden`:
-   * it is information about the bay, not about who may see it
-   * (`doc/decision/0317-the-ev-charger-flag-is-informational-and-shown-to-everyone`).
+   * it is information about the bay, not about who may see it.
    */
   readonly evCharger: boolean;
   /**
@@ -228,7 +227,7 @@ export function formatTimeRange(block: { startTime: string; endTime: string }): 
  * edited hatches whether or not somebody holds it. A lock held by *this*
  * client is ignored — the caller with the form open must not see their own
  * tile hatched, and whether the gateway echoes a broadcast to its sender is
- * Task 15's business, not something this screen should depend on.
+ * the gateway's business, not something this screen should depend on.
  */
 export function toSpotView(row: DaySpotOverview, context: LotViewContext): SpotView {
   const rawLock = context.locks.get(row.spot.id) ?? null;
@@ -253,8 +252,8 @@ export function toSpotView(row: DaySpotOverview, context: LotViewContext): SpotV
       : false;
 
   const timedBlocks = row.timedReservations;
-  // The database refuses a full-day `reservation` alongside any guest block
-  // (`doc/decision/0314-*`), so `hasBlocks` and `isTaken` are mutually
+  // The database refuses a full-day `reservation` alongside any guest block,
+  // so `hasBlocks` and `isTaken` are mutually
   // exclusive in practice; `reservation === null` here states that rather
   // than leaning on it.
   const hasBlocks = reservation === null && timedBlocks.length > 0;
@@ -437,16 +436,16 @@ export interface BannerView {
  * The banner above the lot.
  *
  * There is always one: `overview.day` always carries a `window`, and each of
- * its three states has exactly one true sentence. See `doc/decision/0122-*`
- * for why the design's `showLockState` prototype prop is not a hiding rule.
+ * its three states has exactly one true sentence. The design's
+ * `showLockState` prototype prop is therefore not a hiding rule.
  *
  * `windowFrom`/`windowTo` are only spoken under `lockMode: 'AUTO'`. Under
  * `FORCE_OPEN`/`FORCE_LOCKED` they are the range the automatic rule *would*
  * have produced and have no bearing on the state, so quoting a date from them
  * would be a false statement — `monthWindowOverviewSchema` says exactly this.
  *
- * Under `AUTO`, `OPEN` also covers the running month
- * (`doc/decision/0315-*`), where the cap no longer applies and `windowTo` is
+ * Under `AUTO`, `OPEN` also covers the running month,
+ * where the cap no longer applies and `windowTo` is
  * already in the past. `bannerOpen` quotes `windowTo` as a still-binding
  * deadline, so once `today` is past it we switch to `bannerOpenUncapped`,
  * which drops the date instead of quoting a stale one.
@@ -525,7 +524,7 @@ export type RealtimeNoticeView = 'none' | 'dropped' | 'rejected';
  * warn about — the grid has not gone stale, it has not arrived.
  *
  * `rejected` is exempt from that rule and reported whenever it happens. It is
- * terminal by construction (`doc/decision/0061-*`), so there is no later state
+ * terminal by construction, so there is no later state
  * that would correct it, and it is refused *credentials* rather than a slow
  * start.
  */

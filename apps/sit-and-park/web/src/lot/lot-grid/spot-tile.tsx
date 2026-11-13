@@ -19,7 +19,7 @@ export interface SpotTileProps {
    * admin-flavoured copy (`titleEdit`/`subAdmin`) and the cancel button off
    * `isAdmin` alone, regardless of which button opened it. What `⋯` adds is
    * discoverability that matches the design's own affordance
-   * (`01-lot-admin.png`) — not a different modal. See `doc/decision/0125-*`.
+   * (`01-lot-admin.png`) — not a different modal.
    */
   readonly onAdminOpen: (spotId: string) => void;
 }
@@ -51,7 +51,7 @@ export function SpotTile({ spot, onOpen, onAdminOpen }: SpotTileProps) {
    * announced to nobody. A taken bay, a window-locked bay and a bay somebody
    * else is editing all read as "Otevřít místo E2.93", with no way to tell
    * them apart; the only state that survived was the waitlist `Badge`, which
-   * happens to sit outside the button. See `doc/decision/0257-*`.
+   * happens to sit outside the button.
    *
    * Built from the **same keys the tile draws**, not from a second set written
    * for screen readers. Two catalogues saying nearly the same thing is how

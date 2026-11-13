@@ -8,8 +8,8 @@
  * - {@link useRealtimeConnection} **creates** the socket and owns its
  *   lifetime. Exactly one call per app.
  * - {@link RealtimeProvider} is that hook plus a context, so the rest of the
- *   tree can reach the same connection. It is what `apps/sit-and-park/web` renders
- *   (Task 23), alongside `QueryProvider`, `AuthProvider` and `IntlProvider`.
+ *   tree can reach the same connection. It is what `apps/sit-and-park/web` renders,
+ * alongside `QueryProvider`, `AuthProvider` and `IntlProvider`.
  * - {@link useRealtimeEvent}, {@link useDayRoom} and `useCellLock` **read**
  *   the context. They never create a socket, so no feature can accidentally
  *   open a second connection by rendering a component twice.
@@ -51,8 +51,7 @@ import type { InvalidPayloadHandler, ServerEventPayload } from './validation';
  * emitting `connect_error` — the socket loses its manager subscriptions and
  * will never present a token again. There is nothing left to wait for, so this
  * lib builds a **new** socket rather than waiting on a dead one; see
- * {@link REJECTED_RETRY_DELAYS_MS} and {@link RealtimeConnection.reconnect},
- * and `doc/decision/0061-*`.
+ * {@link REJECTED_RETRY_DELAYS_MS} and {@link RealtimeConnection.reconnect}.
  */
 export type RealtimeStatus = 'connecting' | 'connected' | 'disconnected' | 'rejected';
 

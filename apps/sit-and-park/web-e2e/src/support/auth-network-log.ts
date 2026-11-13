@@ -1,5 +1,5 @@
 /**
- * A diagnostic recorder for the sign-out race (Task 33, `doc/decision/0189-*`).
+ * A diagnostic recorder for the sign-out race .
  *
  * `0189` was missing exactly one datum: the request `Cookie` header on the
  * `GET /` that came back signed in. Playwright's own trace records response

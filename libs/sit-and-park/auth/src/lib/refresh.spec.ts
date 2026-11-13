@@ -393,7 +393,7 @@ describe('createTokenRefresher', () => {
 
     it('coalesces across the separate refreshers Next.js builds, not just within one', async () => {
       // **The case the closure version could not cover, and the reason
-      // `doc/decision/0245-*` exists.** Every other test in this describe uses
+      // the process-global refresh state exists.** Every other test in this describe uses
       // one refresher, which is the one arrangement production never has:
       // Next.js compiles the proxy, the `/api/auth/*` handlers and the server
       // components separately, so `createAuthConfig` — and with it

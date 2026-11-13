@@ -8,9 +8,9 @@
  * than from a hard-coded table that would silently expire.
  *
  * The Czech names are domain data shown in the UI, so they stay Czech (see
- * `CLAUDE.md` on UI copy); the stable `id` is what feature code and
+ * `AGENTS.md` on UI copy); the stable `id` is what feature code and
  * `libs/shared/i18n` key on. Localizing the labels is deliberately not this
- * module's job — see `doc/decision/0300-*`.
+ * module's job.
  */
 
 import { addDays, formatDateOnly, isWeekend, parseDateOnly, type DateOnly } from './date-only';
@@ -211,7 +211,7 @@ export function isCzechPublicHoliday(date: DateOnly): boolean {
 
 /**
  * True when `date` is a working day: not a weekend and not a public holiday.
- * Bulk booking may only select working days (see `doc/decision/0004-*`).
+ * Bulk booking may only select working days.
  */
 export function isBusinessDay(date: DateOnly): boolean {
   return !isWeekend(date) && !isCzechPublicHoliday(date);

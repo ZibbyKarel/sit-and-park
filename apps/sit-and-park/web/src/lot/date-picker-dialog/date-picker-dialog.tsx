@@ -1,8 +1,7 @@
 'use client';
 
 /**
- * {@link DatePickerDialog} — the calendar the header's date pill opens
- * (`doc/design/sit-and-park-design.dc.html`'s `datePickerOpen` branch).
+ * {@link DatePickerDialog} — the calendar the header's date pill opens.
  *
  * The grid itself borrows `../bulk-modal/bulk-modal.tsx`'s table: a `<caption>` for the
  * accessible name, weekday heads, and a button per day. What differs is the
@@ -49,8 +48,7 @@ export interface DatePickerDialogProps {
  * `BulkReservationModal` keys its content on opening: a passive effect
  * resetting the browsed month would still see the previous state in the
  * render where `open` flips back to `true`, and re-mounting avoids that class
- * of bug by construction instead of by effect ordering
- * (`doc/decision/0258-*`).
+ * of bug by construction instead of by effect ordering.
  */
 export function DatePickerDialog(props: DatePickerDialogProps) {
   return <DatePickerDialogContent key={`${String(props.open)}-${props.selectedDate}`} {...props} />;

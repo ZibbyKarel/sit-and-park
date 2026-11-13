@@ -1,7 +1,7 @@
 'use client';
 
 /**
- * The "Rezervační okno" tab (`doc/design/screens/05-admin-window.png`): the
+ * The "Rezervační okno" tab: the
  * settings card on the left, the per-month state list on the right.
  *
  * ## There is no Save button, because the design has none

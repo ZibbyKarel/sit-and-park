@@ -2,7 +2,7 @@
  * This application's one Auth.js instance.
  *
  * `libs/sit-and-park/auth` owns `next-auth` and reads no environment variable of its own
- * (`doc/auth.md`, §Environment); the four values it needs are read here and
+ * (`doc/auth.md`); the four values it needs are read here and
  * passed in as arguments. That is what keeps Auth.js's implicit `AUTH_SECRET` /
  * `AUTH_OKTA_ID` / `AUTH_OKTA_SECRET` inference from picking anything up
  * behind `webEnvSchema`'s back — the names are declared in one schema and
@@ -20,9 +20,9 @@
  * `instrumentation.ts` → `register()`, and `instrumentation-node.ts` calls
  * `process.exit(1)` on failure — so no request is ever served by a process
  * whose configuration did not pass `webEnvSchema`
- * (`doc/decision/0008-*`, `doc/environment.md`). Calling the validator *here*
+ * (`doc/workspace.md`). Calling the validator *here*
  * as well would move that check into `next build`, which
- * `doc/decision/0008-*` verified and documented as env-free: Next.js imports
+ * is env-free: Next.js imports
  * route modules while collecting page data, so a module-scope `validateWebEnv()`
  * would make a build require production secrets. Reading the raw values keeps
  * the schema the one gate and the build free of them.

@@ -7,7 +7,6 @@ declare global {
 
 module.exports = async function () {
   // Start services that the app needs to run (e.g. database, docker-compose, etc.).
-  // Task 13 wires a real PostgreSQL instance in here.
   const host = process.env.HOST ?? 'localhost';
   const port = process.env.PORT ? Number(process.env.PORT) : 3000;
   await waitForPortOpen(port, { host });

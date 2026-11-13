@@ -361,7 +361,7 @@ describe('SpotsService', () => {
       // ineligible promotes nobody, so the spot goes free with its queue intact.
       // Retiring it then orphans those entries behind `listActive` — invisible
       // on the day overview, unreachable by the person queued, and never
-      // promotable. See `doc/decision/0235-*`.
+      // promotable.
       const spot = double.seedSpot({ label: 'A1' });
       const user = double.seedUser();
       double.seedWaitlistEntry({ parkingSpotId: spot.id, userId: user.id, date: '2026-09-10' });

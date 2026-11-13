@@ -61,7 +61,7 @@ export class ContractExceptionFilter implements ExceptionFilter {
     const http = host.switchToHttp();
     const response = http.getResponse<Response>();
     // Only contract errors are enveloped. Transport failures keep Nest's shape
-    // even on an RPC path (`doc/decision/0033-*`): the closed enum has no member
+    // even on an RPC path: the closed enum has no member
     // for "no such route" or "too many requests", and dressing one up as an
     // oRPC error would hand the frontend a code it has no copy for. The oRPC
     // client falls back to the HTTP status for those, which is correct.

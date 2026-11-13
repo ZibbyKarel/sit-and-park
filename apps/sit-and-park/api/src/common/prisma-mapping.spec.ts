@@ -188,7 +188,7 @@ describe('toPublicReservation', () => {
   });
 
   it('throws when the holder does not belong to the row, rather than naming the wrong person', () => {
-    // No call site does this today (Task 24's sweep checked all four); this
+    // No call site does this today (all four were checked); this
     // pins the hardening so a future one fails loudly instead of silently.
     const mismatched = { id: 'someone-else', name: 'Petr Novák', licensePlate: null };
     expect(() => toPublicReservation(row, mismatched)).toThrow(

@@ -111,7 +111,7 @@ function anOverview(overrides: Partial<DayOverviewOutput> = {}): DayOverviewOutp
       lockMode: 'AUTO',
     },
     canReserve: true,
-    // Required by `overview.day` since Task 31 (`doc/decision/0175-*`). This
+    // Required by `overview.day` This
     // screen never reads it — it is the admin's day view, not the reserving
     // one — but the fixture must still satisfy the contract type. `true`
     // matches the `state: 'OPEN'` window above.
@@ -153,7 +153,6 @@ function rowOf(id: string): HTMLElement {
 
 describe('AdminDayScreen', () => {
   it('heads the day in the design’s long Czech form', () => {
-    // doc/design/screens/06-admin-overview.png
     renderScreen();
 
     expect(screen.getByRole('heading', { name: 'pondělí 28. září 2026' })).toBeInTheDocument();

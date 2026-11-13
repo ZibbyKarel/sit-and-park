@@ -1,8 +1,8 @@
 /**
  * `@sit-and-park/contract` — the API entry point of the contract lib.
  *
- * Task 3 exports the shared entity schemas and the error contract; Task 4 adds
- * the oRPC procedures under `src/api`.
+ * Exports the shared entity schemas and the error contract, plus the oRPC
+ * procedures under `src/api`.
  *
  * `schemas/` holds what both entry points share, so it is exported first;
  * `api/` builds the procedures on top of it.

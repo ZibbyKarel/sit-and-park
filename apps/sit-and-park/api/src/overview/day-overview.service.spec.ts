@@ -210,7 +210,7 @@ describe('DayOverviewService', () => {
       });
     });
 
-    it('orders the queue by createdAt with id as the tiebreaker, like Task 13 promotes', async () => {
+    it('orders the queue by createdAt with id as the tiebreaker, like promotion does', async () => {
       const spot = double.seedSpot({ label: 'A1' });
       const viewer = double.seedUser();
       const sameInstant = new Date('2026-08-01T08:00:00.000Z');
@@ -346,7 +346,7 @@ describe('DayOverviewService', () => {
       // The composition, asserted where it can actually be seen: an open month
       // with a weekend inside it is the case that separates the two fields.
       // October works just as well as September would now that the running
-      // month stays open too (`doc/decision/0315-*`) — it is only picked here
+      // month stays open too — it is only picked here
       // to keep the two `describe` blocks on different months.
       double.seedWindowSettings({ openDaysBefore: 40, lockMode: 'AUTO' });
 
@@ -376,7 +376,7 @@ describe('DayOverviewService', () => {
   });
 
   /**
-   * The per-month answer, which `doc/decision/0175-*` added because
+   * The per-month answer, which exists because
    * `canReserve` cannot serve a screen whose subject is the month. Every case
    * below is one where the two fields must **disagree** or must agree for a
    * reason that is not the day.
@@ -386,8 +386,7 @@ describe('DayOverviewService', () => {
       double.seedWindowSettings({ openDaysBefore: 40, lockMode: 'AUTO' });
 
       // 2026-10-03 is a Saturday. October is inside the AUTO window on
-      // 2026-09-02; the running month (September) is open too now
-      // (`doc/decision/0315-*`), October is just this test's chosen month.
+      // 2026-09-02; the running month (September) is open too now, October is just this test's chosen month.
       const result = await overview.getDay({ date: '2026-10-03' }, authenticated('u'), TODAY);
 
       // Asserted, not assumed: without this the test would also pass on a month

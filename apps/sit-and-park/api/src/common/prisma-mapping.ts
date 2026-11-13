@@ -1,14 +1,14 @@
 /**
  * Turning database rows into the shapes the contract declares.
  *
- * The two representations differ in exactly the ways `doc/database.md` lists
+ * The two representations differ in exactly the ways `doc/backend.md` lists
  * under "Where storage differs from the contract", and this is the single place
  * that crosses that gap:
  *
  * | column | contract |
  * | --- | --- |
- * | `DateTime @db.Timestamptz(3)` | ISO 8601 string (`doc/decision/0015-*`) |
- * | `DateTime @db.Date` | `YYYY-MM-DD` (`doc/decision/0003-*`) |
+ * | `DateTime @db.Timestamptz(3)` | ISO 8601 string |
+ * | `DateTime @db.Date` | `YYYY-MM-DD` |
  *
  * Every function below returns a value typed by `z.infer` from
  * `libs/sit-and-park/contract` — never a hand-written interface — so a field added to an
@@ -32,7 +32,7 @@
  * `toDateOnly` is the right call because it is the one that says what this value
  * is, not because the other would give a wrong date.
  *
- * Task 13 exercised this against a real PostgreSQL 17 rather than leaving it as
+ * This is exercised against a real PostgreSQL 17 rather than left as
  * an argument: `reservations.db.spec.ts` writes a reservation through
  * {@link toDateColumn} and asserts the stored column reads back as
  * `YYYY-MM-DDT00:00:00.000Z` — the same calendar day, not the one either side of
@@ -160,8 +160,7 @@ export function toContractReservation(row: ReservationRow): Reservation {
  * "this is a guest reservation"; the row's own `guestName` supplies the name.
  *
  * The plate is the row's override where there is one, and the holder's stored
- * plate otherwise — a consumer never has to know the override exists
- * (`doc/decision/0304-the-reservation-holder-projection-is-a-discriminated-union`).
+ * plate otherwise — a consumer never has to know the override exists.
  */
 export function toPublicReservation(
   row: ReservationRow,

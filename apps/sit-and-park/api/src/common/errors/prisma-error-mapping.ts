@@ -29,14 +29,13 @@ const PRISMA_FOREIGN_KEY_CONSTRAINT = 'P2003';
 /**
  * A serialization failure or a deadlock — PostgreSQL `40001` / `40P01`.
  *
- * Added by Task 13, which found a real one: two cancellations promoting the same
+ * Two cancellations promoting the same
  * person out of two different queues deadlock against each other
  * (`ReservationsService.isRetryableConflict` has the cycle). That path retries,
  * so this mapping is the *last* resort — but without it a lost race would come
  * back as a 500, and a 500 tells an operator to look for a defect that is not
  * there and tells the client not to try again, which is the wrong advice.
  *
- * See `doc/decision/0065-*`.
  */
 export const PRISMA_WRITE_CONFLICT = 'P2034';
 
@@ -49,7 +48,7 @@ export const PRISMA_WRITE_CONFLICT = 'P2034';
  * and the `40P01` survives only inside `meta`. Two codes, one condition — which
  * is why {@link isWriteConflict} exists rather than a bare `=== P2034`.
  *
- * `doc/decision/0240-*` has the regression this cost. Pinned against a live
+ * Pinned against a live
  * server by `database-contract.db.spec.ts` ("a deadlock on a raw statement").
  */
 const PRISMA_RAW_QUERY_FAILED = 'P2010';
@@ -249,7 +248,6 @@ function targetMatches(target: string[], table: string, columns: readonly string
  * The two constraint names raised by the (spot, day) triggers in migration
  * `20260924120000_timed_reservation` — not indexes, so they do not follow
  * Prisma's `Table_cols_key` naming and are matched by exact name.
- * `doc/decision/0314-*`.
  */
 const TIMED_RESERVATION_CONFLICTS = [
   'timedreservation_spot_day_conflict',

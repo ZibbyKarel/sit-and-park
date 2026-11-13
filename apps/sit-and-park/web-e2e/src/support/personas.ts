@@ -27,7 +27,7 @@
  * (401, "The token does not identify a provisionable user."), so a run against
  * an unseeded database would fail at the first request. With the claims in
  * place the suite exercises the real just-in-time provisioning path.
- * See `doc/decision/0180-*`.
+ *
  */
 
 import { join } from 'node:path';
@@ -101,7 +101,6 @@ export const PERSONAS: readonly Persona[] = [ADMIN, USER, USER_TWO];
  * a globstar so they are right wherever the files land, and this resolves
  * against the workspace root so that the location every document names is the
  * location on disk.
- * `doc/decision/0287-*`; `doc/decision/0185-*` for what the files hold.
  */
 export function storageStatePath(persona: Persona): string {
   return join(

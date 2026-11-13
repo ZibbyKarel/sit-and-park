@@ -35,7 +35,7 @@ export interface HolderOption {
 /**
  * `'FULL_DAY'` books the whole day, the form's default. `'TIMED'` books a
  * half-hour-granular block instead — only meaningful for a guest holder; a
- * user always books the whole day (`plan.md`).
+ * user always books the whole day.
  */
 export type HolderDuration = 'FULL_DAY' | 'TIMED';
 

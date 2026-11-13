@@ -10,7 +10,7 @@
  *
  * The split is by HTTP status rather than by contract code, because it has to
  * cover failures that carry no contract code at all: an unmatched route, a
- * throttled request (`doc/decision/0033-*` — those keep Nest's shape and have
+ * throttled request (those keep Nest's shape and have
  * no `code`). Everything a 4xx says is "this request, as sent, is refused";
  * 5xx and a dropped connection are the transient cases retrying exists for.
  */

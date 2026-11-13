@@ -5,9 +5,8 @@
  * `AUDIT_LOG_ACTIONS` enum) and a JSONB bag beside it. Until this map existed
  * the two were unrelated: any writer of any action could put any keys in, and
  * two writers of the *same* action could disagree on the key names with nothing
- * failing. The table is append-only (`doc/decision/0027-*`), so a divergence is
- * permanent and unqueryable after the fact — and `doc/decision/0091-*` already
- * rules that an audit fact whose presence depends on which endpoint the row
+ * failing. The table is append-only, so a divergence is
+ * permanent and unqueryable after the fact — and an audit fact whose presence depends on which endpoint the row
  * arrived through is not an audit trail. The same argument applies one level
  * down, to the keys.
  *

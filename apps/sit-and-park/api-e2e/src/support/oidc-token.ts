@@ -20,8 +20,7 @@
  * authorization-code grant, the same client credentials — and the API then
  * verifies the result against the issuer's JWKS with the code that runs in
  * production. The only difference from production is the value of
- * `AUTH_OKTA_ISSUER`, which is the difference `doc/decision/0009-*` exists to
- * allow.
+ * `AUTH_OKTA_ISSUER`, which is configurable for exactly this reason.
  *
  * ## The two facts about the mock issuer this depends on
  *
@@ -36,7 +35,7 @@
  *    JSON* field is how a real Okta token's claims are reproduced, and
  *    `AuthUserService.findOrProvision` refuses a subject it has never seen
  *    without an `email`. `apps/sit-and-park/web-e2e/src/support/personas.ts` supplies the
- *    same pair through the browser; see `doc/decision/0180-*`.
+ *    same pair through the browser.
  */
 
 import axios from 'axios';
@@ -66,7 +65,7 @@ function required(name: string): string {
   if (value === undefined || value === '') {
     throw new Error(
       `${name} is not set. The api-e2e suite needs the same environment the API ` +
-        'runs with — copy .env into this worktree (see doc/environment.md).'
+        'runs with — copy .env into this worktree (see doc/workspace.md).'
     );
   }
   return value;

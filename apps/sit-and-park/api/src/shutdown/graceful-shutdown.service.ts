@@ -6,11 +6,11 @@
  * finish, and call every provider's `onModuleDestroy` / `onApplicationShutdown`.
  * `PrismaService.onModuleDestroy` closes the database pool inside that window.
  *
- * ## The hook Task 15 must use
+ * ## The hook the Socket.io gateway uses
  *
  * Socket.io does not close itself. A live WebSocket is not an "in-flight
  * request", so Nest's HTTP shutdown will not touch it and the process hangs
- * until the orchestrator's kill timeout. **Task 15 registers the gateway's
+ * until the orchestrator's kill timeout. **the gateway registers its
  * close here**:
  *
  * ```ts

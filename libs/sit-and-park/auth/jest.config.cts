@@ -2,8 +2,7 @@
  * `next-auth` and everything it pulls in (`@auth/core`, `jose`,
  * `oauth4webapi`, `@panva/hkdf`, `preact`) are published ESM-only —
  * `"type": "module"`, no `require` condition — while Jest runs here as
- * CommonJS. Same three lines as `libs/query/jest.config.cts`, described in
- * `doc/decision/0020-*`. `@orpc` is on the list too because
+ * CommonJS. The same ESM-only block as the other projects. `@orpc` is on the list too because
  * `access-token.spec.ts` drives a real `createApiClient` to prove the token
  * actually reaches the `Authorization` header.
  *
@@ -21,8 +20,8 @@ module.exports = {
   /**
    * `node`, not `jsdom`, is the default: most of this lib is server-side (the
    * `jwt`/`session`/`authorized` callbacks, the token refresher) and its tests
-   * want Node's real `fetch`/`Response`, which jsdom does not implement
-   * (`doc/decision/0037-*`). The one browser-side spec, `client.spec.tsx`,
+   * want Node's real `fetch`/`Response`, which jsdom does not implement.
+   * The one browser-side spec, `client.spec.tsx`,
    * opts into jsdom with a `@jest-environment jsdom` docblock — it stubs
    * `fetch` itself, so it needs no Web-API backfill.
    */

@@ -1,5 +1,5 @@
 // Two independent ESM-only-package problems land in this one project, both
-// shaped like `doc/decision/0020-orpc-is-esm-only-jest-must-transpile-it.md`:
+// shaped like that one:
 //
 // - `@orpc/contract` (a single `.mjs` build), pulled in transitively because
 //   `errors.spec.ts` imports `ERROR_CODES` from `@sit-and-park/contract` at
@@ -10,7 +10,7 @@
 //   `icu-minify`), all published `"type": "module"` as plain `.js`.
 //
 // Both package sets are now named in `jest.preset.js`'s `ESM_ONLY_PACKAGES`,
-// which is where 0020 asked for them and where `doc/decision/0297-*` put them —
+// which is where they are shared from —
 // this project's list was the longest of the eleven copies and is what the
 // shared union is built from. What stays here is the babel-jest `.mjs` entry
 // and `moduleFileExtensions`, neither of which is shareable across projects

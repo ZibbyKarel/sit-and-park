@@ -152,8 +152,7 @@ describe('dayOverviewOutputSchema', () => {
   it('accepts canReserve: false alongside canReserveMonth: true — a weekend in an open month', () => {
     // The two fields answer different questions, so this combination is not a
     // contradiction the schema should reject: it is the normal state of every
-    // Saturday, Sunday and Czech public holiday of an open month
-    // (`doc/decision/0175-*`).
+    // Saturday, Sunday and Czech public holiday of an open month.
     expect(
       dayOverviewOutputSchema.safeParse({ ...valid, canReserve: false, canReserveMonth: true })
         .success

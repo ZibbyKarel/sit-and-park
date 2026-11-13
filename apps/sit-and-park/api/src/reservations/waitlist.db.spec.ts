@@ -108,8 +108,8 @@ describe('the waitlist against a real PostgreSQL', () => {
       });
       expect(two.position).toBe(2);
       // Joining a queue is audited too, in the same transaction as the entry —
-      // the waitlist is a promise about a scarce resource, and Task 30 made
-      // bulk booking a second way to get into one (`doc/decision/0091-*`).
+      // the waitlist is a promise about a scarce resource, and bulk booking is
+      // a second way to get into one.
       await expect(
         client.auditLog.findMany({
           where: { action: 'WAITLIST_JOINED', entityId: { in: [one.entry.id, two.entry.id] } },
@@ -542,13 +542,11 @@ describe('the waitlist against a real PostgreSQL', () => {
       // The window rule this replaced made leaving impossible for the whole
       // live life of every queue: `monthLockState` used to return `LOCKED`
       // from the 1st of the target month onwards. Since
-      // `doc/decision/0315-the-monthly-cap-applies-only-inside-the-auto-window`
-      // the running month is `OPEN`, and leaving must work there regardless.
+      // the cap only applies inside the auto window, the running month is `OPEN`, and leaving must work there regardless.
       //
       // Deliberately built from the **real** `todayInPrague()` and `AUTO`:
       // every other fixture in this file uses a `TODAY` in the month *before*
       // its target day, so this timeline would be exercised nowhere else.
-      // See `doc/decision/0233-*`.
       const today = todayInPrague();
       const target = firstBusinessDayOfMonthContaining(today);
       // The last day of the window under `AUTO`: they joined then.

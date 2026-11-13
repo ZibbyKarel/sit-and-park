@@ -46,7 +46,7 @@ import { toContractError } from '@sit-and-park/api-client';
 import type { ErrorCode } from '@sit-and-park/contract';
 import { useTranslations } from '@sit-and-park/i18n';
 // Type-only: the key space now lives in the catalog itself, not in a
-// hand-written interface in `libs/shared/i18n` (`doc/i18n.md`).
+// hand-written interface in `libs/shared/i18n` (`doc/frontend.md`).
 import type cs from '../../../messages/cs.json';
 
 /**

@@ -142,7 +142,7 @@ describe('sharedRevokedStore', () => {
   });
 
   it('hands the same map to two independent module registries', () => {
-    // **This is the test that pins the fix.** `doc/decision/0231-*` exists
+    // **This is the test that pins the fix.** The process-global registry exists
     // because Next.js gives the proxy, the `/api/auth/*` handlers and the
     // server components each their own module registry, so a module-level map
     // would be three maps and sign-out would be enforced on none of the paths

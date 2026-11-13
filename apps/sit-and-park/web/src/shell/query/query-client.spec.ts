@@ -7,7 +7,7 @@
  * hand-built object. The two invalidation tests at the end construct a real
  * client and a real `createApiQueryUtils` tree together on purpose — that
  * combination is exactly what used to trip the dual-package hazard under
- * `libs/shared/api-client`'s `"module": "commonjs"` (`doc/decision/0038-*`); this
+ * `libs/shared/api-client`'s `"module": "commonjs"`; this
  * file lives in `apps/sit-and-park/web`, whose `tsconfig.json` already resolves both
  * packages through `esnext`, so it does not need the same workaround.
  */

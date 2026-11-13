@@ -48,8 +48,7 @@ export const NO_PREFERRED_SPOT = '';
  * in the DOM, to displaying its first option — "Bez preference" here — while
  * leaving the *form's* value untouched. Save would then silently resubmit the
  * retired id nobody can see selected, and `MeService.requireSelectableSpot`
- * rejects the whole request, taking the licence-plate edit down with it (Task
- * 26 review, I1). Clearing the form value is what keeps "what's shown" and
+ * rejects the whole request, taking the licence-plate edit down with it. Clearing the form value is what keeps "what's shown" and
  * "what's submitted" from ever disagreeing — treating a retired preference
  * exactly like "no preference", which is the only description of it a user who
  * cannot see it selected could possibly act on.

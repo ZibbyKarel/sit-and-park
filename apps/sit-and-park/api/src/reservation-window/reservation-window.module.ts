@@ -5,7 +5,7 @@ import { ReservationWindowService } from './reservation-window.service';
 
 /**
  * `ReservationWindowService` is exported because the day overview embeds the
- * window state of the day it is asked about, and Task 13 enforces the window
+ * window state of the day it is asked about, and reservation writes enforce the window
  * before writing a reservation. All three must read it the same way.
  */
 @Module({

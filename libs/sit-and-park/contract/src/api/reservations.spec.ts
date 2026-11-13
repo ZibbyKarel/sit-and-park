@@ -62,7 +62,7 @@ describe('createReservationOutputSchema', () => {
   });
 
   it('rejects a Date instance where an ISO timestamp is expected', () => {
-    // doc/decision/0015: timestamps travel as ISO strings, not Date objects.
+    // Timestamps travel as ISO strings, not Date objects.
     expect(
       createReservationOutputSchema.safeParse({
         id: UUID_A,

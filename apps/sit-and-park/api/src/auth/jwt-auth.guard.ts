@@ -28,7 +28,7 @@
  * When upgrading it, run `auth-pipeline.spec.ts` first — its
  * "gets 403 with the contract FORBIDDEN body, not 401" case is what actually
  * checks this, and it is known to fail when the behaviour flips (verified by
- * mutation). See `doc/decision/0041-*`.
+ * mutation).
  */
 
 import type { ExecutionContext } from '@nestjs/common';

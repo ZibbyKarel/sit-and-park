@@ -9,7 +9,7 @@
  *
  * `globalSetup` creates a throwaway database for the run and repoints
  * `DATABASE_URL` at it, so the developer's seeded `sit-and-park` is never written
- * to; `globalTeardown` drops it. Task 13 needs this because its concurrency
+ * to; `globalTeardown` drops it. The concurrency
  * tests have to **commit** to race at all, and a committed `AuditLog` row can
  * never be deleted again. See `src/testing/database/test-database.ts`.
  *
