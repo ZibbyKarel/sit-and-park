@@ -67,7 +67,12 @@ export type WarningIconProps = IconProps;
 export type SunIconProps = IconProps;
 export type MoonIconProps = IconProps;
 
-/** A car seen from the side, in the colour of the surrounding text. */
+/*
+ * CarIcon and DeskIcon draw the Material Icons glyphs "DirectionsCarFilled" and "Desk"
+ * (https://fonts.google.com/icons, Apache License 2.0), inlined so no icon package is a dependency.
+ */
+
+/** A filled car, in the colour of the surrounding text. */
 export function CarIcon({ size = 'sm', label, ...rest }: CarIconProps) {
   return (
     <svg
@@ -77,20 +82,14 @@ export function CarIcon({ size = 'sm', label, ...rest }: CarIconProps) {
       focusable="false"
       className={styles.car}
       data-size={size}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
     >
       {label === undefined ? null : <title>{label}</title>}
-      <path d="M3 16v-4l2-5h14l2 5v4H3Z" />
-      <path d="M3 12h18" />
-      <circle cx="7.5" cy="16.5" r="1.5" />
-      <circle cx="16.5" cy="16.5" r="1.5" />
+      <path d="M18.92 6.01C18.72 5.42 18.16 5 17.5 5h-11c-.66 0-1.21.42-1.42 1.01L3 12v8c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-1h12v1c0 .55.45 1 1 1h1c.55 0 1-.45 1-1v-8zM7.5 16c-.83 0-1.5-.67-1.5-1.5S6.67 13 7.5 13s1.5.67 1.5 1.5S8.33 16 7.5 16m9 0c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5M5.81 10l1.04-3h10.29l1.04 3z" />
     </svg>
   );
 }
 
-/** A desk with a monitor, in the colour of the surrounding text. */
+/** A filled desk, in the colour of the surrounding text. */
 export function DeskIcon({ size = 'sm', label, ...rest }: DeskIconProps) {
   return (
     <svg
@@ -100,15 +99,9 @@ export function DeskIcon({ size = 'sm', label, ...rest }: DeskIconProps) {
       focusable="false"
       className={styles.desk}
       data-size={size}
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
     >
       {label === undefined ? null : <title>{label}</title>}
-      <rect x="6" y="3" width="12" height="8" rx="1" />
-      <path d="M12 11v3" />
-      <path d="M2 14h20" />
-      <path d="M5 14v7M19 14v7" />
+      <path d="M2 6v12h2V8h10v10h2v-2h4v2h2V6zm18 2v2h-4V8zm-4 6v-2h4v2z" />
     </svg>
   );
 }

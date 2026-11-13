@@ -25,9 +25,15 @@
   stroke: #fff;
 }
 
-/* Outline glyphs that take the colour of the text they sit in. */
+/* Filled glyphs that take the colour of the text they sit in. */
 .car,
-.desk,
+.desk {
+  flex-shrink: 0;
+  fill: currentcolor;
+  stroke: none;
+}
+
+/* Outline glyphs that take the colour of the text they sit in. */
 .warning,
 .sun,
 .moon {
