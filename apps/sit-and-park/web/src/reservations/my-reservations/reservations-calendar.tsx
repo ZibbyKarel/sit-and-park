@@ -9,7 +9,9 @@
  * day per row, only days that have something. Both are in the DOM and CSS
  * picks one (`display: none` also hides it from assistive technology).
  *
- * Every event carries its meaning as text; the icons are `aria-hidden`.
+ * An event's type is carried by its icon's accessible name (and colour,
+ * `data-type`); the visible text is the place id plus any status. Only the
+ * warning icon is decorative.
  * Cancelling stays in the list view.
  */
 
@@ -41,8 +43,13 @@ const WEEKDAY_KEYS = [
   'weekdaySun',
 ] as const;
 
+function eventType(event: CalendarEvent): 'parking' | 'desk' {
+  return event.kind === 'parking' || event.kind === 'waitlist' ? 'parking' : 'desk';
+}
+
 export function ReservationsCalendar() {
   const t = useTranslations('myReservations');
+  const kinds = useTranslations('myDesks');
   const bulk = useTranslations('bulk');
   const shell = useTranslations('shell');
   const f = useDateFormatters();
@@ -76,13 +83,13 @@ export function ReservationsCalendar() {
   function eventLabel(event: CalendarEvent): string {
     switch (event.kind) {
       case 'parking':
-        return t('eventParking', { label: event.label });
+        return event.label;
       case 'waitlist':
         return t('eventWaitlist', { label: event.label, position: event.position });
       case 'desk':
-        return t('eventDesk', { code: event.code });
+        return event.code;
       case 'permanent':
-        return t('eventPermanent', { code: event.code });
+        return event.code;
       case 'released':
         return t('eventReleased', { code: event.code });
       case 'request':
@@ -99,7 +106,11 @@ export function ReservationsCalendar() {
             className={styles.event}
             data-kind={event.kind}
           >
-            {event.kind === 'parking' || event.kind === 'waitlist' ? <CarIcon /> : <DeskIcon />}
+            {eventType(event) === 'parking' ? (
+              <CarIcon label={kinds('kindParking')} />
+            ) : (
+              <DeskIcon label={kinds('kindDesk')} />
+            )}
             <span>{eventLabel(event)}</span>
           </li>
         ))}

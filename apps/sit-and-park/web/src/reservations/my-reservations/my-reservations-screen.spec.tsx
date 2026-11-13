@@ -456,7 +456,7 @@ describe('MyReservationsScreen calendar', () => {
     zoneName: 'Zóna H',
   };
 
-  it('opens on the calendar and shows parking, desk and request events as text', async () => {
+  it('opens on the calendar and shows each event as a typed icon and the place id', async () => {
     await setup(
       {
         parkingDates: ['2026-09-16', '2026-09-17'],
@@ -467,12 +467,16 @@ describe('MyReservationsScreen calendar', () => {
     );
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     expect(within(grid).getAllByRole('columnheader')).toHaveLength(7);
-    expect(within(grid).getAllByText('eventParking: label=A1')).toHaveLength(2);
-    expect(within(grid).getByText('eventDesk: code=A-01')).toBeInTheDocument();
+    expect(within(grid).getAllByText('A1')).toHaveLength(2);
+    expect(within(grid).getAllByRole('img', { name: 'kindParking' })).toHaveLength(2);
+    expect(within(grid).getByText('A-01')).toBeInTheDocument();
     expect(
       within(grid).getByText('eventRequest: code=H-07,status=requestPENDING')
     ).toBeInTheDocument();
-    expect(grid.querySelectorAll('svg:not([aria-hidden="true"])')).toHaveLength(0);
+    expect(within(grid).getAllByRole('img', { name: 'kindDesk' })).toHaveLength(2); // desk + request
+    expect(
+      within(grid).queryByText(/^(eventParking|eventDesk|eventPermanent)/)
+    ).not.toBeInTheDocument();
   });
 
   it('shows a waitlist entry as text and does not warn about it', async () => {
@@ -482,7 +486,25 @@ describe('MyReservationsScreen calendar', () => {
     );
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     expect(within(grid).getByText('eventWaitlist: label=B2,position=2')).toBeInTheDocument();
+    expect(within(grid).getByRole('img', { name: 'kindParking' })).toBeInTheDocument();
     expect(within(grid).queryByText('warningNoDesk')).not.toBeInTheDocument();
+  });
+
+  it('shows permanent-desk days by code and released days as released', async () => {
+    await setup(
+      {
+        releases: {
+          deskId: 'desk-9',
+          code: 'P-09',
+          releases: [{ id: 'rel-free', date: '2026-09-21', reservedByName: null }],
+        },
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(within(grid).getAllByText('P-09').length).toBeGreaterThan(0);
+    expect(within(grid).getByText('eventReleased: code=P-09')).toBeInTheDocument();
+    expect(within(grid).queryByText(/^eventPermanent/)).not.toBeInTheDocument();
   });
 
   it('marks only the parking day without a desk', async () => {
@@ -500,7 +522,8 @@ describe('MyReservationsScreen calendar', () => {
   it('lists the same days in the agenda for narrow screens', async () => {
     await setup({ parkingDates: ['2026-09-17'] }, 'calendar');
     const agenda = await screen.findByRole('region', { name: 'agendaLabel' });
-    expect(within(agenda).getByText('eventParking: label=A1')).toBeInTheDocument();
+    expect(within(agenda).getByText('A1')).toBeInTheDocument();
+    expect(within(agenda).getByRole('img', { name: 'kindParking' })).toBeInTheDocument();
     expect(within(agenda).getByText('warningNoDesk')).toBeInTheDocument();
   });
 
@@ -554,7 +577,7 @@ describe('MyReservationsScreen calendar', () => {
       'calendar'
     );
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
-    expect(within(grid).getByText('eventDesk: code=A-01')).toBeInTheDocument();
+    expect(within(grid).getByText('A-01')).toBeInTheDocument();
     expect(screen.getByText(/calendarPartialError/)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'retry' })).toBeInTheDocument();
   });
