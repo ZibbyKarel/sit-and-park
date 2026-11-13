@@ -479,6 +479,24 @@ describe('MyReservationsScreen calendar', () => {
     ).not.toBeInTheDocument();
   });
 
+  it('colours each event by its type', async () => {
+    await setup(
+      {
+        parkingDates: ['2026-09-16'],
+        reservations: [reservation('r1', '2026-09-16')],
+        requests: [request],
+        waitlist: [{ date: '2026-09-17', parkingSpotLabel: 'B2', position: 2 }],
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    const item = (text: string | RegExp) => within(grid).getByText(text).closest('li');
+    expect(item('A1')).toHaveAttribute('data-type', 'parking');
+    expect(item(/^eventWaitlist/)).toHaveAttribute('data-type', 'parking');
+    expect(item('A-01')).toHaveAttribute('data-type', 'desk');
+    expect(item(/^eventRequest/)).toHaveAttribute('data-type', 'desk');
+  });
+
   it('shows a waitlist entry as text and does not warn about it', async () => {
     await setup(
       { waitlist: [{ date: '2026-09-17', parkingSpotLabel: 'B2', position: 2 }] },
@@ -504,6 +522,7 @@ describe('MyReservationsScreen calendar', () => {
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     expect(within(grid).getAllByText('P-09').length).toBeGreaterThan(0);
     expect(within(grid).getByText('eventReleased: code=P-09')).toBeInTheDocument();
+    expect(within(grid).getAllByRole('img', { name: 'kindDesk' }).length).toBeGreaterThan(0);
     expect(within(grid).queryByText(/^eventPermanent/)).not.toBeInTheDocument();
   });
 

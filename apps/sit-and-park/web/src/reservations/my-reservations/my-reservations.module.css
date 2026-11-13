@@ -99,7 +99,7 @@
 
 .cell[data-warning='true'],
 .row[data-warning='true'] {
-  border-color: rgb(180 83 9);
+  border-color: rgb(var(--border--warning-medium-default--light));
 }
 
 .cellDay {
@@ -123,26 +123,39 @@
   border-radius: 4px;
   font-size: 12px;
   overflow-wrap: anywhere;
-  color: white;
-  background: rgb(29 78 216);
+  color: rgb(var(--foreground--neutral-full-default--light));
+  border-left: 3px solid transparent;
 }
 
 .event svg {
   margin-top: 2px;
 }
 
-.event[data-kind='released'] {
-  background: rgb(71 85 105);
+.event[data-type='parking'] {
+  background: rgb(var(--background--informative-low-default--light));
+  border-left-color: rgb(var(--border--informative-strong-default--light));
 }
 
+.event[data-type='desk'] {
+  background: rgb(var(--background--success-low-default--light));
+  border-left-color: rgb(var(--border--success-high-default--light));
+}
+
+/* Not a booking yet: a queue place or a pending/decided desk request. */
+.event[data-kind='waitlist'],
 .event[data-kind='request'] {
-  background: rgb(109 40 217);
+  border-left-style: dashed;
+}
+
+/* A released permanent-desk day: the desk accent stays, the fill goes neutral. */
+.event[data-kind='released'] {
+  background: rgb(var(--background--neutral-low-default--light));
 }
 
 .event[data-kind='warning'] {
   font-weight: 700;
-  color: rgb(120 53 15);
-  background: rgb(254 243 199);
+  background: rgb(var(--background--warning-low-default--light));
+  border-left-color: rgb(var(--border--warning-medium-default--light));
 }
 
 .agenda {

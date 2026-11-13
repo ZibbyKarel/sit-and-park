@@ -87,7 +87,6 @@ export function ReservationsCalendar() {
       case 'waitlist':
         return t('eventWaitlist', { label: event.label, position: event.position });
       case 'desk':
-        return event.code;
       case 'permanent':
         return event.code;
       case 'released':
@@ -105,6 +104,7 @@ export function ReservationsCalendar() {
             key={`${event.kind}-${String(index)}`}
             className={styles.event}
             data-kind={event.kind}
+            data-type={eventType(event)}
           >
             {eventType(event) === 'parking' ? (
               <CarIcon label={kinds('kindParking')} />
