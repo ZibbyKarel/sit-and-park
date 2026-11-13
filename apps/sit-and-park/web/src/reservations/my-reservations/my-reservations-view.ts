@@ -89,9 +89,9 @@ export function reservationDetail(reservation: MyDeskReservation): string {
 // --- calendar ---------------------------------------------------------------
 
 export type CalendarEvent =
-  | { readonly kind: 'parking'; readonly label: string }
+  | { readonly kind: 'parking'; readonly label: string; readonly reservationId: string }
   | { readonly kind: 'waitlist'; readonly label: string; readonly position: number }
-  | { readonly kind: 'desk'; readonly code: string }
+  | { readonly kind: 'desk'; readonly code: string; readonly reservation: MyDeskReservation }
   | { readonly kind: 'permanent'; readonly code: string }
   | { readonly kind: 'released'; readonly code: string }
   | { readonly kind: 'request'; readonly code: string; readonly status: DeskApprovalStatus };
@@ -110,7 +110,11 @@ export interface CalendarDay {
 
 export interface CalendarSources {
   /** `reservation.myMonth`'s `reservations`: confirmed parking, with the spot label. */
-  readonly parking: readonly { date: DateOnly; parkingSpotLabel: string }[];
+  readonly parking: readonly {
+    date: DateOnly;
+    reservationId: string;
+    parkingSpotLabel: string;
+  }[];
   /** `reservation.myMonth`'s `waitlist`; a queue place is not parking. */
   readonly waitlist: readonly { date: DateOnly; parkingSpotLabel: string; position: number }[];
   readonly reservations: readonly MyDeskReservation[];
@@ -144,7 +148,11 @@ export function buildReservationsCalendar(
     const events: CalendarEvent[] = [];
     for (const entry of sources.parking) {
       if (entry.date === date) {
-        events.push({ kind: 'parking', label: entry.parkingSpotLabel });
+        events.push({
+          kind: 'parking',
+          label: entry.parkingSpotLabel,
+          reservationId: entry.reservationId,
+        });
       }
     }
     for (const entry of sources.waitlist) {
@@ -158,7 +166,7 @@ export function buildReservationsCalendar(
     }
     const desks = sources.reservations.filter((reservation) => reservation.date === date);
     for (const reservation of desks) {
-      events.push({ kind: 'desk', code: reservation.deskCode });
+      events.push({ kind: 'desk', code: reservation.deskCode, reservation });
     }
     let hasDesk = desks.length > 0;
     if (sources.permanent !== null && isFuture && isBusinessDay(date)) {

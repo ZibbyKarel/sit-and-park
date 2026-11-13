@@ -55,7 +55,7 @@ describe('shiftMonth', () => {
 });
 
 describe('buildReservationsCalendar', () => {
-  const park = (dates: string[]) => dates.map((date) => ({ date, parkingSpotLabel: 'A1' }));
+  const park = (dates: string[]) => dates.map((date) => ({ date, reservationId: `res-${date}`, parkingSpotLabel: 'A1' }));
   const permanent: MyDeskReleasesOutput = {
     deskId: 'desk-9',
     code: 'P-09',
@@ -103,8 +103,8 @@ describe('buildReservationsCalendar', () => {
       requests: [request('2026-09-18', 'PENDING'), request('2026-09-18', 'REJECTED')],
     });
     expect(byDate.get('2026-09-16')?.events).toEqual([
-      { kind: 'parking', label: 'A1' },
-      { kind: 'desk', code: 'A-01' },
+      { kind: 'parking', label: 'A1', reservationId: 'res-2026-09-16' },
+      { kind: 'desk', code: 'A-01', reservation: reservation('r1', '2026-09-16') },
     ]);
     expect(byDate.get('2026-09-18')?.events).toEqual([
       { kind: 'request', code: 'H-07', status: 'PENDING' },
