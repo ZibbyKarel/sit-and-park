@@ -12,25 +12,38 @@
  * An event's type is carried by its icon's accessible name (and colour,
  * `data-type`); the visible text is the place id plus any status. Only the
  * warning icon is decorative.
- * Cancelling stays in the list view.
+ * A parking or desk event (today or later; any day for an admin) opens a detail
+ * dialog with cancel and, for a desk, a link to it on the floor plan.
  */
 
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import NextLink from 'next/link';
 import { useRequireAuth } from '@sit-and-park/auth/client';
-import { todayInPrague, toYearMonth, useDateFormatters, useTranslations } from '@sit-and-park/i18n';
+import {
+  compareDateOnly,
+  todayInPrague,
+  toYearMonth,
+  useDateFormatters,
+  useTranslations,
+} from '@sit-and-park/i18n';
 import type { DateOnly } from '@sit-and-park/i18n';
 import { Button, Stack, Strong, Text } from '@shoptet/ui';
 import { useApi } from '../../shell/api-provider/api-provider';
 import { ScreenDataGuard } from '../../shell/screen-state/screen-state';
 import type { ScreenData } from '../../shell/screen-state/screen-state';
+import { useCurrentUser } from '../../shell/use-current-user';
+import { deskOnPlanHref } from '../../routes';
+import { ConfirmDialog } from '../../ui/confirm-dialog/confirm-dialog';
 import { CarIcon, DeskIcon, WarningIcon } from '../../ui/icons/icons';
 import {
   buildReservationsCalendar,
   shiftMonth,
   type CalendarDay,
+  reservationDetail,
   type CalendarEvent,
 } from './my-reservations-view';
+import { useCancelReservations } from './use-cancel-reservations';
 import styles from './my-reservations.module.css';
 
 const WEEKDAY_KEYS = [
@@ -56,6 +69,21 @@ function eventType(event: CalendarEvent): 'parking' | 'desk' {
   }
 }
 
+type ClickableEvent = Extract<CalendarEvent, { kind: 'parking' | 'desk' }>;
+
+/** Only events `reservation.cancel` / `desk.cancel` can cancel, and not the past unless admin. */
+function isClickable(
+  event: CalendarEvent,
+  date: DateOnly,
+  today: DateOnly,
+  isAdmin: boolean
+): event is ClickableEvent {
+  return (
+    (event.kind === 'parking' || event.kind === 'desk') &&
+    (compareDateOnly(date, today) >= 0 || isAdmin)
+  );
+}
+
 export function ReservationsCalendar() {
   const t = useTranslations('myReservations');
   const kinds = useTranslations('myDesks');
@@ -66,6 +94,10 @@ export function ReservationsCalendar() {
   const { status } = useRequireAuth();
   const enabled = status === 'authenticated';
   const today = todayInPrague();
+  const isAdmin = useCurrentUser().data?.role === 'ADMIN';
+  // Held here, not in the dialog: the toast lives in the hook and must outlive the dialog.
+  const { busy, cancel } = useCancelReservations();
+  const [open, setOpen] = useState<{ event: ClickableEvent; date: DateOnly } | null>(null);
   const [anchor, setAnchor] = useState<DateOnly>(() => shiftMonth(today, 0));
 
   const month = useQuery({
@@ -105,6 +137,19 @@ export function ReservationsCalendar() {
     }
   }
 
+  function eventContent(event: CalendarEvent) {
+    return (
+      <>
+        {eventType(event) === 'parking' ? (
+          <CarIcon label={kinds('kindParking')} />
+        ) : (
+          <DeskIcon label={kinds('kindDesk')} />
+        )}
+        <span>{eventLabel(event)}</span>
+      </>
+    );
+  }
+
   function renderEvents(day: CalendarDay) {
     return (
       <ul className={styles.events}>
@@ -115,12 +160,17 @@ export function ReservationsCalendar() {
             data-kind={event.kind}
             data-type={eventType(event)}
           >
-            {eventType(event) === 'parking' ? (
-              <CarIcon label={kinds('kindParking')} />
+            {isClickable(event, day.date, today, isAdmin) ? (
+              <button
+                type="button"
+                className={styles.eventButton}
+                onClick={() => setOpen({ event, date: day.date })}
+              >
+                {eventContent(event)}
+              </button>
             ) : (
-              <DeskIcon label={kinds('kindDesk')} />
+              eventContent(event)
             )}
-            <span>{eventLabel(event)}</span>
           </li>
         ))}
         {day.parkingWithoutDesk ? (
@@ -242,6 +292,49 @@ export function ReservationsCalendar() {
                   </ul>
                 )}
               </div>
+              <ConfirmDialog
+                open={open !== null}
+                loading={busy}
+                title={
+                  open === null
+                    ? ''
+                    : t('detailTitle', {
+                        code: open.event.kind === 'desk' ? open.event.code : open.event.label,
+                      })
+                }
+                description={
+                  open === null
+                    ? undefined
+                    : open.event.kind === 'desk'
+                      ? kinds('reservationDetail', {
+                          date: f.fullDate(open.date),
+                          detail: reservationDetail(open.event.reservation),
+                        })
+                      : f.fullDate(open.date)
+                }
+                confirmLabel={kinds('cancelDialogConfirm')}
+                cancelLabel={t('detailClose')}
+                onCancel={() => setOpen(null)}
+                onConfirm={() => {
+                  if (open === null) {
+                    return;
+                  }
+                  const { event } = open;
+                  const id = event.kind === 'desk' ? event.reservation.id : event.reservationId;
+                  void cancel([
+                    { kind: event.kind, key: `${event.kind}:${id}`, reservationId: id },
+                  ]).then(() => setOpen(null));
+                }}
+              >
+                {open?.event.kind === 'desk' ? (
+                  <NextLink
+                    href={deskOnPlanHref(open.event.reservation.deskId, open.date)}
+                    className={styles.link}
+                  >
+                    {t('showOnPlan')}
+                  </NextLink>
+                ) : undefined}
+              </ConfirmDialog>
               <Text appearance="sm" variant="tertiary">
                 {t('calendarHint')}
               </Text>

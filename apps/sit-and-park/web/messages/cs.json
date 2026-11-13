@@ -419,7 +419,10 @@
     "requestREJECTED": "zamítnuto",
     "warningNoDesk": "Parkování bez stolu",
     "calendarPartialError": "Žádosti o stůl nebo uvolněné dny se nepodařilo načíst, kalendář může být neúplný.",
-    "calendarHint": "Rezervace zrušíte v zobrazení Seznam."
+    "calendarHint": "Kliknutím na rezervaci zobrazíte detail a můžete ji zrušit.",
+    "detailTitle": "Rezervace {code}",
+    "detailClose": "Zavřít",
+    "showOnPlan": "Zobrazit na plánku"
   },
   "myDesks": {
     "emptyAll": "Zatím nemáte žádnou rezervaci stolu ani parkování.",

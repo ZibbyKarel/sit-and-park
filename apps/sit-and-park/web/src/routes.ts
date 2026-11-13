@@ -17,11 +17,21 @@
  * `doc/decision/0029-*` and this does not disturb it.
  */
 
+import type { DateOnly } from '@sit-and-park/i18n';
+
 /** The parking overview — the application's home screen (Task 24). */
 export const LOT_ROUTE = '/';
 
 /** Desk booking for one day: floor plan, list, booking dialog. */
 export const DESKS_ROUTE = '/desks';
+
+/** The search param `/desks` reads to highlight one desk on the plan. */
+export const DESK_PARAM = 'desk';
+
+/** `/desks?date=<date>&desk=<deskId>` — the desks page on `date` with `deskId` highlighted. */
+export function deskOnPlanHref(deskId: string, date: DateOnly): string {
+  return `${DESKS_ROUTE}?${new URLSearchParams({ date, [DESK_PARAM]: deskId }).toString()}`;
+}
 
 /** The signed-out screen with the single Okta button. */
 export const LOGIN_ROUTE = '/login';

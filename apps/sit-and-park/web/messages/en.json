@@ -419,7 +419,10 @@
     "requestREJECTED": "rejected",
     "warningNoDesk": "Parking without a desk",
     "calendarPartialError": "Desk requests or released days could not be loaded, so the calendar may be incomplete.",
-    "calendarHint": "Cancel reservations in the List view."
+    "calendarHint": "Click a reservation to see its details or cancel it.",
+    "detailTitle": "Reservation {code}",
+    "detailClose": "Close",
+    "showOnPlan": "Show on floor plan"
   },
   "myDesks": {
     "emptyAll": "You have no desk or parking reservations yet.",

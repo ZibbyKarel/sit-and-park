@@ -497,6 +497,87 @@ describe('MyReservationsScreen calendar', () => {
     expect(item(/^eventRequest/)).toHaveAttribute('data-type', 'desk');
   });
 
+  async function openEvent(name: string, partial: Parameters<typeof setup>[0]) {
+    const { api, user } = await setup(partial, 'calendar');
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    await user.click(within(grid).getByRole('button', { name }));
+    return { api, user, grid, dialog: await screen.findByRole('dialog') };
+  }
+
+  it("opens a desk reservation's detail from the calendar and links to it on the plan", async () => {
+    const { dialog } = await openEvent('kindDesk A-01', {
+      reservations: [reservation('r1', '2026-09-16')],
+    });
+    expect(within(dialog).getByText('detailTitle: code=A-01')).toBeInTheDocument();
+    expect(within(dialog).getByRole('link', { name: 'showOnPlan' })).toHaveAttribute(
+      'href',
+      '/desks?date=2026-09-16&desk=desk-A-01'
+    );
+    expect(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' })).toBeInTheDocument();
+  });
+
+  it('cancels a desk reservation from the detail dialog', async () => {
+    const { api, user, dialog } = await openEvent('kindDesk A-01', {
+      reservations: [reservation('r1', '2026-09-16')],
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' }));
+    expect(await screen.findByText('cancelledOne')).toBeInTheDocument();
+    const call = api.requests[paths(api).indexOf('desk/cancel')];
+    expect(await call?.json()).toEqual({ json: { reservationId: 'r1' } });
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+  });
+
+  it('cancels a parking day from the detail dialog, without a plan link', async () => {
+    const { api, user, dialog } = await openEvent('kindParking A1', {
+      parkingDates: ['2026-09-16'],
+    });
+    expect(within(dialog).getByText('detailTitle: code=A1')).toBeInTheDocument();
+    expect(within(dialog).queryByRole('link', { name: 'showOnPlan' })).not.toBeInTheDocument();
+    await user.click(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' }));
+    expect(await screen.findByText('cancelledOne')).toBeInTheDocument();
+    const call = api.requests[paths(api).indexOf('reservation/cancel')];
+    expect(await call?.json()).toEqual({ json: { reservationId: 'res-2026-09-16' } });
+  });
+
+  it('reports a failed cancel and keeps the event', async () => {
+    const { user, grid, dialog } = await openEvent('kindDesk A-01', {
+      reservations: [reservation('r1', '2026-09-16')],
+      override: { 'desk/cancel': () => contractErrorResponse('PAST_DATE') },
+    });
+    await user.click(within(dialog).getByRole('button', { name: 'cancelDialogConfirm' }));
+    expect(await screen.findByText('errCancelPast')).toBeInTheDocument();
+    await waitFor(() => expect(screen.queryByRole('dialog')).not.toBeInTheDocument());
+    expect(within(grid).getByText('A-01')).toBeInTheDocument();
+  });
+
+  it('keeps other event kinds and past days for a non-admin as plain text', async () => {
+    await setup(
+      {
+        waitlist: [{ date: '2026-09-17', parkingSpotLabel: 'B2', position: 2 }],
+        requests: [request],
+        releases: {
+          deskId: 'desk-9',
+          code: 'P-09',
+          releases: [{ id: 'rel-free', date: '2026-09-21', reservedByName: null }],
+        },
+        reservations: [reservation('r0', '2026-09-14')],
+      },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    await within(grid).findByText('A-01');
+    expect(within(grid).queryAllByRole('button')).toHaveLength(0);
+  });
+
+  it('lets an admin open a past reservation', async () => {
+    await setup(
+      { me: profile({ role: 'ADMIN' }), reservations: [reservation('r0', '2026-09-14')] },
+      'calendar'
+    );
+    const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
+    expect(await within(grid).findByRole('button', { name: 'kindDesk A-01' })).toBeInTheDocument();
+  });
+
   it('shows a waitlist entry as text and does not warn about it', async () => {
     await setup(
       { waitlist: [{ date: '2026-09-17', parkingSpotLabel: 'B2', position: 2 }] },
