@@ -21,26 +21,62 @@ import type {
   MyDeskReleasesOutput,
   MyDeskRequest,
   MyDeskReservation,
+  MyParkingReservation,
 } from '@sit-and-park/contract';
 import { buildCalendarGrid } from '../../lot/calendar-grid';
 
-export interface SplitReservations {
-  /** Today and later, ascending. */
-  readonly upcoming: readonly MyDeskReservation[];
-  /** Before today, newest first. */
-  readonly history: readonly MyDeskReservation[];
+export type MyListEntry =
+  | {
+      readonly kind: 'parking';
+      readonly key: string;
+      readonly date: DateOnly;
+      readonly reservation: MyParkingReservation;
+    }
+  | {
+      readonly kind: 'desk';
+      readonly key: string;
+      readonly date: DateOnly;
+      readonly reservation: MyDeskReservation;
+    };
+
+/** One list from both kinds; `key` is `kind:id` because the two id spaces may collide. Parking first. */
+export function mergeMyReservations(
+  parking: readonly MyParkingReservation[],
+  desks: readonly MyDeskReservation[]
+): MyListEntry[] {
+  return [
+    ...parking.map((reservation) => ({
+      kind: 'parking' as const,
+      key: `parking:${reservation.id}`,
+      date: reservation.date,
+      reservation,
+    })),
+    ...desks.map((reservation) => ({
+      kind: 'desk' as const,
+      key: `desk:${reservation.id}`,
+      date: reservation.date,
+      reservation,
+    })),
+  ];
 }
 
-/** Today counts as upcoming: the holder can still cancel it. */
-export function splitReservations(
-  reservations: readonly MyDeskReservation[],
+export interface SplitReservations<T> {
+  /** Today and later, ascending. */
+  readonly upcoming: readonly T[];
+  /** Before today, newest first. */
+  readonly history: readonly T[];
+}
+
+/** Today counts as upcoming: the holder can still cancel it. Stable sort keeps same-day input order. */
+export function splitReservations<T extends { readonly date: DateOnly }>(
+  items: readonly T[],
   today: DateOnly
-): SplitReservations {
-  const upcoming = reservations
-    .filter((reservation) => compareDateOnly(reservation.date, today) >= 0)
+): SplitReservations<T> {
+  const upcoming = items
+    .filter((item) => compareDateOnly(item.date, today) >= 0)
     .sort((a, b) => compareDateOnly(a.date, b.date));
-  const history = reservations
-    .filter((reservation) => compareDateOnly(reservation.date, today) < 0)
+  const history = items
+    .filter((item) => compareDateOnly(item.date, today) < 0)
     .sort((a, b) => compareDateOnly(b.date, a.date));
   return { upcoming, history };
 }

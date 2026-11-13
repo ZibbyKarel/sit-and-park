@@ -3,9 +3,11 @@ import type {
   MyDeskReleasesOutput,
   MyDeskRequest,
   MyDeskReservation,
+  MyParkingReservation,
 } from '@sit-and-park/contract';
 import {
   buildReservationsCalendar,
+  mergeMyReservations,
   releaseRange,
   shiftMonth,
   splitReservations,
@@ -199,5 +201,39 @@ describe('releaseRange', () => {
     const exact = releaseRange(TODAY, last, TODAY);
     expect(exact.dates).toHaveLength(60);
     expect(exact.truncated).toBe(false);
+  });
+});
+
+function parkingReservation(id: string, date: string): MyParkingReservation {
+  return {
+    id,
+    parkingSpotId: 'spot-1',
+    userId: 'user-1',
+    date,
+    status: 'CONFIRMED',
+    createdAt: '2026-09-01T08:00:00.000Z',
+    parkingSpotLabel: 'P1',
+  } as unknown as MyParkingReservation;
+}
+
+describe('mergeMyReservations', () => {
+  it('keys entries by kind and id so equal ids of the two kinds do not collide', () => {
+    const merged = mergeMyReservations([parkingReservation('x', TODAY)], [reservation('x', TODAY)]);
+    expect(merged.map((e) => e.key)).toEqual(['parking:x', 'desk:x']);
+  });
+
+  it('puts parking before the desk on the same day after splitting', () => {
+    const parking = [
+      parkingReservation('p16', '2026-09-16'),
+      parkingReservation('p12', '2026-09-12'),
+    ];
+    const desks = [
+      reservation('d16', '2026-09-16'),
+      reservation('d15', '2026-09-15'),
+      reservation('d10', '2026-09-10'),
+    ];
+    const { upcoming, history } = splitReservations(mergeMyReservations(parking, desks), TODAY);
+    expect(upcoming.map((e) => e.key)).toEqual(['desk:d15', 'parking:p16', 'desk:d16']);
+    expect(history.map((e) => e.key)).toEqual(['parking:p12', 'desk:d10']);
   });
 });
