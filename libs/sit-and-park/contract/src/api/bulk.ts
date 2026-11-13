@@ -71,6 +71,39 @@ export const bulkBookingInputSchema = bulkBookingShapeSchema
   });
 export type BulkBookingInput = z.infer<typeof bulkBookingInputSchema>;
 
+/** An admin's override of the proposed spot for one day of a confirm. */
+export const bulkSpotChoiceSchema = z.object({
+  date: dateOnlySchema,
+  parkingSpotId: idSchema,
+});
+
+/**
+ * `confirmBulk` input: the preview's input plus optional per-day spot choices.
+ * Choices are structural-checked here (unique dates, each date requested);
+ * whether the caller may choose and whether the spot is free is service logic.
+ */
+export const confirmBulkInputSchema = bulkBookingShapeSchema
+  .extend({ spotChoices: z.array(bulkSpotChoiceSchema).max(MAX_BULK_BOOKING_DAYS).optional() })
+  .refine((value) => new Set(value.dates).size === value.dates.length, {
+    error: 'dates must not contain duplicates',
+    path: ['dates'],
+  })
+  .refine((value) => new Set(value.dates.map((date) => date.slice(0, 7))).size === 1, {
+    error: 'dates must all fall in the same calendar month',
+    path: ['dates'],
+  })
+  .refine(
+    (value) =>
+      new Set((value.spotChoices ?? []).map((choice) => choice.date)).size ===
+      (value.spotChoices ?? []).length,
+    { error: 'spotChoices must not contain duplicate dates', path: ['spotChoices'] }
+  )
+  .refine(
+    (value) => (value.spotChoices ?? []).every((choice) => value.dates.includes(choice.date)),
+    { error: 'spotChoices dates must be among dates', path: ['spotChoices'] }
+  );
+export type ConfirmBulkInput = z.infer<typeof confirmBulkInputSchema>;
+
 /** A day the allocator can give a free spot. */
 export const bulkDayAssignedPlanSchema = z.object({
   outcome: z.literal('SPOT_ASSIGNED'),
@@ -132,6 +165,12 @@ export const bulkBookingSummarySchema = z.object({
 });
 export type BulkBookingSummary = z.infer<typeof bulkBookingSummarySchema>;
 
+/** Spots the holder could be assigned on one requested day, in allocator order. */
+export const bulkFreeSpotsSchema = z.object({
+  date: dateOnlySchema,
+  spots: z.array(z.object({ id: idSchema, label: z.string().min(1) })),
+});
+
 export const previewBulkOutputSchema = z.object({
   /** The single month the request covers; enforced by the input refinement. */
   month: yearMonthSchema,
@@ -142,6 +181,11 @@ export const previewBulkOutputSchema = z.object({
   preferredParkingSpotId: idSchema.nullable(),
   /** One entry per requested day, in the order the days were requested. */
   days: z.array(bulkDayPlanSchema),
+  /**
+   * Per requested business day the holder could be assigned on, the free spots
+   * (IT before SHARED, then label) — the choices an admin may override with.
+   */
+  freeSpots: z.array(bulkFreeSpotsSchema),
   summary: bulkBookingSummarySchema,
 });
 export type PreviewBulkOutput = z.infer<typeof previewBulkOutputSchema>;
@@ -181,11 +225,13 @@ export const previewBulkContract = authed
  * Perform the booking. One transaction; days somebody took in the meantime fall
  * into the queue and are reported, not discarded.
  *
- * Same input as `previewBulk` by design — the server does not trust, and does
- * not receive, the plan the client is holding.
+ * Same days as `previewBulk`, plus optional admin `spotChoices` — the server
+ * does not trust, and does not receive, the plan the client is holding; it
+ * re-validates each choice. See
+ * `doc/decision/0333-admin-may-change-the-proposed-parking-spot.md`.
  */
 export const confirmBulkContract = authed
-  .input(bulkBookingInputSchema)
+  .input(confirmBulkInputSchema)
   .output(confirmBulkOutputSchema)
   .errors(
     contractErrors(

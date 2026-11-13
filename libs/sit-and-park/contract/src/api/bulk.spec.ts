@@ -3,6 +3,7 @@ import {
   bulkBookingInputSchema,
   bulkDayPlanSchema,
   bulkDayResultSchema,
+  confirmBulkInputSchema,
   confirmBulkOutputSchema,
   previewBulkOutputSchema,
 } from './bulk';
@@ -228,6 +229,7 @@ describe('previewBulkOutputSchema / confirmBulkOutputSchema', () => {
         month: '2026-09',
         preferredParkingSpotId: UUID_B,
         days: [planDay],
+        freeSpots: [],
         summary,
       }).success
     ).toBe(true);
@@ -255,12 +257,24 @@ describe('previewBulkOutputSchema / confirmBulkOutputSchema', () => {
     ).toBe(true);
   });
 
+  it('rejects a proposal missing freeSpots', () => {
+    expect(
+      previewBulkOutputSchema.safeParse({
+        month: '2026-09',
+        preferredParkingSpotId: UUID_B,
+        days: [planDay],
+        summary,
+      }).success
+    ).toBe(false);
+  });
+
   it('accepts a user with no preferred spot', () => {
     expect(
       previewBulkOutputSchema.safeParse({
         month: '2026-09',
         preferredParkingSpotId: null,
         days: [{ ...planDay, isPreferredSpot: false }],
+        freeSpots: [],
         summary: { ...summary, preferredSpotHits: 0 },
       }).success
     ).toBe(true);
@@ -272,6 +286,7 @@ describe('previewBulkOutputSchema / confirmBulkOutputSchema', () => {
         month: '2026-13',
         preferredParkingSpotId: null,
         days: [planDay],
+        freeSpots: [],
         summary,
       }).success
     ).toBe(false);
@@ -280,6 +295,7 @@ describe('previewBulkOutputSchema / confirmBulkOutputSchema', () => {
         month: '2026-09',
         preferredParkingSpotId: null,
         days: [planDay],
+        freeSpots: [],
         summary: { ...summary, queued: -1 },
       }).success
     ).toBe(false);
@@ -294,5 +310,49 @@ describe('previewBulkOutputSchema / confirmBulkOutputSchema', () => {
         summary,
       }).success
     ).toBe(false);
+  });
+});
+
+describe('confirmBulkInputSchema', () => {
+  const dates = ['2026-12-01', '2026-12-02'];
+
+  it('accepts spot choices for requested days', () => {
+    expect(
+      confirmBulkInputSchema.safeParse({
+        dates,
+        spotChoices: [{ date: '2026-12-02', parkingSpotId: UUID_B }],
+      }).success
+    ).toBe(true);
+  });
+
+  it('accepts input without spotChoices', () => {
+    expect(confirmBulkInputSchema.safeParse({ dates }).success).toBe(true);
+  });
+
+  it('rejects a choice for a day not in dates', () => {
+    expect(
+      confirmBulkInputSchema.safeParse({
+        dates,
+        spotChoices: [{ date: '2026-12-03', parkingSpotId: UUID_B }],
+      }).success
+    ).toBe(false);
+  });
+
+  it('rejects two choices for the same day', () => {
+    expect(
+      confirmBulkInputSchema.safeParse({
+        dates,
+        spotChoices: [
+          { date: '2026-12-02', parkingSpotId: UUID_B },
+          { date: '2026-12-02', parkingSpotId: UUID_B },
+        ],
+      }).success
+    ).toBe(false);
+  });
+
+  it('keeps the dates refinements', () => {
+    expect(confirmBulkInputSchema.safeParse({ dates: ['2026-12-01', '2027-01-01'] }).success).toBe(
+      false
+    );
   });
 });
