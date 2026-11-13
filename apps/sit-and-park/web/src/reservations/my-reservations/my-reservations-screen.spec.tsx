@@ -566,6 +566,9 @@ describe('MyReservationsScreen calendar', () => {
     );
     const grid = await screen.findByRole('grid', { name: 'calendarLabel' });
     await within(grid).findByText('A-01');
+    await within(grid).findByText('eventWaitlist: label=B2,position=2');
+    await within(grid).findByText('eventRequest: code=H-07,status=requestPENDING');
+    await within(grid).findByText('eventReleased: code=P-09');
     expect(within(grid).queryAllByRole('button')).toHaveLength(0);
   });
 
