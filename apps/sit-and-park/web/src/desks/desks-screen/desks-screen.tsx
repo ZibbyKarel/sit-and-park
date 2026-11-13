@@ -9,6 +9,7 @@
 
 import { useCallback, useMemo, useState } from 'react';
 import NextLink from 'next/link';
+import { useSearchParams } from 'next/navigation';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { Button, CheckboxField, SystemMessage, Tabs } from '@shoptet/ui';
 import { SingleSelectField } from '../../ui/client-select/client-select';
@@ -33,7 +34,7 @@ import { FloorPlan } from '../../ui/floor-plan/floor-plan';
 import { DataTable, type DataTableColumn } from '../../ui/data-table/data-table';
 import { Chip } from '../../ui/chip/chip';
 import { VisuallyHidden } from '../../ui/visually-hidden/visually-hidden';
-import { MY_RESERVATIONS_ROUTE } from '../../routes';
+import { DESK_PARAM, MY_RESERVATIONS_ROUTE } from '../../routes';
 import { DeskDialog } from '../desk-dialog/desk-dialog';
 import { DeskBulkModal } from '../desk-bulk-modal/desk-bulk-modal';
 import { useErrorCopy } from '../desk-dialog/use-error-copy';
@@ -79,6 +80,8 @@ export function DesksScreen() {
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [filter, setFilter] = useState<DeskFilter>(EMPTY_DESK_FILTER);
   const [openDeskId, setOpenDeskId] = useState<string | null>(null);
+  // From the calendar's "show on plan": highlighted and focused, not opened.
+  const focusDeskId = useSearchParams().get(DESK_PARAM);
   const [view, setView] = useState<View>('plan');
   const [bulkOpen, setBulkOpen] = useState(false);
   // Admin only: desks ticked for bulk booking (Ctrl/Cmd-click or the list checkbox).
@@ -123,8 +126,14 @@ export function DesksScreen() {
     [pool, desks]
   );
   const selectedIds = useMemo(
-    () => (openDeskId === null ? poolIds : [...poolIds, openDeskId]),
-    [openDeskId, poolIds]
+    () => [
+      ...new Set([
+        ...poolIds,
+        ...(openDeskId === null ? [] : [openDeskId]),
+        ...(focusDeskId === null ? [] : [focusDeskId]),
+      ]),
+    ],
+    [openDeskId, focusDeskId, poolIds]
   );
   const togglePool = useCallback((id: string) => {
     setPool((current) =>
@@ -397,6 +406,7 @@ export function DesksScreen() {
                         shapes={shapes}
                         tones={DESK_TONES}
                         selectedIds={selectedIds}
+                        focusId={focusDeskId ?? undefined}
                         onShapeActivate={(id, { multi }) =>
                           isAdmin && multi ? togglePool(id) : setOpenDeskId(id)
                         }

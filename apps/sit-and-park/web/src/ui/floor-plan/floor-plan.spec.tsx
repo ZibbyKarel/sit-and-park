@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react';
+import { act, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { FloorPlan, type FloorPlanShape } from './floor-plan';
@@ -54,6 +54,31 @@ function setup(props: Partial<React.ComponentProps<typeof FloorPlan>> = {}) {
 }
 
 describe('FloorPlan', () => {
+  it('focuses the shape named by focusId once', () => {
+    const { rerender } = setup({ focusId: 'b' });
+    const b = screen.getByRole('button', { name: 'Shape 2, taken' });
+    expect(b).toHaveFocus();
+
+    act(() => screen.getByRole('button', { name: 'Shape 1, free' }).focus());
+    rerender(
+      <FloorPlan
+        backgroundSrc="/plan.svg"
+        width={1000}
+        height={300}
+        shapes={shapes.map((s) => ({ ...s }))}
+        tones={{ free: 'green', taken: 'red' }}
+        focusId="b"
+        labels={labels}
+      />
+    );
+    expect(b).not.toHaveFocus();
+  });
+
+  it('ignores a focusId that is not drawn', () => {
+    setup({ focusId: 'zzz' });
+    expect(document.body).toHaveFocus();
+  });
+
   it('renders shapes with accessible names and the background as an image', () => {
     const { container } = setup();
 

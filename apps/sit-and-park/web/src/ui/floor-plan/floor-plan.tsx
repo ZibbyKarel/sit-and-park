@@ -55,6 +55,11 @@ export interface FloorPlanProps {
   selectedIds?: ReadonlySet<string> | readonly string[] | undefined;
   /** Click, Enter or Space on an enabled shape; `multi` = Ctrl or Cmd held. */
   onShapeActivate?: ((id: string, modifiers: { multi: boolean }) => void) | undefined;
+  /**
+   * Focus this shape (which scrolls it into view) the first time it is drawn; once per id, so
+   * re-renders and refetches never pull focus back. Only compared with shape ids.
+   */
+  focusId?: string | undefined;
   /** Already translated by the caller. */
   labels: {
     zoomIn: string;
@@ -94,6 +99,7 @@ const ShapeLayer = memo(function ShapeLayer({
           role="button"
           tabIndex={s.disabled ? -1 : 0}
           aria-label={s.ariaLabel}
+          data-shape-id={s.id}
           aria-pressed={selected.has(s.id)}
           aria-disabled={s.disabled || undefined}
           data-outlined={s.outlineColor ? '' : undefined}
@@ -139,6 +145,7 @@ export function FloorPlan({
   tones,
   selectedIds,
   onShapeActivate,
+  focusId,
   labels,
 }: FloorPlanProps) {
   const [view, setView] = useState<View>(IDENTITY_VIEW);
@@ -151,6 +158,18 @@ export function FloorPlan({
   const moved = useRef(false);
 
   const selected = useMemo(() => new Set(selectedIds ?? []), [selectedIds]);
+
+  const focused = useRef<string | null>(null);
+  useEffect(() => {
+    if (!focusId || focused.current === focusId) return;
+    // Equality against the attribute, never a selector built from `focusId`.
+    const el = Array.from(
+      svgRef.current?.querySelectorAll<SVGGElement>('[data-shape-id]') ?? []
+    ).find((g) => g.dataset['shapeId'] === focusId);
+    if (!el) return;
+    el.focus();
+    focused.current = focusId;
+  }, [focusId, shapes]);
 
   const callback = useRef(onShapeActivate);
   useEffect(() => {
