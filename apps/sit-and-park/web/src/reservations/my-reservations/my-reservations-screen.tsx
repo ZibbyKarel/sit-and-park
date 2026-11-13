@@ -1,12 +1,13 @@
 'use client';
 
 /**
- * `/reservations` — "Moje rezervace": a month calendar of the caller's parking,
- * waitlist places, desk reservations, desk requests, the permanent desk and its
- * released days, and (tab "Seznam") the lists behind it:
- * parking and desk reservations as one list with cancel, permanent-desk releases, approval requests
- * and, for hive owners and admins, the inbox. Each section loads and fails on
- * its own, so one broken query leaves the others usable.
+ * `/reservations` — "Moje rezervace": the caller's own reservations, shown either
+ * as a month calendar (parking, waitlist places, desk reservations, desk requests,
+ * the permanent desk and its released days) or, in tab "Seznam", as one list of
+ * parking and desk reservations with cancel. The toggle swaps only that part;
+ * below it always sit the permanent-desk releases, approval requests and, for hive
+ * owners and admins, the inbox. Each section loads and fails on its own, so one
+ * broken query leaves the others usable.
  */
 
 import { useState } from 'react';
@@ -40,16 +41,10 @@ export function MyReservationsScreen() {
           onChange={(value) => setView(value as View)}
         />
       </div>
-      {view === 'calendar' ? (
-        <ReservationsCalendar />
-      ) : (
-        <>
-          <ReservationsSection />
-          <ReleaseSection />
-          <MyRequestsSection />
-          <InboxSection />
-        </>
-      )}
+      {view === 'calendar' ? <ReservationsCalendar /> : <ReservationsSection />}
+      <ReleaseSection />
+      <MyRequestsSection />
+      <InboxSection />
     </Stack>
   );
 }
