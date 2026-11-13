@@ -44,7 +44,7 @@ export interface CalendarTableProps {
     readonly isAdmin: boolean;
     readonly freeSpots: PreviewBulkOutput['freeSpots'];
     /** Date → chosen spot id, for days the admin changed. */
-    readonly choices: Readonly<Record<string, string>>;
+    readonly choices: Readonly<Record<DateOnly, string>>;
     readonly onChoose: (date: DateOnly, parkingSpotId: string) => void;
   };
 }
@@ -94,8 +94,10 @@ function SpotSelect({
   if (day === undefined || day.outcome === 'UNAVAILABLE') {
     return null;
   }
-  // The proposed spot is not in `freeSpots` (the allocator already took it),
-  // so it is added back to keep the select's current value selectable.
+  // For assigned days the proposed spot is already in `freeSpots` (the
+  // allocator lists free spots before allocating); for queued days it is not.
+  // Putting it first and filtering it out of the rest covers both without a
+  // duplicate option.
   const options = [
     { id: day.parkingSpotId, label: day.parkingSpotLabel },
     ...(picker.freeSpots.find((entry) => entry.date === row.date)?.spots ?? []).filter(

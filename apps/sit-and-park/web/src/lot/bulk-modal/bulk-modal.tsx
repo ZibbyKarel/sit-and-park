@@ -160,7 +160,7 @@ function BulkReservationModalContent({
   const [result, setResult] = useState<ConfirmBulkOutput | null>(null);
   const [failure, setFailure] = useState<unknown>(null);
   // Admin's per-day spot overrides on step 2, date → parkingSpotId.
-  const [spotChoices, setSpotChoices] = useState<Readonly<Record<string, string>>>({});
+  const [spotChoices, setSpotChoices] = useState<Readonly<Record<DateOnly, string>>>({});
 
   // No reset effect here on purpose — the wrapper above keys this component on
   // `open` and the month, so every opening is a fresh mount and the four

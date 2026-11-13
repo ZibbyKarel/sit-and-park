@@ -940,13 +940,24 @@ describe('BulkReservationModal — the admin holder selector', () => {
 });
 
 describe('BulkReservationModal — step 2, the proposed schedule', () => {
-  const FREE = [{ date: '2026-09-02', spots: [{ id: 'spot-free', label: 'E2.99' }] }];
+  const FREE = [
+    {
+      date: '2026-09-02',
+      spots: [
+        { id: 'spot-other', label: 'E2.93' },
+        { id: 'spot-free', label: 'E2.99' },
+      ],
+    },
+  ];
   const SPOT_LABEL = /spotSelectLabel: date=.*2\. září/;
 
   it('ADMIN: a changed spot is sent as a spotChoice, only for that day', async () => {
     const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
     await reachSchedule(user);
-    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByLabelText(SPOT_LABEL));
+    const listbox = await screen.findByRole('listbox');
+    expect(within(listbox).getAllByRole('option', { name: 'E2.93' })).toHaveLength(1);
+    await user.click(within(listbox).getByRole('option', { name: 'E2.99' }));
     await user.click(screen.getByRole('button', { name: 'ctaConfirm' }));
     await waitFor(() =>
       expect(apiMocks.confirmBulk).toHaveBeenCalledWith(
@@ -957,6 +968,17 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
         expect.anything()
       )
     );
+  });
+
+  it('ADMIN: a choice does not survive Back and a new preview', async () => {
+    const { user } = setup({ isAdmin: true, previewOutput: preview({ freeSpots: FREE }) });
+    await reachSchedule(user);
+    await selectOption(user, SPOT_LABEL, 'E2.99');
+    await user.click(screen.getByRole('button', { name: 'ctaBack' }));
+    await user.click(screen.getByRole('button', { name: 'ctaGenerate: count=2' }));
+    await user.click(await screen.findByRole('button', { name: 'ctaConfirm' }));
+    await waitFor(() => expect(apiMocks.confirmBulk).toHaveBeenCalled());
+    expect(apiMocks.confirmBulk.mock.calls[0][0]).not.toHaveProperty('spotChoices');
   });
 
   it('ADMIN: confirming without changes sends no spotChoices', async () => {
@@ -989,6 +1011,7 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
 
   it('badges a queued day with its position and an impossible day with its reason', async () => {
     const { user } = setup({
+      isAdmin: true,
       previewOutput: preview({
         days: [
           {
@@ -1006,6 +1029,9 @@ describe('BulkReservationModal — step 2, the proposed schedule', () => {
     await reachSchedule(user);
 
     expect(screen.getByText('badgeQueued: position=3')).toBeInTheDocument();
+    await user.click(screen.getByLabelText(/spotSelectLabel: date=.*1\. září/));
+    expect(within(await screen.findByRole('listbox')).getAllByRole('option')).toHaveLength(1);
+    await user.keyboard('{Escape}');
     expect(screen.getByText('badgeAlreadyReserved: position=0')).toBeInTheDocument();
   });
 
