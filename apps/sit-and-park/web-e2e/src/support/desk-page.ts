@@ -86,9 +86,14 @@ export async function cancelMyDesk(page: Page, code: string): Promise<void> {
 /** Opens `/reservations`, switches to the "Seznam" tab and waits for the unified list region. */
 export async function goToMyReservations(page: Page): Promise<void> {
   await page.goto(MY_RESERVATIONS_PATH);
+  // The segmented control draws its label over the visually hidden radio, so
+  // the label is what a user clicks; the assertion confirms the radio took it.
+  const listView = page.getByRole('radio', { name: 'Seznam' });
   await page
-    .getByRole('radio', { name: 'Seznam' })
+    .getByRole('radiogroup', { name: 'Zobrazení' })
+    .getByText('Seznam', { exact: true })
     .click({ timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS });
+  await expect(listView).toBeChecked();
   await expect(page.getByRole('region', { name: MY_RESERVATIONS_LIST })).toBeVisible({
     timeout: FIRST_ROUTE_VISIT_TIMEOUT_MS,
   });
